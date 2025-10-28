@@ -7,6 +7,7 @@
     
     # Common modules
     ../../modules/nixos/common-packages.nix
+    ../../modules/nixos/flatpak.nix
   ];
 
   # Host-specific settings

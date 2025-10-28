@@ -6,9 +6,12 @@
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
+      "https://hydra.nixos.org"
     ];
     trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs="
     ];
   };
 
@@ -84,10 +87,15 @@
     minimal-pve = nixos-generators.nixosGenerate {
       system = "x86_64-linux";
       modules = [
+        {
+          # set disk size to to 20G
+          virtualisation.diskSize = 20 * 1024;
+          system.stateVersion = "25.11";
+        }
         ./modules/nixos/common-packages.nix
-        ./modules/home-manager/common-packages.nix
+        # ./modules/home-manager/common-packages.nix
       ];
-      format = "proxmox";
+      format = "proxmox-lxc";
     };
 
     # Development shell for working with this configuration
