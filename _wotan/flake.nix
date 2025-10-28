@@ -60,6 +60,7 @@
     # NixOS configurations for each host
     nixosConfigurations = {
       wotan = mkHost "wotan" system;
+      rulemesh-o11y = mkHost "rulemesh-o11y" system;
       # Add more hosts here:
       # laptop = mkHost "laptop" system;
       # server = mkHost "server" system;
@@ -68,6 +69,7 @@
     # Home-manager configurations for each user/host
     homeConfigurations = {
       "amadeus@wotan" = mkHome "wotan" system;
+      "amadeus@rulemesh-o11y" = mkHome "rulemesh-o11y" system;
       # Add more user/host combinations here:
       # "amadeus@laptop" = mkHome "laptop" system;
       # "user@server" = mkHome "server" system;
