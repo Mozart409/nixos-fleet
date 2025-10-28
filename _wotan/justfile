@@ -1,0 +1,50 @@
+# https://just.systems
+set dotenv-load
+
+default:
+    just --choose
+
+# Test NixOS configuration for specific host
+test hostname:
+    sudo nixos-rebuild test --flake .#{{hostname}}
+
+# Switch NixOS configuration for specific host
+switch hostname:
+    sudo nixos-rebuild switch --flake .#{{hostname}}
+
+# Test home-manager configuration for specific host
+test-home home-user="amadeus" hostname="wotan":
+    home-manager switch --flake .#{{home-user}}@{{hostname}}
+
+# Switch home-manager configuration for specific host  
+switch-home home-user="amadeus" hostname="wotan":
+    home-manager switch --flake .#{{home-user}}@{{hostname}}
+
+# Test both NixOS and home-manager for specific host
+test-all hostname="wotan" home-user="amadeus":
+    echo "🔍 Testing NixOS configuration for {{hostname}}..."
+    sudo nixos-rebuild test --flake .#{{hostname}}
+    echo ""
+    echo "🔍 Testing home-manager configuration for {{home-user}}@{{hostname}}..."
+    home-manager switch --flake .#{{home-user}}@{{hostname}}
+
+# Switch both NixOS and home-manager for specific host
+switch-all hostname="wotan" home-user="amadeus":
+    echo "🔄 Switching NixOS configuration for {{hostname}}..."
+    sudo nixos-rebuild switch --flake .#{{hostname}}
+    echo ""
+    echo "🔄 Switching home-manager configuration for {{home-user}}@{{hostname}}..."
+    home-manager switch --flake .#{{home-user}}@{{hostname}}
+
+# Build configuration for specific host (dry run)
+build hostname="wotan" home-user="amadeus":
+    nix build .#nixosConfigurations.{{hostname}}.config.system.build.toplevel --dry-run
+    nix build .#homeConfigurations.{{home-user}}@{{hostname}}.activationPackage --dry-run
+
+# Update flake inputs
+update:
+    nix flake update --accept-flake-config
+
+# Clear terminal
+clear:
+    clear
