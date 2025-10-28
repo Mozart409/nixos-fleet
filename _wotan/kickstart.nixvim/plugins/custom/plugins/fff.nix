@@ -1,0 +1,40 @@
+{
+  programs.nixvim = {
+    plugins.fff = {
+      enable = true;
+      autoLoad = true;
+      settings = {
+        # base_path = lib.nixvim.mkRaw "vim.fn.getcwd()";
+        key_bindings = {
+          close = [
+            "<Esc>"
+            "<C-c>"
+          ];
+          select = [
+            "<CR>"
+            "<Enter>"
+          ];
+          move_down = [
+            "<Down>"
+            "<S-Tab>"
+          ];
+          move_up = [
+            "<Up>"
+            "<Tab>"
+          ];
+
+          open_split = "<C-s>";
+          open_tab = "<C-t>";
+          open_vsplit = "<C-v>";
+          select_file = "<CR>";
+        };
+        layout = {
+          height = 0.8;
+          preview_position = "right";
+          width = 0.8;
+        };
+        max_results = 25;
+      };
+    };
+  };
+}
