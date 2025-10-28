@@ -22,10 +22,8 @@
 
   # User configuration with default password
   users.users.amadeus = {
-    isNormalUser = true;
-    description = "Amadeus";
-    extraGroups = ["wheel" "networkmanager"];
-    initialPassword = "amadeus";
+    # All other userconfig is done in modules/nixos/common-packages.nix
+    initialPassword = lib.mkForce "amadeus";
   };
 
   # Enable SSH
@@ -39,7 +37,8 @@
 
   # Bootloader configuration for LXC
   boot.loader.grub.enable = false;
-  
+
   # System state version
   system.stateVersion = "25.11";
 }
+
