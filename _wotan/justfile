@@ -51,3 +51,6 @@ clear:
 
 minimal-pve: clear
     nix build .#minimal-pve
+
+o11y: clear
+    nix develop --command colmena apply --on rulemesh-o11y

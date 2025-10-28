@@ -29,6 +29,10 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    colmena = {
+      url = "github:zhaofengli/colmena";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -37,6 +41,7 @@
     home-manager,
     nixvim,
     nixos-generators,
+    colmena,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:
@@ -99,12 +104,41 @@
       format = "proxmox-lxc";
     };
 
+    # Colmena configuration for multi-host deployment
+    colmenaHive = colmena.lib.makeHive {
+      meta = {
+        nixpkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
+        specialArgs = {inherit inputs;};
+      };
+
+      hosts = {
+        rulemesh-o11y = {
+          system = "x86_64-linux";
+          deployment = {
+            targetHost = "192.168.2.120";
+            targetUser = "amadeus";
+            targetPort = 22;
+          };
+          imports = [
+            ./hosts/rulemesh-o11y/default.nix
+            {
+              nix.settings.trusted-users = ["amadeus"];
+            }
+          ];
+        };
+      };
+    };
+
     # Development shell for working with this configuration
     devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
       buildInputs = with nixpkgs.legacyPackages.${system}; [
         git
         nh
         alejandra
+        colmena.packages.${system}.colmena
       ];
       shellHook = ''
         echo "Welcome to the NixOS configuration development shell!"
