@@ -22,6 +22,10 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -29,6 +33,7 @@
     nixpkgs,
     home-manager,
     nixvim,
+    nixos-generators,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:
@@ -73,6 +78,16 @@
       # Add more user/host combinations here:
       # "amadeus@laptop" = mkHome "laptop" system;
       # "user@server" = mkHome "server" system;
+    };
+
+    # Nixos Generator
+    minimal-pve = nixos-generators.nixosGenerate {
+      system = "x86_64-linux";
+      modules = [
+        ./modules/nixos/common-packages.nix
+        ./modules/home-manager/common-packages.nix
+      ];
+      format = "proxmox";
     };
 
     # Development shell for working with this configuration

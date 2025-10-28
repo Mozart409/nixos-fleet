@@ -48,3 +48,6 @@ update:
 # Clear terminal
 clear:
     clear
+
+minimal-pve: clear
+    nix build .#minimal-pve
