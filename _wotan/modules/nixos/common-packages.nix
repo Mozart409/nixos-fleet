@@ -1,6 +1,8 @@
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   # Common system packages that should be available on all hosts
   environment.systemPackages = with pkgs; [
     vim # Essential editor
@@ -51,6 +53,7 @@
     ];
     trusted-users = [
       "root"
+      "user"
       "@wheel"
       "amadeus"
     ];
@@ -103,3 +106,4 @@
   # Common printing support
   services.printing.enable = true;
 }
+

@@ -88,7 +88,6 @@
       gruvbox
       vim-devicons
       oxocarbon-nvim
-      lazygit-nvim
     ];
 
     # You can easily change to a different colorscheme.

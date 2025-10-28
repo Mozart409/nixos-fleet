@@ -1,6 +1,10 @@
-{ config, pkgs, inputs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}: {
   # Home Manager needs basic information
   home.username = "amadeus";
   home.homeDirectory = "/home/amadeus";
@@ -39,20 +43,20 @@
     nix-prefetch-github
     dprint
     pkg-configUpstream
-    
+
     # Kubernetes & Cloud Tools
     kubectl
     kubernetes-helm
     helm-ls
     helmsman
     helmfile
-    
+
     # Database Tools
     duckdb
     sqlite
     sqlitestudio
     sqlite-analyzer
-    
+
     # System Utilities
     busybox
     nettools
@@ -67,7 +71,7 @@
     vulnix
     nvtopPackages.full
     steam-devices-udev-rules
-    
+
     # Desktop Applications
     krita
     anytype
@@ -79,12 +83,12 @@
     discord
     gnome-boxes
     mangojuice
-    
+
     # Privacy & Security
     tor
     torsocks
     tor-browser
-    
+
     # Customization & Fun
     charasay
     fortune
@@ -117,12 +121,14 @@
     shellAliases = {
       l = "ls -lah";
       lg = "lazygit";
+      ld = "lazydocker";
+      sys = "systemctl status";
+      syr = "systemctl restart";
       k = "kubectl";
       flk = "cd /etc/nixos";
       dps = "docker compose ps";
       dup = "docker compose up -d --build --remove-orphans";
       dwn = "docker compose down";
-      ld = "lazydocker";
       n = "nvim .";
     };
     oh-my-zsh = {
@@ -201,3 +207,4 @@
   # Home Manager state version
   home.stateVersion = "24.11";
 }
+
