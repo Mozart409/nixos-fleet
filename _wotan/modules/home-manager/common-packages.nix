@@ -75,7 +75,7 @@
     # Desktop Applications
     krita
     anytype
-    vlc
+    haruna
     chromium
     teamspeak6-client
     signal-desktop-bin
@@ -207,4 +207,3 @@
   # Home Manager state version
   home.stateVersion = "24.11";
 }
-
