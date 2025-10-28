@@ -35,4 +35,10 @@
   services.caddy = {
     enable = true;
   };
+
+  # Bootloader configuration for LXC
+  boot.loader.grub.enable = false;
+  
+  # System state version
+  system.stateVersion = "25.11";
 }
