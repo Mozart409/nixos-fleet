@@ -6,9 +6,7 @@
   ...
 }: {
   imports = [
-    # inputs.nixvim.homeManagerModules.nixvim
-    # ./nixvim.nix
-    ./kickstart.nixvim/nixvim.nix
+    ./nixvim.nix
     ./terminals.nix
     ./tmux.nix
   ];
@@ -31,79 +29,90 @@
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
+    # Development Tools
     fabric-ai
     opencode
-    krita
-    charasay
-    fortune
-    dwt1-shell-color-scripts
-    cowsay
-    bluejay
-    anytype
     nixos-anywhere
-    vlc
-    chromium
-    teamspeak6-client
     nixos-generators
-    signal-desktop-bin
-    comet-gog
     eza
     cocogitto
     mergiraf
-    discord
-    busybox
-    kdePackages.kwallet-pam
-    nettools
-    openrgb-with-all-plugins
-    kubectl
-    xclip
-    nh
-    nerd-fonts.jetbrains-mono
-    gnome-boxes
-    just
     rustscan
     rustup
     bacon
-    nettools
     nodejs_22
     tpi
     talosctl
     kubie
-    kubectl
     hcloud
     jq
     pnpm
     rainfrog
     lazydocker
-    gparted
-    steam-devices-udev-rules
-    rclone
-    vulnix
-    mangojuice
-    tor
-    torsocks
-    tor-browser
-    dprint
-    nvtopPackages.full
-    kubernetes-helm
-    helm-ls
-    helmsman
-    helmfile
-    duckdb
-    sqlite
-    sqlitestudio
-    sqlite-analyzer
-    bat
     cargo-binstall
     dioxus-cli
-    file
     wasm-bindgen-cli
     pwgen
     devenv
     nix-prefetch
     nix-prefetch-github
-    glow
+    dprint
     pkg-configUpstream
+    
+    # Kubernetes & Cloud Tools
+    kubectl
+    kubernetes-helm
+    helm-ls
+    helmsman
+    helmfile
+    
+    # Database Tools
+    duckdb
+    sqlite
+    sqlitestudio
+    sqlite-analyzer
+    
+    # System Utilities
+    busybox
+    nettools
+    file
+    nh
+    just
+    xclip
+    bat
+    glow
+    gparted
+    rclone
+    vulnix
+    nvtopPackages.full
+    steam-devices-udev-rules
+    
+    # Desktop Applications
+    krita
+    anytype
+    vlc
+    chromium
+    teamspeak6-client
+    signal-desktop-bin
+    comet-gog
+    discord
+    gnome-boxes
+    mangojuice
+    
+    # Privacy & Security
+    tor
+    torsocks
+    tor-browser
+    
+    # Customization & Fun
+    charasay
+    fortune
+    dwt1-shell-color-scripts
+    cowsay
+    bluejay
+    nerd-fonts.jetbrains-mono
+    kdePackages.kwallet-pam
+    openrgb-with-all-plugins
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage

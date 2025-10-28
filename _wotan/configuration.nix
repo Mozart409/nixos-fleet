@@ -73,7 +73,7 @@
   services.pulseaudio.support32Bit = true;
   security.rtkit.enable = true;
   # hardware.opengl.driSupport32Bit = true;
-  hardware.graphics.enable32Bit = true;
+  
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -128,12 +128,12 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     curl
-    busybox
     nh
     alejandra
     pinentry-curses
     pinentry-gnome3
     dig
+    git
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -181,25 +181,24 @@
     trusted-users = [
       "root"
       "@wheel"
-      "nixos"
       "amadeus"
     ];
   };
 
   nix.gc = {
     automatic = true;
+    dates = "weekly";
     options = "--delete-generations +3";
   };
 
-  nix.extraOptions = ''
-    trusted-users = root amadeus
-  '';
-
+  # Graphics and OpenGL configuration
   hardware.graphics = {
     enable = true;
+    enable32Bit = true;
   };
 
   hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
 
   services.xserver.videoDrivers = ["nvidia"];
 
@@ -211,7 +210,7 @@
     # Enable this if you have graphical corruption issues or application crashes after waking
     # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead
     # of just the bare essentials.
-    powerManagement.enable = true;
+    powerManagement.enable = false;
 
     # Fine-grained power management. Turns off GPU when not in use.
     # Experimental and only works on modern Nvidia GPUs (Turing or newer).
@@ -231,7 +230,7 @@
     nvidiaSettings = true;
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.beta;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
   # This value determines the NixOS release from which the default

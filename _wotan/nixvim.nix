@@ -71,6 +71,7 @@
         enable = true;
       };
       cmp = {
+        enable = true;
         autoEnableSources = true;
         settings.sources = [
           {name = "nvim_lsp";}
@@ -166,8 +167,10 @@
 
       neo-tree = {
         enable = true;
-        autoCleanAfterSessionRestore = true;
-        closeIfLastWindow = true;
+        settings = {
+          auto_clean_after_session_restore = true;
+          close_if_last_window = true;
+        };
       };
       noice = {
         enable = false;
@@ -232,19 +235,22 @@
       };
 
       # Dev
-      lsp.servers = {
-        "*" = {
-          settings = {
-            capabilities = {
-              textDocument = {
-                semanticTokens = {
-                  multilineTokenSupport = true;
-                };
-              };
-            };
-            root_markers = [
-              ".git"
-            ];
+      lsp = {
+        enable = true;
+        servers = {
+          nil_ls = {
+            enable = true;
+          };
+          rust_analyzer = {
+            enable = true;
+            installCargo = true;
+            installRustc = true;
+          };
+          ts_ls = {
+            enable = true;
+          };
+          pyright = {
+            enable = true;
           };
         };
       };
