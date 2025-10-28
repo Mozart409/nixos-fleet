@@ -7,6 +7,9 @@
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
     ];
+    trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+    ];
   };
 
   inputs = {
@@ -28,26 +31,28 @@
     nixvim,
   } @ inputs: let
     # Helper function to generate host configurations
-    mkHost = hostname: system: lib.nixosSystem {
-      inherit system;
-      specialArgs = {inherit inputs;};
-      modules = [
-        ./hosts/${hostname}/default.nix
-        {
-          nix.settings.trusted-users = ["amadeus"];
-        }
-      ];
-    };
+    mkHost = hostname: system:
+      lib.nixosSystem {
+        inherit system;
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/${hostname}/default.nix
+          {
+            nix.settings.trusted-users = ["amadeus"];
+          }
+        ];
+      };
 
     # Helper function to generate home-manager configurations
-    mkHome = hostname: system: home-manager.lib.homeManagerConfiguration {
-      pkgs = nixpkgs.legacyPackages.${system};
-      extraSpecialArgs = {inherit inputs;};
-      modules = [
-        ./hosts/${hostname}/home.nix
-        inputs.nixvim.homeModules.nixvim
-      ];
-    };
+    mkHome = hostname: system:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        extraSpecialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/${hostname}/home.nix
+          inputs.nixvim.homeModules.nixvim
+        ];
+      };
 
     lib = nixpkgs.lib;
     system = "x86_64-linux";

@@ -3,7 +3,7 @@
 {
   imports = [
     ../../modules/home-manager/common-packages.nix
-    ../../nixvim.nix
+    ../../kickstart.nixvim/nixvim.nix
     ../../terminals.nix
     ../../tmux.nix
   ];

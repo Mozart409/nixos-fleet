@@ -18,7 +18,7 @@ This is a multi-host NixOS configuration with shared modules and host-specific s
 │       ├── default.nix      # Host-specific system config
 │       ├── hardware-configuration.nix  # Hardware detection
 │       └── home.nix        # Host-specific user config
-├── nixvim.nix             # Shared neovim configuration
+├── kickstart.nixvim/        # Kickstart neovim configuration
 ├── terminals.nix          # Terminal configurations
 └── tmux.nix              # Tmux configuration
 ```
@@ -150,7 +150,7 @@ Each host can override or extend the shared configuration:
 
 ### Shared Features
 - **Shell**: Zsh with Oh My Zsh
-- **Editor**: Neovim with NixVim configuration
+- **Editor**: Neovim with Kickstart NixVim configuration
 - **Terminals**: Kitty, Alacritty, Ghostty
 - **Version Control**: Git with signing
 - **Package Management**: Flatpak + Nix
