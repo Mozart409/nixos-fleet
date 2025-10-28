@@ -1,11 +1,16 @@
 {
-  description = "NixOS configuration with home-manager and nixvim";
+  description = "NixOS multi-host configuration with home-manager and nixvim";
 
   nixConfig = {
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixvim.cachix.org-1:tv1c7c4gHrNnf9p+5LxqC4WpF1cG5D9D+V7+F2M7Qw="
     ];
   };
 
@@ -27,36 +32,62 @@
     home-manager,
     nixvim,
   } @ inputs: let
-    lib = nixpkgs.lib;
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
-  in {
-    nixosConfigurations = {
-      wotan = lib.nixosSystem {
-        inherit system;
-        specialArgs = {inherit inputs;};
-
-        modules = [
-          ./configuration.nix
-          {
-            nix.settings.trusted-users = [
-              "amadeus"
-            ];
-          }
-        ];
-      };
+    # Helper function to generate host configurations
+    mkHost = hostname: system: lib.nixosSystem {
+      inherit system;
+      specialArgs = {inherit inputs;};
+      modules = [
+        ./hosts/${hostname}/default.nix
+        {
+          nix.settings.trusted-users = ["amadeus"];
+        }
+      ];
     };
 
+    # Helper function to generate home-manager configurations
+    mkHome = hostname: system: home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.${system};
+      extraSpecialArgs = {inherit inputs;};
+      modules = [
+        ./hosts/${hostname}/home.nix
+        inputs.nixvim.homeModules.nixvim
+      ];
+    };
+
+    lib = nixpkgs.lib;
+    system = "x86_64-linux";
+  in {
+    # NixOS configurations for each host
+    nixosConfigurations = {
+      wotan = mkHost "wotan" system;
+      # Add more hosts here:
+      # laptop = mkHost "laptop" system;
+      # server = mkHost "server" system;
+    };
+
+    # Home-manager configurations for each user/host
     homeConfigurations = {
-      amadeus = home-manager.lib.homeManagerConfiguration {
-        pkgs = pkgs;
-        extraSpecialArgs = {inherit inputs;};
-        modules = [
-          ./home.nix
-          inputs.nixvim.homeModules.nixvim
-          # inputs.plasma-manager.homeManagerModules.plasma-manager
-        ];
-      };
+      "amadeus@wotan" = mkHome "wotan" system;
+      # Add more user/host combinations here:
+      # "amadeus@laptop" = mkHome "laptop" system;
+      # "user@server" = mkHome "server" system;
+    };
+
+    # Development shell for working with this configuration
+    devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
+      buildInputs = with nixpkgs.legacyPackages.${system}; [
+        git
+        nh
+        alejandra
+      ];
+      shellHook = ''
+        echo "Welcome to the NixOS configuration development shell!"
+        echo "Available commands:"
+        echo "  nix flake check .#nixosConfigurations.wotan"
+        echo "  nix flake check .#homeConfigurations.amadeus@wotan"
+        echo "  sudo nixos-rebuild switch --flake .#wotan"
+        echo "  home-manager switch --flake .#amadeus@wotan"
+      '';
     };
   };
 }
