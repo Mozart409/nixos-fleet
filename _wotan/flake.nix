@@ -67,6 +67,7 @@
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
+      minimal = mkHost "minimal" system;
       wotan = mkHost "wotan" system;
       rulemesh-o11y = mkHost "rulemesh-o11y" system;
       # Add more hosts here:
@@ -76,6 +77,7 @@
 
     # Home-manager configurations for each user/host
     homeConfigurations = {
+      "amadeus@minimal" = mkHome "minimal" system;
       "amadeus@wotan" = mkHome "wotan" system;
       "amadeus@rulemesh-o11y" = mkHome "rulemesh-o11y" system;
       # Add more user/host combinations here:
@@ -92,8 +94,7 @@
           virtualisation.diskSize = 20 * 1024;
           system.stateVersion = "25.11";
         }
-        ./modules/nixos/common-packages.nix
-        # ./modules/home-manager/common-packages.nix
+        ./hosts/minimal/default.nix
       ];
       format = "proxmox-lxc";
     };
