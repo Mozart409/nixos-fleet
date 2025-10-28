@@ -194,6 +194,10 @@
         s = "status";
         f = "fetch";
       };
+      signing = {
+        signByDefault = true;
+        format = "ssh";
+      };
       init.defaultBranch = "main";
       pull.rebase = "true";
       credential = {
