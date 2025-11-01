@@ -57,7 +57,7 @@
   users.users.amadeus = {
     isNormalUser = true;
     description = "amadeus";
-    extraGroups = ["networkmanager" "wheel"];
+    extraGroups = ["networkmanager" "wheel" "docker"];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
@@ -93,4 +93,7 @@
 
   # Common printing support
   services.printing.enable = true;
+
+  # Enable Docker on all hosts
+  virtualisation.docker.enable = true;
 }
