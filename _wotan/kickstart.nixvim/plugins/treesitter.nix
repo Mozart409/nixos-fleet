@@ -1,5 +1,8 @@
-{
+{pkgs, ...}: {
   programs.nixvim = {
+    extraPackages = with pkgs; [
+      gcc15
+    ];
     # Highlight, edit, and navigate code
     # https://nix-community.github.io/nixvim/plugins/treesitter/index.html
     plugins.treesitter = {
@@ -13,6 +16,7 @@
           "diff"
           "html"
           "json"
+          "typescript"
           "rust"
           "lua"
           "luadoc"

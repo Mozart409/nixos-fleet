@@ -1,4 +1,11 @@
-{
+
+{pkgs, ...}: {
+  programs.nixvim = {
+    extraPackages = with pkgs; [
+      # luajitPackages.magick
+      imagemagick_light
+      fd
+    ];
   programs.nixvim = {
     plugins = {
       snacks = {
