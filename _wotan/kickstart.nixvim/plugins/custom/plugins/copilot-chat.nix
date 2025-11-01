@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   programs.nixvim = {
     extraPackages = with pkgs; [
-      luajitPackages.tiktoken_core
+      lua53Packages.tiktoken_core
       ripgrep
       lynx
     ];
