@@ -83,6 +83,7 @@
     discord
     gnome-boxes
     mangojuice
+    ladybird
 
     # Privacy & Security
     tor
