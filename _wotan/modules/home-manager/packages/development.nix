@@ -1,0 +1,31 @@
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = with pkgs; [
+    opencode
+    nixos-generators
+    eza
+    cocogitto
+    mergiraf
+    rustscan
+    bacon
+    nodejs_22
+    tpi
+    pnpm
+    rainfrog
+    lazydocker
+    cargo-binstall
+    dioxus-cli
+    wasm-bindgen-cli
+    pwgen
+    devenv
+    nix-prefetch
+    nix-prefetch-github
+    dprint
+    pkg-configUpstream
+  ];
+}
+
