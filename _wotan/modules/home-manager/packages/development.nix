@@ -26,6 +26,7 @@
     nix-prefetch-github
     dprint
     pkg-configUpstream
+    radicle-desktop
+    radicle-tui
   ];
 }
-
