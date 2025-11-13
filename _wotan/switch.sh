@@ -5,6 +5,6 @@ set -euo
 clear
 
 sudo nixos-rebuild switch --flake .#wotan
-home-manager switch --flake .#amadeus@wotan
+nix run nixpkgs#home-manager -- switch --flake .#amadeus@wotan
 
 exit 0
