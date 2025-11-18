@@ -12,6 +12,13 @@
     # Common modules
     ../../modules/nixos/common-packages.nix
     ../../modules/nixos/flatpak.nix
+    ../../modules/nixos/desktop/default.nix
+    ../../modules/nixos/desktop/kde.nix
+    ../../modules/nixos/desktop/niri.nix
+    ../../modules/nixos/desktop/user-experience.nix
+    
+    # Desktop configuration
+    ./desktop-config.nix
   ];
 
   # Host-specific settings
@@ -25,25 +32,13 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 10;
 
-  # Desktop environment (KDE Plasma)
-  services.xserver.enable = true;
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager.autoLogin = {
+  # Desktop environment configuration
+  desktop.enable = true;
+
+  # Display manager auto-login (KDE specific)
+  services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
     enable = true;
     user = "amadeus";
-  };
-
-  # X11 keyboard configuration
-  services.xserver.xkb = {
-    layout = "de";
-    variant = "";
-  };
-
-  # Graphics and OpenGL configuration
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
   };
 
   hardware.bluetooth.enable = true;
@@ -82,17 +77,7 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  # Sound configuration
-  services.pulseaudio.enable = false;
-  services.pulseaudio.support32Bit = true;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
-  };
+
 
   # Host-specific packages
   environment.systemPackages = with pkgs; [
