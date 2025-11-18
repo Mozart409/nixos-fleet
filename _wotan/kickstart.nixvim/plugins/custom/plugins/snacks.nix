@@ -16,6 +16,10 @@
           enabled = true;
         };
 
+        input = {
+          enabled = true;
+        };
+
         bufdelete = {
           enabled = true;
         };
