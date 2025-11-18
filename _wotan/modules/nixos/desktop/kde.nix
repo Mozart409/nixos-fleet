@@ -26,7 +26,6 @@
       kdePackages.okular
       kdePackages.gwenview
       kdePackages.spectacle
-      kdePackages.kwrite
       
       # KDE integration
       kdePackages.plasma-browser-integration
@@ -43,7 +42,6 @@
       
       # Multimedia
       kdePackages.kdenlive
-      kdePackages.audacious
     ];
 
     # KDE Plasma settings
@@ -72,7 +70,7 @@
 
     # KDE theming and appearance
     environment.sessionVariables = {
-      QT_QPA_PLATFORMTHEME = "kde";
+      QT_QPA_PLATFORMTHEME = lib.mkForce "kde";
     };
   };
 }
