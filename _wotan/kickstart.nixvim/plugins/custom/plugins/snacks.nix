@@ -23,6 +23,9 @@
         bufdelete = {
           enabled = true;
         };
+        terminal = {
+          enabled = true;
+        };
 
         dashboard = {
           enabled = true;
