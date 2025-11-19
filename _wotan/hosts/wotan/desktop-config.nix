@@ -4,5 +4,5 @@
   lib,
   ...
 }: {
-  desktop.environment = "niri";
+  desktop.environment = "kde";
 }
