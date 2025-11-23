@@ -35,6 +35,12 @@
     };
   };
 
+  # Enable passwordless sudo for wheel group
+  security.sudo = {
+    enable = true;
+    wheelNeedsPassword = false;
+  };
+
   # Bootloader configuration for LXC
   boot.loader.grub.enable = false;
 
