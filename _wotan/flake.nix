@@ -129,6 +129,20 @@
             }
           ];
         };
+        servarr = {
+          system = "x86_64-linux";
+          deployment = {
+            targetHost = "192.168.2.188";
+            targetUser = "amadeus";
+            targetPort = 22;
+          };
+          imports = [
+            ./hosts/servarr/default.nix
+            {
+              nix.settings.trusted-users = ["amadeus"];
+            }
+          ];
+        };
       };
     };
 
