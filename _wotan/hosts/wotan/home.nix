@@ -1,6 +1,10 @@
-{ config, pkgs, inputs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}: {
   imports = [
     ../../modules/home-manager/common-packages.nix
     ../../modules/home-manager/packages/development.nix
@@ -11,8 +15,8 @@
     ../../modules/home-manager/packages/security.nix
     ../../modules/home-manager/packages/fun.nix
     ../../kickstart.nixvim/nixvim.nix
-    ../../terminals.nix
-    ../../tmux.nix
+    ../../modules/home-manager/packages/tmux.nix
+    ../../modules/home-manager/packages/terminals.nix.nix
   ];
 
   # Host-specific home-manager packages can be added here
@@ -21,3 +25,4 @@
   #   host-specific-package
   # ];
 }
+
