@@ -16,7 +16,7 @@
     ../../modules/home-manager/packages/fun.nix
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
-    ../../modules/home-manager/packages/terminals.nix.nix
+    ../../modules/home-manager/packages/terminals.nix
   ];
 
   # Host-specific home-manager packages can be added here
