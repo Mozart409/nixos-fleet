@@ -24,6 +24,7 @@
     zsh
     ripgrep
     fzf
+    busybox
   ];
 
   # Basic shell configuration
@@ -35,4 +36,3 @@
   # State version
   home.stateVersion = "25.11";
 }
-
