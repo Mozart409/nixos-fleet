@@ -132,12 +132,12 @@
       };
       servarr = {
         nixpkgs.system = "x86_64-linux";
-
         deployment = {
           targetHost = "192.168.2.188";
           targetUser = "amadeus";
           targetPort = 22;
           buildOnTarget = false;
+          sshOptions = ["-i" "~/.ssh/id_ed25519"];
         };
         imports = [
           ./hosts/servarr/default.nix
