@@ -27,12 +27,6 @@
     busybox
   ];
 
-  # Basic shell configuration
-  programs.bash = {
-    enable = true;
-    enableCompletion = true;
-  };
-
   # State version
   home.stateVersion = "25.11";
 }

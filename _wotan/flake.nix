@@ -100,6 +100,13 @@
           system.stateVersion = "25.11";
         }
         ./hosts/minimal/default.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.amadeus = import ./hosts/minimal/home.nix;
+          home-manager.sharedModules = [ inputs.nixvim.homeModules.nixvim ];
+        }
       ];
       format = "proxmox-lxc";
     };
