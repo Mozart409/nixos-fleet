@@ -115,7 +115,7 @@
       };
 
       rulemesh-o11y = {
-        system = "x86_64-linux";
+        nixpkgs.system = "x86_64-linux";
 
         deployment = {
           targetHost = "192.168.2.120";
@@ -131,7 +131,8 @@
         ];
       };
       servarr = {
-        system = "x86_64-linux";
+        nixpkgs.system = "x86_64-linux";
+
         deployment = {
           targetHost = "192.168.2.188";
           targetUser = "amadeus";
