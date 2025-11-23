@@ -42,9 +42,15 @@
   };
 
   # Bootloader configuration for LXC
-  boot.loader.grub.enable = false;
+  boot.loader.grub.enable = true;
+
+  # Home manager configuration
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.amadeus = import ./home.nix;
+  };
 
   # System state version
   system.stateVersion = "25.11";
 }
-
