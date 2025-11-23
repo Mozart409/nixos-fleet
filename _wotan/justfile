@@ -53,6 +53,6 @@ minimal-pve: clear
     nix build .#minimal-pve
 
 o11y: clear
-    nix develop --command colmena apply --on rulemesh-o11y
+    colmena apply --on rulemesh-o11y
 servarr: clear
-    nix develop --command colmena apply --on servarr
+    colmena apply --on servarr
