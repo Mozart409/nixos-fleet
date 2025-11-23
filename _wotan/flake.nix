@@ -114,35 +114,36 @@
         specialArgs = {inherit inputs;};
       };
 
-      hosts = {
-        rulemesh-o11y = {
-          system = "x86_64-linux";
-          deployment = {
-            targetHost = "192.168.2.120";
-            targetUser = "amadeus";
-            targetPort = 22;
-          };
-          imports = [
-            ./hosts/rulemesh-o11y/default.nix
-            {
-              nix.settings.trusted-users = ["amadeus"];
-            }
-          ];
+      rulemesh-o11y = {
+        system = "x86_64-linux";
+
+        deployment = {
+          targetHost = "192.168.2.120";
+          targetUser = "amadeus";
+          targetPort = 22;
+          buildOnTarget = false;
         };
-        servarr = {
-          system = "x86_64-linux";
-          deployment = {
-            targetHost = "192.168.2.188";
-            targetUser = "amadeus";
-            targetPort = 22;
-          };
-          imports = [
-            ./hosts/servarr/default.nix
-            {
-              nix.settings.trusted-users = ["amadeus"];
-            }
-          ];
+        imports = [
+          ./hosts/rulemesh-o11y/default.nix
+          {
+            nix.settings.trusted-users = ["amadeus"];
+          }
+        ];
+      };
+      servarr = {
+        system = "x86_64-linux";
+        deployment = {
+          targetHost = "192.168.2.188";
+          targetUser = "amadeus";
+          targetPort = 22;
+          buildOnTarget = false;
         };
+        imports = [
+          ./hosts/servarr/default.nix
+          {
+            nix.settings.trusted-users = ["amadeus"];
+          }
+        ];
       };
     };
 
