@@ -73,6 +73,7 @@
       minimal = mkHost "minimal" system;
       wotan = mkHost "wotan" system;
       rulemesh-o11y = mkHost "rulemesh-o11y" system;
+      servarr = mkHost "servarr" system;
       # Add more hosts here:
       # laptop = mkHost "laptop" system;
       # server = mkHost "server" system;
@@ -83,6 +84,7 @@
       "amadeus@minimal" = mkHome "minimal" system;
       "amadeus@wotan" = mkHome "wotan" system;
       "amadeus@rulemesh-o11y" = mkHome "rulemesh-o11y" system;
+      "amadeus@servarr" = mkHome "servarr" system;
       # Add more user/host combinations here:
       # "amadeus@laptop" = mkHome "laptop" system;
       # "user@server" = mkHome "server" system;
