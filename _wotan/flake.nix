@@ -94,12 +94,14 @@
     minimal-pve = nixos-generators.nixosGenerate {
       system = "x86_64-linux";
       modules = [
-        ({ pkgs, ... }: {
+        ({pkgs, ...}: {
           # set disk size to to 20G
           virtualisation.diskSize = 20 * 1024;
           system.stateVersion = "25.11";
-          users.defaultUserShell = pkgs.zsh;
+          /*
+             users.defaultUserShell = pkgs.zsh;
           environment.shells = with pkgs; [zsh];
+          */
         })
         ./hosts/minimal/default.nix
         home-manager.nixosModules.home-manager
@@ -107,7 +109,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.amadeus = import ./hosts/minimal/home.nix;
-          home-manager.sharedModules = [ inputs.nixvim.homeModules.nixvim ];
+          home-manager.sharedModules = [inputs.nixvim.homeModules.nixvim];
         }
       ];
       format = "proxmox-lxc";

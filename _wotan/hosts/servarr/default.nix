@@ -7,7 +7,7 @@
 }: {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/nixos/common-packages.nix
+    ../../modules/nixos/basics.nix
   ];
 
   # Basic host configuration
