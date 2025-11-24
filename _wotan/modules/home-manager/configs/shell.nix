@@ -31,9 +31,7 @@
       plugins = [
         "git"
         "z"
-        "fzf"
       ];
     };
   };
 }
-
