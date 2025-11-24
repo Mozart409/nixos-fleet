@@ -18,7 +18,15 @@
     # fsType = "ext4";
   };
 
-  swapDevices = [];
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/placeholder";
+    fsType = "vfat";
+    options = ["fmask=0077" "dmask=0077"];
+  };
+
+  swapDevices = [
+    {device = "/dev/disk/by-uuid/placeholder";}
+  ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
@@ -29,4 +37,3 @@
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
-
