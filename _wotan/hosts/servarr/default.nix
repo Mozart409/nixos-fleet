@@ -35,12 +35,6 @@
     };
   };
 
-  services.btrfs.autoScrub = {
-    enable = true;
-    interval = "monthly";
-    fileSystems = ["/"];
-  };
-
   # Enable passwordless sudo for wheel group
   security.sudo = {
     enable = true;

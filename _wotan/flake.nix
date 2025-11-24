@@ -152,6 +152,8 @@
           ./hosts/servarr/default.nix
           {
             nix.settings.trusted-users = ["amadeus"];
+            nix.settings.substituters = [];
+            nix.settings.extra-substituters = [];
           }
         ];
       };
