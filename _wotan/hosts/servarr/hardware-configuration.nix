@@ -18,11 +18,13 @@
     # fsType = "ext4";
   };
 
-  fileSystems."/boot" = {
+  /*
+     fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/placeholder";
     fsType = "vfat";
     options = ["fmask=0077" "dmask=0077"];
   };
+  */
 
   swapDevices = [
     {device = "/dev/disk/by-uuid/placeholder";}

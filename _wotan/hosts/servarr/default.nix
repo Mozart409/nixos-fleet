@@ -49,8 +49,8 @@
   };
 
   # Bootloader configuration for LXC
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.enable = false;
+  boot.loader.efi.canTouchEfiVariables = false;
   boot.loader.timeout = 10;
 
   # System state version
