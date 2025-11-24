@@ -22,8 +22,14 @@
 
   # User configuration with default password
   users.users.amadeus = {
-    # All other userconfig is done in modules/nixos/common-packages.nix
+    isNormalUser = true;
+    description = "amadeus";
+    extraGroups = ["networkmanager" "wheel" "docker"];
+    shell = pkgs.zsh;
     initialPassword = lib.mkForce "amadeus";
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
+    ];
   };
 
   # Enable SSH
