@@ -6,8 +6,16 @@
 }: {
   programs.zsh = {
     enable = true;
-    autocd = true;
     zprof.enable = false;
+    history = {
+      expireDuplicatesFirst = true;
+      extended = true;
+      ignoreDups = true;
+      save = 5000;
+      size = 5000;
+      saveNoDups = true;
+      share = true;
+    };
     historySubstringSearch.enable = true;
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
