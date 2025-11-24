@@ -94,11 +94,13 @@
     minimal-pve = nixos-generators.nixosGenerate {
       system = "x86_64-linux";
       modules = [
-        {
+        ({ pkgs, ... }: {
           # set disk size to to 20G
           virtualisation.diskSize = 20 * 1024;
           system.stateVersion = "25.11";
-        }
+          users.defaultUserShell = pkgs.zsh;
+          environment.shells = with pkgs; [zsh];
+        })
         ./hosts/minimal/default.nix
         home-manager.nixosModules.home-manager
         {
