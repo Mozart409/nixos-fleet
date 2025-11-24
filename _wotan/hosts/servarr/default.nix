@@ -52,6 +52,7 @@
   boot.loader.systemd-boot.enable = false;
   boot.loader.efi.canTouchEfiVariables = false;
   boot.loader.timeout = 10;
+  boot.isContainer = true;
 
   # System state version
   system.stateVersion = "25.11";
