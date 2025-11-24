@@ -48,7 +48,7 @@
   };
 
   # Bootloader configuration for LXC
-  boot.loader.grub.enable = false;
+  boot.loader.grub.enable = true;
 
   # System state version
   system.stateVersion = "25.11";
