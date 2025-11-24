@@ -48,7 +48,9 @@
   };
 
   # Bootloader configuration for LXC
-  boot.loader.grub.enable = true;
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout = 10;
 
   # System state version
   system.stateVersion = "25.11";
