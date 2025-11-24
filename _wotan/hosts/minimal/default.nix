@@ -8,7 +8,6 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/basics.nix
-    ../../modules/home-manager/configs/shell.nix
   ];
 
   # Basic host configuration
@@ -33,6 +32,7 @@
     ];
   };
 
+  programs.zsh.enable = true;
   # Enable SSH
   services.openssh = {
     enable = true;

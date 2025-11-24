@@ -10,6 +10,7 @@
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/configs/shell.nix
+    ../../modules/home-manager/configs/shell.nix
   ];
   # Home Manager configuration for amadeus
   home.username = "amadeus";

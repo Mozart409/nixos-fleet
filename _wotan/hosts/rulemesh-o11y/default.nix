@@ -8,7 +8,6 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/basics.nix
-    ../../modules/home-manager/configs/shell.nix
   ];
 
   # Add host-specific configuration here
@@ -43,6 +42,8 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
     ];
   };
+
+  programs.zsh.enable = true;
   services.caddy = {
     enable = true;
   };
