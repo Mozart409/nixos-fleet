@@ -6,7 +6,7 @@
       viu
     ];
     plugins.fff = {
-      enable = true;
+      enable = false;
       autoLoad = false;
       settings = {
         key_bindings = {
