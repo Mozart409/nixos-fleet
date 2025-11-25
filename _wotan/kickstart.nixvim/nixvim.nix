@@ -381,6 +381,16 @@
           desc = "Open Spectre";
         };
       }
+      {
+        key = "ff";
+        mode = "n";
+        action = ''
+          <cmd>require('fff').find_in_git_root()<CR>
+        '';
+        options = {
+          desc = "Open fff";
+        };
+      }
       /*
          {
         key = "<leader>fe";

@@ -1,10 +1,15 @@
-{
+{pkgs, ...}: {
+  programs.nixvim = {
+    extraPackages = with pkgs; [
+      chafa
+      libcaca
+      viu
+    ];
   programs.nixvim = {
     plugins.fff = {
       enable = true;
-      autoLoad = true;
+      autoLoad = false;
       settings = {
-        # base_path = lib.nixvim.mkRaw "vim.fn.getcwd()";
         key_bindings = {
           close = [
             "<Esc>"
@@ -22,7 +27,6 @@
             "<Up>"
             "<Tab>"
           ];
-
           open_split = "<C-s>";
           open_tab = "<C-t>";
           open_vsplit = "<C-v>";
