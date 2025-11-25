@@ -375,9 +375,7 @@
         key = "<leader>S";
         mode = "n";
         action = ''
-          function()
-            SpectreWithCWD
-          end;
+          <cmd>lua require("spectre").open_visual({select_word=true})<CR>
         '';
         options = {
           desc = "Open Spectre";
