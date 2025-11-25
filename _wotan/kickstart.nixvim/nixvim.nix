@@ -386,7 +386,9 @@
         key = "ff";
         mode = "n";
         action = ''
-          <cmd>require('fff').find_files()<CR>
+          function()
+          
+          end
         '';
         options = {
           desc = "Open fff";
