@@ -8,6 +8,7 @@
     plugins.fff = {
       enable = true;
       autoLoad = false;
+      package = "vimPlugins.fff-nvim";
       settings = {
         key_bindings = {
           close = [
