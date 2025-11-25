@@ -49,7 +49,7 @@
     ./plugins/custom/plugins/noice.nix
     ./plugins/custom/plugins/neogit.nix
     ./plugins/custom/plugins/neoscroll.nix
-    ./plugins/custom/plugins/fff.nix
+    # ./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
     ./plugins/custom/plugins/spectre.nix
   ];
@@ -386,9 +386,7 @@
         key = "ff";
         mode = "n";
         action = ''
-          function()
-          
-          end
+          <cmd>require('fff').find_in_git_root()<CR>
         '';
         options = {
           desc = "Open fff";
