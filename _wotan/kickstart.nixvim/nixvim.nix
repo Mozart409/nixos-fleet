@@ -381,11 +381,12 @@
           desc = "Open Spectre";
         };
       }
+          # <cmd>require('fff').find_in_git_root()<CR>
       {
         key = "ff";
         mode = "n";
         action = ''
-          <cmd>require('fff').find_in_git_root()<CR>
+          <cmd>require('fff').find_files()<CR>
         '';
         options = {
           desc = "Open fff";
