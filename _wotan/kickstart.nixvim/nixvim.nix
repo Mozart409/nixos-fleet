@@ -49,7 +49,7 @@
     ./plugins/custom/plugins/noice.nix
     ./plugins/custom/plugins/neogit.nix
     ./plugins/custom/plugins/neoscroll.nix
-    # ./plugins/custom/plugins/fff.nix
+    ./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
     ./plugins/custom/plugins/spectre.nix
   ];
@@ -381,7 +381,7 @@
           desc = "Open Spectre";
         };
       }
-          # <cmd>require('fff').find_in_git_root()<CR>
+      # <cmd>require('fff').find_in_git_root()<CR>
       {
         key = "ff";
         mode = "n";
