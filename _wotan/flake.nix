@@ -31,6 +31,10 @@
       url = "github:zhaofengli/colmena";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    quickshell = {
+      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -40,6 +44,7 @@
     nixvim,
     nixos-generators,
     colmena,
+    quickshell,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:
