@@ -51,6 +51,7 @@
     ./plugins/custom/plugins/neoscroll.nix
     ./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
+    ./plugins/custom/plugins/spectre.nix
   ];
 
   /*
@@ -368,6 +369,18 @@
         '';
         options = {
           desc = "Open Lazygit";
+        };
+      }
+      {
+        key = "<leader>S";
+        mode = "n";
+        action = ''
+          function()
+            SpectreWithCWD
+          end;
+        '';
+        options = {
+          desc = "Open Spectre";
         };
       }
       /*
