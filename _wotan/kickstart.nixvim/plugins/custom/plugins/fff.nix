@@ -5,7 +5,6 @@
       libcaca
       viu
     ];
-  programs.nixvim = {
     plugins.fff = {
       enable = true;
       autoLoad = false;
