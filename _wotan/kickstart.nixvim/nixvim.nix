@@ -52,6 +52,7 @@
     ./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
     ./plugins/custom/plugins/spectre.nix
+    ./plugins/custom/plugins/flash.nix
   ];
 
   /*
