@@ -7,7 +7,7 @@
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "niri") {
     # Niri specific configuration
     programs.niri.enable = true;
-    
+
     # Default niri configuration for users
     environment.etc."niri-config.kdl".text = ''
       # Configure superkey as Mod (Windows key)
@@ -75,28 +75,28 @@
       binds {
         # Super + Enter to open terminal
         Super+Return { spawn "alacritty" }
-        
+
         # Super + D to open app launcher
         Super+D { spawn "fuzzel" }
-        
+
         # Super + Q to close window
         Super+Q { close-window }
-        
+
         # Super + Shift + Q to quit niri
         Super+Shift+Q { quit }
-        
+
         # Window navigation
         Super+Left { focus-column-left }
         Super+Right { focus-column-right }
         Super+Up { focus-window-up }
         Super+Down { focus-window-down }
-        
+
         # Move windows
         Super+Shift+Left { move-column-left }
         Super+Shift+Right { move-column-right }
         Super+Shift+Up { move-window-up }
         Super+Shift+Down { move-window-down }
-        
+
         # Workspace navigation
         Super+1 { focus-workspace 1 }
         Super+2 { focus-workspace 2 }
@@ -108,7 +108,7 @@
         Super+8 { focus-workspace 8 }
         Super+9 { focus-workspace 9 }
         Super+0 { focus-workspace 10 }
-        
+
         # Move windows to workspaces
         Super+Shift+1 { move-column-to-workspace 1 }
         Super+Shift+2 { move-column-to-workspace 2 }
@@ -120,28 +120,28 @@
         Super+Shift+8 { move-column-to-workspace 8 }
         Super+Shift+9 { move-column-to-workspace 9 }
         Super+Shift+0 { move-column-to-workspace 10 }
-        
+
         # Window resizing
         Super+Control+Left { set-column-width "-10%" }
         Super+Control+Right { set-column-width "+10%" }
         Super+Control+Up { set-window-height "-10%" }
         Super+Control+Down { set-window-height "+10%" }
-        
+
         # Fullscreen
         Super+F { toggle-fullscreen-column }
-        
+
         # Floating
         Super+Space { toggle-window-floating }
-        
+
         # Screenshot
         Print { spawn "grim" "-o" "$(slurp)" "-" }
         Super+Print { spawn "grim" "-" }
-        
+
         # Volume control
         XF86AudioRaiseVolume { spawn "pamixer" "-i" "5" }
         XF86AudioLowerVolume { spawn "pamixer" "-d" "5" }
         XF86AudioMute { spawn "pamixer" "-t" }
-        
+
         # Brightness control
         XF86MonBrightnessUp { spawn "brightnessctl" "set" "+5%" }
         XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-" }
@@ -233,4 +233,3 @@
     };
   };
 }
-

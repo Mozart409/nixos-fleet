@@ -22,39 +22,39 @@
       wget
       unzip
       p7zip
-      
+
       # File management
       ranger
       tree
-      
+
       # System monitoring
       htop
       neofetch
-      
+
       # Text editors
       vim
       nano
-      
+
       # Network tools
       networkmanager
-      
+
       # Hardware integration tools
       usbutils
       pciutils
       lshw
       hwinfo
-      
+
       # Printer/scanner tools
       simple-scan
       xsane
-      
+
       # Camera tools
       cheese
       v4l-utils
-      
+
       # Tablet tools
       opentabletdriver
-      
+
       # Bluetooth tools
       bluez
       bluez-tools
@@ -68,17 +68,17 @@
         noto-fonts-cjk-sans
         noto-fonts-color-emoji
         liberation_ttf
-        
+
         # Programming fonts
         jetbrains-mono
         fira-code
         source-code-pro
-        
+
         # Additional fonts
         dejavu_fonts
         ubuntu-classic
       ];
-      
+
       fontconfig = {
         defaultFonts = {
           serif = ["Noto Serif"];
@@ -113,10 +113,10 @@
     environment.sessionVariables = {
       # GTK theme
       GTK_THEME = "Adwaita:dark";
-      
+
       # Qt theme
       QT_QPA_PLATFORMTHEME = "gtk3";
-      
+
       # Cursor theme
       XCURSOR_THEME = "Adwaita";
       XCURSOR_SIZE = "24";
@@ -125,28 +125,28 @@
     # Enable common services
     services = {
       # Network management is handled elsewhere
-      
+
       # Power management
       upower.enable = true;
-      
+
       # Location services
       geoclue2.enable = true;
-      
+
       # Time synchronization
       timesyncd.enable = true;
-      
+
       # Hardware integration
       printing.enable = true;
       printing.drivers = [pkgs.hplipWithPlugin];
-      
+
       # Scanner support is handled by packages
-      
+
       # Camera support is handled by pipewire and v4l-utils
-      
+
       # Auto-mount USB drives
       gvfs.enable = true;
       udisks2.enable = true;
-      
+
       # Tablet support
       libinput.enable = true;
     };
@@ -179,7 +179,7 @@
     programs = {
       # Dconf for GTK settings
       dconf.enable = true;
-      
+
       # Thunar file manager (common)
       thunar.enable = true;
     };
@@ -188,7 +188,7 @@
     security = {
       # Polkit
       polkit.enable = true;
-      
+
       # AppArmor
       apparmor.enable = lib.mkDefault true;
     };

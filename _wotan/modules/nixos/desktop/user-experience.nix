@@ -9,7 +9,7 @@
     programs = {
       # Auto-start applications
       kdeconnect.enable = true;
-      
+
       # File manager settings
       thunar.plugins = with pkgs.xfce; [
         thunar-archive-plugin
@@ -22,7 +22,7 @@
       # Power management
       tlp.enable = lib.mkDefault false;
       thermald.enable = lib.mkDefault true;
-      
+
       # User directories
       xserver.desktopManager.xterm.enable = false;
     };
@@ -41,10 +41,10 @@
       # Icon themes
       papirus-icon-theme
       adwaita-icon-theme
-      
+
       # Cursor themes
       bibata-cursors
-      
+
       # GTK themes
       adwaita-qt
     ];
@@ -72,13 +72,13 @@
       # Better performance
       MOZ_ENABLE_WAYLAND = "1";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-      
+
       # Electron apps
       ELECTRON_OZONE_PLATFORM_HINT = "auto";
-      
+
       # Java applications
       _JAVA_AWT_WM_NONREPARENTING = "1";
-      
+
       # Default applications
       BROWSER = "firefox";
       EDITOR = "vim";
@@ -88,7 +88,7 @@
     # Auto-start applications configuration
     environment.etc."xdg/autostart".source = pkgs.runCommand "autostart" {} ''
       mkdir -p $out
-      
+
       # Network manager applet
       cat > $out/nm-applet.desktop << EOF
       [Desktop Entry]
@@ -99,18 +99,18 @@
       Terminal=false
       Categories=System;Network;
       EOF
-      
+
       # Bluetooth applet (for Niri)
       ${lib.optionalString (config.desktop.environment == "niri") ''
-      cat > $out/blueman.desktop << EOF
-      [Desktop Entry]
-      Type=Application
-      Name=Bluetooth Manager
-      Exec=blueman-applet
-      Icon=blueman
-      Terminal=false
-      Categories=System;
-      EOF
+        cat > $out/blueman.desktop << EOF
+        [Desktop Entry]
+        Type=Application
+        Name=Bluetooth Manager
+        Exec=blueman-applet
+        Icon=blueman
+        Terminal=false
+        Categories=System;
+        EOF
       ''}
     '';
 
@@ -129,7 +129,7 @@
           };
           wantedBy = ["graphical-session.target"];
         };
-        
+
         # Bluetooth applet (Niri only)
         blueman-applet = lib.mkIf (config.desktop.environment == "niri") {
           unitConfig = {

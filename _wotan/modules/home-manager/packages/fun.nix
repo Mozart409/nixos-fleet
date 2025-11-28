@@ -14,4 +14,3 @@
     openrgb-with-all-plugins
   ];
 }
-
