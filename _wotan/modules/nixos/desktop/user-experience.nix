@@ -81,7 +81,7 @@
 
       # Default applications
       BROWSER = "firefox";
-      EDITOR = "vim";
+      EDITOR = "nvim";
       TERMINAL = lib.mkIf (config.desktop.environment == "niri") "alacritty";
     };
 

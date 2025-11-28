@@ -7,7 +7,7 @@
   options = {
     desktop.enable = lib.mkEnableOption "desktop environment";
     desktop.environment = lib.mkOption {
-      type = lib.types.enum ["kde" "niri"];
+      type = lib.types.enum ["kde" "niri" "hyprland"];
       description = "Desktop environment to use";
     };
   };
