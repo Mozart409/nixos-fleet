@@ -16,7 +16,7 @@
     ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/niri.nix
     ../../modules/nixos/desktop/user-experience.nix
-    
+
     # Desktop configuration
     ./desktop-config.nix
   ];
@@ -76,8 +76,6 @@
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
-
-
 
   # Host-specific packages
   environment.systemPackages = with pkgs; [
