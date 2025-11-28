@@ -58,6 +58,7 @@
     nixos-generators,
     colmena,
     hyprland,
+    hyprland-plugins,
     quickshell,
     caelestia-shell,
   } @ inputs: let
