@@ -18,6 +18,7 @@
     pinentry-gnome3
     dig
     flatpak
+    libreoffice-qt-fresh
   ];
 
   # Common programs that should be enabled on all hosts
