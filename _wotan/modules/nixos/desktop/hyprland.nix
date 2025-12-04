@@ -5,8 +5,18 @@
   inputs,
   ...
 }: {
+  imports = [
+    inputs.hyprland.nixosModules.default
+  ];
+
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
-    wayland.windowManager.hyprland = {
+    environment.systemPackages = with pkgs; [
+      grimblast
+      inputs.hyprland-plugins.packages.${pkgs.system}.hyprbars
+      inputs.hyprland-plugins.packages.${pkgs.system}.hyprtrails
+    ];
+
+    programs.hyprland = {
       enable = true;
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
@@ -31,10 +41,6 @@
               9)
           );
       };
-      plugins = [
-        inputs.hyprland-plugins.packages.${pkgs.system}.hyprbars
-        inputs.hyprland-plugins.packages.${pkgs.system}.hyprtrails
-      ];
     };
   };
 }

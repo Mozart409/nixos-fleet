@@ -15,6 +15,7 @@
     ../../modules/nixos/desktop/default.nix
     ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/niri.nix
+    ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/user-experience.nix
 
     # Desktop configuration
