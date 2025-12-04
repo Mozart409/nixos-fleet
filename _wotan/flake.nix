@@ -65,6 +65,7 @@
     hyprland-plugins,
     quickshell,
     caelestia-shell,
+    mac-style-plymouth,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:
