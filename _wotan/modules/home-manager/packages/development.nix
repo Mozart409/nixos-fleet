@@ -28,5 +28,6 @@
     pkg-configUpstream
     radicle-desktop
     radicle-tui
+    insomnia
   ];
 }
