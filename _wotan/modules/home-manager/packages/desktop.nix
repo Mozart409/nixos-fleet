@@ -13,5 +13,6 @@
     signal-desktop-bin
     comet-gog
     discord
+    lutris-unwrapped
   ];
 }
