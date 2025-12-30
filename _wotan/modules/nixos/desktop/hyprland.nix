@@ -32,7 +32,7 @@
       mako
 
       # File manager
-      thunar
+      xfce.thunar
 
       # Hyprland plugins
       inputs.hyprland-plugins.packages.${pkgs.system}.hyprbars
