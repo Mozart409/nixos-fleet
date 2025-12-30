@@ -8,7 +8,7 @@
   imports = [
     # Disko configuration (must come before hardware-config)
     inputs.disko.nixosModules.disko
-    #     ./disko-config.nix
+    #    ./disko-config.nix
 
     # Hardware configuration
     ./hardware-configuration.nix
@@ -37,16 +37,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 10;
 
-  # Storage filesystem managed by disko (see ./disko-config.nix)
-
   # Desktop environment configuration
   desktop.enable = true;
-
-  # Display manager auto-login (KDE specific)
-  services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
-    enable = true;
-    user = "amadeus";
-  };
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
@@ -97,10 +89,8 @@
   # System state version
   system.stateVersion = "24.11";
 
-  /*
-     # Ensure storage mount is owned by amadeus
+  # Ensure storage mount is owned by amadeus
   systemd.tmpfiles.rules = [
     "Z /mnt/storage 0755 amadeus users -"
   ];
-  */
 }
