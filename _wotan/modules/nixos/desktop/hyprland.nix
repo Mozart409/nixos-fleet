@@ -25,7 +25,7 @@
       wlogout
 
       # Lockscreen and background
-      swaylock
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock
       swaybg
 
       # Notifications
@@ -158,7 +158,7 @@
             "$mod SHIFT, Print, exec, grimblast copy screen"
 
             # Lockscreen
-            "$mod, L, exec, swaylock -f -c 000000"
+            "$mod, L, exec, hyprlock"
 
             # Exit menu
             "$mod, Q, exec, wlogout"
@@ -203,7 +203,7 @@
     };
 
     # Lockscreen configuration
-    security.pam.services.swaylock = {};
+    security.pam.services.hyprlock = {};
 
     # Theming integration
     environment.sessionVariables = {
