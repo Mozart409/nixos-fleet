@@ -215,8 +215,8 @@
 
     # Theming integration
     environment.sessionVariables = {
-      # Qt theme
-      QT_QPA_PLATFORMTHEME = "qt6ct";
+      # Qt theme - use Kvantum directly
+      QT_QPA_PLATFORMTHEME = "kvantum";
       QT_STYLE_OVERRIDE = "kvantum";
 
       # GTK theme
@@ -230,8 +230,5 @@
       MOZ_ENABLE_WAYLAND = "1";
       _JAVA_AWT_WM_NONREPARENTING = "1";
     };
-
-    # Enable Qt theming tools
-    programs.qt6ct.enable = true;
   };
 }
