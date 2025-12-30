@@ -152,7 +152,7 @@
             "$mod, D, exec, wofi --show drun"
 
             # Terminal
-            "$mod, Return, exec, kitty"
+            "$mod, Return, exec, alacritty"
 
             # Browser
             "$mod, F, exec, firefox"
