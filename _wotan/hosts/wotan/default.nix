@@ -37,15 +37,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 10;
 
-  # Mount /dev/sda storage
-  fileSystems."/mnt/storage" = {
-    device = "/dev/sda";
-    fsType = "bcachefs";
-    options = ["compress=zstd"];
-  };
-
-  # Ensure bcachefs is available in initrd
-  boot.initrd.supportedFilesystems = ["bcachefs"];
+  # Storage filesystem managed by disko (see ./disko-config.nix)
 
   # Desktop environment configuration
   desktop.enable = true;
@@ -95,7 +87,6 @@
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
-    bcachefs-tools
   ];
 
   # Host-specific services
