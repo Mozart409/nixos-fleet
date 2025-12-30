@@ -291,16 +291,7 @@
           valign = top
       }
 
-      label {
-          monitor =
-          text = $LAYOUT[de,en]
-          font_size = 24
-          onclick = hyprctl switchxkblayout all next
 
-          position = 250, -20
-          halign = center
-          valign = center
-      }
     '';
 
     # Theming integration
