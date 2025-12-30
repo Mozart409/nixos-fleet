@@ -26,7 +26,11 @@
 
       # Lockscreen and background
       inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock
-      swaybg
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprlauncher
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprtoolkit
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprsysteminfo
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprshutdown
 
       # Notifications
       mako
@@ -75,6 +79,10 @@
       enable = true;
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+      plugins = [
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprspace
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
+      ];
       settings = {
         # Monitor configuration
         monitor = [
@@ -141,6 +149,7 @@
           [
             # Application launcher
             "$mod, D, exec, wofi --show drun"
+            "$mod, SPACE, exec, hyprlauncher"
 
             # Terminal
             "$mod, Return, exec, alacritty"
@@ -193,6 +202,30 @@
               )
               9)
           );
+
+        # System info widget
+        exec-once = hyprsysteminfo &
+
+        # Hyprspace configuration
+        plugin {
+          hyprspace {
+            workspace_gaps = 15
+            workspace_border = 2
+            "workspace_border_accent" = "rgba(33ccffee)"
+          }
+        }
+
+        # Hyprtrails configuration
+        plugin {
+          hyprtrails {
+            "bezier_points" = "0.1,0.1,0.9,0.9"
+            "bezier_step" = 0.01
+            "bezier_curve" = "catmull-rom"
+            "trail_color" = "rgba(33ccffee)"
+            "trail_size" = 3
+            "trail_steps" = 5
+          }
+        }
 
         # Mouse bindings
         bindm = [
