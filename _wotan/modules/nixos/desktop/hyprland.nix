@@ -203,29 +203,21 @@
               9)
           );
 
-        # System info widget
-        exec-once = hyprsysteminfo &
+        # Plugin configurations
+        "plugin:hyprspace" = {
+          workspace_gaps = 15;
+          workspace_border = 2;
+          "workspace_border_accent" = "rgba(33ccffee)";
+        };
 
-        # Hyprspace configuration
-        plugin {
-          hyprspace {
-            workspace_gaps = 15
-            workspace_border = 2
-            "workspace_border_accent" = "rgba(33ccffee)"
-          }
-        }
-
-        # Hyprtrails configuration
-        plugin {
-          hyprtrails {
-            "bezier_points" = "0.1,0.1,0.9,0.9"
-            "bezier_step" = 0.01
-            "bezier_curve" = "catmull-rom"
-            "trail_color" = "rgba(33ccffee)"
-            "trail_size" = 3
-            "trail_steps" = 5
-          }
-        }
+        "plugin:hyprtrails" = {
+          "bezier_points" = "0.1,0.1,0.9,0.9";
+          "bezier_step" = 0.01;
+          "bezier_curve" = "catmull-rom";
+          "trail_color" = "rgba(33ccffee)";
+          "trail_size" = 3;
+          "trail_steps" = 5;
+        };
 
         # Mouse bindings
         bindm = [
