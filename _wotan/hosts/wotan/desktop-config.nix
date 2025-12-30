@@ -3,5 +3,5 @@
   inputs,
   ...
 }: {
-  desktop.environment = "kde";
+  desktop.environment = "hyprland";
 }
