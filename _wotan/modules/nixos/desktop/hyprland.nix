@@ -110,8 +110,6 @@
           dim_inactive = false;
         };
 
-        
-
         # Workspace configuration
         workspace = [
           "1, monitor:DP-1"
@@ -141,6 +139,7 @@
 
             # Terminal
             "$mod, Return, exec, alacritty"
+            "$mod, T, exec, alacritty"
 
             # Browser
             "$mod, F, exec, firefox"
