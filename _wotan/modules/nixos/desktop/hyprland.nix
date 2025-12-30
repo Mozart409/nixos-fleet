@@ -27,10 +27,9 @@
       # Lockscreen and background
       hyprlock
       hyprpaper
-      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprlauncher
-      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprtoolkit
-      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprsysteminfo
-      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprshutdown
+      hyprlauncher
+      hyprtoolkit
+      hyprsysteminfo
 
       # Notifications
       mako
