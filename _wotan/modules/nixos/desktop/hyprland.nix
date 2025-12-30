@@ -26,7 +26,7 @@
 
       # Lockscreen and background
       hyprlock
-      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper
+      hyprpaper
       inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprlauncher
       inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprtoolkit
       inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprsysteminfo
