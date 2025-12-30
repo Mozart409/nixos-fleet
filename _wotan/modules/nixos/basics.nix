@@ -44,4 +44,10 @@
 
   # Common console settings
   console.keyMap = "de";
+
+  # AppImage support
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
 }
