@@ -216,7 +216,7 @@
     # Theming integration
     environment.sessionVariables = {
       # Qt theme - use Kvantum directly
-      QT_QPA_PLATFORMTHEME = "kvantum";
+      QT_QPA_PLATFORMTHEME = lib.mkForce "kvantum";
       QT_STYLE_OVERRIDE = "kvantum";
 
       # GTK theme
