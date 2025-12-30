@@ -52,6 +52,12 @@
       url = "github:SergioRibera/s4rchiso-plymouth-theme";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Disko - Declarative disk partitioning
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -66,6 +72,7 @@
     quickshell,
     caelestia-shell,
     mac-style-plymouth,
+    disko,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:

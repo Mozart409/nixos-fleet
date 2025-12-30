@@ -6,6 +6,10 @@
   ...
 }: {
   imports = [
+    # Disko configuration (must come before hardware-config)
+    inputs.disko.nixosModules.disko
+    ./disko-config.nix
+
     # Hardware configuration
     ./hardware-configuration.nix
 
@@ -81,6 +85,7 @@
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
+    bcachefs-tools
   ];
 
   # Host-specific services
@@ -90,4 +95,9 @@
 
   # System state version
   system.stateVersion = "24.11";
+
+  # Ensure storage mount is owned by amadeus
+  systemd.tmpfiles.rules = [
+    "Z /mnt/storage 0755 amadeus users -"
+  ];
 }
