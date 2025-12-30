@@ -77,7 +77,10 @@
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       settings = {
         # Monitor configuration
-        monitor = ",preferred,auto,auto";
+        monitor = [
+          "DP-2,2560x1440@144,0x0,1"  # Center display
+          "DP-3,2560x1440@144,2560x0,1"  # Right display
+        ];
 
         # Input device settings
         input = {
