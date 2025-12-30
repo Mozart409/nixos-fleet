@@ -37,6 +37,16 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 10;
 
+  # Mount /dev/sda storage
+  fileSystems."/mnt/storage" = {
+    device = "/dev/sda";
+    fsType = "bcachefs";
+    options = ["compress=zstd"];
+  };
+
+  # Ensure bcachefs is available in initrd
+  boot.initrd.supportedFilesystems = ["bcachefs"];
+
   # Desktop environment configuration
   desktop.enable = true;
 
