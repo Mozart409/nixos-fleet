@@ -12,5 +12,7 @@
     nerd-fonts.jetbrains-mono
     kdePackages.kwallet-pam
     openrgb-with-all-plugins
+    handbrake
+    makemkv
   ];
 }
