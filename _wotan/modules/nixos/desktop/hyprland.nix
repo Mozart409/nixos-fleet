@@ -78,8 +78,8 @@
       settings = {
         # Monitor configuration
         monitor = [
-          "DP-2,2560x1440@144,0x0,1"  # Center display
-          "DP-3,2560x1440@144,2560x0,1"  # Right display
+          "DP-3,2560x1440@144,0x0,1" # Center display
+          "DP-2,2560x1440@144,2560x0,1" # Right display
         ];
 
         # Input device settings
@@ -106,10 +106,12 @@
         # Decoration and theming
         decoration = {
           rounding = 10;
-          drop_shadow = true;
-          shadow_range = 4;
-          shadow_render_power = 3;
-          "col.shadow" = "rgba(1a1a1aee)";
+          shadow = {
+            enabled = true;
+            range = 4;
+            render_power = 3;
+            color = "rgba(1a1a1aee)";
+          };
           dim_inactive = false;
         };
 
