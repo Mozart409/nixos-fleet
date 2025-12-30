@@ -79,7 +79,6 @@
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
-        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprspace
         inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
       ];
       settings = {
@@ -203,12 +202,6 @@
           );
 
         # Plugin configurations
-        "plugin:hyprspace" = {
-          workspace_gaps = 15;
-          workspace_border = 2;
-          "workspace_border_accent" = "rgba(33ccffee)";
-        };
-
         "plugin:hyprtrails" = {
           "bezier_points" = "0.1,0.1,0.9,0.9";
           "bezier_step" = 0.01;
