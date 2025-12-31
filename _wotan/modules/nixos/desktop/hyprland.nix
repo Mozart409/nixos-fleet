@@ -288,16 +288,12 @@
 
     # Hyprsunset configuration
     systemd.user.services.hyprsunset = {
-      Unit = {
-        Description = "Hyprland blue light filter";
-        PartOf = "graphical-session.target";
-      };
-      Service = {
+      description = "Hyprland blue light filter";
+      partOf = ["graphical-session.target"];
+      wantedBy = ["graphical-session.target"];
+      serviceConfig = {
         ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset";
         Restart = "on-failure";
-      };
-      install = {
-        WantedBy = ["graphical-session.target"];
       };
     };
 
