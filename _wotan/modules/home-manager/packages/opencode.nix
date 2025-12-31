@@ -21,69 +21,69 @@
   config = lib.mkIf config.opencode.enable {
     home.file."${config.opencode.commandsDir}/cc.md" = {
       text = ''
----
-description: Create conventional commits based on analyzed changes
----
+        ---
+        description: Create conventional commits based on analyzed changes
+        ---
 
-# Conventional Commit Analysis
+        # Conventional Commit Analysis
 
-## Git Status
-!`git status --porcelain`
+        ## Git Status
+        !`git status --porcelain`
 
-## Staged Changes
-!`git diff --cached --name-only`
+        ## Staged Changes
+        !`git diff --cached --name-only`
 
-## Unstaged Changes  
-!`git diff --name-only`
+        ## Unstaged Changes
+        !`git diff --name-only`
 
-## Recent Commits (for context)
-!`git log --oneline -5`
+        ## Recent Commits (for context)
+        !`git log --oneline -5`
 
-## Analysis & Commit Strategy
+        ## Analysis & Commit Strategy
 
-Based on the above changes, I'll analyze what has been modified and suggest appropriate conventional commits following the specification:
+        Based on the above changes, I'll analyze what has been modified and suggest appropriate conventional commits following the specification:
 
-### Commit Types:
-- **feat**: New feature
-- **fix**: Bug fix  
-- **docs**: Documentation changes
-- **style**: Code style changes (formatting, missing semi-colons, etc)
-- **refactor**: Code refactoring
-- **test**: Adding or updating tests
-- **chore**: Maintenance tasks, dependency updates, etc
+        ### Commit Types:
+        - **feat**: New feature
+        - **fix**: Bug fix
+        - **docs**: Documentation changes
+        - **style**: Code style changes (formatting, missing semi-colons, etc)
+        - **refactor**: Code refactoring
+        - **test**: Adding or updating tests
+        - **chore**: Maintenance tasks, dependency updates, etc
 
-### Commit Format:
-```
-<type>[optional scope]: <description>
+        ### Commit Format:
+        ```
+        <type>[optional scope]: <description>
 
-[optional body]
+        [optional body]
 
-[optional footer(s)]
-```
+        [optional footer(s)]
+        ```
 
-## Analysis Process
+        ## Analysis Process
 
-1. **Categorize changes** by examining file paths and content
-2. **Group related changes** that should be committed together
-3. **Determine commit type** based on the nature of changes
-4. **Create descriptive commit messages** following conventional commit spec
+        1. **Categorize changes** by examining file paths and content
+        2. **Group related changes** that should be committed together
+        3. **Determine commit type** based on the nature of changes
+        4. **Create descriptive commit messages** following conventional commit spec
 
-## Staging & Commit Commands
+        ## Staging & Commit Commands
 
-I'll now stage the appropriate files and create conventional commits:
+        I'll now stage the appropriate files and create conventional commits:
 
-!`git add .`
+        !`git add .`
 
-!`git commit -m "$(cat <<'EOF'
-<type>: <description>
+        !`git commit -m "$(cat <<'EOF'
+        <type>: <description>
 
-EOF
-)"`
+        EOF
+        )"`
 
-## Verification
+        ## Verification
 
-!`git log --oneline -3`
-'';
+        !`git log --oneline -3`
+      '';
     };
 
     # Ensure the commands directory exists
