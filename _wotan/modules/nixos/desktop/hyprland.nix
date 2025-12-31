@@ -296,7 +296,7 @@
         ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset";
         Restart = "on-failure";
       };
-      Install = {
+      install = {
         WantedBy = ["graphical-session.target"];
       };
     };
