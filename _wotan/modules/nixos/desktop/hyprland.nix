@@ -32,6 +32,7 @@
       hyprlauncher
       hyprtoolkit
       hyprsysteminfo
+      inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
 
       # Notifications
       mako
@@ -168,6 +169,9 @@
 
             # File manager
             "$mod, E, exec, thunar"
+
+            # Wallpaper
+            "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type fade"
 
             # Screenshot
             ", Print, exec, grimblast copy area"

@@ -44,6 +44,8 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    awww.url = "git+https://codeberg.org/LGFae/awww";
   };
 
   outputs = {
@@ -59,6 +61,7 @@
     caelestia-shell,
     mac-style-plymouth,
     disko,
+    awww,
   } @ inputs: let
     # Helper function to generate host configurations
     mkHost = hostname: system:
