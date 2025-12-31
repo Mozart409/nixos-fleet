@@ -18,6 +18,7 @@
       grim
       wl-clipboard
       cliphist
+      playerctl
 
       # Bar and launcher
       waybar
@@ -193,6 +194,12 @@
             "$mod SHIFT, right, movewindow, r"
             "$mod SHIFT, up, movewindow, u"
             "$mod SHIFT, down, movewindow, d"
+
+            # Media keys (pass through to applications like Firefox)
+            ", XF86AudioPlay, exec, playerctl play-pause"
+            ", XF86AudioStop, exec, playerctl stop"
+            ", XF86AudioPrev, exec, playerctl previous"
+            ", XF86AudioNext, exec, playerctl next"
           ]
           ++ (
             # Workspace bindings
