@@ -33,7 +33,7 @@
       hyprtoolkit
       hyprsysteminfo
       # Blue light filter
-      wlsunset
+      hyprsunset
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
 
       # Notifications
@@ -228,8 +228,8 @@
           "hyprpaper"
           "waybar"
           "eww open bar"
-          # Start wlsunset at 8 PM with 3400K, stop at 6 AM
-          "wlsunset -t 3400 -T 6500 -s 20:00 -r 06:00"
+          # Start hyprsunset at 8 PM with 3400K, stop at 6 AM
+          "hyprsunset"
         ];
 
         # Plugin configurations
@@ -280,6 +280,34 @@
         (centerbox :class "bar"
           (label :text "''${time.hour == 12 ? 12 : time.hour % 12}:''${time.minute < 10 ? \"0\" : \"\"}''${time.minute} ''${time.hour < 12 ? \"AM\" : \"PM\"}"))
       )
+    '';
+
+    # Hyprsunset configuration
+    systemd.user.services.hyprsunset = {
+      Unit = {
+        Description = "Hyprland blue light filter";
+        PartOf = "graphical-session.target";
+      };
+      Service = {
+        ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset";
+        Restart = "on-failure";
+      };
+      Install = {
+        WantedBy = ["graphical-session.target"];
+      };
+    };
+
+    # Hyprsunset configuration file
+    environment.etc."hypr/hyprsunset.conf".text = ''
+      general {
+          temperature = 3400
+          sunset_time = "20:00"
+          sunrise_time = "06:00"
+          day_temperature = 6500
+          mode = 1
+          transition = 1
+          ramp = 1
+      }
     '';
 
     # Hyprpaper configuration is managed via home-manager
