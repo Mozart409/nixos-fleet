@@ -32,7 +32,7 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-generations +3";
+    options = "--delete-generations +5";
   };
 
   # Allow unfree packages on all hosts
