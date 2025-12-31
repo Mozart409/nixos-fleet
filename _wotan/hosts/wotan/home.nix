@@ -17,7 +17,11 @@
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
+    ../../modules/home-manager/packages/opencode.nix
   ];
+
+  # Enable opencode custom commands
+  opencode.enable = true;
 
   # Host-specific home-manager packages can be added here
   # For example, if you want certain packages only on wotan:
