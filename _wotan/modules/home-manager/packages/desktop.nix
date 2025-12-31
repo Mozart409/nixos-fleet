@@ -14,6 +14,7 @@
     comet-gog
     discord
     lutris-unwrapped
+    mate.pluma
   ];
 
   xdg.configFile."hypr/hyprpaper.conf".text = ''

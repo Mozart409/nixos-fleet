@@ -163,6 +163,9 @@
             # Browser
             "$mod, F, exec, firefox"
 
+            # Text editor
+            "$mod, N, exec, pluma"
+
             # File manager
             "$mod, E, exec, thunar"
 
