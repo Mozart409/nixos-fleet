@@ -51,11 +51,16 @@
       defaultSession = "hyprland";
     };
 
+    # Greetd configuration
     services.greetd = {
       enable = true;
       settings = {
+        initial_session = {
+          command = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland";
+          user = "amadeus";
+        };
         default_session = {
-          command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/hyprland-start";
+          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --remember-user-session --time --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland";
           user = "greeter";
         };
       };
