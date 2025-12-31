@@ -224,13 +224,13 @@
           );
 
         # Blue light filter (wlsunset)
-            "exec-once = [
-              hyprpaper
-              waybar
-              eww open bar
-              # Start wlsunset at 8 PM with 3400K, stop at 6 AM
-              \"wlsunset -t 3400 -T 6500 -s 20:00 -r 06:00\"
-            ];"
+        exec-once = [
+          "hyprpaper"
+          "waybar"
+          "eww open bar"
+          # Start wlsunset at 8 PM with 3400K, stop at 6 AM
+          "wlsunset -t 3400 -T 6500 -s 20:00 -r 06:00"
+        ];
 
         # Plugin configurations
         "plugin:hyprtrails" = {
