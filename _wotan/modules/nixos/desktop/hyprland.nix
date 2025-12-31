@@ -209,6 +209,10 @@
             ", XF86AudioStop, exec, playerctl stop"
             ", XF86AudioPrev, exec, playerctl previous"
             ", XF86AudioNext, exec, playerctl next"
+
+            # Blue light filter
+            "$mod, H, exec, hyprctl hyprsunset temperature +500"
+            "$mod, B, exec, hyprctl hyprsunset temperature -500"
           ]
           ++ (
             # Workspace bindings
