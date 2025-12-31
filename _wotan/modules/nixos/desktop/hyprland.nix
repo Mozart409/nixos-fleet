@@ -271,12 +271,8 @@
       )
     '';
 
-    # Hyprpaper configuration
-    environment.etc."hypr/hyprpaper.conf".text = ''
-      preload = /home/amadeus/Pictures/Wallpapers/nier.jpeg
-      wallpaper = DP-3,/home/amadeus/Pictures/Wallpapers/nier.jpeg
-      wallpaper = DP-2,/home/amadeus/Pictures/Wallpapers/nier.jpeg
-    '';
+    # Hyprpaper configuration is managed via home-manager
+    # (xdg.configFile."hypr/hyprpaper.conf")
 
     # Lockscreen configuration
     security.pam.services.hyprlock = {};
