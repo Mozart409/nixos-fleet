@@ -21,6 +21,7 @@
 
       # Bar and launcher
       waybar
+      eww
       wofi
       wlogout
 
@@ -206,6 +207,12 @@
               9)
           );
 
+        # Launch bars
+        exec-once = [
+          "waybar"
+          "eww open bar"
+        ];
+
         # Plugin configurations
         "plugin:hyprtrails" = {
           "bezier_points" = "0.1,0.1,0.9,0.9";
@@ -223,6 +230,38 @@
         ];
       };
     };
+
+    # Waybar configuration
+    environment.etc."waybar/config.jsonc".text = ''
+      {
+        "layer": "top",
+        "position": "top",
+        "height": 30,
+        "modules-left": [],
+        "modules-center": [
+          "clock"
+        ],
+        "modules-right": [],
+        "clock": {
+          "format": "{:%H:%M}",
+          "tooltip-format": "{:%Y-%m-%d %A}",
+          "interval": 1
+        }
+      }
+    '';
+
+    # EWW configuration
+    environment.etc."eww/bar.yuck".text = ''
+      (defwindow bar
+        :geometry (geometry :x "0%"
+                         :y "0%"
+                         :width "40%"
+                         :height "30px"
+                         :anchor "top center")
+        (centerbox :class "bar"
+          (label :text "''${time.hour == 12 ? 12 : time.hour % 12}:''${time.minute < 10 ? \"0\" : \"\"}''${time.minute} ''${time.hour < 12 ? \"AM\" : \"PM\"}"))
+      )
+    '';
 
     # Lockscreen configuration
     security.pam.services.hyprlock = {};
