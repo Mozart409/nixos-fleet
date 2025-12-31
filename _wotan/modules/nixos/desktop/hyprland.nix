@@ -57,11 +57,11 @@
       enable = true;
       settings = {
         initial_session = {
-          command = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland";
+          command = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
           user = "amadeus";
         };
         default_session = {
-          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --remember-user-session --time --theme 'border=yellow;text=amber;prompt=amber;time=amber;action=amber;button=yellow;container=black' --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland";
+          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --remember-user-session --time --theme 'border=yellow;text=amber;prompt=amber;time=amber;action=amber;button=yellow;container=black' --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
           user = "greeter";
         };
       };
