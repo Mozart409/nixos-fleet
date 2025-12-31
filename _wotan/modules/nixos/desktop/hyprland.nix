@@ -216,6 +216,7 @@
 
         # Launch bars
         exec-once = [
+          "hyprpaper"
           "waybar"
           "eww open bar"
         ];
@@ -268,6 +269,13 @@
         (centerbox :class "bar"
           (label :text "''${time.hour == 12 ? 12 : time.hour % 12}:''${time.minute < 10 ? \"0\" : \"\"}''${time.minute} ''${time.hour < 12 ? \"AM\" : \"PM\"}"))
       )
+    '';
+
+    # Hyprpaper configuration
+    environment.etc."hypr/hyprpaper.conf".text = ''
+      preload = /home/amadeus/Pictures/Wallpapers/nier.jpeg
+      wallpaper = DP-3,/home/amadeus/Pictures/Wallpapers/nier.jpeg
+      wallpaper = DP-2,/home/amadeus/Pictures/Wallpapers/nier.jpeg
     '';
 
     # Lockscreen configuration
