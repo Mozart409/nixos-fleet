@@ -29,5 +29,6 @@
     radicle-desktop
     radicle-tui
     insomnia
+    wev
   ];
 }
