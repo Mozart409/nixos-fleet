@@ -53,6 +53,8 @@
     ./plugins/custom/plugins/typescript-tools.nix
     ./plugins/custom/plugins/spectre.nix
     ./plugins/custom/plugins/flash.nix
+    ./plugins/custom/plugins/schemastore.nix
+    ./plugins/custom/plugins/zk.nix
   ];
 
   /*

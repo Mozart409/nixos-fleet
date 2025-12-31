@@ -30,5 +30,6 @@
     radicle-tui
     insomnia
     wev
+    zk
   ];
 }
