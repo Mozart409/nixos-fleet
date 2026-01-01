@@ -66,7 +66,12 @@
     awww,
   } @ inputs: let
     # Helper function to generate host configurations
-    mkHost = hostname: system:
+    mkHost = hostname: system: let
+      pkgsStable = import nixpkgs-stable {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    in
       lib.nixosSystem {
         inherit system;
         specialArgs = {inherit inputs;};
@@ -74,9 +79,10 @@
           ./hosts/${hostname}/default.nix
           {
             nix.settings.trusted-users = ["amadeus"];
+            nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [
               (final: prev: {
-                anytype = inputs.nixpkgs-stable.legacyPackages.${system}.anytype;
+                anytype = pkgsStable.anytype;
               })
             ];
           }
@@ -84,18 +90,26 @@
       };
 
     # Helper function to generate home-manager configurations
-    mkHome = hostname: system:
+    mkHome = hostname: system: let
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+      pkgsStable = import nixpkgs-stable {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    in
       home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.${system};
+        inherit pkgs;
         extraSpecialArgs = {inherit inputs;};
         modules = [
           ./hosts/${hostname}/home.nix
           inputs.nixvim.homeModules.nixvim
           {
-            nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [
               (final: prev: {
-                anytype = inputs.nixpkgs-stable.legacyPackages.${system}.anytype;
+                anytype = pkgsStable.anytype;
               })
             ];
           }
