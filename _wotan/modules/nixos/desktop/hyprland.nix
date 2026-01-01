@@ -264,7 +264,7 @@
     };
 
     # Hyprsunset configuration file
-    environment.etc."hypr/hyprsunset.conf".text = ''
+    xdg.configFile."hypr/hyprsunset.conf".text = ''
       general {
           temperature = 3400
           sunset_time = "20:00"
@@ -276,7 +276,7 @@
       }
     '';
 
-    environment.etc."hypr/hyprpaper.conf".text = ''
+    xdg.configFile."hypr/hyprpaper.conf".text = ''
       splash = false
       preload = /home/amadeus/Pictures/Wallpapers/nier.jpeg
       wallpaper = DP-3,/home/amadeus/Pictures/Wallpapers/nier.jpeg
@@ -287,7 +287,7 @@
     security.pam.services.hyprlock = {};
 
     # Hyprlock configuration
-    environment.etc."hypr/hyprlock.conf".text = ''
+    xdg.configFile."hypr/hyprlock.conf".text = ''
       $font = Monospace
 
       general {
