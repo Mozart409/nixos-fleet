@@ -5,7 +5,7 @@
   ...
 }: {
   programs.kitty = {
-    enable = true;
+    enable = false;
     shellIntegration.enableZshIntegration = true;
     # font = "FiraCode";
     themeFile = "kanagawa_dragon";
@@ -15,12 +15,15 @@
       update_check_interval = 0;
     };
   };
+
   programs.ghostty = {
-    enable = true;
+    enable = false;
   };
 
   programs.alacritty = {
     enable = true;
+    theme = "kanagawa_wave";
+    # theme = "kanagawa_dragon";
     settings = {
       window = {
         decorations = "Full";
