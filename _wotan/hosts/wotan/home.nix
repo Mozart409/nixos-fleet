@@ -14,11 +14,14 @@
     ../../modules/home-manager/packages/desktop.nix
     ../../modules/home-manager/packages/security.nix
     ../../modules/home-manager/packages/fun.nix
+    ../../modules/home-manager/packages/waybar.nix
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/opencode.nix
   ];
+
+  desktop.waybar.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
