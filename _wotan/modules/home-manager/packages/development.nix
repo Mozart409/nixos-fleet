@@ -31,5 +31,7 @@
     insomnia
     wev
     zk
+    jq
+    sed
   ];
 }

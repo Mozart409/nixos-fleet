@@ -219,7 +219,6 @@
         nh
         alejandra
         colmena.packages.${system}.colmena
-        jq
       ];
       shellHook = ''
         echo "Welcome to the NixOS configuration development shell!"

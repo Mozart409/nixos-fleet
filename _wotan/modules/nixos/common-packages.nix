@@ -12,7 +12,6 @@
     wget
     curl
     git
-    nh
     alejandra
     pinentry-curses
     pinentry-gnome3
@@ -31,6 +30,13 @@
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-gnome3;
     };
+  };
+
+  programs.nh = {
+    enable = true;
+    clean.enable = true;
+    clean.extraArgs = "--keep 5";
+    flake = "/etc/nixos";
   };
 
   # Common user configuration
