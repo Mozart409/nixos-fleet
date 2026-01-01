@@ -92,6 +92,7 @@
           ./hosts/${hostname}/home.nix
           inputs.nixvim.homeModules.nixvim
           {
+            nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [
               (final: prev: {
                 anytype = inputs.nixpkgs-stable.legacyPackages.${system}.anytype;
