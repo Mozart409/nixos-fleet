@@ -310,7 +310,7 @@
       }
     '';
 
-    xdg.configFile."hypr/hyprpaper.conf".text = ''
+    environment.etc."hypr/hyprpaper.conf".text = ''
       splash = false
       preload = /home/amadeus/Pictures/Wallpapers/nier.jpeg
       wallpaper = DP-3,/home/amadeus/Pictures/Wallpapers/nier.jpeg
