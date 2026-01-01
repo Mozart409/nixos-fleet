@@ -19,9 +19,11 @@
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/opencode.nix
+    ../../modules/home-manager/packages/hyprland-configs.nix
   ];
 
   desktop.waybar.enable = true;
+  desktop.hyprland-configs.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
