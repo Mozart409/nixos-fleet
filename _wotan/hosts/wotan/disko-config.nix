@@ -1,18 +1,18 @@
 {
   disko.devices = {
     disk = {
-      sda = {
+      sdb = {
         type = "disk";
-        device = "/dev/sda";
+        device = "/dev/sdb";
         content = {
           type = "gpt";
           partitions = {
-            storage = {
+            games = {
               size = "100%";
               content = {
                 type = "filesystem";
-                format = "ext4";
-                mountpoint = "/mnt/storage";
+                format = "btrfs";
+                mountpoint = "/mnt/games";
               };
             };
           };
