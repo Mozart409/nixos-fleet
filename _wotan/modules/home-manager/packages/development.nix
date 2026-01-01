@@ -32,6 +32,6 @@
     wev
     zk
     jq
-    sed
+    gnused
   ];
 }
