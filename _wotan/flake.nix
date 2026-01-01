@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -51,6 +52,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-stable,
     home-manager,
     nixvim,
     nixos-generators,
@@ -72,6 +74,11 @@
           ./hosts/${hostname}/default.nix
           {
             nix.settings.trusted-users = ["amadeus"];
+            nixpkgs.overlays = [
+              (final: prev: {
+                anytype = inputs.nixpkgs-stable.legacyPackages.${system}.anytype;
+              })
+            ];
           }
         ];
       };
@@ -84,6 +91,13 @@
         modules = [
           ./hosts/${hostname}/home.nix
           inputs.nixvim.homeModules.nixvim
+          {
+            nixpkgs.overlays = [
+              (final: prev: {
+                anytype = inputs.nixpkgs-stable.legacyPackages.${system}.anytype;
+              })
+            ];
+          }
         ];
       };
 
@@ -191,7 +205,6 @@
         alejandra
         colmena.packages.${system}.colmena
         jq
-        sed
       ];
       shellHook = ''
         echo "Welcome to the NixOS configuration development shell!"
