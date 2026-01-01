@@ -216,7 +216,6 @@
     devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
       buildInputs = with nixpkgs.legacyPackages.${system}; [
         git
-        nh
         alejandra
         colmena.packages.${system}.colmena
       ];

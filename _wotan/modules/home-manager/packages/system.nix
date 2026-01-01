@@ -8,7 +8,6 @@
     busybox
     nettools
     file
-    nh
     just
     xclip
     bat
