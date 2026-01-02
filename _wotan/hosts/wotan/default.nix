@@ -90,7 +90,11 @@
 
   # Host-specific services
   virtualisation.docker.enable = true;
-  programs.steam.enable = true;
+  programs.steam = {
+    enable = true;
+    extraCompatPackages = with pkgs; [ proton-ge-bin ];
+    extraPackages = with pkgs; [ mangohud ];
+  };
   services.tailscale.enable = true;
 
   # System state version

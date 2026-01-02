@@ -21,5 +21,5 @@
       };
     };
   };
-  fileSystems."/mnt/games".options = ["nofail"];
+  fileSystems."/mnt/games".options = ["nofail" "exec" "user" "users"];
 }
