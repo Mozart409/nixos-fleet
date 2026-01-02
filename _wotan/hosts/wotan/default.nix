@@ -35,7 +35,7 @@
   # Bootloader configuration
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 10;
+  boot.loader.timeout = 5;
 
   # Desktop environment configuration
   desktop.enable = true;
@@ -92,8 +92,8 @@
   virtualisation.docker.enable = true;
   programs.steam = {
     enable = true;
-    extraCompatPackages = with pkgs; [ proton-ge-bin ];
-    extraPackages = with pkgs; [ mangohud ];
+    extraCompatPackages = with pkgs; [proton-ge-bin];
+    extraPackages = with pkgs; [mangohud];
   };
   services.tailscale.enable = true;
 
