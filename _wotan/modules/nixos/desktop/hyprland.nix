@@ -9,12 +9,14 @@
     inputs.hyprland.nixosModules.default
   ];
 
-  security.sudo.extraConfig = ''
-    Defaults!gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
-    Defaults!pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
-  '';
+
 
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
+    security.sudo.extraConfig = ''
+      Defaults!gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
+      Defaults!pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
+    '';
+
     # Essential Wayland packages
     environment.systemPackages = with pkgs; [
       # Core utilities
