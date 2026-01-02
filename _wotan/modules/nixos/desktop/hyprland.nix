@@ -146,6 +146,9 @@
           "float, class:^(nm-connection-editor)$"
           "size 800 600, class:^(pavucontrol)$"
           "size 800 600, class:^(blueman-manager)$"
+          "float, class:^(steam)$"
+          "center, class:^(steam)$"
+          "size 1280 720, class:^(steam)$"
         ];
 
         # Mod key
