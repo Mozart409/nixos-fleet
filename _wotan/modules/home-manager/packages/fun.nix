@@ -14,5 +14,6 @@
     openrgb-with-all-plugins
     handbrake
     makemkv
+    anki-bin
   ];
 }
