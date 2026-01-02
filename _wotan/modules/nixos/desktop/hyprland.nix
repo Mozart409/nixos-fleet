@@ -13,8 +13,8 @@
 
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
     security.sudo.extraConfig = ''
-      Defaults!gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
-      Defaults!pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
+      Defaults!${pkgs.gparted}/bin/gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
+      Defaults!${pkgs.polkit.bin}/bin/pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
     '';
 
     # Essential Wayland packages
