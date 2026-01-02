@@ -64,7 +64,7 @@ in {
         };
 
         memory = {
-          format = " {: >3}%";
+          format = "󰍛 {: >3}%";
           "on-click" = "neohtop";
         };
 
