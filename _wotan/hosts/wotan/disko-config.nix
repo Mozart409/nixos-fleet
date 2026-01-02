@@ -1,9 +1,9 @@
 {
   disko.devices = {
     disk = {
-      sdb = {
+      games = {
         type = "disk";
-        device = "/dev/sdb";
+        device = "/dev/disk/by-id/ata-ST2000DM008-2FR102_ZFL5S46T";
         content = {
           type = "gpt";
           partitions = {
@@ -13,6 +13,7 @@
                 type = "filesystem";
                 format = "btrfs";
                 mountpoint = "/mnt/games";
+                extraArgs = ["-f"];
               };
             };
           };
@@ -20,4 +21,5 @@
       };
     };
   };
+  fileSystems."/mnt/games".options = ["nofail"];
 }

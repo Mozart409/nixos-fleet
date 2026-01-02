@@ -40,6 +40,12 @@
   # Desktop environment configuration
   desktop.enable = true;
 
+  # Display manager auto-login (KDE specific)
+  services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
+    enable = true;
+    user = "amadeus";
+  };
+
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
 
@@ -79,6 +85,7 @@
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
+    bcachefs-tools
   ];
 
   # Host-specific services
@@ -88,10 +95,4 @@
 
   # System state version
   system.stateVersion = "24.11";
-
-  # Ensure storage and games mounts are owned by amadeus
-  systemd.tmpfiles.rules = [
-    "Z /mnt/storage 0755 amadeus users -"
-    "Z /mnt/games 0755 amadeus users -"
-  ];
 }
