@@ -16,6 +16,9 @@
       saveNoDups = true;
       share = true;
     };
+    setOptions = [
+      "HIST_IGNORE_SPACE"
+    ];
     historySubstringSearch.enable = true;
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
