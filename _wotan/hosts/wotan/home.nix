@@ -26,7 +26,6 @@
 
   desktop.waybar.enable = true;
   desktop.hyprland-configs.enable = true;
-  programs.rofi.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
@@ -37,4 +36,3 @@
   #   host-specific-package
   # ];
 }
-
