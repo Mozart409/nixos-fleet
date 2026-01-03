@@ -17,7 +17,7 @@ in {
       terminal = "alacritty";
       cycle = true;
       location = "center";
-      theme = "darkblue";
+      theme = "DarkBlue";
       plugins = with pkgs; [
         rofi-calc
         rofi-nerdy
