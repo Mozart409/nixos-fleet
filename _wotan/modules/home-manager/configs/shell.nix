@@ -30,7 +30,10 @@
       dps = "docker compose ps";
       dup = "docker compose up -d --build --remove-orphans";
       dwn = "docker compose down";
+      pup = "podman-compose up -d";
+      pwn = "podman-compose down";
       n = "nvim .";
+      t = "tmux";
     };
     oh-my-zsh = {
       enable = true;
