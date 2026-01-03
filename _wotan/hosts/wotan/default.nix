@@ -97,6 +97,15 @@
   };
   services.tailscale.enable = true;
 
+  # Set correct ownership for /mnt/games after mount
+  systemd.services.set-games-ownership = {
+    description = "Set ownership of /mnt/games";
+    after = ["mnt-games.mount"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig.Type = "oneshot";
+    script = "chown -R amadeus:users /mnt/games";
+  };
+
   # System state version
   system.stateVersion = "24.11";
 }
