@@ -20,6 +20,7 @@
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/opencode.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
+    ../../modules/home-manager/packages/podman.nix
   ];
 
   desktop.waybar.enable = true;
