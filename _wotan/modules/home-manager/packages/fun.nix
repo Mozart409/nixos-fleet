@@ -15,5 +15,6 @@
     handbrake
     makemkv
     anki-bin
+    mpv
   ];
 }
