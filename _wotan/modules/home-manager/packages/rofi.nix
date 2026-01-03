@@ -13,11 +13,11 @@ in {
   config = lib.mkIf cfg.enable {
     programs.rofi = {
       enable = true;
-      font = "JetBrainsMono 14";
+      font = "JetBrainsMono 18";
       terminal = "alacritty";
       cycle = true;
       location = "center";
-      theme = "sidebar";
+      theme = "darkblue";
       plugins = with pkgs; [
         rofi-calc
         rofi-nerdy
