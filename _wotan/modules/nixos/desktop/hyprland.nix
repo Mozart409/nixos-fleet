@@ -239,7 +239,6 @@
         # Blue light filter (wlsunset)
         exec-once = [
           "hyprpaper"
-          "ironbar"
           # Start hyprsunset at 8 PM with 3400K, stop at 6 AM
           "hyprsunset"
         ];
