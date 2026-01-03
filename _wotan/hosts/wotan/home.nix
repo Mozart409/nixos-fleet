@@ -20,11 +20,13 @@
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/opencode.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
+    ../../modules/home-manager/packages/rofi.nix
     ../../modules/home-manager/packages/podman.nix
   ];
 
   desktop.waybar.enable = true;
   desktop.hyprland-configs.enable = true;
+  programs.rofi.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
@@ -35,3 +37,4 @@
   #   host-specific-package
   # ];
 }
+
