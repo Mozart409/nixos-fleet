@@ -15,6 +15,7 @@
     ../../modules/home-manager/packages/security.nix
     ../../modules/home-manager/packages/fun.nix
     ../../modules/home-manager/packages/ironbar.nix
+    ../../modules/home-manager/packages/waybar.nix
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
