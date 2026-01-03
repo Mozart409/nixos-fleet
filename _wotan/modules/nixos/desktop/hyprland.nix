@@ -9,8 +9,6 @@
     inputs.hyprland.nixosModules.default
   ];
 
-
-
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
     security.sudo.extraConfig = ''
       Defaults!${pkgs.gparted}/bin/gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
@@ -28,6 +26,7 @@
       playerctl
 
       # Bar and launcher
+      rofi
       waybar
       wofi
       wlogout
@@ -166,7 +165,7 @@
           [
             # Application launcher
             "$mod, D, exec, wofi --show drun"
-            "$mod, SPACE, exec, hyprlauncher"
+            "$mod, SPACE, exec, rofi -show drun"
 
             # Terminal
             "$mod, Return, exec, alacritty"
@@ -261,6 +260,7 @@
         ];
       };
     };
+
 
     # Hyprsunset configuration
     systemd.user.services.hyprsunset = {

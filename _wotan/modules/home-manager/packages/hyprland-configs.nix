@@ -100,5 +100,18 @@ in {
 
 
     '';
+
+    xdg.configFile."rofi/config.rasi".text = ''
+      @theme "sidebar"
+
+      configuration {
+        font: "JetBrainsMono 14";
+        location: center;
+        terminal: "alacritty";
+        cycle: true;
+        show-icons: true;
+        drun-display-format: "{name}";
+      }
+    '';
   };
 }

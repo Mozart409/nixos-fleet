@@ -15,5 +15,12 @@
     discord
     lutris-unwrapped
     mate.pluma
+
+    # Rofi and plugins
+    rofi
+    rofi-calc
+    rofi-nerdy
+    rofi-file-browser
+    rofi-pass-wayland
   ];
 }
