@@ -27,7 +27,7 @@
 
       # Bar and launcher
       rofi
-      ironbar
+      inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar
       wofi
       wlogout
 
