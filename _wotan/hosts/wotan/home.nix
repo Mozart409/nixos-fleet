@@ -26,6 +26,7 @@
 
   desktop.waybar.enable = true;
   desktop.hyprland-configs.enable = true;
+  desktop.rofi.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;

@@ -3,12 +3,14 @@
   pkgs,
   lib,
   ...
-}: {
-  options.programs.rofi = {
+}: let
+  cfg = config.desktop.rofi;
+in {
+  options.desktop.rofi = {
     enable = lib.mkEnableOption "rofi";
   };
 
-  config = lib.mkIf config.programs.rofi.enable {
+  config = lib.mkIf cfg.enable {
     programs.rofi = {
       enable = true;
       font = "JetBrainsMono 14";
