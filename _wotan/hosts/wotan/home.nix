@@ -14,7 +14,7 @@
     ../../modules/home-manager/packages/desktop.nix
     ../../modules/home-manager/packages/security.nix
     ../../modules/home-manager/packages/fun.nix
-    ../../modules/home-manager/packages/waybar.nix
+    ../../modules/home-manager/packages/ironbar.nix
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
@@ -24,7 +24,8 @@
     ../../modules/home-manager/packages/podman.nix
   ];
 
-  desktop.waybar.enable = true;
+  desktop.waybar.enable = false;
+  desktop.ironbar.enable = true;
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
 

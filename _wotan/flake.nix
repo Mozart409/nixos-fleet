@@ -26,6 +26,16 @@
       inputs.hyprland.follows = "hyprland";
     };
 
+    hypr-dynamic-cursors = {
+      url = "github:VirtCode/hypr-dynamic-cursors";
+      inputs.hyprland.follows = "hyprland"; # to make sure that the plugin is built for the correct version of hyprland
+    };
+
+    ironbar = {
+      url = "github:JakeStanger/ironbar";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -59,6 +69,8 @@
     colmena,
     hyprland,
     hyprland-plugins,
+    hypr-dynamic-cursors,
+    ironbar,
     quickshell,
     caelestia-shell,
     mac-style-plymouth,

@@ -18,7 +18,6 @@
     ../../modules/nixos/flatpak.nix
     ../../modules/nixos/desktop/default.nix
     ../../modules/nixos/desktop/kde.nix
-    ../../modules/nixos/desktop/niri.nix
     ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/user-experience.nix
 
@@ -35,7 +34,7 @@
   # Bootloader configuration
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 5;
+  boot.loader.timeout = 10;
 
   # Desktop environment configuration
   desktop.enable = true;
@@ -90,22 +89,14 @@
 
   # Host-specific services
   virtualisation.docker.enable = true;
-  programs.steam = {
-    enable = true;
-    extraCompatPackages = with pkgs; [proton-ge-bin];
-    extraPackages = with pkgs; [mangohud];
-  };
+  programs.steam.enable = true;
   services.tailscale.enable = true;
-
-  # Set correct ownership for /mnt/games after mount
-  systemd.services.set-games-ownership = {
-    description = "Set ownership of /mnt/games";
-    after = ["mnt-games.mount"];
-    wantedBy = ["multi-user.target"];
-    serviceConfig.Type = "oneshot";
-    script = "chown -R amadeus:users /mnt/games";
-  };
 
   # System state version
   system.stateVersion = "24.11";
+
+  # Ensure storage mount is owned by amadeus
+  systemd.tmpfiles.rules = [
+    "Z /mnt/storage 0755 amadeus users -"
+  ];
 }
