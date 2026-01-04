@@ -37,6 +37,7 @@
       pwn = "podman-compose down";
       n = "nvim .";
       t = "tmux";
+      opencode = "nix run github:anomalyco/opencode";
     };
     oh-my-zsh = {
       enable = true;

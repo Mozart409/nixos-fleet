@@ -5,7 +5,6 @@
   ...
 }: {
   home.packages = with pkgs; [
-    opencode
     nixos-generators
     eza
     cocogitto
