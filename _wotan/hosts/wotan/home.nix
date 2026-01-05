@@ -33,6 +33,13 @@
   # Enable opencode custom commands
   opencode.enable = true;
 
+  # Load CONTEXT7 API key from agenix secret file
+  home.sessionVariablesExtra = ''
+    if [ -n "$CONTEXT7_API_KEY_FILE" ] && [ -f "$CONTEXT7_API_KEY_FILE" ]; then
+      export CONTEXT7_API_KEY=$(cat "$CONTEXT7_API_KEY_FILE")
+    fi
+  '';
+
   # Host-specific home-manager packages can be added here
   # For example, if you want certain packages only on wotan:
   # home.packages = with pkgs; [

@@ -13,6 +13,9 @@
     # Hardware configuration
     ./hardware-configuration.nix
 
+    # Agenix for secrets management
+    inputs.agenix.nixosModules.default
+
     # Common modules
     ../../modules/nixos/common-packages.nix
     ../../modules/nixos/flatpak.nix
@@ -99,4 +102,17 @@
   systemd.tmpfiles.rules = [
     "Z /mnt/storage 0755 amadeus users -"
   ];
+
+  # Agenix secrets configuration
+  age.secrets.context7-api-key = {
+    file = ../../secrets/context7-api-key.age;
+    mode = "440";
+    owner = "amadeus";
+    group = "users";
+  };
+
+  # Make the CONTEXT7_API_KEY available as environment variable for the user
+  environment.sessionVariables = {
+    CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
+  };
 }
