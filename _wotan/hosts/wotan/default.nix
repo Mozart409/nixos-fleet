@@ -104,6 +104,10 @@
   ];
 
   # Agenix secrets configuration
+  age.identityPaths = [
+    "/etc/ssh/ssh_host_ed25519_key"
+  ];
+
   age.secrets.context7-api-key = {
     file = ../../secrets/context7-api-key.age;
     mode = "440";

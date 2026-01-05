@@ -1,10 +1,14 @@
 let
   # User SSH keys for encryption/decryption
   amadeus-wotan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan";
-  
+
+  # System SSH host keys for decryption
+  wotan-host = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB+ZFy9VtNhNzlpUg0tNqMPZFj3kCt50wvXD7aw88MZ root@wotan";
+
   # Define which keys can access which secrets
   allUsers = [amadeus-wotan];
+  allKeys = [amadeus-wotan wotan-host];
 in {
   # CONTEXT7 API key for OpenCode MCP server
-  "secrets/context7-api-key.age".publicKeys = allUsers;
+  "secrets/context7-api-key.age".publicKeys = allKeys;
 }
