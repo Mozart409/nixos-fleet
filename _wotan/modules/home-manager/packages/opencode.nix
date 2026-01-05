@@ -19,6 +19,25 @@
   };
 
   config = lib.mkIf config.opencode.enable {
+    home.file.".config/opencode/opencode.json" = {
+      text = builtins.toJSON {
+        "$schema" = "https://opencode.ai/config.json";
+        mcp = {
+          gh_grep = {
+            type = "remote";
+            url = "https://mcp.grep.app";
+          };
+          context7 = {
+            type = "remote";
+            url = "https://mcp.context7.com/mcp";
+            headers = {
+              CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
+            };
+          };
+        };
+      };
+    };
+
     home.file."${config.opencode.commandsDir}/cc.md" = {
       text = ''
         ---
