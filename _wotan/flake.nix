@@ -16,6 +16,9 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix = {
+      url = "github:ryantm/agenix";
+    };
     colmena = {
       url = "github:zhaofengli/colmena";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -67,6 +70,7 @@
     nixvim,
     nixos-generators,
     colmena,
+    agenix,
     hyprland,
     hyprland-plugins,
     hypr-dynamic-cursors,
