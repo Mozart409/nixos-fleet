@@ -15,5 +15,6 @@
     discord
     lutris-unwrapped
     mate.pluma
+    pavucontrol
   ];
 }
