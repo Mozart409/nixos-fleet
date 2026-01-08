@@ -34,7 +34,6 @@
       # Lockscreen and background
       hyprlock
       hypridle
-      hyprpaper
       hyprlauncher
       hyprtoolkit
       hyprsysteminfo
@@ -239,7 +238,8 @@
 
         # Startup applications
         exec-once = [
-          "hyprpaper"
+          "awww-daemon"
+          "sleep 1 && awww img \"$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.webp' \\) | shuf -n1)\" --transition-type grow --transition-fps 60"
           "hyprsunset"
           "hypridle"
           "ironbar"
