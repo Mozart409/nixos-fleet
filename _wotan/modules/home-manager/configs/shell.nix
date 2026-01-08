@@ -38,6 +38,7 @@
       n = "nvim .";
       t = "tmux";
       opencode = "nix run github:anomalyco/opencode";
+      zkdir = "cd ~/code/zettelkasten/";
     };
     oh-my-zsh = {
       enable = true;
