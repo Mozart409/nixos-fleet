@@ -33,6 +33,7 @@
 
       # Lockscreen and background
       hyprlock
+      hypridle
       hyprpaper
       hyprlauncher
       hyprtoolkit
@@ -236,10 +237,11 @@
               9)
           );
 
-        # Blue light filter (wlsunset)
+        # Startup applications
         exec-once = [
           "hyprpaper"
           "hyprsunset"
+          "hypridle"
           "ironbar"
         ];
 

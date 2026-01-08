@@ -30,6 +30,42 @@ in {
       wallpaper = DP-2,/home/amadeus/Pictures/Wallpapers/nier.jpeg
     '';
 
+    xdg.configFile."hypr/hypridle.conf".text = ''
+      general {
+          lock_cmd = pidof hyprlock || hyprlock       # avoid starting multiple hyprlock instances
+          before_sleep_cmd = loginctl lock-session    # lock before suspend
+          after_sleep_cmd = hyprctl dispatch dpms on  # turn on display after sleep
+          ignore_dbus_inhibit = false                 # respect idle-inhibit requests (e.g., from firefox, steam)
+          ignore_systemd_inhibit = false              # respect systemd-inhibit --what=idle inhibitors
+      }
+
+      # Screen dimming after 2.5 minutes
+      listener {
+          timeout = 150                               # 2.5 minutes
+          on-timeout = brightnessctl -s set 10        # dim screen
+          on-resume = brightnessctl -r                # restore brightness
+      }
+
+      # Screen off after 5 minutes
+      listener {
+          timeout = 300                               # 5 minutes
+          on-timeout = hyprctl dispatch dpms off      # turn off screen
+          on-resume = hyprctl dispatch dpms on        # turn on screen
+      }
+
+      # Lock screen after 10 minutes
+      listener {
+          timeout = 600                               # 10 minutes
+          on-timeout = loginctl lock-session          # lock screen
+      }
+
+      # Suspend after 30 minutes
+      listener {
+          timeout = 1800                              # 30 minutes
+          on-timeout = systemctl suspend              # suspend system
+      }
+    '';
+
     xdg.configFile."hypr/hyprlock.conf".text = ''
       $font = Monospace
 
