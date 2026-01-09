@@ -78,27 +78,27 @@ in {
       # Screen dimming after 2.5 minutes
       listener {
           timeout = 150                               # 2.5 minutes
-          on-timeout = brightnessctl -s set 10        # dim screen
+          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then brightnessctl -s set 10; fi        # dim screen
           on-resume = brightnessctl -r                # restore brightness
       }
 
       # Screen off after 5 minutes
       listener {
           timeout = 300                               # 5 minutes
-          on-timeout = hyprctl dispatch dpms off      # turn off screen
+          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then hyprctl dispatch dpms off; fi      # turn off screen
           on-resume = hyprctl dispatch dpms on        # turn on screen
       }
 
       # Lock screen after 10 minutes
       listener {
           timeout = 600                               # 10 minutes
-          on-timeout = loginctl lock-session          # lock screen
+          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then loginctl lock-session; fi          # lock screen
       }
 
       # Suspend after 30 minutes
       listener {
           timeout = 1800                              # 30 minutes
-          on-timeout = systemctl suspend              # suspend system
+          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then systemctl suspend; fi              # suspend system
       }
     '';
 
