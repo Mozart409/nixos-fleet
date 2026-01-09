@@ -16,5 +16,6 @@
     lutris-unwrapped
     mate.pluma
     pavucontrol
+    galculator
   ];
 }
