@@ -182,7 +182,7 @@
             "$mod, E, exec, thunar"
 
             # Wallpaper
-            "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type fade"
+            "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
 
             # Screenshot
             ", Print, exec, grimblast copy area"
