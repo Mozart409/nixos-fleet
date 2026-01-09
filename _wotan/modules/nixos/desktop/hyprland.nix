@@ -166,7 +166,7 @@
           [
             # Application launcher
             "$mod, D, exec, wofi --show drun"
-            "$mod, SPACE, exec, rofi -show drun"
+            "$mod, SPACE, exec, rofi -show drun -run-command 'bash -c \"{cmd}\"'"
 
             # Terminal
             "$mod, Return, exec, alacritty"
