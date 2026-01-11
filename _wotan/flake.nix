@@ -89,11 +89,11 @@
       };
     in
       lib.nixosSystem {
-        inherit system;
         specialArgs = {inherit inputs;};
         modules = [
           ./hosts/${hostname}/default.nix
           {
+            nixpkgs.hostPlatform = system;
             nix.settings.trusted-users = ["amadeus"];
             nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [
@@ -158,7 +158,7 @@
     };
 
     # Nixos Generator
-    minimal-pve = nixos-generators.nixosGenerate {
+    packages."x86_64-linux".minimal-pve = nixos-generators.nixosGenerate {
       system = "x86_64-linux";
       modules = [
         ({pkgs, ...}: {
@@ -193,8 +193,6 @@
       };
 
       rulemesh-o11y = {
-        nixpkgs.system = "x86_64-linux";
-
         deployment = {
           targetHost = "192.168.2.120";
           targetUser = "amadeus";
@@ -204,12 +202,12 @@
         imports = [
           ./hosts/rulemesh-o11y/default.nix
           {
+            nixpkgs.hostPlatform = "x86_64-linux";
             nix.settings.trusted-users = ["amadeus"];
           }
         ];
       };
       servarr = {
-        nixpkgs.system = "x86_64-linux";
         deployment = {
           targetHost = "192.168.2.188";
           targetUser = "amadeus";
@@ -220,6 +218,7 @@
         imports = [
           ./hosts/servarr/default.nix
           {
+            nixpkgs.hostPlatform = "x86_64-linux";
             nix.settings.trusted-users = ["amadeus"];
             nix.settings.substituters = [];
             nix.settings.extra-substituters = [];
