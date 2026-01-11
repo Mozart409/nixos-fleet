@@ -92,7 +92,17 @@
 
   # Host-specific services
   virtualisation.docker.enable = true;
-  programs.steam.enable = true;
+  programs.steam = {
+    enable = true;
+    extraCompatPackages = with pkgs; [
+      proton-ge-bin
+    ];
+    package = pkgs.steam.override {
+      extraBwrapArgs = [
+        "--bind" "/mnt/games" "/mnt/games"
+      ];
+    };
+  };
   services.tailscale.enable = true;
 
   # System state version
