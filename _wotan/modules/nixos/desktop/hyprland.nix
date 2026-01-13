@@ -24,7 +24,6 @@
       wl-clipboard
       cliphist
       playerctl
-      numlockx
 
       # Bar and launcher
       rofi
@@ -109,6 +108,7 @@
         input = {
           kb_layout = "de";
           follow_mouse = 1;
+          numlock_by_default = true;
           touchpad = {
             natural_scroll = false;
           };
@@ -244,7 +244,6 @@
           "hyprsunset"
           "hypridle"
           "ironbar"
-          "numlockx on"
         ];
 
         # Plugin configurations
