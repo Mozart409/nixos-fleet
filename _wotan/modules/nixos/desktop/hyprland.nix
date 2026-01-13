@@ -24,6 +24,7 @@
       wl-clipboard
       cliphist
       playerctl
+      numlockx
 
       # Bar and launcher
       rofi
@@ -243,6 +244,7 @@
           "hyprsunset"
           "hypridle"
           "ironbar"
+          "numlockx on"
         ];
 
         # Plugin configurations
