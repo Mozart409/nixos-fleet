@@ -130,7 +130,6 @@
             ];
           }
         ];
-        backupFileExtension = "backup";
       };
 
     lib = nixpkgs.lib;

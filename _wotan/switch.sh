@@ -8,7 +8,7 @@ chara say -t round -r switching ...
 echo ''
 echo ''
 sudo nixos-rebuild switch --flake .#wotan
-nix run nixpkgs#home-manager -- switch --flake .#amadeus@wotan
+nix run nixpkgs#home-manager -- switch --flake .#amadeus@wotan -b backup
 
 sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5
 
