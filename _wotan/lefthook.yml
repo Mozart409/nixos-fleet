@@ -22,6 +22,7 @@ pre-commit:
   jobs:
     - run: alejandra {staged_files}
       glob: "*.{nix}"
+      stage_fixed: true
 
 #     - name: rubocop
 #       glob: "*.rb"
