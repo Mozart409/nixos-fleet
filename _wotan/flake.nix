@@ -232,6 +232,7 @@
       buildInputs = with nixpkgs.legacyPackages.${system}; [
         git
         alejandra
+        lefthook
         colmena.packages.${system}.colmena
       ];
       shellHook = ''
