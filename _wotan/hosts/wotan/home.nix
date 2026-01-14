@@ -23,12 +23,14 @@
     ../../modules/home-manager/packages/hyprland-configs.nix
     ../../modules/home-manager/packages/rofi.nix
     ../../modules/home-manager/packages/podman.nix
+    ../../modules/home-manager/packages/gtk.nix
   ];
 
   desktop.waybar.enable = false;
   desktop.ironbar.enable = true;
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
+  desktop.gtk.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;

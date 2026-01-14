@@ -284,13 +284,6 @@
       QT_QPA_PLATFORMTHEME = lib.mkForce "kvantum";
       QT_STYLE_OVERRIDE = "kvantum";
 
-      # GTK theme
-      GTK_THEME = "Adwaita:dark";
-
-      # Cursor theme
-      XCURSOR_THEME = "Adwaita";
-      XCURSOR_SIZE = "24";
-
       # Wayland compatibility
       MOZ_ENABLE_WAYLAND = "1";
       _JAVA_AWT_WM_NONREPARENTING = "1";

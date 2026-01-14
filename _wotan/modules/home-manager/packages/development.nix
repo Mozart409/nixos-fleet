@@ -32,6 +32,6 @@
     zk
     jq
     gnused
-    claude-code
+    lefthook
   ];
 }
