@@ -58,6 +58,9 @@
       # Bluetooth tools
       bluez
       bluez-tools
+
+      # Passwords
+      keepassxc
     ];
 
     # Font configuration
