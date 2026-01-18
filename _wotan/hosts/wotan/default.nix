@@ -99,7 +99,9 @@
     ];
     package = pkgs.steam.override {
       extraBwrapArgs = [
-        "--bind" "/mnt/games" "/mnt/games"
+        "--bind"
+        "/mnt/games"
+        "/mnt/games"
       ];
     };
   };

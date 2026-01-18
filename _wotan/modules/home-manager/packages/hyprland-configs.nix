@@ -40,7 +40,7 @@ in {
     systemd.user.services.awww-wallpaper-rotate = {
       Unit = {
         Description = "Rotate wallpaper using awww";
-        After = [ "graphical-session.target" ];
+        After = ["graphical-session.target"];
       };
       Service = {
         Type = "oneshot";
@@ -62,7 +62,7 @@ in {
         Unit = "awww-wallpaper-rotate.service";
       };
       Install = {
-        WantedBy = [ "timers.target" ];
+        WantedBy = ["timers.target"];
       };
     };
 
