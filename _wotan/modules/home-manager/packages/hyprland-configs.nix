@@ -172,5 +172,63 @@ in {
 
 
     '';
+
+    services.dunst = {
+      enable = true;
+      package = pkgs.dunst;
+      settings = {
+        global = {
+          monitor = 0;
+          follow = "keyboard";
+          geometry = "320x100-32+48";
+          transparency = 0;
+          notification_height = 0;
+          separator_height = 2;
+          padding = 18;
+          horizontal_padding = 24;
+          max_messages = 5;
+          font = "FiraCode Nerd Font 10";
+          line_height = 0;
+          format = "<b>%s</b>\n%b";
+          alignment = "left";
+          icon_position = "left";
+          min_icon_size = 48;
+          max_icon_size = 80;
+          frame_width = 2;
+          corner_radius = 12;
+          word_wrap = true;
+          sort = true;
+          indicate_hidden = true;
+          show_indicators = false;
+          idle_threshold = 120;
+          enable_recursive_icon_lookup = true;
+          stack_duplicates = true;
+          mouse_left_click = "close_current";
+          mouse_middle_click = "do_action";
+          mouse_right_click = "close_all";
+        };
+
+        urgency_low = {
+          background = "#1a1a1f";
+          foreground = "#cfd6f4";
+          frame_color = "#33ccff";
+          timeout = 4;
+        };
+
+        urgency_normal = {
+          background = "#1a1a1f";
+          foreground = "#e6e9ef";
+          frame_color = "#00ff99";
+          timeout = 6;
+        };
+
+        urgency_critical = {
+          background = "#2b1117";
+          foreground = "#ffd7e2";
+          frame_color = "#ff4d6d";
+          timeout = 0;
+        };
+      };
+    };
   };
 }

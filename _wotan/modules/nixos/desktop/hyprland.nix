@@ -42,7 +42,7 @@
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
 
       # Notifications
-      mako
+      dunst
 
       # File manager
       xfce.thunar
