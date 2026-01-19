@@ -8,7 +8,7 @@
           type = "gpt";
           partitions = {
             games = {
-              size = "100%";
+              size = "900G";
               content = {
                 type = "filesystem";
                 format = "btrfs";
