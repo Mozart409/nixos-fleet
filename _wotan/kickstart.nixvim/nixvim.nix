@@ -17,7 +17,7 @@
     # Plugins
     ./plugins/gitsigns.nix
     ./plugins/which-key.nix
-    ./plugins/telescope.nix
+    # ./plugins/telescope.nix # Replaced with fzf-lua
     ./plugins/conform.nix
     ./plugins/lsp.nix
     ./plugins/nvim-cmp.nix
@@ -36,6 +36,10 @@
     #
     # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
     # Add your plugins to ./plugins/custom/plugins and import them below
+    ./plugins/custom/plugins/fzf-lua.nix
+    ./plugins/custom/plugins/nvim-bqf.nix
+    ./plugins/custom/plugins/nvim-lightbulb.nix
+    ./plugins/custom/plugins/precognition.nix
     ./plugins/custom/plugins/oil.nix
     ./plugins/custom/plugins/opencode.nix
     ./plugins/custom/plugins/snacks.nix
