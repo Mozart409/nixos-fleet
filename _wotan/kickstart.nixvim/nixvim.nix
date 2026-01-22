@@ -53,6 +53,7 @@
     ./plugins/custom/plugins/precognition.nix
     ./plugins/custom/plugins/cyberdream.nix
     ./plugins/custom/plugins/zenburn.nix
+    ./plugins/custom/plugins/vague.nix
     ./plugins/custom/plugins/oil.nix
     ./plugins/custom/plugins/opencode.nix
     ./plugins/custom/plugins/snacks.nix
