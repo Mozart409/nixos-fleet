@@ -180,16 +180,19 @@ in {
         global = {
           monitor = 0;
           follow = "keyboard";
-          geometry = "320x100-32+48";
+          # Replaced deprecated geometry setting with width, height, origin, offset
+          width = 320;
+          height = "(0, 100)";
+          origin = "top-right";
+          offset = "(32, 48)";
           transparency = 0;
-          notification_height = 0;
           separator_height = 2;
           padding = 18;
           horizontal_padding = 24;
-          max_messages = 2;
+          notification_limit = 2;
           font = "FiraCode Nerd Font 10";
           line_height = 0;
-          format = "<b>%s</b>\n%b";
+          format = "<b>%s</b>\\n%b";
           alignment = "left";
           icon_position = "left";
           min_icon_size = 48;
