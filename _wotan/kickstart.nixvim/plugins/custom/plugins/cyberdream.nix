@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   programs.nixvim = {
     colorschemes.cyberdream = {
-      enable = true;
+      enable = false;
       settings = {
         # Enable transparency for terminal backgrounds
         transparent = true;
