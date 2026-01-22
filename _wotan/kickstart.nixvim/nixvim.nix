@@ -49,7 +49,7 @@
     # Other plugins
     ./plugins/custom/plugins/fzf-lua.nix
     ./plugins/custom/plugins/nvim-bqf.nix
-    ./plugins/custom/plugins/nvim-lightbulb.nix
+    #./plugins/custom/plugins/nvim-lightbulb.nix
     ./plugins/custom/plugins/precognition.nix
     ./plugins/custom/plugins/cyberdream.nix
     ./plugins/custom/plugins/oil.nix
@@ -65,12 +65,12 @@
     ./plugins/custom/plugins/noice.nix
     ./plugins/custom/plugins/neogit.nix
     ./plugins/custom/plugins/neoscroll.nix
-    ./plugins/custom/plugins/fff.nix
+    #./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
     ./plugins/custom/plugins/spectre.nix
     ./plugins/custom/plugins/flash.nix
     # ./plugins/custom/plugins/schemastore.nix
-    ./plugins/custom/plugins/zk.nix
+    # ./plugins/custom/plugins/zk.nix
   ];
 
   /*
