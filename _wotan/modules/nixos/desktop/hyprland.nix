@@ -45,11 +45,13 @@
       dunst
 
       # File manager
-      xfce.thunar
+      thunar
+      thunar-archive-plugin
+      thunar-volman
 
       # Hyprland plugins
       inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
+      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails  # Disabled due to build errors
 
       # Theming
       qt6.qtwayland
