@@ -104,11 +104,13 @@ in {
       Unit = {
         Description = "Ironbar status bar";
         PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
       };
 
       Service = {
         ExecStart = "${inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar}/bin/ironbar";
         Restart = "on-failure";
+        RestartSec = 3;
       };
 
       Install = {
