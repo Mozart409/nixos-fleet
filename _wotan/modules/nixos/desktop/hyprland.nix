@@ -45,8 +45,8 @@
       dunst
 
       # File manager
-      cinnamon.nemo
-      cinnamon.nemo-fileroller # Archive support
+      nemo
+      nemo-fileroller # Archive support
 
       # Hyprland plugins
       inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
