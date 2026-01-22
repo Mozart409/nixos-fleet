@@ -51,6 +51,7 @@
     ./plugins/custom/plugins/nvim-bqf.nix
     ./plugins/custom/plugins/nvim-lightbulb.nix
     ./plugins/custom/plugins/precognition.nix
+    ./plugins/custom/plugins/cyberdream.nix
     ./plugins/custom/plugins/oil.nix
     ./plugins/custom/plugins/opencode.nix
     ./plugins/custom/plugins/snacks.nix
@@ -98,46 +99,15 @@
     defaultEditor = true;
 
     performance.byteCompileLua.enable = true;
-    # extraPlugins = with pkgs.vimPlugins; [
     extraPlugins = with pkgs.vimPlugins; [
       # Useful for getting pretty icons, but requires a Nerd Font.
-      kanagawa-nvim
-      tokyonight-nvim
       plenary-nvim
       nvim-web-devicons
-      gruvbox
       vim-devicons
-      oxocarbon-nvim
     ];
 
-    # You can easily change to a different colorscheme.
-    # Add your colorscheme here and enable it.
-    # Don't forget to disable the colorschemes you arent using
-    #
-    # If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    colorschemes = {
-      # https://nix-community.github.io/nixvim/colorschemes/tokyonight/index.html
-      tokyonight = {
-        enable = false;
-        settings = {
-          # Like many other themes, this one has different styles, and you could load
-          # any other, such as 'storm', 'moon', or 'day'.
-          style = "night";
-        };
-      };
-      kanagawa = {
-        enable = false;
-      };
-      catppuccin = {
-        enable = false;
-      };
-      gruvbox = {
-        enable = false;
-      };
-      oxocarbon = {
-        enable = true;
-      };
-    };
+    # Cyberdream theme is configured in ./plugins/custom/plugins/cyberdream.nix
+    # The colorscheme is enabled there via colorschemes.cyberdream.enable = true;
 
     # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=globals#globals
     globals = {
