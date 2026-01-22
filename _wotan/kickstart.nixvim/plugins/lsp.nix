@@ -181,7 +181,7 @@
           {
             mode = "n";
             key = "gd";
-            action.__raw = "require('telescope.builtin').lsp_definitions";
+            action.__raw = "require('fzf-lua').lsp_definitions";
             options = {
               desc = "LSP: [G]oto [D]efinition";
             };
@@ -190,7 +190,7 @@
           {
             mode = "n";
             key = "gr";
-            action.__raw = "require('telescope.builtin').lsp_references";
+            action.__raw = "require('fzf-lua').lsp_references";
             options = {
               desc = "LSP: [G]oto [R]eferences";
             };
@@ -200,7 +200,7 @@
           {
             mode = "n";
             key = "gI";
-            action.__raw = "require('telescope.builtin').lsp_implementations";
+            action.__raw = "require('fzf-lua').lsp_implementations";
             options = {
               desc = "LSP: [G]oto [I]mplementation";
             };
@@ -211,7 +211,7 @@
           {
             mode = "n";
             key = "<leader>D";
-            action.__raw = "require('telescope.builtin').lsp_type_definitions";
+            action.__raw = "require('fzf-lua').lsp_typedefs";
             options = {
               desc = "LSP: Type [D]efinition";
             };
@@ -221,7 +221,7 @@
           {
             mode = "n";
             key = "<leader>ds";
-            action.__raw = "require('telescope.builtin').lsp_document_symbols";
+            action.__raw = "require('fzf-lua').lsp_document_symbols";
             options = {
               desc = "LSP: [D]ocument [S]ymbols";
             };
@@ -231,7 +231,7 @@
           {
             mode = "n";
             key = "<leader>ws";
-            action.__raw = "require('telescope.builtin').lsp_dynamic_workspace_symbols";
+            action.__raw = "require('fzf-lua').lsp_workspace_symbols";
             options = {
               desc = "LSP: [W]orkspace [S]ymbols";
             };
@@ -241,10 +241,11 @@
         lspBuf = {
           # Rename the variable under your cursor.
           #  Most Language Servers support renaming across files, etc.
-          "<leader>rn" = {
-            action = "rename";
-            desc = "LSP: [R]e[n]ame";
-          };
+          # NOTE: This is now handled by inc-rename.nvim with live preview
+          # "<leader>rn" = {
+          #   action = "rename";
+          #   desc = "LSP: [R]e[n]ame";
+          # };
           # Execute a code action, usually your cursor needs to be on top of an error
           # or a suggestion from your LSP for this to activate.
           "<leader>ca" = {
