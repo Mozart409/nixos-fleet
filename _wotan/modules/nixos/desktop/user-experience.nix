@@ -9,12 +9,6 @@
     programs = {
       # Auto-start applications
       kdeconnect.enable = true;
-
-      # File manager settings
-      thunar.plugins = with pkgs.xfce; [
-        thunar-archive-plugin
-        thunar-volman
-      ];
     };
 
     # System services for user experience

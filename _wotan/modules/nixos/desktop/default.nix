@@ -182,9 +182,6 @@
     programs = {
       # Dconf for GTK settings
       dconf.enable = true;
-
-      # Thunar file manager (common)
-      thunar.enable = true;
     };
 
     # Common desktop settings
