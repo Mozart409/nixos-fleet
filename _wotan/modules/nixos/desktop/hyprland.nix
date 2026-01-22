@@ -45,9 +45,8 @@
       dunst
 
       # File manager
-      thunar
-      thunar-archive-plugin
-      thunar-volman
+      cinnamon.nemo
+      cinnamon.nemo-fileroller # Archive support
 
       # Hyprland plugins
       inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
@@ -182,7 +181,7 @@
             "$mod, N, exec, pluma"
 
             # File manager
-            "$mod, E, exec, thunar"
+            "$mod, E, exec, nemo"
 
             # Wallpaper
             "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
