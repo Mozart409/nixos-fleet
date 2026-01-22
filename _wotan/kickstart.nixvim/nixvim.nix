@@ -36,6 +36,17 @@
     #
     # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
     # Add your plugins to ./plugins/custom/plugins and import them below
+    # Quick wins
+    ./plugins/custom/plugins/todo-comments.nix
+    ./plugins/custom/plugins/nvim-colorizer.nix
+    ./plugins/custom/plugins/dressing.nix
+    ./plugins/custom/plugins/inc-rename.nix
+    # Code navigation
+    ./plugins/custom/plugins/aerial.nix
+    ./plugins/custom/plugins/nvim-navic.nix
+    # Documentation
+    ./plugins/custom/plugins/neogen.nix
+    # Other plugins
     ./plugins/custom/plugins/fzf-lua.nix
     ./plugins/custom/plugins/nvim-bqf.nix
     ./plugins/custom/plugins/nvim-lightbulb.nix

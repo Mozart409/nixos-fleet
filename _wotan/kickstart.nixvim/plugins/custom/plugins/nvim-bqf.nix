@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   programs.nixvim = {
     # nvim-bqf is available in nixvim as an extraPlugin
     extraPlugins = with pkgs.vimPlugins; [

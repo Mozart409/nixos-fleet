@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   programs.nixvim = {
     # nvim-lightbulb is available in nixvim as an extraPlugin
     extraPlugins = with pkgs.vimPlugins; [
