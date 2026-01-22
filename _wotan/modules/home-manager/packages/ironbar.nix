@@ -31,7 +31,6 @@ in {
       ]
 
       end = [
-        { type = "script", cmd = "${config.home.homeDirectory}/toolbox/zinc_oxide -p ${config.home.homeDirectory}/code -c", interval = 300000 },
         { type = "music" },
         { type = "volume" },
         { type = "notifications" },
