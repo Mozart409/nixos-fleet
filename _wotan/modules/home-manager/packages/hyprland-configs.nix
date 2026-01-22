@@ -186,7 +186,7 @@ in {
           separator_height = 2;
           padding = 18;
           horizontal_padding = 24;
-          max_messages = 5;
+          max_messages = 2;
           font = "FiraCode Nerd Font 10";
           line_height = 0;
           format = "<b>%s</b>\n%b";
