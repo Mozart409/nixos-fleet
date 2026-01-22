@@ -2,44 +2,46 @@
   programs.nixvim.plugins.neogen = {
     enable = true;
 
-    # Snippet engine
-    snippetEngine = "luasnip";
+    settings = {
+      # Snippet engine
+      snippet_engine = "luasnip";
 
-    # Enable all languages
-    enabledLanguages = {};
+      # Enable all languages
+      enabled_languages = {};
 
-    # Input after generating annotation
-    inputAfterComment = true;
+      # Input after generating annotation
+      input_after_comment = true;
 
-    # Language-specific settings
-    languages = {
-      python = {
-        template = {
-          annotation_convention = "numpydoc";
+      # Language-specific settings
+      languages = {
+        python = {
+          template = {
+            annotation_convention = "numpydoc";
+          };
         };
-      };
 
-      typescript = {
-        template = {
-          annotation_convention = "tsdoc";
+        typescript = {
+          template = {
+            annotation_convention = "tsdoc";
+          };
         };
-      };
 
-      javascript = {
-        template = {
-          annotation_convention = "jsdoc";
+        javascript = {
+          template = {
+            annotation_convention = "jsdoc";
+          };
         };
-      };
 
-      rust = {
-        template = {
-          annotation_convention = "rustdoc";
+        rust = {
+          template = {
+            annotation_convention = "rustdoc";
+          };
         };
-      };
 
-      lua = {
-        template = {
-          annotation_convention = "ldoc";
+        lua = {
+          template = {
+            annotation_convention = "ldoc";
+          };
         };
       };
     };
