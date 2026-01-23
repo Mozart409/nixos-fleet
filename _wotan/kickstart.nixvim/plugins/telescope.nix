@@ -24,7 +24,8 @@
       #
       # [[ Configure Telescope ]]
       # See `:help telescope` and `:help telescope.setup()`
-      enable = true;
+      # Disabled in favor of fzf-lua
+      enable = false;
 
       # Enable Telescope extensions
       extensions = {

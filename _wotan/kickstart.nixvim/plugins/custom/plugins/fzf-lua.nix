@@ -83,6 +83,11 @@
           git_icons = true;
           file_icons = true;
           color_icons = true;
+          actions = {
+            "default" = {
+              __raw = ''require("fzf-lua.actions").file_edit'';
+            };
+          };
         };
         grep = {
           prompt = "Rg❯ ";
@@ -92,12 +97,22 @@
           file_icons = true;
           color_icons = true;
           rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 -e";
+          actions = {
+            "default" = {
+              __raw = ''require("fzf-lua.actions").file_edit_or_qf'';
+            };
+          };
         };
         buffers = {
           prompt = "Buffers❯ ";
           file_icons = true;
           color_icons = true;
           sort_lastused = true;
+          actions = {
+            "default" = {
+              __raw = ''require("fzf-lua.actions").buf_edit'';
+            };
+          };
         };
       };
     };
