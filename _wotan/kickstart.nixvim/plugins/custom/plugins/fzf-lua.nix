@@ -99,7 +99,7 @@
           rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 -e";
           actions = {
             "default" = {
-              __raw = ''require("fzf-lua.actions").file_edit_or_qf'';
+              __raw = ''require("fzf-lua.actions").file_edit'';
             };
           };
         };
