@@ -100,21 +100,34 @@ in {
       }
     '';
 
+    systemd.user.targets.hyprland-session = {
+      Unit = {
+        Description = "Hyprland compositor session";
+        Documentation = "man:systemd.special(7)";
+        BindsTo = ["graphical-session.target"];
+        Wants = ["graphical-session-pre.target"];
+        After = ["graphical-session-pre.target"];
+      };
+    };
+
     systemd.user.services.ironbar = {
       Unit = {
         Description = "Ironbar status bar";
-        PartOf = ["graphical-session.target"];
-        After = ["graphical-session.target"];
+        PartOf = ["hyprland-session.target"];
+        After = ["hyprland-session.target"];
       };
 
       Service = {
         ExecStart = "${inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar}/bin/ironbar";
         Restart = "on-failure";
         RestartSec = 3;
+        Environment = [
+          "PATH=${pkgs.bash}/bin:${pkgs.coreutils}/bin"
+        ];
       };
 
       Install = {
-        WantedBy = ["graphical-session.target"];
+        WantedBy = ["hyprland-session.target"];
       };
     };
   };

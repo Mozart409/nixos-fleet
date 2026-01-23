@@ -228,11 +228,13 @@
 
         # Startup applications
         exec-once = [
+          "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland"
+          "systemctl --user start hyprland-session.target"
           "awww-daemon"
           "sleep 1 && awww img \"$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.webp' \\) | shuf -n1)\" --transition-type grow --transition-fps 60"
           "hyprsunset"
           "hypridle"
-          "ironbar"
         ];
 
         # Plugin configurations
