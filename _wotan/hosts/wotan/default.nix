@@ -92,6 +92,14 @@
 
   # Host-specific services
   virtualisation.docker.enable = true;
+
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = false;
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
+  virtualisation.containers.registries.search = ["docker.io"];
   programs.steam = {
     enable = true;
     extraCompatPackages = with pkgs; [
