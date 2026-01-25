@@ -38,7 +38,7 @@
       hyprtoolkit
       hyprsysteminfo
       # Blue light filter
-      hyprsunset
+      inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
 
       # Notifications
@@ -261,7 +261,7 @@
       partOf = ["graphical-session.target"];
       wantedBy = ["graphical-session.target"];
       serviceConfig = {
-        ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset";
+        ExecStart = "${inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset}/bin/hyprsunset";
         Restart = "on-failure";
       };
     };

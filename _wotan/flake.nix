@@ -34,6 +34,11 @@
       inputs.hyprland.follows = "hyprland"; # to make sure that the plugin is built for the correct version of hyprland
     };
 
+    hyprsunset = {
+      url = "github:hyprwm/hyprsunset";
+      inputs.hyprland.follows = "hyprland"; # ensure version compatibility with hyprland
+    };
+
     ironbar = {
       url = "github:JakeStanger/ironbar";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -74,6 +79,7 @@
     hyprland,
     hyprland-plugins,
     hypr-dynamic-cursors,
+    hyprsunset,
     ironbar,
     quickshell,
     caelestia-shell,
