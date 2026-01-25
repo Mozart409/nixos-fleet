@@ -6,6 +6,11 @@ clear
 
 chara say -t round -r switching ...
 echo ''
+
+echo ''
+echo 'Pushing to all remotes'
+git push origin
+
 echo ''
 sudo nixos-rebuild switch --flake .#wotan
 nix run nixpkgs#home-manager -- switch --flake .#amadeus@wotan -b backup
