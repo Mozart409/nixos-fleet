@@ -42,6 +42,8 @@
       text = ''
         ---
         description: Create conventional commits based on analyzed changes
+        agent: build
+        model: anthropic/claude-4-5-haiku
         ---
 
         # Conventional Commit Analysis
