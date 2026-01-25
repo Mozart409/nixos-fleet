@@ -68,6 +68,9 @@ just update                 # Same as nix flake update --accept-flake-config
 
 # Development shell
 nix develop                 # Enter dev shell with git, alejandra, lefthook
+
+# MCP Servers (if available)
+# Use context7 or grepmcp for enhanced code search and documentation queries
 ```
 
 ### Git Hooks
