@@ -32,6 +32,8 @@ in {
 
       [[end]]
       type = "music"
+      truncate.mode = "end"
+      truncate.max_length = 30
 
       [[end]]
       type = "volume"
