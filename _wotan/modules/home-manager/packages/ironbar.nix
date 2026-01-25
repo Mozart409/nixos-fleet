@@ -24,16 +24,19 @@ in {
       type = "workspaces"
 
       [[start]]
-      type = "focused"
+      type = "music"
+      truncate.mode = "end"
+      truncate.max_length = 30
 
       [[center]]
       type = "clock"
       format = "%a %d %b %H:%M"
 
       [[end]]
-      type = "music"
-      truncate.mode = "end"
-      truncate.max_length = 30
+      type = "script"
+      cmd = "/home/amadeus/toolbox/zinc_oxide --compact"
+      mode = "poll"
+      interval = 600000
 
       [[end]]
       type = "volume"
