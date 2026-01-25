@@ -17,25 +17,30 @@ in {
     ];
 
     xdg.configFile."ironbar/config.toml".text = ''
-      [[bar]]
       position = "top"
       height = 30
 
-      start = [
-        { type = "workspaces" },
-        { type = "focused" }
-      ]
+      [[start]]
+      type = "workspaces"
 
-      center = [
-        { type = "clock", format = "%a %d %b %H:%M" }
-      ]
+      [[start]]
+      type = "focused"
 
-      end = [
-        { type = "music" },
-        { type = "volume" },
-        { type = "notifications" },
-        { type = "tray" }
-      ]
+      [[center]]
+      type = "clock"
+      format = "%a %d %b %H:%M"
+
+      [[end]]
+      type = "music"
+
+      [[end]]
+      type = "volume"
+
+      [[end]]
+      type = "notifications"
+
+      [[end]]
+      type = "tray"
     '';
 
     xdg.configFile."ironbar/style.css".text = ''
