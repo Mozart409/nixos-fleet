@@ -209,9 +209,9 @@
             ", XF86AudioPrev, exec, playerctl previous"
             ", XF86AudioNext, exec, playerctl next"
 
-            "$mod, H, exec, hyprsunset -t +500"
-            "$mod, B, exec, hyprsunset -t -500"
-            "$mod SHIFT, H, exec, hyprsunset -t 7000"
+            "$mod, H, exec, pkill hyprsunset; hyprsunset -t 3500"
+            "$mod, B, exec, pkill hyprsunset; hyprsunset -t 6500"
+            "$mod SHIFT, H, exec, pkill hyprsunset; hyprsunset -i"
           ]
           ++ (
             # Workspace bindings
@@ -233,7 +233,7 @@
           "systemctl --user start hyprland-session.target"
           "awww-daemon"
           "sleep 1 && awww img \"$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.webp' \\) | shuf -n1)\" --transition-type grow --transition-fps 60"
-          "hyprsunset"
+          "hyprsunset -t 5000"
           "hypridle"
         ];
 
