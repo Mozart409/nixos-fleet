@@ -23,49 +23,6 @@ in {
       }
     '';
 
-    # Wallpaper rotation script for awww
-    home.file.".local/bin/awww-random-wallpaper" = {
-      executable = true;
-      text = ''
-        #!/usr/bin/env bash
-        WALLPAPER_DIR="/home/amadeus/Pictures/Wallpapers"
-        WALLPAPER=$(find "$WALLPAPER_DIR" -type f \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.webp' \) | shuf -n1)
-        if [ -n "$WALLPAPER" ]; then
-          awww img "$WALLPAPER" --transition-type grow --transition-fps 60 --transition-step 90
-        fi
-      '';
-    };
-
-    # Systemd service for wallpaper rotation
-    systemd.user.services.awww-wallpaper-rotate = {
-      Unit = {
-        Description = "Rotate wallpaper using awww";
-        After = ["graphical-session.target"];
-      };
-      Service = {
-        Type = "oneshot";
-        ExecStart = "%h/.local/bin/awww-random-wallpaper";
-        Environment = [
-          "PATH=${pkgs.findutils}/bin:${pkgs.coreutils}/bin"
-        ];
-      };
-    };
-
-    # Systemd timer for wallpaper rotation every 10 minutes
-    systemd.user.timers.awww-wallpaper-rotate = {
-      Unit = {
-        Description = "Rotate wallpaper every 10 minutes";
-      };
-      Timer = {
-        OnActiveSec = "10min";
-        OnUnitActiveSec = "10min";
-        Unit = "awww-wallpaper-rotate.service";
-      };
-      Install = {
-        WantedBy = ["timers.target"];
-      };
-    };
-
     xdg.configFile."hypr/hypridle.conf".text = ''
       general {
           lock_cmd = pidof hyprlock || hyprlock       # avoid starting multiple hyprlock instances
