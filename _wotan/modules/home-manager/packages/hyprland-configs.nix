@@ -12,14 +12,23 @@ in {
 
   config = lib.mkIf cfg.enable {
     xdg.configFile."hypr/hyprsunset.conf".text = ''
-      general {
+      # Maximum gamma value (percentage, 100 = 1.0x)
+      max-gamma = 100
+
+      # Evening profile - warm color temperature at night
+      profile {
+          time = 20:00
           temperature = 3400
-          sunset_time = "20:00"
-          sunrise_time = "06:00"
-          day_temperature = 6500
-          mode = 1
-          transition = 1
-          ramp = 1
+          gamma = 1.0
+          identity = 0
+      }
+
+      # Morning profile - return to daylight temperature
+      profile {
+          time = 06:00
+          temperature = 6500
+          gamma = 1.0
+          identity = 0
       }
     '';
 
