@@ -209,9 +209,9 @@
             ", XF86AudioPrev, exec, playerctl previous"
             ", XF86AudioNext, exec, playerctl next"
 
-            # Blue light filter
-            "$mod, H, exec, hyprctl hyprsunset temperature +500"
-            "$mod, B, exec, hyprctl hyprsunset temperature -500"
+            "$mod, H, exec, hyprsunset -t +500"
+            "$mod, B, exec, hyprsunset -t -500"
+            "$mod SHIFT, H, exec, hyprsunset -t 7000"
           ]
           ++ (
             # Workspace bindings
@@ -252,17 +252,6 @@
           "$mod, mouse:272, movewindow"
           "$mod, mouse:273, resizewindow"
         ];
-      };
-    };
-
-    # Hyprsunset configuration
-    systemd.user.services.hyprsunset = {
-      description = "Hyprland blue light filter";
-      partOf = ["graphical-session.target"];
-      wantedBy = ["graphical-session.target"];
-      serviceConfig = {
-        ExecStart = "${inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset}/bin/hyprsunset";
-        Restart = "on-failure";
       };
     };
 
