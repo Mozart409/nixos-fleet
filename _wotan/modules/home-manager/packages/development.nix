@@ -33,5 +33,6 @@
     jq
     gnused
     lefthook
+    btop
   ];
 }
