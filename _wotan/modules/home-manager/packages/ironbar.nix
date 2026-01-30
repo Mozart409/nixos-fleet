@@ -25,6 +25,7 @@ in {
 
       [[start]]
       type = "music"
+      player_type = "mpris"
       truncate.mode = "end"
       truncate.max_length = 30
 
@@ -34,7 +35,7 @@ in {
 
       [[end]]
       type = "script"
-      cmd = "/home/amadeus/toolbox/zinc_oxide --compact"
+      cmd = "timeout 3 /home/amadeus/toolbox/zinc_oxide --compact || echo '?'"
       mode = "poll"
       interval = 600000
 
