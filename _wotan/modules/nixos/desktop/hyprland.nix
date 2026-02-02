@@ -209,8 +209,9 @@
             ", XF86AudioPrev, exec, playerctl previous"
             ", XF86AudioNext, exec, playerctl next"
 
-            "$mod, H, exec, pkill hyprsunset; hyprsunset -t 4000"
-            "$mod, B, exec, pkill hyprsunset; hyprsunset -t 6500"
+            # Hyprsunset temperature adjustment (+/- 500K)
+            "$mod, H, exec, hyprctl hyprsunset temperature +500"
+            "$mod, B, exec, hyprctl hyprsunset temperature -500"
             "$mod SHIFT, H, exec, pkill hyprsunset; hyprsunset -i"
           ]
           ++ (
