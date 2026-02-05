@@ -19,7 +19,6 @@
 in {
   home.packages = with pkgs; [
     krita
-    anytype
     haruna
     chromium
     teamspeak6-client
@@ -32,5 +31,8 @@ in {
     speedcrunch
     # Browser
     helium-browser
+    proton-pass
+    bitwarden-desktop
+    bitwarden-cli
   ];
 }
