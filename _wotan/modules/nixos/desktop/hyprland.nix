@@ -177,7 +177,7 @@
             # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
             ", Print, exec, hyprshot -m region"
             "$mod, Print, exec, hyprshot -m window"
-            "$mod SHIFT, exec, hyprshot -m output"
+            "$mod SHIFT, Print, exec, hyprshot -m output"
 
             # Lockscreen
             "$mod, L, exec, hyprlock"
