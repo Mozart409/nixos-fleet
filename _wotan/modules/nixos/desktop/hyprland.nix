@@ -18,7 +18,7 @@
     # Essential Wayland packages
     environment.systemPackages = with pkgs; [
       # Core utilities
-      grimblast
+      hyprshot
       slurp
       grim
       wl-clipboard
@@ -174,10 +174,10 @@
             # Wallpaper
             "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
 
-            # Screenshot
-            ", Print, exec, grimblast copy area"
-            "$mod, Print, exec, grimblast copy window"
-            "$mod SHIFT, Print, exec, grimblast copy screen"
+            # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
+            ", Print, exec, hyprshot -m region"
+            "$mod, Print, exec, hyprshot -m window"
+            "$mod SHIFT, exec, hyprshot -m output"
 
             # Lockscreen
             "$mod, L, exec, hyprlock"
@@ -268,6 +268,9 @@
       # Wayland compatibility
       MOZ_ENABLE_WAYLAND = "1";
       _JAVA_AWT_WM_NONREPARENTING = "1";
+
+      # Hyprshot screenshot directory
+      HYPRSHOT_DIR = "/home/amadeus/Pictures/hyprshot";
     };
   };
 }
