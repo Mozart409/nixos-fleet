@@ -175,9 +175,9 @@
             "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
 
             # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
-            ", Print, exec, hyprshot -m region"
-            "$mod, Print, exec, hyprshot -m window"
-            "$mod SHIFT, Print, exec, hyprshot -m output"
+            ", Print, exec, hyprshot -m region -o ~/Pictures/hyprshot"
+            "$mod, Print, exec, hyprshot -m window -o ~/Pictures/hyprshot"
+            "$mod SHIFT, Print, exec, hyprshot -m output -o ~/Pictures/hyprshot"
 
             # Lockscreen
             "$mod, L, exec, hyprlock"
