@@ -103,20 +103,6 @@
               (final: prev: {
                 anytype = pkgsStable.anytype;
               })
-              # Patch systemd 258 efivars.c assertion crash (systemd/systemd#39695, #39940)
-              # The readv() return value includes sizeof(attr), but the assert and retry
-              # logic didn't account for it, causing bootctl to abort on EFI variable reads.
-              # Fix from upstream PR systemd/systemd#39715 (merged into v259, backported here).
-              # TODO: Remove this overlay once systemd >= 259 lands in nixpkgs.
-              (final: prev: {
-                systemd = prev.systemd.overrideAttrs (oldAttrs: {
-                  patches =
-                    (oldAttrs.patches or [])
-                    ++ [
-                      ./patches/systemd-efivars-fix.patch
-                    ];
-                });
-              })
             ];
           }
         ];
