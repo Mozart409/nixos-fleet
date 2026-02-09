@@ -30,4 +30,11 @@
 
   # State version
   home.stateVersion = "25.11";
+
+  # Automatic Nix garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-generations +5";
+  };
 }

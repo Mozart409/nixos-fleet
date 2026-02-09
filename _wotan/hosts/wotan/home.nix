@@ -45,8 +45,8 @@
   # Automatic Nix garbage collection
   nix.gc = {
     automatic = true;
-    frequency = "weekly";
-    options = "--delete-older-than 7d";
+    dates = "weekly";
+    options = "--delete-generations +5";
   };
 
   # Host-specific home-manager packages can be added here
