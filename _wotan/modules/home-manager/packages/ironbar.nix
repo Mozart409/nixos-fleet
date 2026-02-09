@@ -366,7 +366,7 @@ in {
         #!/usr/bin/env bash
         set -euo pipefail
 
-        used=$(timeout 3 df -P --output=pcent / | awk 'NR==2 {gsub("%", "", $1); print $1}')
+        used=$(timeout 3 ${pkgs.coreutils}/bin/df -P --output=pcent / | ${pkgs.gawk}/bin/awk 'NR==2 {gsub("%", "", $1); print $1}')
         printf "%d%% free\n" $((100 - used))
       '';
     };
