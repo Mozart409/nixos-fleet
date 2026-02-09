@@ -102,16 +102,6 @@
             nixpkgs.overlays = [
               (final: prev: {
                 anytype = pkgsStable.anytype;
-                xorg =
-                  prev.xorg
-                  // {
-                    libXcursor = prev.libxcursor;
-                    libxcb = prev.libxcb;
-                    libXdmcp = prev.libxdmcp;
-                    xcbutilerrors = prev."libxcb-errors";
-                    xcbutilrenderutil = prev."libxcb-render-util";
-                    xcbutilwm = prev."libxcb-wm";
-                  };
               })
             ];
           }
