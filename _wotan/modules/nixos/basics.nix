@@ -38,6 +38,11 @@
     options = "--delete-generations +5";
   };
 
+  programs.nh = {
+    enable = true;
+    flake = "/etc/nixos";
+  };
+
   # Allow unfree packages on all hosts
   nixpkgs.config.allowUnfree = true;
 
