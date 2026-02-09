@@ -1,0 +1,39 @@
+--- a/src/basic/efivars.c	2026-02-09 07:42:25.857943252 +0100
++++ b/src/basic/efivars.c	2026-02-09 07:42:51.136754143 +0100
+@@ -101,20 +101,27 @@
+                 };
+ 
+                 n = readv(fd, iov, 2);
+-                assert(n <= st.st_size + 1);
+-                if (n == st.st_size + 1)
+-                        /* We need to try again with a bigger buffer. */
+-                        continue;
+-                if (n >= 0)
++                if (n < 0) {
++                        if (errno != EINTR)
++                                return log_debug_errno(errno, "Reading from \"%s\" failed: %m", p);
++
++                        log_debug("Reading from \"%s\" failed with EINTR, retrying.", p);
++                } else if ((size_t) n >= sizeof(attr) + (size_t) st.st_size + 1) {
++                        /* We need to try again with a bigger buffer, the variable was apparently changed concurrently? */
++                        log_debug("EFI variable '%s' larger than expected, retrying.", p);
++                } else {
++                        assert((size_t) n < sizeof(attr) + (size_t) st.st_size + 1);
+                         break;
++                }
+ 
+-                log_debug_errno(errno, "Reading from \"%s\" failed: %m", p);
+-                if (errno != EINTR)
+-                        return -errno;
+                 if (try >= EFI_N_RETRIES_TOTAL)
+-                        return -EBUSY;
++                        return log_debug_errno(SYNTHETIC_ERRNO(EBUSY),
++                                               "Reading EFI variable '%s' failed even after %u tries, giving up.", p, try);
+                 if (try >= EFI_N_RETRIES_NO_DELAY)
+                         (void) usleep_safe(EFI_RETRY_DELAY);
++
++                /* Start from the beginning */
++                (void) lseek(fd, 0, SEEK_SET);
+         }
+ 
+         /* Unfortunately kernel reports EOF if there's an inconsistency between efivarfs var list and
