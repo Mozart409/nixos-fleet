@@ -27,16 +27,17 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 ### Building and Switching Configurations
 
 ```bash
-# NixOS system configuration (requires sudo)
+# Using nh (recommended - prettier output, diffs, faster)
+nh os switch .#nixosConfigurations.wotan     # Apply NixOS system changes
+nh os test .#nixosConfigurations.wotan       # Test without persistence
+nh home switch . -c amadeus@wotan            # Apply home-manager changes
+
+# Traditional commands (fallback)
 sudo nixos-rebuild switch --flake .#wotan    # Apply system changes
 sudo nixos-rebuild test --flake .#wotan      # Test without persistence
-sudo nixos-rebuild build --flake .#wotan    # Build without applying
+home-manager switch --flake .#amadeus@wotan  # Apply home-manager changes
 
-# Home-manager configuration (user-level, no sudo)
-home-manager switch --flake .#amadeus@wotan
-home-manager build --flake .#amadeus@wotan
-
-# Using just (recommended - interactive menu)
+# Using just (interactive menu)
 just                          # Show interactive menu
 just switch wotan            # Switch NixOS config
 just switch-home             # Switch home-manager (default: amadeus@wotan)
@@ -48,6 +49,8 @@ just test-all wotan          # Test both configs
 nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
 nix build .#homeConfigurations."amadeus@wotan".activationPackage --dry-run
 ```
+
+**Note:** `nh` is enabled via `programs.nh` in `modules/nixos/basics.nix` with the default flake set to `/etc/nixos`.
 
 ### Validation and Linting
 
