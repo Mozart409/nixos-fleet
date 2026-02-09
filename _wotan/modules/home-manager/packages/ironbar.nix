@@ -41,7 +41,7 @@ in {
 
       [[end]]
       type = "script"
-      cmd = "timeout 3 bash -c 'used=$(${pkgs.coreutils}/bin/df -P --output=pcent / | tail -1 | tr -dc 0-9); free=$((100-used)); echo $free% free'"
+      cmd = "${config.xdg.configHome}/ironbar/scripts/disk-free.sh"
       mode = "poll"
       interval = 60000
 
@@ -359,6 +359,17 @@ in {
         padding: 0 4px;
       }
     '';
+
+    xdg.configFile."ironbar/scripts/disk-free.sh" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        used=$(timeout 3 df -P --output=pcent / | awk 'NR==2 {gsub("%", "", $1); print $1}')
+        printf "%d%% free\n" $((100 - used))
+      '';
+    };
 
     systemd.user.targets.hyprland-session = {
       Unit = {
