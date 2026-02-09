@@ -12,6 +12,7 @@
     wget
     curl
     git
+    dust
     alejandra
     pinentry-curses
     pinentry-gnome3
