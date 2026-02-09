@@ -40,6 +40,12 @@ in {
       interval = 600000
 
       [[end]]
+      type = "script"
+      cmd = "timeout 3 bash -c 'used=$(${pkgs.coreutils}/bin/df -P --output=pcent / | tail -1 | tr -dc 0-9); free=$((100-used)); echo $free% free'"
+      mode = "poll"
+      interval = 60000
+
+      [[end]]
       type = "volume"
     '';
 
@@ -376,7 +382,15 @@ in {
         Restart = "on-failure";
         RestartSec = 3;
         Environment = [
-          "PATH=${pkgs.bash}/bin:${pkgs.coreutils}/bin"
+          "PATH=${lib.makeBinPath (with pkgs; [
+            bash
+            coreutils
+            git
+            gnugrep
+            gnused
+            findutils
+            curl
+          ])}:/run/current-system/sw/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin"
         ];
       };
 
