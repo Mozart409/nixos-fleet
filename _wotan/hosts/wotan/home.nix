@@ -42,6 +42,13 @@
     fi
   '';
 
+  # Automatic Nix garbage collection
+  nix.gc = {
+    automatic = true;
+    frequency = "weekly";
+    options = "--delete-older-than 7d";
+  };
+
   # Host-specific home-manager packages can be added here
   # For example, if you want certain packages only on wotan:
   # home.packages = with pkgs; [
