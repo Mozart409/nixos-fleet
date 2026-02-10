@@ -5,7 +5,6 @@
   ...
 }: {
   home.packages = with pkgs; [
-    nixos-generators
     eza
     cocogitto
     mergiraf
