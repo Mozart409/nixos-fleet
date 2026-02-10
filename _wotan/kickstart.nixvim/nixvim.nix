@@ -59,9 +59,7 @@
     ./plugins/custom/plugins/snacks.nix
     ./plugins/custom/plugins/autocommands.nix
     ./plugins/custom/plugins/trouble.nix
-    ./plugins/custom/plugins/copilot.nix
     ./plugins/custom/plugins/dashboard.nix
-    ./plugins/custom/plugins/copilot-chat.nix
     ./plugins/custom/plugins/trouble.nix
     ./plugins/custom/plugins/comment.nix
     ./plugins/custom/plugins/noice.nix
@@ -339,14 +337,6 @@
         action = "<C-w><C-k>";
         options = {
           desc = "Move focus to the upper window";
-        };
-      }
-      {
-        key = "<leader>cc";
-        mode = "n";
-        action = "<cmd>CopilotChatToggle<CR>";
-        options = {
-          desc = "Copilot Chat";
         };
       }
       {
