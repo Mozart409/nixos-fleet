@@ -245,6 +245,7 @@
         echo "  nix flake check .#homeConfigurations.amadeus@wotan"
         echo "  sudo nixos-rebuild switch --flake .#wotan"
         echo "  home-manager switch --flake .#amadeus@wotan"
+        lefthook install
       '';
     };
   };
