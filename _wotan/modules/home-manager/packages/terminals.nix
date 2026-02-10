@@ -7,13 +7,40 @@
   programs.kitty = {
     enable = true;
     shellIntegration.enableZshIntegration = true;
-    # font = "FiraCode";
-    themeFile = "kanagawa_dragon";
+    # themeFile = "kanagawa_wave";
+    themeFile = "ciapre";
+    # themeFile = "cherry_midnight";
+    # themeFile = "vividpunk";
     settings = {
-      scrollback_lines = 1000;
+      # Window
+      window_padding_width = 5;
+      hide_window_decorations = false;
+      confirm_os_window_close = 0;
+
+      # Scrollback
+      scrollback_lines = 10000;
+
+      # Bell
       enable_audio_bell = false;
+
+      # Font
+      font_family = "JetBrainsMono Nerd Font";
+      bold_font = "JetBrainsMono Nerd Font Bold";
+      italic_font = "JetBrainsMono Nerd Font Italic";
+      bold_italic_font = "JetBrainsMono Nerd Font Bold Italic";
+      font_size = 13;
+
+      # Misc
       update_check_interval = 0;
+      background_opacity = "1.0";
+
+      # Startup directory
+      startup_session = "none";
     };
+    extraConfig = ''
+      # Set working directory
+      cd /home/amadeus/code
+    '';
   };
 
   programs.ghostty = {
@@ -37,7 +64,7 @@
       };
 
       general.working_directory = "/home/amadeus/code";
-      scrolling.history = 10000;
+      scrolling.history = 1000;
 
       font = {
         normal.family = "JetBrainsMono Nerd Font";
