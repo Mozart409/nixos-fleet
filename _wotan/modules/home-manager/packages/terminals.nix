@@ -8,7 +8,7 @@
     enable = true;
     shellIntegration.enableZshIntegration = true;
     # themeFile = "kanagawa_wave";
-    themeFile = "ciapre";
+    themeFile = "Ciapre";
     # themeFile = "cherry_midnight";
     # themeFile = "vividpunk";
     settings = {
