@@ -4,6 +4,7 @@ set -euo
 
 clear
 
+
 chara say -t round -r cleaning up ...
 echo ''
 
