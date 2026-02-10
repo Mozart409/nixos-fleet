@@ -8,9 +8,9 @@
     enable = true;
     shellIntegration.enableZshIntegration = true;
     # themeFile = "kanagawa_wave";
-    themeFile = "Ciapre";
+    # themeFile = "Ciapre";
     # themeFile = "cherry_midnight";
-    # themeFile = "vividpunk";
+    themeFile = "VividPunk";
     settings = {
       # Window
       window_padding_width = 5;
