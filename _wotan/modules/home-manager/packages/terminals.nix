@@ -10,7 +10,8 @@
     # themeFile = "kanagawa_wave";
     # themeFile = "Ciapre";
     # themeFile = "cherry_midnight";
-    themeFile = "VividPunk";
+    # themeFile = "VividPunk";
+    themeFile = "Thayer_Bright";
     settings = {
       # Window
       window_padding_width = 5;
