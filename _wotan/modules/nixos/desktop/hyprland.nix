@@ -249,15 +249,15 @@
         };
 
         # Window rules for ueberzugpp (yazi image preview)
-        windowrulev2 = [
-          "nofocus,class:^(ueberzugpp)$"
-          "noshadow,class:^(ueberzugpp)$"
-          "noblur,class:^(ueberzugpp)$"
-          "noborder,class:^(ueberzugpp)$"
-          "float,class:^(ueberzugpp)$"
-          "noanim,class:^(ueberzugpp)$"
-          "pin,class:^(ueberzugpp)$"
-          "noinitialfocus,class:^(ueberzugpp)$"
+        windowrule = [
+          "no_focus on, match:class ueberzugpp"
+          "no_shadow on, match:class ueberzugpp"
+          "no_blur on, match:class ueberzugpp"
+          "border_size 0, match:class ueberzugpp"
+          "float on, match:class ueberzugpp"
+          "no_anim on, match:class ueberzugpp"
+          "pin on, match:class ueberzugpp"
+          "no_initial_focus on, match:class ueberzugpp"
         ];
 
         # Mouse bindings
