@@ -24,6 +24,12 @@ pre-commit:
       glob: "*.{nix}"
       stage_fixed: true
 
+pre-push:
+  jobs:
+    - name: nix flake check (wotan)
+      run: nix flake check .#nixosConfigurations.wotan && nix flake check .#homeConfigurations."amadeus@wotan"
+      stage_fixed: false
+
 #     - name: rubocop
 #       glob: "*.rb"
 #       exclude:
