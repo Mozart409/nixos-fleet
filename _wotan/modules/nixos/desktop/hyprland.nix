@@ -159,8 +159,8 @@
             "$mod, SPACE, exec, rofi -show drun -run-command 'bash -c \"{cmd}\"'"
 
             # Terminal
-            "$mod, Return, exec, alacritty"
-            "$mod, T, exec, alacritty"
+            "$mod, Return, exec, kitty"
+            "$mod, T, exec, kitty"
 
             # Browser
             "$mod, F, exec, firefox"
