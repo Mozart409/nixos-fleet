@@ -11,6 +11,7 @@
     mergiraf
     rustscan
     bacon
+    lazygit
     nodejs_22
     tpi
     pnpm
@@ -20,6 +21,8 @@
     dioxus-cli
     wasm-bindgen-cli
     pwgen
+    hadolint
+    vale
     devenv
     nix-prefetch
     nix-prefetch-github

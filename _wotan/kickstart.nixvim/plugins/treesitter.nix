@@ -13,18 +13,28 @@
         ensureInstalled = [
           "bash"
           "c"
+          "css"
           "diff"
+          "gitcommit"
+          "go"
           "html"
+          "javascript"
           "json"
-          "typescript"
-          "rust"
+          "jsonc"
           "lua"
           "luadoc"
           "markdown"
           "markdown_inline"
+          "nix"
+          "proto"
           "query"
+          "rust"
+          "sql"
+          "tsx"
+          "typescript"
           "vim"
           "vimdoc"
+          "yaml"
         ];
 
         highlight = {
@@ -47,6 +57,51 @@
         #    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
         #    - Show your current context: https://nix-community.github.io/nixvim/plugins/treesitter-context/index.html
         #    - Treesitter + textobjects: https://nix-community.github.io/nixvim/plugins/treesitter-textobjects/index.html
+      };
+    };
+
+    plugins.treesitter-textobjects = {
+      enable = true;
+      select = {
+        enable = true;
+        lookahead = true;
+        keymaps = {
+          "af" = "@function.outer";
+          "if" = "@function.inner";
+          "ac" = "@class.outer";
+          "ic" = "@class.inner";
+          "aa" = "@parameter.outer";
+          "ia" = "@parameter.inner";
+        };
+      };
+      move = {
+        enable = true;
+        set_jumps = true;
+        gotoNextStart = {
+          "]m" = "@function.outer";
+          "]a" = "@parameter.inner";
+        };
+        gotoNextEnd = {
+          "]M" = "@function.outer";
+          "]A" = "@parameter.inner";
+        };
+        gotoPreviousStart = {
+          "[m" = "@function.outer";
+          "[a" = "@parameter.inner";
+        };
+        gotoPreviousEnd = {
+          "[M" = "@function.outer";
+          "[A" = "@parameter.inner";
+        };
+      };
+      swap = {
+        enable = true;
+        swapNext = {
+          ">a" = "@parameter.inner";
+        };
+        swapPrevious = {
+          "<a" = "@parameter.inner";
+        };
       };
     };
   };

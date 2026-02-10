@@ -13,6 +13,12 @@
       yamlfmt
       alejandra
       d2
+      prettierd
+      shfmt
+      terraform
+      clang-tools
+      pgformatter
+      go
     ];
 
     # Autoformat
@@ -38,16 +44,28 @@
           d2 = ["d2"];
           python = ["ruff"];
           json = ["fixjson"];
-          javascript = [
-            "dprint"
-          ];
-          typescript = ["dprint"];
+          jsonc = ["prettierd"];
+          javascript = ["prettierd"];
+          typescript = ["prettierd"];
+          javascriptreact = ["prettierd"];
+          typescriptreact = ["prettierd"];
+          html = ["prettierd"];
+          css = ["prettierd"];
+          scss = ["prettierd"];
+          markdown = ["prettierd"];
           yaml = ["yamlfmt"];
+          sh = ["shfmt"];
+          bash = ["shfmt"];
           go = [
             "goimports"
             "gofmt"
           ];
+          rust = ["rustfmt"];
           nix = ["alejandra"];
+          terraform = ["terraform_fmt"];
+          hcl = ["terraform_fmt"];
+          proto = ["clang-format"];
+          sql = ["pg_format"];
           # " " = [ "trim_whitespace" ];
           # Conform can also run multiple formatters sequentially
           #

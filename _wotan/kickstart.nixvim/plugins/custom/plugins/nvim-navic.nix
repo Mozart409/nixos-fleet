@@ -49,10 +49,5 @@
         click = false,
       })
     '';
-
-    # Add navic to winbar (optional - can also use with lualine)
-    extraConfigVim = ''
-      set winbar=%{%v:lua.require'nvim-navic'.get_location()%}
-    '';
   };
 }

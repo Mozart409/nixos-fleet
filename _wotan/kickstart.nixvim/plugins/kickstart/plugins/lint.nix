@@ -1,10 +1,5 @@
 {pkgs, ...}: {
   programs.nixvim = {
-    extraPlugins = with pkgs; [
-      hadolint
-      vale
-    ];
-
     # Linting
     # https://nix-community.github.io/nixvim/plugins/lint/index.html
     plugins.lint = {

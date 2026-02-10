@@ -56,11 +56,10 @@
     ./plugins/custom/plugins/vague.nix
     ./plugins/custom/plugins/oil.nix
     ./plugins/custom/plugins/opencode.nix
-    ./plugins/custom/plugins/snacks.nix
+    # ./plugins/custom/plugins/snacks.nix
     ./plugins/custom/plugins/autocommands.nix
     ./plugins/custom/plugins/trouble.nix
     ./plugins/custom/plugins/dashboard.nix
-    ./plugins/custom/plugins/trouble.nix
     ./plugins/custom/plugins/comment.nix
     ./plugins/custom/plugins/noice.nix
     ./plugins/custom/plugins/neogit.nix
@@ -342,11 +341,7 @@
       {
         key = "<leader>gg";
         mode = "n";
-        action = ''
-          function()
-            Snacks.lazygit.open()
-          end;
-        '';
+        action = "<cmd>LazyGit<cr>";
         options = {
           desc = "Open Lazygit";
         };
@@ -359,17 +354,6 @@
         '';
         options = {
           desc = "Open Spectre";
-        };
-      }
-      # <cmd>require('fff').find_in_git_root()<CR>
-      {
-        key = "ff";
-        mode = "n";
-        action = ''
-          <cmd>require('fff').find_in_git_root()<CR>
-        '';
-        options = {
-          desc = "Open fff";
         };
       }
       /*
@@ -412,7 +396,6 @@
 
     plugins = {
       # Adds icons for plugins to utilize in ui
-      autoclose.enable = true;
       better-escape.enable = true;
       web-devicons.enable = true;
       # Detect tabstop and shiftwidth automatically
