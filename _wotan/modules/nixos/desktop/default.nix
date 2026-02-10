@@ -25,6 +25,7 @@
 
       # File management
       ranger
+      w3m # Provides w3mimgdisplay for ranger image previews
       tree
 
       # System monitoring
