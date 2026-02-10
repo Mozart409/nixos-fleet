@@ -7,8 +7,8 @@
         auto_clean_after_session_restore = true;
         close_if_last_window = true;
         filesystem = {
-          # Open in current window when running nvim . to avoid empty buffer
-          hijack_netrw_behavior = "open_current";
+          # Let neo-tree open in its configured position when starting with a directory
+          hijack_netrw_behavior = "open_default";
           window = {
             mappings = {
               "\\" = "close_window";
@@ -30,14 +30,9 @@
               vim.api.nvim_buf_delete(data.buf, { force = true })
             end
 
-            -- Change into the directory (mirrors netrw behavior)
+            -- Change into the directory (mirrors netrw behavior); neo-tree will
+            -- auto-open via hijack_netrw_behavior = "open_default"
             vim.cmd.cd(data.file)
-
-            -- Open neo-tree in the default position
-            local ok, neotree = pcall(require, "neo-tree.command")
-            if ok then
-              neotree.execute({ action = "show", source = "filesystem" })
-            end
           end
         end,
         desc = "Use neo-tree on directory startup and remove initial dir buffer",
