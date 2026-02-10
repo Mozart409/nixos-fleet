@@ -3,9 +3,9 @@
     plugins.neo-tree = {
       enable = true;
       settings = {
-        addBlankLineAtTop = true;
-        autoCleanAfterSessionRestore = true;
-        closeIfLastWindow = true;
+        add_blank_line_at_top = true;
+        auto_clean_after_session_restore = true;
+        close_if_last_window = true;
         filesystem = {
           window = {
             mappings = {
