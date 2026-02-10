@@ -5,12 +5,12 @@
   ...
 }: {
   programs.kitty = {
-    enable = false;
+    enable = true;
     shellIntegration.enableZshIntegration = true;
     # font = "FiraCode";
     themeFile = "kanagawa_dragon";
     settings = {
-      scrollback_lines = 10000;
+      scrollback_lines = 1000;
       enable_audio_bell = false;
       update_check_interval = 0;
     };

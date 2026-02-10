@@ -19,6 +19,7 @@
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/terminals.nix
+    ../../modules/home-manager/packages/yazi.nix
     ../../modules/home-manager/packages/opencode.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
     ../../modules/home-manager/packages/rofi.nix
