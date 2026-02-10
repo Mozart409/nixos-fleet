@@ -41,22 +41,23 @@
           sections.__raw = ''
             {
               { section = "header" },
-              {
-                pane = 1,
-                section = "terminal",
-                cmd = "colorscript -e square",
-                padding = 1,
-              },
               { section = "keys", gap = 1, padding = 1 },
-              { pane = 2, icon = " ", title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
-              { pane = 2, icon = " ", title = "Projects", section = "projects", indent = 2, padding = 1 },
-              {
-                pane = 2,
-                height = 16,
-                section = "terminal",
-                cmd = "fortune -s | chara say -t round -r ",
-                padding = 1,
-              },
+              { pane = 2, icon = " ", title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
+              { pane = 2, icon = " ", title = "Projects", section = "projects", indent = 2, padding = 1 },
+              -- Terminal sections removed to fix E141 "No filename for buffer" error on exit
+              -- {
+              --   pane = 1,
+              --   section = "terminal",
+              --   cmd = "colorscript -e square",
+              --   padding = 1,
+              -- },
+              -- {
+              --   pane = 2,
+              --   height = 16,
+              --   section = "terminal",
+              --   cmd = "fortune -s | chara say -t round -r ",
+              --   padding = 1,
+              -- },
             },
           '';
         };
