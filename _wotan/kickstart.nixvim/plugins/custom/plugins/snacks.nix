@@ -29,7 +29,6 @@
 
         dashboard = {
           enabled = true;
-          autoLoad = true;
           formats.__raw = ''
             {
               key = function(item)
