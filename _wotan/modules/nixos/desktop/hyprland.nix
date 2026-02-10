@@ -248,6 +248,18 @@
           "trail_steps" = 5;
         };
 
+        # Window rules for ueberzugpp (yazi image preview)
+        windowrulev2 = [
+          "nofocus,class:^(ueberzugpp)$"
+          "noshadow,class:^(ueberzugpp)$"
+          "noblur,class:^(ueberzugpp)$"
+          "noborder,class:^(ueberzugpp)$"
+          "float,class:^(ueberzugpp)$"
+          "noanim,class:^(ueberzugpp)$"
+          "pin,class:^(ueberzugpp)$"
+          "noinitialfocus,class:^(ueberzugpp)$"
+        ];
+
         # Mouse bindings
         bindm = [
           "$mod, mouse:272, movewindow"
