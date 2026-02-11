@@ -34,6 +34,14 @@
               CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
             };
           };
+          playwright = {
+            type = "local";
+            command = [
+              "npx"
+              "@playwright/mcp@latest"
+            ];
+            enabled = true;
+          };
         };
       };
     };
