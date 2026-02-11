@@ -37,11 +37,10 @@
 
       # Startup directory
       startup_session = "none";
+
+      # Working directory
+      working_directory = "/home/amadeus/code";
     };
-    extraConfig = ''
-      # Set working directory
-      cd /home/amadeus/code
-    '';
   };
 
   programs.ghostty = {
