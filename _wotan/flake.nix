@@ -236,6 +236,7 @@
         git
         alejandra
         lefthook
+        opencode
         colmena.packages.${system}.colmena
       ];
       shellHook = ''
