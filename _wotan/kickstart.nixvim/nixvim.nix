@@ -60,6 +60,7 @@
     ./plugins/custom/plugins/autocommands.nix
     ./plugins/custom/plugins/trouble.nix
     ./plugins/custom/plugins/dashboard.nix
+    ./plugins/custom/plugins/drop.nix
     ./plugins/custom/plugins/comment.nix
     ./plugins/custom/plugins/noice.nix
     ./plugins/custom/plugins/neogit.nix
