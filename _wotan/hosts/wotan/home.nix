@@ -25,6 +25,7 @@
     ../../modules/home-manager/packages/rofi.nix
     ../../modules/home-manager/packages/podman.nix
     ../../modules/home-manager/packages/gtk.nix
+    ../../modules/home-manager/packages/halloy.nix
   ];
 
   desktop.waybar.enable = false;
