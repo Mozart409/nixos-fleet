@@ -69,6 +69,25 @@
       };
 
       settings = {
+        # Override default action to always open files directly (not quickfix)
+        actions = {
+          files = {
+            # Use file_edit instead of file_edit_or_qf to prevent quickfix on multi-select
+            __raw = ''
+              {
+                ["enter"] = require("fzf-lua").actions.file_edit,
+                ["ctrl-s"] = require("fzf-lua").actions.file_split,
+                ["ctrl-v"] = require("fzf-lua").actions.file_vsplit,
+                ["ctrl-t"] = require("fzf-lua").actions.file_tabedit,
+                ["alt-q"] = require("fzf-lua").actions.file_sel_to_qf,
+                ["alt-Q"] = require("fzf-lua").actions.file_sel_to_ll,
+                ["alt-i"] = require("fzf-lua").actions.toggle_ignore,
+                ["alt-h"] = require("fzf-lua").actions.toggle_hidden,
+                ["alt-f"] = require("fzf-lua").actions.toggle_follow,
+              }
+            '';
+          };
+        };
         winopts = {
           height = 0.85;
           width = 0.80;
