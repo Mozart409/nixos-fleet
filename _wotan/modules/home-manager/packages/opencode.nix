@@ -51,7 +51,7 @@
         ---
         description: Create conventional commits based on analyzed changes
         agent: build
-        model: minimax-m2.5
+        model: opencode/minimax-m2.5
         ---
 
         # Conventional Commit Analysis
