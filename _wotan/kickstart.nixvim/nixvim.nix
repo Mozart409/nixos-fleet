@@ -260,9 +260,9 @@
       {
         mode = "n";
         key = "<leader>tt";
-        action = "<cmd>LazyGit<cr>";
+        action = "<cmd>Neogit<cr>";
         options = {
-          desc = "LazyGit reveal";
+          desc = "Neogit";
         };
       }
 
@@ -342,9 +342,9 @@
       {
         key = "<leader>gg";
         mode = "n";
-        action = "<cmd>LazyGit<cr>";
+        action = "<cmd>Neogit<cr>";
         options = {
-          desc = "Open Lazygit";
+          desc = "Open Neogit";
         };
       }
       {
