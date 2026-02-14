@@ -140,10 +140,7 @@
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
-      minimal = mkHost "minimal" system;
       wotan = mkHost "wotan" system;
-      rulemesh-o11y = mkHost "rulemesh-o11y" system;
-      servarr = mkHost "servarr" system;
       # Add more hosts here:
       # laptop = mkHost "laptop" system;
       # server = mkHost "server" system;
@@ -151,83 +148,10 @@
 
     # Home-manager configurations for each user/host
     homeConfigurations = {
-      "amadeus@minimal" = mkHome "minimal" system;
       "amadeus@wotan" = mkHome "wotan" system;
-      "amadeus@rulemesh-o11y" = mkHome "rulemesh-o11y" system;
-      "amadeus@servarr" = mkHome "servarr" system;
       # Add more user/host combinations here:
       # "amadeus@laptop" = mkHome "laptop" system;
       # "user@server" = mkHome "server" system;
-    };
-
-    # Nixos Generator
-    packages."x86_64-linux".minimal-pve = nixos-generators.nixosGenerate {
-      system = "x86_64-linux";
-      modules = [
-        ({pkgs, ...}: {
-          # set disk size to to 20G
-          virtualisation.diskSize = 20 * 1024;
-          system.stateVersion = "25.11";
-          /*
-             users.defaultUserShell = pkgs.zsh;
-          environment.shells = with pkgs; [zsh];
-          */
-        })
-        ./hosts/minimal/default.nix
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.amadeus = import ./hosts/minimal/home.nix;
-          home-manager.sharedModules = [inputs.nixvim.homeModules.nixvim];
-        }
-      ];
-      format = "proxmox-lxc";
-    };
-
-    # Colmena configuration for multi-host deployment
-    colmenaHive = colmena.lib.makeHive {
-      meta = {
-        nixpkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-        };
-        specialArgs = {inherit inputs;};
-      };
-
-      rulemesh-o11y = {
-        deployment = {
-          targetHost = "192.168.2.120";
-          targetUser = "amadeus";
-          targetPort = 22;
-          buildOnTarget = false;
-        };
-        imports = [
-          ./hosts/rulemesh-o11y/default.nix
-          {
-            nixpkgs.hostPlatform = "x86_64-linux";
-            nix.settings.trusted-users = ["amadeus"];
-          }
-        ];
-      };
-      servarr = {
-        deployment = {
-          targetHost = "192.168.2.188";
-          targetUser = "amadeus";
-          targetPort = 22;
-          buildOnTarget = false;
-          sshOptions = ["-i" "~/.ssh/id_ed25519"];
-        };
-        imports = [
-          ./hosts/servarr/default.nix
-          {
-            nixpkgs.hostPlatform = "x86_64-linux";
-            nix.settings.trusted-users = ["amadeus"];
-            nix.settings.substituters = [];
-            nix.settings.extra-substituters = [];
-          }
-        ];
-      };
     };
 
     # Development shell for working with this configuration
