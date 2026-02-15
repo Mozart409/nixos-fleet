@@ -143,18 +143,9 @@
           };
         };
 
-        # Render settings for NVIDIA - reduces scroll lag and text artifacts
-        render = {
-          # Explicit sync for NVIDIA (critical for fixing scroll issues)
-          explicit_sync = 2;
-          # Disable direct scanout (can cause issues on NVIDIA)
-          direct_scanout = false;
-        };
-
-        # Cursor settings for NVIDIA
+        # Cursor settings for NVIDIA - use software cursors (more reliable)
         cursor = {
-          # Use software cursors (more reliable on NVIDIA)
-          no_hardware_cursors = true;
+          no_hardware_cursors = 1;
         };
 
         # Workspace configuration

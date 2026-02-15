@@ -86,22 +86,6 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  # NVIDIA Wayland environment variables for better compatibility
-  environment.sessionVariables = {
-    # Use GBM backend for NVIDIA (required for Wayland)
-    GBM_BACKEND = "nvidia-drm";
-    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-    # Disable hardware cursors (fixes flickering/lag on some setups)
-    WLR_NO_HARDWARE_CURSORS = "1";
-    # Enable explicit sync for NVIDIA (reduces scroll lag and tearing)
-    __GL_GSYNC_ALLOWED = "1";
-    __GL_VRR_ALLOWED = "1";
-    # Force NVIDIA to use the DRM backend
-    LIBVA_DRIVER_NAME = "nvidia";
-    # Electron/Chromium apps - use Wayland with NVIDIA workarounds
-    ELECTRON_OZONE_PLATFORM_HINT = "auto";
-  };
-
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
@@ -153,8 +137,27 @@
     group = "users";
   };
 
-  # Make the CONTEXT7_API_KEY available as environment variable for the user
+  # Environment variables
   environment.sessionVariables = {
+    # Agenix secret
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
+
+    # NVIDIA Wayland environment variables for better compatibility
+    GBM_BACKEND = "nvidia-drm";
+    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    # Disable hardware cursors (fixes flickering/lag on some setups)
+    WLR_NO_HARDWARE_CURSORS = "1";
+    # Enable VRR/GSync for NVIDIA
+    __GL_GSYNC_ALLOWED = "1";
+    __GL_VRR_ALLOWED = "1";
+    # Hardware video acceleration with NVIDIA
+    LIBVA_DRIVER_NAME = "nvidia";
+    NVD_BACKEND = "direct";
+    # Electron/Chromium apps - use Wayland
+    ELECTRON_OZONE_PLATFORM_HINT = "auto";
+
+    # Aquamarine (Hyprland renderer) NVIDIA fixes
+    # Disable forcing linear modifiers - can help with scroll lag on NVIDIA
+    AQ_FORCE_LINEAR_BLIT = "0";
   };
 }
