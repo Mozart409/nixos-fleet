@@ -137,6 +137,24 @@
             color = "rgba(1a1a1aee)";
           };
           dim_inactive = false;
+          # Disable blur to reduce GPU load and scroll lag on NVIDIA
+          blur = {
+            enabled = false;
+          };
+        };
+
+        # Render settings for NVIDIA - reduces scroll lag and text artifacts
+        render = {
+          # Explicit sync for NVIDIA (critical for fixing scroll issues)
+          explicit_sync = 2;
+          # Disable direct scanout (can cause issues on NVIDIA)
+          direct_scanout = false;
+        };
+
+        # Cursor settings for NVIDIA
+        cursor = {
+          # Use software cursors (more reliable on NVIDIA)
+          no_hardware_cursors = true;
         };
 
         # Workspace configuration
