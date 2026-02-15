@@ -39,6 +39,7 @@
       t = "tmux";
       op = "nix run github:anomalyco/opencode";
       zkdir = "cd ~/code/zettelkasten/";
+      s = "kitty +kitten ssh";
     };
     oh-my-zsh = {
       enable = true;
