@@ -4,13 +4,55 @@ set dotenv-load
 default:
     just --choose
 
-# Test NixOS configuration for specific host
+# Switch NixOS configuration for specific host (persists)
+switch hostname:
+    sudo nixos-rebuild switch --flake .#{{hostname}}
+
+# Switch home-manager configuration (default: amadeus@wotan)
+switch-home hostname="wotan" user="amadeus":
+    home-manager switch --flake .#{{user}}@{{hostname}}
+
+# Switch both NixOS and home-manager configurations
+switch-all hostname:
+    just switch {{hostname}}
+    just switch-home {{hostname}}
+
+# Test NixOS configuration for specific host (doesn't persist after reboot)
 test hostname:
     sudo nixos-rebuild test --flake .#{{hostname}}
+
+# Test both NixOS and home-manager configurations
+test-all hostname:
+    just test {{hostname}}
+    just switch-home {{hostname}}
+
+# Build NixOS configuration (dry run to check)
+build hostname:
+    nix build .#nixosConfigurations.{{hostname}}.config.system.build.toplevel --dry-run
+
+# Build home-manager configuration (dry run to check)
+build-home hostname="wotan" user="amadeus":
+    nix build .#homeConfigurations.{{user}}@{{hostname}}.activationPackage --dry-run
 
 # Update flake inputs
 update:
     nix flake update --accept-flake-config
+
+# Update specific flake input
+update-input input:
+    nix flake update {{input}} --accept-flake-config
+
+# Format all Nix files with Alejandra
+fmt:
+    alejandra .
+
+# Check flake configuration
+check:
+    nix flake check
+
+# Enter development shell
+dev:
+    nix develop
 
 # Clear terminal
 clear:
