@@ -15,7 +15,7 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 - `kickstart.nixvim/` - Neovim configuration using nixvim
 
 **Hosts:**
-- `wotan` - Main desktop workstation (Hyprland, NVIDIA, Docker)
+- `wotan` - Main desktop workstation (Hyprland, NVIDIA, Podman)
 
 **User:** All configurations use the user `amadeus`
 
@@ -250,7 +250,7 @@ Before committing changes:
 - Main README: `/etc/nixos/README.md`
 - Justfile commands: `/etc/nixos/justfile`
 - Flake configuration: `/etc/nixos/flake.nix`
-- Development shell: `nix develop` (includes git, alejandra, lefthook, colmena)
+- Development shell: `nix develop` (includes git, alejandra, lefthook, opencode)
 
 ---
 

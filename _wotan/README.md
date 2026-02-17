@@ -154,7 +154,7 @@ Each host can override or extend the shared configuration:
 - **Desktop**: Hyprland (Wayland compositor)
 - **Graphics**: NVIDIA (stable drivers)
 - **Sound**: PipeWire with PulseAudio compatibility
-- **Special Features**: Steam, Docker, Podman, Tailscale
+- **Special Features**: Steam, Podman, Tailscale
 - **Bar**: Ironbar
 - **Terminal**: Kitty, Alacritty
 
