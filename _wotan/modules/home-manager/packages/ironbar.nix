@@ -35,7 +35,7 @@ in {
 
       [[end]]
       type = "script"
-      cmd = "timeout 3 /home/amadeus/toolbox/zinc_oxide --compact || echo '?'"
+      cmd = "timeout 3 ${config.home.homeDirectory}/toolbox/zinc_oxide --compact || echo '?'"
       mode = "poll"
       interval = 600000
 

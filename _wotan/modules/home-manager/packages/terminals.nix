@@ -39,7 +39,7 @@
       startup_session = "none";
 
       # Working directory
-      working_directory = "/home/amadeus/code";
+      working_directory = "${config.home.homeDirectory}/code";
     };
   };
 
@@ -63,7 +63,7 @@
         dynamic_title = true;
       };
 
-      general.working_directory = "/home/amadeus/code";
+      general.working_directory = "${config.home.homeDirectory}/code";
       scrolling.history = 1000;
 
       font = {
