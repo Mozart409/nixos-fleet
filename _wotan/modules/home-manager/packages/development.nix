@@ -10,7 +10,6 @@
     mergiraf
     rustscan
     bacon
-    lazygit
     nodejs_22
     tpi
     pnpm
