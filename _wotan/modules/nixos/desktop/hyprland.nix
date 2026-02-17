@@ -9,6 +9,15 @@
     inputs.hyprland.nixosModules.default
   ];
 
+  options.desktop.hyprland = {
+    monitors = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      example = ["DP-1,1920x1080@60,0x0,1"];
+      description = "Hyprland monitor configuration";
+    };
+  };
+
   config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
     security.sudo.extraConfig = ''
       Defaults!${pkgs.gparted}/bin/gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
@@ -99,11 +108,8 @@
         # inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors
       ];
       settings = {
-        # Monitor configuration
-        monitor = [
-          "DP-3,2560x1440@144,0x0,1" # Center display
-          "DP-2,2560x1440@144,2560x0,1" # Right display
-        ];
+        # Monitor configuration (host-specific)
+        monitor = config.desktop.hyprland.monitors;
 
         # Input device settings
         input = {
@@ -291,7 +297,7 @@
       _JAVA_AWT_WM_NONREPARENTING = "1";
 
       # Hyprshot screenshot directory
-      HYPRSHOT_DIR = "/home/amadeus/Pictures/hyprshot";
+      HYPRSHOT_DIR = "${config.users.users.amadeus.home}/Pictures/hyprshot";
     };
   };
 }
