@@ -19,10 +19,6 @@
     agenix = {
       url = "github:ryantm/agenix";
     };
-    colmena = {
-      url = "github:zhaofengli/colmena";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
@@ -71,7 +67,6 @@
     home-manager,
     nixvim,
     nixos-generators,
-    colmena,
     agenix,
     hyprland,
     hyprland-plugins,
@@ -161,7 +156,6 @@
         alejandra
         lefthook
         opencode
-        colmena.packages.${system}.colmena
       ];
       shellHook = ''
         echo "Welcome to the NixOS configuration development shell!"
