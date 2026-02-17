@@ -8,19 +8,28 @@ This is a multi-host NixOS configuration with shared modules and host-specific s
 /etc/nixos/
 ├── flake.nix                 # Main flake configuration
 ├── README.md                 # This file
+├── AGENTS.md                 # AI coding agent guide
+├── justfile                  # Just command runner recipes
+├── lefthook.yml              # Git hooks configuration
 ├── modules/                  # Shared modules
-│   ├── nixos/              # NixOS system modules
-│   │   └── common-packages.nix
-│   └── home-manager/        # Home-manager user modules
-│       └── common-packages.nix
-├── hosts/                   # Host-specific configurations
-│   └── wotan/             # Example host configuration
-│       ├── default.nix      # Host-specific system config
-│       ├── hardware-configuration.nix  # Hardware detection
-│       └── home.nix        # Host-specific user config
-├── kickstart.nixvim/        # Kickstart neovim configuration
-├── terminals.nix          # Terminal configurations
-└── tmux.nix              # Tmux configuration
+│   ├── nixos/                # NixOS system modules
+│   │   ├── basics.nix
+│   │   ├── common-packages.nix
+│   │   ├── flatpak.nix
+│   │   └── desktop/          # Desktop environment modules
+│   └── home-manager/         # Home-manager user modules
+│       ├── common-packages.nix
+│       ├── configs/          # Program configurations
+│       └── packages/         # Package category modules
+├── hosts/                    # Host-specific configurations
+│   └── wotan/                # Main workstation
+│       ├── default.nix       # Host-specific system config
+│       ├── home.nix          # Host-specific user config
+│       ├── hardware-configuration.nix
+│       ├── disko-config.nix  # Disk partitioning
+│       └── desktop-config.nix
+├── secrets/                  # Agenix encrypted secrets
+└── kickstart.nixvim/         # Neovim configuration
 ```
 
 ## 🚀 Usage
@@ -142,11 +151,12 @@ Each host can override or extend the shared configuration:
 ## 🔧 Configuration Details
 
 ### Current Host: wotan
-- **Desktop**: KDE Plasma 6
+- **Desktop**: Hyprland (Wayland compositor)
 - **Graphics**: NVIDIA (stable drivers)
 - **Sound**: PipeWire with PulseAudio compatibility
-- **Special Features**: Steam, Docker, Tailscale
-- **Auto-login**: Enabled for user "amadeus"
+- **Special Features**: Steam, Docker, Podman, Tailscale
+- **Bar**: Ironbar
+- **Terminal**: Kitty, Alacritty
 
 ### Shared Features
 - **Shell**: Zsh with Oh My Zsh

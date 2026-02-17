@@ -15,10 +15,7 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 - `kickstart.nixvim/` - Neovim configuration using nixvim
 
 **Hosts:**
-- `wotan` - Main desktop workstation (KDE Plasma 6, NVIDIA, Docker)
-- `minimal` - Minimal server configuration
-- `rulemesh-o11y` - Observability server
-- `servarr` - Media server
+- `wotan` - Main desktop workstation (Hyprland, NVIDIA, Docker)
 
 **User:** All configurations use the user `amadeus`
 
