@@ -92,9 +92,6 @@
     bcachefs-tools
   ];
 
-  # Host-specific services
-  virtualisation.docker.enable = true;
-
   virtualisation.podman = {
     enable = true;
     dockerCompat = false;
