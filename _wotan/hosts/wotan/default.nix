@@ -20,6 +20,7 @@
     ../../modules/nixos/common-packages.nix
     ../../modules/nixos/flatpak.nix
     ../../modules/nixos/razer.nix
+    ../../modules/nixos/llama-cpp.nix
     ../../modules/nixos/desktop/default.nix
     # ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/hyprland.nix

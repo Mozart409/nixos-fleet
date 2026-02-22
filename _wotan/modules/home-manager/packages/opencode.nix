@@ -22,6 +22,24 @@
     home.file.".config/opencode/opencode.json" = {
       text = builtins.toJSON {
         "$schema" = "https://opencode.ai/config.json";
+        provider = {
+          "llama.cpp" = {
+            npm = "@ai-sdk/openai-compatible";
+            name = "llama-server (local)";
+            options = {
+              baseURL = "http://127.0.0.1:10808/v1";
+            };
+            models = {
+              "local-model" = {
+                name = "Local LLM (llama.cpp)";
+                limit = {
+                  context = 128000;
+                  output = 65536;
+                };
+              };
+            };
+          };
+        };
         mcp = {
           gh_grep = {
             type = "remote";
