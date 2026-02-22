@@ -173,6 +173,15 @@
         settings = {
           General = {
             Enable = "Source,Sink,Media,Socket";
+            Experimental = true;
+            # Improve compatibility with Bluetooth audio devices
+            FastConnectable = true;
+            # Disable auto-suspend to prevent connection issues
+            ReconnectAttempts = 7;
+            ReconnectIntervals = "1,2,4,8,16,32,64";
+          };
+          Policy = {
+            AutoEnable = true;
           };
         };
       };
