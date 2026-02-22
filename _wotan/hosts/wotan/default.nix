@@ -19,6 +19,7 @@
     # Common modules
     ../../modules/nixos/common-packages.nix
     ../../modules/nixos/flatpak.nix
+    ../../modules/nixos/razer.nix
     ../../modules/nixos/desktop/default.nix
     # ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/hyprland.nix
@@ -52,6 +53,9 @@
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
+
+  # Razer device support
+  hardware.razer.enable = true;
 
   services.xserver.videoDrivers = ["nvidia"];
 
