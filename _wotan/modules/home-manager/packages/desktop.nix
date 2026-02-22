@@ -11,7 +11,7 @@
     comet-gog
     discord
     lutris-unwrapped
-    mate.pluma
+    pluma
     pavucontrol
     # Security
     proton-pass
