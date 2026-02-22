@@ -16,5 +16,6 @@
     makemkv
     anki-bin
     mpv
+    llmfit
   ];
 }
