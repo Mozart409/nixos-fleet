@@ -156,6 +156,7 @@
         alejandra
         lefthook
         opencode
+        cocogitto
       ];
       shellHook = ''
         echo "Welcome to the NixOS configuration development shell!"
@@ -165,6 +166,7 @@
         echo "  sudo nixos-rebuild switch --flake .#wotan"
         echo "  home-manager switch --flake .#amadeus@wotan"
         lefthook install
+        cog install-hook
       '';
     };
   };
