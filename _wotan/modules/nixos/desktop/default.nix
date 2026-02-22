@@ -153,6 +153,18 @@
       libinput.enable = true;
     };
 
+    # Systemd service to unblock Bluetooth automatically
+    systemd.services.unblock-bluetooth = {
+      description = "Unblock Bluetooth device";
+      after = ["bluetooth.service"];
+      wantedBy = ["multi-user.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
+        RemainAfterExit = true;
+      };
+    };
+
     # Hardware support packages
     hardware = {
       bluetooth = {
