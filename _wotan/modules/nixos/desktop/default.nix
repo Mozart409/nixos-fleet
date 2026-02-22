@@ -55,6 +55,7 @@
       # Bluetooth tools
       bluez
       bluez-tools
+      bluetuith
 
       # Passwords
       keepassxc
@@ -101,6 +102,7 @@
       alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
+      wireplumber.enable = true;
     };
 
     # X11 keyboard configuration (common to both DEs)
