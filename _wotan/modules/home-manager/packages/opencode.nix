@@ -30,17 +30,17 @@
               baseURL = "http://127.0.0.1:10808/v1";
             };
             models = {
-              "ibm-granite_granite-4.0-h-tiny-Q4_K_M.gguf" = {
+              "ibm-granite_granite-4.0-h-tiny-Q4_K_M" = {
                 name = "IBM Granite 4.0 H-Tiny (7B MoE)";
                 limit = {
                   context = 131072;
                   output = 65536;
                 };
               };
-              "Qwen_Qwen3-4B-Thinking-2507-Q4_K_M.gguf" = {
+              "Qwen_Qwen3-4B-Thinking-2507-Q4_K_M" = {
                 name = "Qwen3-4B-Thinking-2507";
                 limit = {
-                  context = 32768;
+                  context = 131072;
                   output = 32768;
                 };
               };
