@@ -120,9 +120,11 @@
   services.tailscale.enable = true;
 
   # llama.cpp server with models directory
+  # Models are stored in /var/lib/llama-cpp/models (the service's state directory)
+  # Copy models there with: sudo cp model.gguf /var/lib/llama-cpp/models/
   services.llama-cpp = {
     enable = true;
-    modelsDir = "/home/amadeus/models";
+    modelsDir = "/var/lib/llama-cpp/models";
     extraFlags = [
       "--n-gpu-layers"
       "99" # Offload all layers to GPU
