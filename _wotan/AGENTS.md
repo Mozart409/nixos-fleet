@@ -244,6 +244,31 @@ Before committing changes:
 4. **Home-manager vs NixOS:** System services in NixOS modules, user config in home-manager
 5. **Rebuilds require sudo:** System rebuilds need `sudo`, home-manager doesn't
 6. **Secrets:** Use agenix for sensitive data (see `age.secrets` in wotan config)
+7. **Systemd sandboxing:** Services with `DynamicUser=true` and `ProtectHome=true` cannot access `/home/`. Use state directories (e.g., `/var/lib/<service>/`) instead.
+
+## 🤖 LLaMA.cpp Server
+
+The llama-cpp service runs with strict systemd sandboxing (`ProtectHome=true`), so models must be stored in the service's state directory.
+
+**Models location:** `/var/lib/llama-cpp/models/`
+
+**Adding models:**
+```bash
+sudo cp model.gguf /var/lib/llama-cpp/models/
+```
+
+**API endpoints:**
+- List models: `http://127.0.0.1:10808/v1/models`
+- Chat completions: `http://127.0.0.1:10808/v1/chat/completions`
+
+**Service management:**
+```bash
+systemctl status llama-cpp          # Check status
+journalctl -u llama-cpp -f          # Follow logs
+sudo systemctl restart llama-cpp    # Restart service
+```
+
+**Configuration:** `modules/nixos/llama-cpp.nix` (shared) and `hosts/wotan/default.nix` (host-specific)
 
 ## 📚 Additional Resources
 
