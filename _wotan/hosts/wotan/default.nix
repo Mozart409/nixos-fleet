@@ -119,12 +119,27 @@
   };
   services.tailscale.enable = true;
 
+  # llama.cpp server with models directory
+  services.llama-cpp = {
+    enable = true;
+    modelsDir = "/home/amadeus/models";
+    extraFlags = [
+      "--n-gpu-layers"
+      "99" # Offload all layers to GPU
+      "--parallel"
+      "2" # Allow 2 concurrent requests
+      "--ctx-size"
+      "131072" # Maximum context size for models that support it
+    ];
+  };
+
   # System state version
   system.stateVersion = "24.11";
 
-  # Ensure storage mount is owned by amadeus
+  # Ensure storage mount is owned by amadeus and create models directory
   systemd.tmpfiles.rules = [
     "Z /mnt/storage 0755 amadeus users -"
+    "d /home/amadeus/models 0755 amadeus users -"
   ];
 
   # Agenix secrets configuration
