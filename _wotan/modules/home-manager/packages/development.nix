@@ -35,5 +35,6 @@
     gnused
     lefthook
     btop
+    python314Packages.huggingface-hub
   ];
 }

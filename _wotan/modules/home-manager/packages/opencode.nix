@@ -37,13 +37,6 @@
                   output = 65536;
                 };
               };
-              "Qwen_Qwen3-4B-Thinking-2507-Q4_K_M" = {
-                name = "Qwen3-4B-Thinking-2507";
-                limit = {
-                  context = 131072;
-                  output = 32768;
-                };
-              };
             };
           };
         };
