@@ -178,7 +178,7 @@
             "$mod, T, exec, kitty"
 
             # Browser
-            "$mod, F, exec, firefox"
+            "$mod, F, exec, brave"
 
             # Text editor
             "$mod, N, exec, pluma"
