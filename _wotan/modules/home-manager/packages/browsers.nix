@@ -20,8 +20,6 @@ in {
   home.packages = with pkgs; [
     helium-browser
     chromium
-    vivaldi
-    ladybird
     brave
   ];
 }
