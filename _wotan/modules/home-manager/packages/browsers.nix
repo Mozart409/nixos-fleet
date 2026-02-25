@@ -22,5 +22,6 @@ in {
     chromium
     vivaldi
     ladybird
+    brave
   ];
 }
