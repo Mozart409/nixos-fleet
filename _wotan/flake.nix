@@ -41,16 +41,6 @@
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    caelestia-shell = {
-      url = "github:caelestia-dots/shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    # Theme
-    mac-style-plymouth = {
-      url = "github:SergioRibera/s4rchiso-plymouth-theme";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Disko - Declarative disk partitioning
     disko = {
       url = "github:nix-community/disko";
@@ -74,8 +64,6 @@
     hyprsunset,
     ironbar,
     quickshell,
-    caelestia-shell,
-    mac-style-plymouth,
     disko,
     awww,
   } @ inputs: let
