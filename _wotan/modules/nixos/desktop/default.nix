@@ -70,8 +70,7 @@
         noto-fonts-color-emoji
         liberation_ttf
 
-        # Programming fonts
-        jetbrains-mono
+        # Programming fonts (jetbrains-mono provided by nerd-fonts in home-manager)
         fira-code
         source-code-pro
 
