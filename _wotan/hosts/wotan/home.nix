@@ -27,6 +27,7 @@
     ../../modules/home-manager/packages/podman.nix
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
+    ../../modules/home-manager/packages/quickshell.nix
   ];
 
   desktop.waybar.enable = false;
@@ -34,6 +35,7 @@
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
+  desktop.quickshell.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;

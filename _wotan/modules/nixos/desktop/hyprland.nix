@@ -53,6 +53,9 @@
       # Notifications
       dunst
 
+      # Quickshell - custom widgets
+      inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default
+
       # File manager
       nemo
       nemo-fileroller # Archive support
