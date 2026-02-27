@@ -13,7 +13,7 @@
     kdePackages.kwallet-pam
     openrgb-with-all-plugins
     handbrake
-    makemkv
+    # makemkv # TODO: re-enable when expat header issue is fixed upstream
     anki-bin
     mpv
     llmfit
