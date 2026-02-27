@@ -207,11 +207,11 @@
             "$mod, up, movefocus, u"
             "$mod, down, movefocus, d"
 
-            # Move windows (uses movewindoworgroup for better cross-monitor support)
-            "$mod SHIFT, left, movewindoworgroup, l"
-            "$mod SHIFT, right, movewindoworgroup, r"
-            "$mod SHIFT, up, movewindoworgroup, u"
-            "$mod SHIFT, down, movewindoworgroup, d"
+            # Move windows to adjacent monitor (left/right) or swap within workspace (up/down)
+            "$mod SHIFT, left, movewindow, mon:-1"
+            "$mod SHIFT, right, movewindow, mon:+1"
+            "$mod SHIFT, up, movewindow, u"
+            "$mod SHIFT, down, movewindow, d"
 
             # Media keys (pass through to applications like Firefox)
             ", XF86AudioPlay, exec, playerctl play-pause"
