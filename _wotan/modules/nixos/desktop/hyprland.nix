@@ -155,13 +155,8 @@
         };
 
         # Workspace configuration
-        workspace = [
-          "1, monitor:DP-3"
-          "2, monitor:DP-3"
-          "3, monitor:DP-3"
-          "4, monitor:DP-3"
-          "5, monitor:DP-3"
-        ];
+        # Note: Workspace-to-monitor binding is now host-specific
+        # See hosts/wotan/desktop-config.nix for example
 
         # Mod key
         "$mod" = "SUPER";
@@ -212,11 +207,11 @@
             "$mod, up, movefocus, u"
             "$mod, down, movefocus, d"
 
-            # Swap windows
-            "$mod SHIFT, left, movewindow, l"
-            "$mod SHIFT, right, movewindow, r"
-            "$mod SHIFT, up, movewindow, u"
-            "$mod SHIFT, down, movewindow, d"
+            # Move windows (uses movewindoworgroup for better cross-monitor support)
+            "$mod SHIFT, left, movewindoworgroup, l"
+            "$mod SHIFT, right, movewindoworgroup, r"
+            "$mod SHIFT, up, movewindoworgroup, u"
+            "$mod SHIFT, down, movewindoworgroup, d"
 
             # Media keys (pass through to applications like Firefox)
             ", XF86AudioPlay, exec, playerctl play-pause"
