@@ -5,7 +5,7 @@
   ...
 }: {
   home.packages = with pkgs; [
-    krita
+    # krita # TODO: re-enable when lager/boost cmake issue is fixed upstream
     haruna
     signal-desktop-bin
     comet-gog
