@@ -37,7 +37,7 @@
       pwn = "podman-compose down";
       n = "nvim .";
       t = "tmux";
-      op = "nix run github:anomalyco/opencode";
+      op = "opencode";
       zkdir = "cd ~/code/zettelkasten/";
       s = "kitty +kitten ssh";
     };
