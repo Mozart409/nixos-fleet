@@ -37,17 +37,28 @@ in {
     # Link QML config files from the module directory
     xdg.configFile."quickshell".source = ./quickshell;
 
+    # Hyprland session target (for systemd integration)
+    systemd.user.targets.hyprland-session = {
+      Unit = {
+        Description = "Hyprland compositor session";
+        Documentation = "man:systemd.special(7)";
+        BindsTo = ["graphical-session.target"];
+        Wants = ["graphical-session-pre.target"];
+        After = ["graphical-session-pre.target"];
+      };
+    };
+
     # Systemd service for Quickshell
     systemd.user.services.quickshell = {
       Unit = {
         Description = "Quickshell custom widgets";
-        PartOf = ["graphical-session.target"];
-        After = ["graphical-session.target"];
+        PartOf = ["hyprland-session.target"];
+        After = ["hyprland-session.target"];
       };
 
       Service = {
         Environment = [
-          "PATH=/run/wrappers/bin:${lib.makeBinPath dependencies}"
+          "PATH=/run/wrappers/bin:${lib.makeBinPath dependencies}:/run/current-system/sw/bin:${config.home.profileDirectory}/bin"
           "QML2_IMPORT_PATH=${qmlImportPath}"
         ];
         ExecStart = lib.getExe quickshell;
@@ -56,7 +67,7 @@ in {
       };
 
       Install = {
-        WantedBy = ["graphical-session.target"];
+        WantedBy = ["hyprland-session.target"];
       };
     };
   };
