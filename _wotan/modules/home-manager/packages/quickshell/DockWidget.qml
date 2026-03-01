@@ -83,7 +83,8 @@ PanelWindow {
           cursorShape: Qt.PointingHandCursor
 
           onClicked: {
-            Quickshell.execDetached(["sh", "-c", appButton.modelData.command])
+            console.log("Launching: " + appButton.modelData.command)
+            Quickshell.execDetached([appButton.modelData.command])
           }
         }
 
