@@ -35,7 +35,7 @@
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
-  desktop.quickshell.enable = false; # TODO: re-enable when lager/boost cmake issue is fixed upstream
+  desktop.quickshell.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
