@@ -21,11 +21,11 @@ Scope {
       property var hyprMonitor: Hyprland.monitorFor(modelData)
       
       // Workspace ranges per monitor (customize as needed)
-      // Monitor index 0 (first/primary): workspaces 1-5
-      // Monitor index 1 (second): workspaces 6-9
+      // Monitor index 0: workspaces 6-9
+      // Monitor index 1: workspaces 1-5
       property int monitorIndex: hyprMonitor?.id ?? 0
-      property int wsStart: monitorIndex === 0 ? 1 : 6
-      property int wsEnd: monitorIndex === 0 ? 5 : 9
+      property int wsStart: monitorIndex === 0 ? 6 : 1
+      property int wsEnd: monitorIndex === 0 ? 9 : 5
 
       anchors {
         top: true

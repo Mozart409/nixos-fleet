@@ -35,11 +35,11 @@ PanelWindow {
 
   // App definitions
   property var apps: [
-    { name: "Brave", icon: "", command: "brave" },
-    { name: "Signal", icon: "󰭹", command: "signal-desktop" },
+    { name: "Brave", icon: "󰖟", command: "brave" },
+    { name: "Signal", icon: "󰍡", command: "signal-desktop" },
     { name: "kitty", icon: "", command: "kitty" },
-    { name: "Steam", icon: "", command: "steam" },
-    { name: "Heroic", icon: "󰺵", command: "heroic" }
+    { name: "Steam", icon: "󰓓", command: "steam" },
+    { name: "Heroic", icon: "󰊗", command: "heroic" }
   ]
 
   RowLayout {
