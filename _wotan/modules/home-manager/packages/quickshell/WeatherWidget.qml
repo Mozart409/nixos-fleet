@@ -124,7 +124,7 @@ PanelWindow {
           weatherWidget.temperature = Math.round(temp).toString()
           weatherWidget.condition = weatherWidget.getConditionText(code)
           weatherWidget.icon = weatherWidget.getWeatherIcon(code)
-          weatherWidget.location = "Berlin" // Change this
+          weatherWidget.location = "Munich" // Change this
         } catch (e) {
           weatherWidget.condition = "Error"
           weatherWidget.icon = ""
