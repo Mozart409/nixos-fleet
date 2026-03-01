@@ -31,11 +31,11 @@
   ];
 
   desktop.waybar.enable = false;
-  desktop.ironbar.enable = true;
+  desktop.ironbar.enable = false;
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
-  desktop.quickshell.enable = false;
+  desktop.quickshell.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;

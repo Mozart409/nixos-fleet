@@ -8,13 +8,14 @@
   cfg = config.desktop.quickshell;
   quickshell = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  # Runtime dependencies for shell scripts
+  # Runtime dependencies for shell scripts and widgets
   dependencies = with pkgs; [
     bash
     coreutils
     gawk
     gnugrep
     procps
+    curl # for weather widget
   ];
 
   # QML import paths for Qt6
