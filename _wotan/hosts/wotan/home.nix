@@ -35,7 +35,7 @@
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
-  desktop.quickshell.enable = true;
+  desktop.quickshell.enable = false;
 
   # Enable opencode custom commands
   opencode.enable = true;
