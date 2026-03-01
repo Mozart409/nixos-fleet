@@ -4,18 +4,25 @@ import Quickshell
 import Quickshell.Hyprland
 
 RowLayout {
+  id: workspaceWidget
   spacing: 4
 
+  // Which workspaces to show (configurable per-monitor)
+  property int startWorkspace: 1
+  property int endWorkspace: 9
+
+  // Reference to the monitor this widget is on
+  property var monitor: null
+
   Repeater {
-    // Show workspaces 1-9
-    model: 9
+    model: workspaceWidget.endWorkspace - workspaceWidget.startWorkspace + 1
 
     Rectangle {
       id: wsButton
       required property int index
 
-      property int wsId: index + 1
-      property bool isActive: Hyprland.focusedMonitor?.activeWorkspace?.id === wsId
+      property int wsId: workspaceWidget.startWorkspace + index
+      property bool isActive: workspaceWidget.monitor?.activeWorkspace?.id === wsId
       property bool hasWindows: {
         for (let ws of Hyprland.workspaces) {
           if (ws.id === wsId && ws.windows > 0) return true

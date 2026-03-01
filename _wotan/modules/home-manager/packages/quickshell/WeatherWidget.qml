@@ -20,7 +20,16 @@ PanelWindow {
 
   implicitWidth: 180
   implicitHeight: 100
-  color: "#1a1a1fcc"
+  color: "transparent"
+
+  // White border container
+  Rectangle {
+    anchors.fill: parent
+    color: "#1a1a1fcc"
+    radius: 8
+    border.width: 1
+    border.color: "#ffffff44"
+  }
 
   // Place below normal windows (desktop widget)
   WlrLayershell.layer: WlrLayer.Bottom

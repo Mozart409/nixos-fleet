@@ -17,6 +17,16 @@ Scope {
       required property var modelData
       screen: modelData
 
+      // Get the Hyprland monitor for this screen
+      property var hyprMonitor: Hyprland.monitorFor(modelData)
+      
+      // Workspace ranges per monitor (customize as needed)
+      // Monitor index 0 (first/primary): workspaces 1-5
+      // Monitor index 1 (second): workspaces 6-9
+      property int monitorIndex: hyprMonitor?.id ?? 0
+      property int wsStart: monitorIndex === 0 ? 1 : 6
+      property int wsEnd: monitorIndex === 0 ? 5 : 9
+
       anchors {
         top: true
         left: true
@@ -32,9 +42,12 @@ Scope {
         anchors.rightMargin: 12
         spacing: 8
 
-        // Left: Workspaces
+        // Left: Workspaces (per-monitor range)
         WorkspaceWidget {
           Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+          startWorkspace: panel.wsStart
+          endWorkspace: panel.wsEnd
+          monitor: panel.hyprMonitor
         }
 
         // Spacer
@@ -49,12 +62,21 @@ Scope {
         // Spacer
         Item { Layout.fillWidth: true }
 
-        // Right: System info
+        // Right: System info + Volume
         RowLayout {
           Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
           spacing: 16
 
           SysInfoWidget {}
+
+          // Separator
+          Rectangle {
+            width: 1
+            height: 16
+            color: "#595959"
+          }
+
+          VolumeWidget {}
         }
       }
     }

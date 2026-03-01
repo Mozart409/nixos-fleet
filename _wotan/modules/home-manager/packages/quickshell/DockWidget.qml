@@ -18,21 +18,28 @@ PanelWindow {
 
   implicitWidth: dockRow.implicitWidth + 24
   implicitHeight: 56
-  color: "#1a1a1fdd"
+  color: "transparent"
+
+  // White border container
+  Rectangle {
+    anchors.fill: parent
+    color: "#1a1a1fdd"
+    radius: 12
+    border.width: 1
+    border.color: "#ffffff44"
+  }
 
   // Place above windows but allow click-through when not hovered
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.namespace: "quickshell-dock"
 
-  // App definitions - customize these!
+  // App definitions
   property var apps: [
-    { name: "Files", icon: "", command: "nemo" },
-    { name: "Browser", icon: "", command: "brave" },
-    { name: "Terminal", icon: "", command: "kitty" },
-    { name: "Code", icon: "", command: "code" },
-    { name: "Discord", icon: "󰙯", command: "discord" },
-    { name: "Spotify", icon: "", command: "spotify" },
-    { name: "Settings", icon: "", command: "gnome-control-center" }
+    { name: "Brave", icon: "", command: "brave" },
+    { name: "Signal", icon: "󰭹", command: "signal-desktop" },
+    { name: "kitty", icon: "", command: "kitty" },
+    { name: "Steam", icon: "", command: "steam" },
+    { name: "Heroic", icon: "󰺵", command: "heroic" }
   ]
 
   RowLayout {
