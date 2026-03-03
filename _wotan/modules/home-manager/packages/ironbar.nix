@@ -16,6 +16,10 @@ in {
       inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar
     ];
 
+    imports = [
+      ../services/hyprland-session.nix
+    ];
+
     xdg.configFile."ironbar/config.toml".text = ''
       position = "top"
       height = 30
@@ -369,16 +373,6 @@ in {
         used=$(timeout 3 ${pkgs.coreutils}/bin/df -P --output=pcent / | ${pkgs.gawk}/bin/awk 'NR==2 {gsub("%", "", $1); print $1}')
         printf "%d%% free\n" $((100 - used))
       '';
-    };
-
-    systemd.user.targets.hyprland-session = {
-      Unit = {
-        Description = "Hyprland compositor session";
-        Documentation = "man:systemd.special(7)";
-        BindsTo = ["graphical-session.target"];
-        Wants = ["graphical-session-pre.target"];
-        After = ["graphical-session-pre.target"];
-      };
     };
 
     systemd.user.services.ironbar = {

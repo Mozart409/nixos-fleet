@@ -13,7 +13,6 @@
     ../../modules/home-manager/packages/system.nix
     ../../modules/home-manager/packages/desktop.nix
     ../../modules/home-manager/packages/browsers.nix
-    ../../modules/home-manager/packages/security.nix
     ../../modules/home-manager/packages/fun.nix
     ../../modules/home-manager/packages/ironbar.nix
     ../../modules/home-manager/packages/waybar.nix

@@ -31,22 +31,15 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [quickshell];
 
+    imports = [
+      ../services/hyprland-session.nix
+    ];
+
     # Set QML import path for proper module resolution
     home.sessionVariables.QML2_IMPORT_PATH = qmlImportPath;
 
     # Link QML config files from the module directory
     xdg.configFile."quickshell".source = ./quickshell;
-
-    # Hyprland session target (for systemd integration)
-    systemd.user.targets.hyprland-session = {
-      Unit = {
-        Description = "Hyprland compositor session";
-        Documentation = "man:systemd.special(7)";
-        BindsTo = ["graphical-session.target"];
-        Wants = ["graphical-session-pre.target"];
-        After = ["graphical-session-pre.target"];
-      };
-    };
 
     # Systemd service for Quickshell
     systemd.user.services.quickshell = {

@@ -11,7 +11,6 @@ This directory contains modular Home Manager package configurations that can be 
   - `database.nix` - Database tools
   - `system.nix` - System utilities
   - `desktop.nix` - Desktop applications
-  - `security.nix` - Privacy and security tools
   - `fun.nix` - Customization and fun tools
 
 ## Usage
@@ -40,3 +39,4 @@ Or selectively import individual configs:
   ];
 }
 ```
+
