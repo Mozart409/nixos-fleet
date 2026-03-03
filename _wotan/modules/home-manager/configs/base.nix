@@ -21,8 +21,8 @@
     "/home/amadeus/.local/share/flatpak/exports/share"
   ];
 
-  # GPG agent configuration
-  services.gpg-agent.extraConfig = "pinentry-program ${pkgs.pinentry-gtk2}/bin/pinentry";
+  # GPG agent configuration - uses system pinentry (pinentry-gnome3)
+  services.gpg-agent.enable = true;
 
   # Home Manager state version
   home.stateVersion = "24.11";
