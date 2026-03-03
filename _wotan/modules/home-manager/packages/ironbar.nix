@@ -7,6 +7,10 @@
 }: let
   cfg = config.desktop.ironbar;
 in {
+  imports = [
+    ../services/hyprland-session.nix
+  ];
+
   options.desktop.ironbar = {
     enable = lib.mkEnableOption "ironbar";
   };
@@ -14,10 +18,6 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [
       inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar
-    ];
-
-    imports = [
-      ../services/hyprland-session.nix
     ];
 
     xdg.configFile."ironbar/config.toml".text = ''

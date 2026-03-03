@@ -24,16 +24,16 @@
     "${pkgs.kdePackages.qtdeclarative}/lib/qt-6/qml"
   ];
 in {
+  imports = [
+    ../services/hyprland-session.nix
+  ];
+
   options.desktop.quickshell = {
     enable = lib.mkEnableOption "quickshell custom widgets";
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = [quickshell];
-
-    imports = [
-      ../services/hyprland-session.nix
-    ];
 
     # Set QML import path for proper module resolution
     home.sessionVariables.QML2_IMPORT_PATH = qmlImportPath;
