@@ -8,6 +8,7 @@
     enable = true;
     openFirewall = true;
     host = "127.0.0.1";
+    port = 11111;
     environment = {
       WEBUI_AUTH = "False";
       ANONYMIZED_TELEMETRY = "False";
