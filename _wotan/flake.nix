@@ -12,12 +12,9 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     agenix = {
       url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland-plugins = {
@@ -56,7 +53,6 @@
     nixpkgs-stable,
     home-manager,
     nixvim,
-    nixos-generators,
     agenix,
     hyprland,
     hyprland-plugins,
@@ -67,12 +63,26 @@
     disko,
     awww,
   } @ inputs: let
-    # Helper function to generate host configurations
-    mkHost = hostname: system: let
-      pkgsStable = import nixpkgs-stable {
+    lib = nixpkgs.lib;
+    system = "x86_64-linux";
+
+    # Helper to create pkgsStable - shared between mkHost and mkHome
+    mkPkgsStable = system:
+      import nixpkgs-stable {
         inherit system;
         config.allowUnfree = true;
       };
+
+    # Shared overlay for anytype package
+    anytypeOverlay = pkgsStable: [
+      (final: prev: {
+        anytype = pkgsStable.anytype;
+      })
+    ];
+
+    # Helper function to generate host configurations
+    mkHost = hostname: system: let
+      pkgsStable = mkPkgsStable system;
     in
       lib.nixosSystem {
         specialArgs = {inherit inputs;};
@@ -82,11 +92,7 @@
             nixpkgs.hostPlatform = system;
             nix.settings.trusted-users = ["amadeus"];
             nixpkgs.config.allowUnfree = true;
-            nixpkgs.overlays = [
-              (final: prev: {
-                anytype = pkgsStable.anytype;
-              })
-            ];
+            nixpkgs.overlays = anytypeOverlay pkgsStable;
           }
         ];
       };
@@ -97,10 +103,7 @@
         inherit system;
         config.allowUnfree = true;
       };
-      pkgsStable = import nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
-      };
+      pkgsStable = mkPkgsStable system;
     in
       home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
@@ -109,17 +112,10 @@
           ./hosts/${hostname}/home.nix
           inputs.nixvim.homeModules.nixvim
           {
-            nixpkgs.overlays = [
-              (final: prev: {
-                anytype = pkgsStable.anytype;
-              })
-            ];
+            nixpkgs.overlays = anytypeOverlay pkgsStable;
           }
         ];
       };
-
-    lib = nixpkgs.lib;
-    system = "x86_64-linux";
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
