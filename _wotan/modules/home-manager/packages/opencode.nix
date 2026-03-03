@@ -69,7 +69,6 @@
         ---
         description: Create conventional commits based on analyzed changes
         agent: build
-        model: opencode/kimi-k2-thinking
         ---
 
         # Conventional Commit Analysis
