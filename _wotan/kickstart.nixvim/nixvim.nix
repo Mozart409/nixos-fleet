@@ -197,6 +197,9 @@
       shiftwidth = 2;
       smartindent = true;
       tabstop = 2;
+
+      # Required for nvim-colorizer and proper color support
+      termguicolors = true;
     };
 
     # [[ Basic Keymaps ]]
