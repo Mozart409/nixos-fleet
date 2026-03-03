@@ -35,6 +35,7 @@ This is a multi-host NixOS configuration with shared modules and host-specific s
 ## 🚀 Usage
 
 ### System Configuration
+
 ```bash
 # Rebuild NixOS configuration for wotan
 sudo nixos-rebuild switch --flake .#wotan
@@ -47,6 +48,7 @@ nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
 ```
 
 ### Home-Manager Configuration
+
 ```bash
 # Apply home-manager configuration for amadeus@wotan
 home-manager switch --flake .#amadeus@wotan
@@ -56,6 +58,7 @@ nix build .#homeConfigurations.amadeus@wotan.activationPackage --dry-run
 ```
 
 ### Development
+
 ```bash
 # Enter development shell
 nix develop
@@ -70,11 +73,13 @@ nix flake update
 ## ➕ Adding a New Host
 
 1. Create host directory:
+
    ```bash
    mkdir -p hosts/newhost
    ```
 
 2. Create host configuration:
+
    ```nix
    # hosts/newhost/default.nix
    { config, pkgs, inputs, lib, ... }:
@@ -83,13 +88,14 @@ nix flake update
        ./hardware-configuration.nix
        ../../modules/nixos/common-packages.nix
      ];
-     
+
      networking.hostName = "newhost";
      # Add host-specific configuration here
    }
    ```
 
 3. Create home-manager configuration:
+
    ```nix
    # hosts/newhost/home.nix
    { config, pkgs, inputs, lib, ... }:
@@ -102,12 +108,13 @@ nix flake update
    ```
 
 4. Update `flake.nix`:
+
    ```nix
    nixosConfigurations = {
      wotan = mkHost "wotan" system;
      newhost = mkHost "newhost" system;  # Add this line
    };
-   
+
    homeConfigurations = {
      "amadeus@wotan" = mkHome "wotan" system;
      "amadeus@newhost" = mkHome "newhost" system;  # Add this line
@@ -117,14 +124,16 @@ nix flake update
 ## 📦 Shared Modules
 
 ### NixOS Common Packages (`modules/nixos/common-packages.nix`)
+
 - Essential system packages (vim, curl, git, etc.)
-- Common programs (zsh, firefox, etc.)
+- Common programs (zsh, etc.)
 - Common services (flatpak, pcscd, etc.)
 - Nix settings and garbage collection
 - User configuration
 - Networking, locale, and time settings
 
 ### Home-Manager Common Packages (`modules/home-manager/common-packages.nix`)
+
 - Development tools (fabric-ai, opencode, etc.)
 - Kubernetes and cloud tools
 - Database tools
@@ -138,12 +147,14 @@ nix flake update
 Each host can override or extend the shared configuration:
 
 ### System-level overrides (in `hosts/{hostname}/default.nix`)
+
 - Hardware configuration
 - Host-specific packages
 - Host-specific services
 - Desktop environment settings
 
 ### User-level overrides (in `hosts/{hostname}/home.nix`)
+
 - Host-specific user packages
 - Host-specific program settings
 - Custom configurations per host
@@ -151,6 +162,7 @@ Each host can override or extend the shared configuration:
 ## 🔧 Configuration Details
 
 ### Current Host: wotan
+
 - **Desktop**: Hyprland (Wayland compositor)
 - **Graphics**: NVIDIA (stable drivers)
 - **Sound**: PipeWire with PulseAudio compatibility
@@ -159,6 +171,7 @@ Each host can override or extend the shared configuration:
 - **Terminal**: Kitty, Alacritty
 
 ### Shared Features
+
 - **Shell**: Zsh with Oh My Zsh
 - **Editor**: Neovim with Kickstart NixVim configuration
 - **Terminals**: Kitty, Alacritty, Ghostty
@@ -173,3 +186,4 @@ Each host can override or extend the shared configuration:
 - Automatic garbage collection is configured weekly
 - Development shell provides helpful commands and tools
 - Git hooks ensure configuration quality
+

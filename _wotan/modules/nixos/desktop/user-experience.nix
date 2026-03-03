@@ -74,7 +74,7 @@
       _JAVA_AWT_WM_NONREPARENTING = "1";
 
       # Default applications
-      BROWSER = "firefox";
+      BROWSER = "brave";
       EDITOR = "nvim";
       TERMINAL = lib.mkIf (config.desktop.environment == "niri") "alacritty";
     };

@@ -16,7 +16,6 @@
     # Common desktop packages and settings
     environment.systemPackages = with pkgs; [
       # Core utilities
-      firefox
       git
       curl
       wget

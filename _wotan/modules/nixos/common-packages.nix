@@ -24,7 +24,6 @@
   # Common programs that should be enabled on all hosts
   programs = {
     zsh.enable = true;
-    firefox.enable = true;
     mtr.enable = true;
     gnupg.agent = {
       enable = true;
