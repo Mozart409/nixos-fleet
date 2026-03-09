@@ -4,7 +4,6 @@ set -euo
 
 clear
 
-
 chara say -t round -r cleaning up ...
 echo ''
 
@@ -24,6 +23,9 @@ echo ''
 echo 'Running garbage collection...'
 nix-collect-garbage
 
+echo ''
+echo 'Optimise store...'
+nix store optimise
 echo ''
 echo 'Disk usage after cleanup:'
 df -h /
