@@ -45,6 +45,11 @@
     };
 
     awww.url = "git+https://codeberg.org/LGFae/awww";
+
+    zinc-oxide = {
+      url = "git+file:///home/amadeus/code/rust/zinc_oxide";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -62,6 +67,7 @@
     quickshell,
     disko,
     awww,
+    zinc-oxide,
   } @ inputs: let
     lib = nixpkgs.lib;
     system = "x86_64-linux";

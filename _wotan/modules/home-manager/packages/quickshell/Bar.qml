@@ -50,6 +50,15 @@ Scope {
           monitor: panel.hyprMonitor
         }
 
+        // Git status widget (only on primary monitor)
+        Loader {
+          Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+          active: panel.monitorIndex === 1
+          sourceComponent: GitStatusWidget {
+            scanPath: "/home/amadeus/code"
+          }
+        }
+
         // Spacer
         Item { Layout.fillWidth: true }
 

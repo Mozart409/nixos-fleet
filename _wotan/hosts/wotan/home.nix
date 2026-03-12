@@ -27,6 +27,7 @@
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
     ../../modules/home-manager/packages/quickshell.nix
+    ../../modules/home-manager/packages/zinc-oxide.nix
   ];
 
   desktop.waybar.enable = false;
