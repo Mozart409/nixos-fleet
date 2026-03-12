@@ -35,7 +35,7 @@
 
         # System monitoring
         htop
-        neofetch
+        fastfetch
 
         # Text editors
         vim
