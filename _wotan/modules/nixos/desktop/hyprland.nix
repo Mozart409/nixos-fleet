@@ -57,9 +57,9 @@
       nemo
       nemo-fileroller # Archive support
 
-      # Hyprland plugins
-      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails  # Disabled due to build errors
+      # Hyprland plugins (disabled due to build errors - waiting for upstream to update)
+      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars  # Disabled: incompatible with hyprland 0.54.0
+      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
 
       # Theming
       qt6.qtwayland
