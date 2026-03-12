@@ -5,9 +5,9 @@
   ...
 }: {
   home.packages = with pkgs; [
-    # krita # TODO: re-enable when lager/boost cmake issue is fixed upstream
+    krita # TODO: re-enable when lager/boost cmake issue is fixed upstream
     haruna
-    signal-desktop-bin
+    signal-desktop
     comet-gog
     discord
     lutris-unwrapped
