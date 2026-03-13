@@ -19,6 +19,10 @@
   };
 
   config = lib.mkIf config.opencode.enable {
+    home.packages = [
+      pkgs.playwright-driver.browsers
+    ];
+
     home.file.".config/opencode/opencode.json" = {
       text = builtins.toJSON {
         "$schema" = "https://opencode.ai/config.json";
@@ -60,7 +64,7 @@
             ];
             environment = {
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
-              PLAYWRIGHT_MCP_USER_DATA_DIR = "${config.xdg.cacheHome}/playwright-mcp";
+              PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
             };
             enabled = true;
           };
