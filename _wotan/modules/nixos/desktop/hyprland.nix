@@ -200,7 +200,7 @@
             "$mod, C, killactive"
             "$mod, M, fullscreen"
             "$mod, V, togglefloating"
-            "$mod, R, togglesplit"
+            "$mod, R, layoutmsg, togglesplit"
 
             # Focus
             "$mod, left, movefocus, l"
