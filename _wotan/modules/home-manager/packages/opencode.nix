@@ -58,7 +58,7 @@
               "npx"
               "@playwright/mcp@latest"
             ];
-            env = {
+            environment = {
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
               PLAYWRIGHT_MCP_USER_DATA_DIR = "${config.xdg.cacheHome}/playwright-mcp";
             };
