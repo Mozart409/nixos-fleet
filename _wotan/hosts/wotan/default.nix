@@ -129,6 +129,7 @@
     extraFlags = [
       "--n-gpu-layers"
       "99" # Offload all layers to GPU
+      "--cpu-moe" # Keep MoE expert weights in CPU RAM (required for large MoE models like Qwen3-30B-A3B)
       "--parallel"
       "2" # Allow 2 concurrent requests
       "--ctx-size"
