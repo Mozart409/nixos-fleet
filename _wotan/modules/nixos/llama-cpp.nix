@@ -47,13 +47,14 @@
     n-gpu-layers = 99
     parallel = 2
 
-    # Qwen3-30B MoE: Needs smaller context due to KV cache VRAM requirements
-    # With --cpu-moe, model uses ~800MB VRAM, but KV cache scales with context
+    # Qwen3-30B MoE: With --cpu-moe, model uses only ~800MB VRAM
+    # KV cache scales with context but we have ~11GB available
+    # 80K context should use ~5-6GB VRAM total (model + KV cache)
     [Qwen3-30B-A3B-Instruct-2507-Q4_K_M]
     model = /var/lib/llama-cpp/models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf
-    ctx-size = 16384
+    ctx-size = 81920
     n-gpu-layers = 99
-    parallel = 2
+    parallel = 1
 
     # Qwen3-8B: Dense model, moderate context
     [Qwen3-8B-Q5_K_M]

@@ -294,6 +294,8 @@ The RTX 3060 has 12GB VRAM. Large Mixture-of-Experts (MoE) models like Qwen3-30B
 - Dense models (LFM2-8B): 64K context is fine
 - MoE models (Qwen3-30B-A3B): Limit to 16K-32K context
 
+**Note:** Open WebUI with many MCP tools can easily exceed 50K+ tokens just for tool schemas. If you get "request exceeds context size" errors, reduce enabled tools or use LFM2 for tool-heavy tasks.
+
 **Model selection for tool calling (Open WebUI / MCP):**
 - **Qwen3 models** have native OpenAI-style tool/function calling support
 - **LFM2** is faster but lacks dedicated tool calling training
