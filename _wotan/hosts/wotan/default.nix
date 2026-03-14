@@ -122,7 +122,7 @@
 
   # llama.cpp server with models directory
   # Models are stored in /var/lib/llama-cpp/models (the service's state directory)
-  # Copy models there with: sudo cp model.gguf /var/lib/llama-cpp/models/
+  # Per-model presets are in modules/nixos/llama-cpp.nix
   services.llama-cpp = {
     enable = true;
     modelsDir = "/var/lib/llama-cpp/models";
@@ -133,7 +133,9 @@
       "--parallel"
       "2" # Allow 2 concurrent requests
       "--ctx-size"
-      "131072" # Maximum context size for models that support it
+      "32768" # Default context size (can be overridden per-model in presets)
+      "--models-preset"
+      "/etc/llama-cpp-presets.ini"
     ];
   };
 

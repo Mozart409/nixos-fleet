@@ -290,6 +290,10 @@ The RTX 3060 has 12GB VRAM. Large Mixture-of-Experts (MoE) models like Qwen3-30B
 
 **Without `--cpu-moe`:** llama-cpp tries to load the entire model into VRAM and fails with `cudaMalloc failed: out of memory`.
 
+**KV cache and context size:** Even with `--cpu-moe`, the KV cache is stored in VRAM and scales with context length. Large contexts (128K+) can exhaust VRAM even when the model weights fit. Use per-model presets (`/etc/llama-cpp-presets.ini`) to set appropriate context sizes:
+- Dense models (LFM2-8B): 64K context is fine
+- MoE models (Qwen3-30B-A3B): Limit to 16K-32K context
+
 **Model selection for tool calling (Open WebUI / MCP):**
 - **Qwen3 models** have native OpenAI-style tool/function calling support
 - **LFM2** is faster but lacks dedicated tool calling training

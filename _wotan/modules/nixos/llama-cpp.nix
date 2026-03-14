@@ -13,11 +13,14 @@
   #
   # Option 2: Models directory (recommended - serves multiple models)
   #   services.llama-cpp.enable = true;
-  #   services.llama-cpp.modelsDir = "/home/amadeus/models";
+  #   services.llama-cpp.modelsDir = "/var/lib/llama-cpp/models";
   #
   # With modelsDir, access models via:
   #   http://127.0.0.1:10808/v1/models (list available models)
   #   Specify model in API calls with "model": "modelname.gguf"
+  #
+  # Models location: /var/lib/llama-cpp/models/ (systemd state directory)
+  # Add models with: sudo mv model.gguf /var/lib/llama-cpp/models/
 
   # Use CUDA-enabled llama-cpp for NVIDIA GPUs
   services.llama-cpp = {
@@ -30,4 +33,33 @@
   environment.systemPackages = with pkgs; [
     (llama-cpp.override {cudaSupport = true;})
   ];
+
+  # Per-model configuration presets for llama-cpp multi-model server
+  # Large MoE models need smaller context to fit KV cache in VRAM
+  # Dense models can use larger context since they're more VRAM-efficient
+  #
+  # Note: Models not listed here will use global defaults from extraFlags
+  environment.etc."llama-cpp-presets.ini".text = lib.mkDefault ''
+    # LFM2: Fast dense model, can use large context (128K supported, 64K practical)
+    [LFM2-8B-A1B-Q6_K]
+    model = /var/lib/llama-cpp/models/LFM2-8B-A1B-Q6_K.gguf
+    ctx-size = 65536
+    n-gpu-layers = 99
+    parallel = 2
+
+    # Qwen3-30B MoE: Needs smaller context due to KV cache VRAM requirements
+    # With --cpu-moe, model uses ~800MB VRAM, but KV cache scales with context
+    [Qwen3-30B-A3B-Instruct-2507-Q4_K_M]
+    model = /var/lib/llama-cpp/models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf
+    ctx-size = 16384
+    n-gpu-layers = 99
+    parallel = 2
+
+    # Qwen3-8B: Dense model, moderate context
+    [Qwen3-8B-Q5_K_M]
+    model = /var/lib/llama-cpp/models/Qwen3-8B-Q5_K_M.gguf
+    ctx-size = 32768
+    n-gpu-layers = 99
+    parallel = 2
+  '';
 }
