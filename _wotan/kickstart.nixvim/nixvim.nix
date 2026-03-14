@@ -67,6 +67,7 @@
     ./plugins/custom/plugins/neoscroll.nix
     #./plugins/custom/plugins/fff.nix
     ./plugins/custom/plugins/typescript-tools.nix
+    ./plugins/custom/plugins/roslyn.nix
     ./plugins/custom/plugins/spectre.nix
     ./plugins/custom/plugins/flash.nix
     # ./plugins/custom/plugins/schemastore.nix

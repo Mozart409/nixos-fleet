@@ -13,6 +13,7 @@
         ensureInstalled = [
           "bash"
           "c"
+          "c_sharp"
           "css"
           "diff"
           "gitcommit"
@@ -28,6 +29,7 @@
           "nix"
           "proto"
           "query"
+          "razor"
           "rust"
           "sql"
           "tsx"
