@@ -253,8 +253,7 @@ The llama-cpp service runs with strict systemd sandboxing (`ProtectHome=true`), 
 **Models location:** `/var/lib/llama-cpp/models/`
 
 **Currently installed models:**
-- `LFM2-8B-A1B-Q6_K.gguf` - Fast general chat (~188 tok/s, 4.3GB VRAM)
-- `Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf` - Tool calling/MCP support (~95 tok/s, MoE)
+- `Qwen3-8B-Q5_K_M.gguf` - Primary model with native tool calling (~50-70 tok/s, ~5.5GB VRAM, 64K context)
 
 **Adding models:**
 ```bash
@@ -278,28 +277,6 @@ sudo systemctl restart llama-cpp    # Restart service
 ```
 
 **Configuration:** `modules/nixos/llama-cpp.nix` (shared) and `hosts/wotan/default.nix` (host-specific)
-
-### MoE Models and VRAM
-
-The RTX 3060 has 12GB VRAM. Large Mixture-of-Experts (MoE) models like Qwen3-30B-A3B require the `--cpu-moe` flag to offload inactive experts to system RAM.
-
-**How MoE offloading works:**
-- Active experts (~3-4GB) stay in VRAM for fast inference
-- Inactive experts (~26GB for Qwen3-30B) offload to system RAM
-- Requires sufficient system RAM (wotan has 64GB)
-
-**Without `--cpu-moe`:** llama-cpp tries to load the entire model into VRAM and fails with `cudaMalloc failed: out of memory`.
-
-**KV cache and context size:** Even with `--cpu-moe`, the KV cache is stored in VRAM and scales with context length. Large contexts (128K+) can exhaust VRAM even when the model weights fit. Use per-model presets (`/etc/llama-cpp-presets.ini`) to set appropriate context sizes:
-- Dense models (LFM2-8B): 64K context is fine
-- MoE models (Qwen3-30B-A3B): Limit to 16K-32K context
-
-**Note:** Open WebUI with many MCP tools can easily exceed 50K+ tokens just for tool schemas. If you get "request exceeds context size" errors, reduce enabled tools or use LFM2 for tool-heavy tasks.
-
-**Model selection for tool calling (Open WebUI / MCP):**
-- **Qwen3 models** have native OpenAI-style tool/function calling support
-- **LFM2** is faster but lacks dedicated tool calling training
-- Use `llmfit fit --json` to find models that fit your hardware
 
 ### Hardware fitting with llmfit
 

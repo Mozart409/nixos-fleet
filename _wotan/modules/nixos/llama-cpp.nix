@@ -34,42 +34,17 @@
     (llama-cpp.override {cudaSupport = true;})
   ];
 
-  # Per-model configuration presets for llama-cpp multi-model server
-  # Large MoE models need smaller context to fit KV cache in VRAM
-  # Dense models can use larger context since they're more VRAM-efficient
-  #
-  # Note: Models not listed here will use global defaults from extraFlags
+  # Per-model configuration presets for llama-cpp
+  # Optimized for Qwen3-8B as primary model with full VRAM utilization
   environment.etc."llama-cpp-presets.ini".text = lib.mkDefault ''
-    # LFM2: Fast dense model, can use large context (128K supported, 64K practical)
-    [LFM2-8B-A1B-Q6_K]
-    model = /var/lib/llama-cpp/models/LFM2-8B-A1B-Q6_K.gguf
-    ctx-size = 65536
-    n-gpu-layers = 99
-    parallel = 2
-
-    # Qwen3-30B MoE: With --cpu-moe, model uses only ~800MB VRAM
-    # KV cache scales with context but we have ~11GB available
-    # 80K context should use ~5-6GB VRAM total (model + KV cache)
-    [Qwen3-30B-A3B-Instruct-2507-Q4_K_M]
-    model = /var/lib/llama-cpp/models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf
-    ctx-size = 81920
-    n-gpu-layers = 99
-    parallel = 1
-
-    # Qwen3-8B: Dense model, moderate context
+    # Qwen3-8B: Primary model - dense with native tool calling
+    # Model ~5.5GB at Q5_K_M, leaves ~5.5GB for KV cache (after ~1GB desktop)
+    # 96K context uses ~6GB KV cache - pushes VRAM limits but should fit
+    # Expected speed: ~50-70 tok/s on RTX 3060
     [Qwen3-8B-Q5_K_M]
     model = /var/lib/llama-cpp/models/Qwen3-8B-Q5_K_M.gguf
-    ctx-size = 32768
+    ctx-size = 98304
     n-gpu-layers = 99
-    parallel = 2
-
-    # Qwen3.5-27B Claude Opus distilled: Dense 27B at Q2_K (~9.2GB)
-    # Model needs 9.2GB, leaving ~2GB for KV cache after desktop overhead
-    # Offload some layers to CPU to free VRAM for larger context
-    [Qwen3.5-27B-Claude-Opus-Q2_K]
-    model = /var/lib/llama-cpp/models/Qwen3.5-27B-Claude-Opus-Q2_K.gguf
-    ctx-size = 16384
-    n-gpu-layers = 55
     parallel = 1
   '';
 }
