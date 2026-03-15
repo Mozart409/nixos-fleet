@@ -62,5 +62,13 @@
     ctx-size = 32768
     n-gpu-layers = 99
     parallel = 2
+
+    # Qwen3.5-27B Claude Opus distilled: Dense 27B at Q2_K (~9.2GB)
+    # Leaves ~2.5GB for KV cache, so limit context to 16K
+    [Qwen3.5-27B-Claude-Opus-Q2_K]
+    model = /var/lib/llama-cpp/models/Qwen3.5-27B-Claude-Opus-Q2_K.gguf
+    ctx-size = 16384
+    n-gpu-layers = 99
+    parallel = 1
   '';
 }
