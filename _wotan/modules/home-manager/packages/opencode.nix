@@ -45,6 +45,10 @@
           };
         };
         mcp = {
+          homeassistant = {
+            type = "remote";
+            url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";
+          };
           gh_grep = {
             type = "remote";
             url = "https://mcp.grep.app";
