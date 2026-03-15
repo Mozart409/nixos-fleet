@@ -39,11 +39,12 @@
   environment.etc."llama-cpp-presets.ini".text = lib.mkDefault ''
     # Qwen3-8B: Primary model - dense with native tool calling
     # Model ~5.5GB at Q5_K_M, leaves ~5.5GB for KV cache (after ~1GB desktop)
-    # 96K context uses ~6GB KV cache - pushes VRAM limits but should fit
+    # 128K context (native max) fits within 12GB VRAM on RTX 3060
+    # KV cache: ~0.45MB/1K tokens = ~5.5GB for 128K context
     # Expected speed: ~50-70 tok/s on RTX 3060
     [Qwen3-8B-Q5_K_M]
     model = /var/lib/llama-cpp/models/Qwen3-8B-Q5_K_M.gguf
-    ctx-size = 98304
+    ctx-size = 131072
     n-gpu-layers = 99
     parallel = 1
   '';
