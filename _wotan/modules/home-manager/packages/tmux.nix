@@ -10,7 +10,7 @@
     clock24 = true;
     extraConfig = ''
       set-option -sa terminal-overrides ",xterm*:Tc"
-      set -g mouse off
+      set -g mouse on
       set -g renumber-windows on
       set-option -g allow-passthrough on
 
