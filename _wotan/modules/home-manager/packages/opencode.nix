@@ -34,11 +34,11 @@
               baseURL = "http://127.0.0.1:10808/v1";
             };
             models = {
-              "ibm-granite_granite-4.0-h-tiny-Q4_K_M" = {
-                name = "IBM Granite 4.0 H-Tiny (7B MoE)";
+              "Qwen3-8B-Q5_K_M" = {
+                name = "Qwen3-8B (Q5_K_M)";
                 limit = {
-                  context = 131072;
-                  output = 65536;
+                  context = 98304;
+                  output = 32768;
                 };
               };
             };
