@@ -88,6 +88,17 @@
             '';
           };
         };
+        # Improve file matching - prioritize filename matches over path matches
+        fzf_opts = {
+          # Use exact match by default (prefix with ' to force exact in fzf)
+          # --scheme=path gives higher score to matches at the end (filename)
+          __raw = ''
+            {
+              ["--scheme"] = "path",
+              ["--tiebreak"] = "end,length",
+            }
+          '';
+        };
         winopts = {
           height = 0.85;
           width = 0.80;
