@@ -24,8 +24,7 @@
       #
       # [[ Configure Telescope ]]
       # See `:help telescope` and `:help telescope.setup()`
-      # Disabled in favor of fzf-lua
-      enable = false;
+      enable = true;
 
       # Enable Telescope extensions
       extensions = {
@@ -92,11 +91,11 @@
             desc = "[S]earch [R]esume";
           };
         };
-        "<leader>s" = {
+        "<leader>s." = {
           mode = "n";
           action = "oldfiles";
           options = {
-            desc = "[S]earch Recent Files ('.' for repeat)";
+            desc = "[S]earch Recent Files";
           };
         };
         "<leader><leader>" = {

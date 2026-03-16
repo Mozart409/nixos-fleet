@@ -1,7 +1,8 @@
 {pkgs, ...}: {
   programs.nixvim = {
+    # Disabled in favor of Telescope (fzf had Tab/selection issues)
     plugins.fzf-lua = {
-      enable = true;
+      enable = false;
 
       # FZF-lua keymaps
       keymaps = {
@@ -73,9 +74,10 @@
         actions = {
           files = {
             # Use file_edit instead of file_edit_or_qf to prevent quickfix on multi-select
+            # NOTE: "default" is the internal fzf key for the accept action
             __raw = ''
               {
-                ["enter"] = require("fzf-lua").actions.file_edit,
+                ["default"] = require("fzf-lua").actions.file_edit,
                 ["ctrl-s"] = require("fzf-lua").actions.file_split,
                 ["ctrl-v"] = require("fzf-lua").actions.file_vsplit,
                 ["ctrl-t"] = require("fzf-lua").actions.file_tabedit,
@@ -88,10 +90,10 @@
             '';
           };
         };
-        # Improve file matching - prioritize filename matches over path matches
+        # fzf binary options
         fzf_opts = {
-          # Use exact match by default (prefix with ' to force exact in fzf)
-          # --scheme=path gives higher score to matches at the end (filename)
+          # --scheme=path: higher score to matches at the end (filename)
+          # --tiebreak: when scores equal, prefer end position and shorter paths
           __raw = ''
             {
               ["--scheme"] = "path",
@@ -99,6 +101,7 @@
             }
           '';
         };
+
         winopts = {
           height = 0.85;
           width = 0.80;
