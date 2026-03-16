@@ -19,7 +19,7 @@
         #rst = ["vale"];
         #ruby = ["ruby"];
         #terraform = ["tflint"];
-        text = ["vale"];
+        # text = ["vale"];  # Disabled: vale exits with code 2 without .vale.ini config
       };
 
       # Create autocommand which carries out the actual linting
