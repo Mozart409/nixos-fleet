@@ -135,47 +135,6 @@
       };
     };
 
-    # Additional keymaps for fzf-lua (custom functions)
-    keymaps = [
-      # Search in current buffer
-      {
-        mode = "n";
-        key = "<leader>/";
-        action.__raw = ''
-          function()
-            require('fzf-lua').blines()
-          end
-        '';
-        options = {
-          desc = "[/] Fuzzily search in current buffer";
-        };
-      }
-      # Search in open files
-      {
-        mode = "n";
-        key = "<leader>s/";
-        action.__raw = ''
-          function()
-            require('fzf-lua').live_grep({ grep_open_files = true })
-          end
-        '';
-        options = {
-          desc = "[S]earch [/] in Open Files";
-        };
-      }
-      # Search Neovim config files
-      {
-        mode = "n";
-        key = "<leader>sn";
-        action.__raw = ''
-          function()
-            require('fzf-lua').files({ cwd = vim.fn.stdpath('config') })
-          end
-        '';
-        options = {
-          desc = "[S]earch [N]eovim files";
-        };
-      }
-    ];
+    # NOTE: Keymaps moved to telescope.nix since fzf-lua is disabled
   };
 }
