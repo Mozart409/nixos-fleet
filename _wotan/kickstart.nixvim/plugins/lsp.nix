@@ -185,7 +185,7 @@
           {
             mode = "n";
             key = "gd";
-            action.__raw = "require('fzf-lua').lsp_definitions";
+            action.__raw = "function() require('telescope.builtin').lsp_definitions() end";
             options = {
               desc = "LSP: [G]oto [D]efinition";
             };
@@ -194,7 +194,7 @@
           {
             mode = "n";
             key = "gr";
-            action.__raw = "require('fzf-lua').lsp_references";
+            action.__raw = "function() require('telescope.builtin').lsp_references() end";
             options = {
               desc = "LSP: [G]oto [R]eferences";
             };
@@ -204,7 +204,7 @@
           {
             mode = "n";
             key = "gI";
-            action.__raw = "require('fzf-lua').lsp_implementations";
+            action.__raw = "function() require('telescope.builtin').lsp_implementations() end";
             options = {
               desc = "LSP: [G]oto [I]mplementation";
             };
@@ -215,7 +215,7 @@
           {
             mode = "n";
             key = "<leader>D";
-            action.__raw = "require('fzf-lua').lsp_typedefs";
+            action.__raw = "function() require('telescope.builtin').lsp_type_definitions() end";
             options = {
               desc = "LSP: Type [D]efinition";
             };
@@ -225,7 +225,7 @@
           {
             mode = "n";
             key = "<leader>ds";
-            action.__raw = "require('fzf-lua').lsp_document_symbols";
+            action.__raw = "function() require('telescope.builtin').lsp_document_symbols() end";
             options = {
               desc = "LSP: [D]ocument [S]ymbols";
             };
@@ -235,7 +235,7 @@
           {
             mode = "n";
             key = "<leader>ws";
-            action.__raw = "require('fzf-lua').lsp_workspace_symbols";
+            action.__raw = "function() require('telescope.builtin').lsp_workspace_symbols() end";
             options = {
               desc = "LSP: [W]orkspace [S]ymbols";
             };

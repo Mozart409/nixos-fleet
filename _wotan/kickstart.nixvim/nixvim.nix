@@ -17,7 +17,7 @@
     # Plugins
     ./plugins/gitsigns.nix
     ./plugins/which-key.nix
-    # ./plugins/telescope.nix # Replaced with fzf-lua
+    ./plugins/telescope.nix
     ./plugins/conform.nix
     ./plugins/lsp.nix
     ./plugins/nvim-cmp.nix

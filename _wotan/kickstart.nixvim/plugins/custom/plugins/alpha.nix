@@ -35,7 +35,7 @@
               type = "button";
               val = "  Find File";
               on_press = {
-                __raw = "function() require('fzf-lua').files() end";
+                __raw = "function() require('telescope.builtin').find_files() end";
               };
               opts = {
                 shortcut = "f";
@@ -50,7 +50,7 @@
               type = "button";
               val = "  Recent Files";
               on_press = {
-                __raw = "function() require('fzf-lua').oldfiles() end";
+                __raw = "function() require('telescope.builtin').oldfiles() end";
               };
               opts = {
                 shortcut = "r";
@@ -65,7 +65,7 @@
               type = "button";
               val = "  Find Text";
               on_press = {
-                __raw = "function() require('fzf-lua').live_grep() end";
+                __raw = "function() require('telescope.builtin').live_grep() end";
               };
               opts = {
                 shortcut = "g";
