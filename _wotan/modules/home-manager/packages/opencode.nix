@@ -67,6 +67,8 @@
               "@playwright/mcp@latest"
               "--user-data-dir"
               "/tmp/playwright-mcp"
+              "--browser"
+              "chromium"
             ];
             environment = {
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
