@@ -65,6 +65,8 @@
             command = [
               "npx"
               "@playwright/mcp@latest"
+              "--user-data-dir"
+              "/tmp/playwright-mcp"
             ];
             environment = {
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
