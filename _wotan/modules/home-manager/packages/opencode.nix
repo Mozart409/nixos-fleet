@@ -69,6 +69,8 @@
               "/tmp/playwright-mcp"
               "--browser"
               "chromium"
+              "--executable-path"
+              "${pkgs.playwright-driver.browsers}/chromium-1200/chrome-linux64/chrome"
             ];
             environment = {
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
