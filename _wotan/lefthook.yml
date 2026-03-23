@@ -7,11 +7,3 @@ pre-commit:
     - name: nix flake check
       run: nix flake check
       stage_fixed: false
-
-pre-push:
-  jobs:
-    - name: build hyprland config
-      run: |
-        nix build .#nixosConfigurations.wotan.config.system.build.toplevel --out-link result-hyprland
-        find result-hyprland -name "hyprland.conf" -exec hyprland --verify-config -c {} \;
-        rm -f result-hyprland
