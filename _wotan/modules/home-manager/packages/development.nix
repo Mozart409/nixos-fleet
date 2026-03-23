@@ -36,5 +36,6 @@
     lefthook
     btop
     python314Packages.huggingface-hub
+    deadbranch
   ];
 }
