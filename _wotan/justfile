@@ -10,7 +10,7 @@ switch hostname:
 
 # Switch home-manager configuration (default: amadeus@wotan)
 switch-home hostname="wotan" user="amadeus":
-    home-manager switch --flake .#{{user}}@{{hostname}}
+    nh home switch . -c {{user}}@{{hostname}}
 
 # Switch both NixOS and home-manager configurations
 switch-all hostname:
@@ -32,7 +32,7 @@ build hostname:
 
 # Build home-manager configuration (dry run to check)
 build-home hostname="wotan" user="amadeus":
-    nix build .#homeConfigurations.{{user}}@{{hostname}}.activationPackage --dry-run
+    nix build .#homeConfigurations."{{user}}@{{hostname}}".activationPackage --dry-run
 
 # Update flake inputs
 update:
