@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }: {
   options = {
@@ -19,15 +20,16 @@
       # No GTK4 theme
       gtk4.theme = null;
 
-      # Keep icon theme for file dialogs in non-GTK apps
+      # Active icon theme: Colloid
       iconTheme = {
-        name = "Papirus-Dark";
-        package = pkgs.papirus-icon-theme;
+        name = "Colloid-dark";
+        package = pkgs.colloid-icon-theme;
       };
 
+      # XCursor fallback for apps that don't support hyprcursor (GTK, Qt)
       cursorTheme = {
-        name = "Layan-cursors";
-        package = pkgs.layan-cursors;
+        name = "Bibata-Modern-Ice";
+        package = pkgs.bibata-cursors;
         size = 24;
       };
 
@@ -41,12 +43,23 @@
     dconf.enable = true;
 
     home.packages = with pkgs; [
+      # Active icon theme
+      colloid-icon-theme
+      # Inactive but available icon themes
       papirus-icon-theme
-      layan-cursors
+      # XCursor fallback
+      bibata-cursors
+      # Hyprcursor theme
+      inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
+    # Cursor environment variables
     home.sessionVariables = {
-      XCURSOR_THEME = "Layan-cursors";
+      # Hyprcursor for Wayland-native apps
+      HYPRCURSOR_THEME = "rose-pine-hyprcursor";
+      HYPRCURSOR_SIZE = "24";
+      # XCursor fallback for GTK/Qt apps
+      XCURSOR_THEME = "Bibata-Modern-Ice";
       XCURSOR_SIZE = "24";
     };
   };

@@ -46,6 +46,12 @@
 
     awww.url = "git+https://codeberg.org/LGFae/awww";
 
+    # Cursor themes
+    rose-pine-hyprcursor = {
+      url = "github:ndom91/rose-pine-hyprcursor";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     zinc-oxide = {
       url = "git+file:///home/amadeus/code/rust/zinc_oxide";
       flake = false;
@@ -67,6 +73,7 @@
     quickshell,
     disko,
     awww,
+    rose-pine-hyprcursor,
     zinc-oxide,
   } @ inputs: let
     lib = nixpkgs.lib;
