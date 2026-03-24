@@ -9,20 +9,17 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    container: 
-      image: nixos/nix:latest
-      options: --privileged
     steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Configure Nix
         run: |
           mkdir -p ~/.config/nix
-          cat > ~/.config/nix/nix.conf << 'EOF'
-          experimental-features = nix-command flakes
-          accept-flake-config = true
-          EOF
+          echo "accept-flake-config = true" >> ~/.config/nix/nix.conf
 
       - name: Check Nix formatting
         run: nix run nixpkgs#alejandra -- --check .
