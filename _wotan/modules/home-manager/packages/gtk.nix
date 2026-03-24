@@ -5,26 +5,27 @@
   ...
 }: {
   options = {
-    desktop.gtk.enable = lib.mkEnableOption "GTK theme configuration";
+    desktop.gtk.enable = lib.mkEnableOption "GTK cursor and icon theme configuration";
   };
 
   config = lib.mkIf config.desktop.gtk.enable {
+    # GTK enabled for dconf portal support but no theming
     gtk = {
       enable = true;
 
-      theme = {
-        name = "Orchis-Dark";
-        package = pkgs.orchis-theme;
-      };
+      # No GTK3 theme
+      theme = null;
 
+      # No GTK4 theme
+      gtk4.theme = null;
+
+      # Keep icon theme for file dialogs in non-GTK apps
       iconTheme = {
         name = "Papirus-Dark";
         package = pkgs.papirus-icon-theme;
       };
 
       cursorTheme = {
-        # name = "Bibata-Modern-Classic";
-        # package = pkgs.bibata-cursors;
         name = "Layan-cursors";
         package = pkgs.layan-cursors;
         size = 24;
@@ -34,28 +35,17 @@
         name = "Sans";
         size = 11;
       };
-
-      gtk3.extraConfig = {
-        gtk-application-prefer-dark-theme = true;
-      };
-
-      gtk4.extraConfig = {
-        gtk-application-prefer-dark-theme = true;
-      };
     };
 
-    # Ensure theme packages are available
+    # dconf for portal settings
+    dconf.enable = true;
+
     home.packages = with pkgs; [
-      orchis-theme
       papirus-icon-theme
-      # bibata-cursors
       layan-cursors
     ];
 
-    # Set environment variables for GTK and cursor theme
     home.sessionVariables = {
-      GTK_THEME = "Orchis-Dark";
-      # XCURSOR_THEME = "Bibata-Modern-Classic";
       XCURSOR_THEME = "Layan-cursors";
       XCURSOR_SIZE = "24";
     };

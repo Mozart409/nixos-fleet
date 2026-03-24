@@ -53,10 +53,6 @@
       # Notifications
       dunst
 
-      # File manager
-      nemo
-      nemo-fileroller # Archive support
-
       # Hyprland plugins (disabled due to build errors - waiting for upstream to update)
       # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
       # Disabled: incompatible with hyprland 0.54.0
@@ -177,10 +173,10 @@
             "$mod, F, exec, brave"
 
             # Text editor
-            "$mod, N, exec, pluma"
+            "$mod, N, exec, neovim"
 
             # File manager
-            "$mod, E, exec, nemo"
+            "$mod, E, exec, yazi"
 
             # Wallpaper
             "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
