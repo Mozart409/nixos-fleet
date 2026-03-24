@@ -9,26 +9,34 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
-
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure Nix
         run: |
-          mkdir -p ~/.config/nix
-          echo "accept-flake-config = true" >> ~/.config/nix/nix.conf
+          git clone --depth 1 ${{ env.GITEA_REPOSITORY_URL }} .
+
+      - name: Install Nix
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 
       - name: Check Nix formatting
-        run: nix run nixpkgs#alejandra -- --check .
+        run: |
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          nix run nixpkgs#alejandra -- --check .
 
       - name: Check flake
-        run: nix flake check --no-build
+        run: |
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          nix flake check --accept-flake-config
 
       - name: Build NixOS configuration
-        run: nix build .#nixosConfigurations.wotan.config.system.build.toplevel --no-link
+        run: |
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          nix build .#nixosConfigurations.wotan.config.system.build.toplevel --no-link
 
       - name: Build home-manager configuration
-        run: nix build .#homeConfigurations.amadeus@wotan.activationPackage --no-link
+        run: |
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          nix build .#homeConfigurations.amadeus@wotan.activationPackage --no-link
