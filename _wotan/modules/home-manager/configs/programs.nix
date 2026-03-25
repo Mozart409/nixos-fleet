@@ -4,6 +4,10 @@
   lib,
   ...
 }: {
+  home.file.".ssh/allowed_signers".text = ''
+    amadeus@mozart409.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan
+  '';
+
   programs = {
     fastfetch.enable = true;
     ripgrep.enable = true;
@@ -30,6 +34,7 @@
         user.name = "Amadeus Mader";
         user.email = "amadeus@mozart409.com";
         user.signingkey = "/home/amadeus/.ssh/id_ed25519.pub";
+        gpg.ssh.allowedSignersFile = "/home/amadeus/.ssh/allowed_signers";
         aliases = {
           ci = "commit";
           s = "status";
