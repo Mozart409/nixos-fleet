@@ -22,17 +22,18 @@
     };
     git = {
       enable = true;
+      signing = {
+        format = "ssh";
+        signByDefault = true;
+      };
       settings = {
         user.name = "Amadeus Mader";
         user.email = "amadeus@mozart409.com";
+        user.signingkey = "/home/amadeus/.ssh/id_ed25519.pub";
         aliases = {
           ci = "commit";
           s = "status";
           f = "fetch";
-        };
-        signing = {
-          signByDefault = true;
-          format = "ssh";
         };
         init.defaultBranch = "main";
         pull.rebase = "true";
