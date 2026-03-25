@@ -6,13 +6,41 @@ import Quickshell.Io
 RowLayout {
   spacing: 12
 
+  // Root disk free percentage
+  Text {
+    id: diskText
+    color: "#cfd6f4"
+    font.family: "FiraCode Nerd Font"
+    font.pixelSize: 13
+    text: " D ---%"
+
+    Process {
+      id: diskProc
+      command: ["sh", "-c", "df -P / | awk 'NR==2 {gsub(/%/, \"\", $5); printf \"%d\", 100 - $5}'"]
+      running: true
+
+      stdout: StdioCollector {
+        onStreamFinished: {
+          diskText.text = " D " + this.text.trim() + "%"
+        }
+      }
+    }
+
+    Timer {
+      interval: 10000
+      running: true
+      repeat: true
+      onTriggered: diskProc.running = true
+    }
+  }
+
   // CPU usage
   Text {
     id: cpuText
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
-    text: " ---%"
+    text: " C ---%"
 
     Process {
       id: cpuProc
@@ -22,7 +50,7 @@ RowLayout {
       stdout: StdioCollector {
         onStreamFinished: {
           let val = parseFloat(this.text.trim())
-          cpuText.text = " " + val.toFixed(0) + "%"
+          cpuText.text = " C " + val.toFixed(0) + "%"
         }
       }
     }
@@ -41,7 +69,7 @@ RowLayout {
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
-    text: " ---%"
+    text: " M ---%"
 
     Process {
       id: ramProc
@@ -50,7 +78,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          ramText.text = " " + this.text.trim() + "%"
+          ramText.text = " M " + this.text.trim() + "%"
         }
       }
     }
