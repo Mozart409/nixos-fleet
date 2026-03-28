@@ -79,68 +79,10 @@
     lib = nixpkgs.lib;
     system = "x86_64-linux";
 
-    # Helper to create pkgsStable - shared between mkHost and mkHome
-    mkPkgsStable = system:
-      import nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
-    # Shared overlay for anytype package
-    anytypeOverlay = pkgsStable: [
-      (final: prev: {
-        anytype = pkgsStable.anytype;
-      })
-    ];
-
-    # Helper function to generate host configurations
-    mkHost = hostname: system: let
-      pkgsStable = mkPkgsStable system;
-    in
-      lib.nixosSystem {
-        specialArgs = {inherit inputs;};
-        modules = [
-          ./hosts/${hostname}/default.nix
-          {
-            nixpkgs.hostPlatform = system;
-            nix.settings = {
-              trusted-users = ["amadeus"];
-              substituters = [
-                "https://nix-community.cachix.org"
-                "https://cuda-maintainers.cachix.org"
-                "https://llama-cpp.cachix.org"
-              ];
-              trusted-public-keys = [
-                "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-                "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
-                "llama-cpp.cachix.org-1:H75X+w83wUKTIPSO1KWy9ADUrzThyGs8P5tmAbkWhQc="
-              ];
-            };
-            nixpkgs.config.allowUnfree = true;
-            nixpkgs.overlays = anytypeOverlay pkgsStable;
-          }
-        ];
-      };
-
-    # Helper function to generate home-manager configurations
-    mkHome = hostname: system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-      pkgsStable = mkPkgsStable system;
-    in
-      home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        extraSpecialArgs = {inherit inputs;};
-        modules = [
-          ./hosts/${hostname}/home.nix
-          inputs.nixvim.homeModules.nixvim
-          {
-            nixpkgs.overlays = anytypeOverlay pkgsStable;
-          }
-        ];
-      };
+    helpers = import ./lib/mkConfigs.nix {
+      inherit lib inputs nixpkgs nixpkgs-stable home-manager;
+    };
+    inherit (helpers) mkHost mkHome;
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
@@ -159,24 +101,31 @@
     };
 
     # Development shell for working with this configuration
-    devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
-      buildInputs = with nixpkgs.legacyPackages.${system}; [
-        git
-        alejandra
-        lefthook
-        opencode
-        cocogitto
-      ];
-      shellHook = ''
-        echo "Welcome to the NixOS configuration development shell!"
-        echo "Available commands:"
-        echo "  nix flake check .#nixosConfigurations.wotan"
-        echo "  nix flake check .#homeConfigurations.amadeus@wotan"
-        echo "  sudo nixos-rebuild switch --flake .#wotan"
-        echo "  home-manager switch --flake .#amadeus@wotan"
-        lefthook install
-        cog install-hook
-      '';
-    };
+    devShells.${system}.default = let
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    in
+      pkgs.mkShell {
+        buildInputs = with pkgs; [
+          git
+          alejandra
+          lefthook
+          opencode
+          cocogitto
+          claude-code
+        ];
+        shellHook = ''
+          echo "Welcome to the NixOS configuration development shell!"
+          echo "Available commands:"
+          echo "  nix flake check .#nixosConfigurations.wotan"
+          echo "  nix flake check .#homeConfigurations.amadeus@wotan"
+          echo "  sudo nixos-rebuild switch --flake .#wotan"
+          echo "  home-manager switch --flake .#amadeus@wotan"
+          lefthook install
+          cog install-hook
+        '';
+      };
   };
 }

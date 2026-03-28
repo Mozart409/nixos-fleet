@@ -220,6 +220,12 @@
             "$mod, H, exec, hyprctl hyprsunset temperature +500"
             "$mod, B, exec, hyprctl hyprsunset temperature -500"
             "$mod SHIFT, H, exec, pkill hyprsunset; hyprsunset -i"
+
+            # Window grouping (tabbed layout)
+            "$mod, G, togglegroup"
+            "$mod, TAB, changegroupactive, f"
+            "$mod SHIFT, TAB, changegroupactive, b"
+            "$mod SHIFT, G, moveoutofgroup"
           ]
           ++ (
             # Workspace bindings

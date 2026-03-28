@@ -42,7 +42,7 @@
   # Bootloader configuration
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 10;
+  boot.loader.timeout = 5;
 
   # Desktop environment configuration
   desktop.enable = true;
@@ -137,6 +137,13 @@
       "--models-preset"
       "/etc/llama-cpp-presets.ini"
     ];
+  };
+
+  # Swap on zram — helps avoid OOM during large builds and LLM inference
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
   };
 
   # System state version

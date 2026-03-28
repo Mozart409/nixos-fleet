@@ -6,6 +6,8 @@
   # Common Nix settings
   nix.settings = {
     auto-optimise-store = true;
+    max-jobs = "auto";
+    cores = 0;
     experimental-features = [
       "nix-command"
       "flakes"
@@ -63,6 +65,15 @@
 
   # Common console settings
   console.keyMap = "de";
+
+  # Suggest which nix package provides a missing command
+  programs.nix-index = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  # Periodic TRIM for SSD longevity
+  services.fstrim.enable = true;
 
   # AppImage support
   programs.appimage = {
