@@ -35,13 +35,23 @@
   ];
 
   # Per-model configuration presets for llama-cpp
-  # Optimized for Qwen3-8B as primary model
-  # Model ~5.5GB at Q5_K_M on RTX 3060 12GB
-  # 96K context (scaled from 40K training ctx) with Q4_0 KV cache
+  # Optimized for different models
   environment.etc."llama-cpp-presets.ini".text = lib.mkDefault ''
+    # Qwen3-8B: Dense model with tool calling, 40K training context
+    # Needs RoPE scaling for 96K+ requests
     [Qwen3-8B-Q5_K_M]
     ctx-size = 98304
     rope-scale = 2.5
+    n-gpu-layers = 99
+    parallel = 1
+    cache-type-k = q4_0
+    cache-type-v = q4_0
+
+    # NVIDIA Nemotron 3 Nano 4B: 262K native context (no scaling needed!)
+    # Mamba2-Transformer hybrid, ~2.5GB at Q4_K_M
+    # Perfect for long-context tasks on 12GB VRAM
+    [NVIDIA-Nemotron3-Nano-4B-Q4_K_M]
+    ctx-size = 262144
     n-gpu-layers = 99
     parallel = 1
     cache-type-k = q4_0
