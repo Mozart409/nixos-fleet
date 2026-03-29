@@ -42,12 +42,7 @@
     # 128K context (native max) fits within 12GB VRAM on RTX 3060
     # KV cache: ~0.45MB/1K tokens = ~5.5GB for 128K context
     # Expected speed: ~50-70 tok/s on RTX 3060
-    [Qwen3-8B-Q5_K_M.gguf]
-    ctx-size = 131072
-    n-gpu-layers = 99
-    parallel = 1
-
-    [default]
+    [Qwen3-8B-Q5_K_M]
     ctx-size = 131072
     n-gpu-layers = 99
     parallel = 1
