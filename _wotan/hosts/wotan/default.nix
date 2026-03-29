@@ -131,9 +131,15 @@
       "99" # Offload all layers to GPU
       "--cpu-moe" # Keep MoE expert weights in CPU RAM (required for large MoE models like Qwen3-30B-A3B)
       "--parallel"
-      "1" # Single slot for max context (128K tokens)
+      "1" # Single slot for max context
       "--ctx-size"
-      "131072" # Full 128K context for Qwen3
+      "98304" # 96K context for your 96K token requests
+      "--rope-scale"
+      "2.5" # Scale 40K training context to 100K
+      "--cache-type-k"
+      "q4_0" # Quantized KV cache to save VRAM
+      "--cache-type-v"
+      "q4_0" # Quantized KV cache to save VRAM
       "--models-preset"
       "/etc/llama-cpp-presets.ini"
     ];
