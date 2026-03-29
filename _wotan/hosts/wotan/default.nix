@@ -131,9 +131,9 @@
       "99" # Offload all layers to GPU
       "--cpu-moe" # Keep MoE expert weights in CPU RAM (required for large MoE models like Qwen3-30B-A3B)
       "--parallel"
-      "2" # Allow 2 concurrent requests
+      "1" # Single slot for max context (128K tokens)
       "--ctx-size"
-      "32768" # Default context size (can be overridden per-model in presets)
+      "131072" # Full 128K context for Qwen3
       "--models-preset"
       "/etc/llama-cpp-presets.ini"
     ];
