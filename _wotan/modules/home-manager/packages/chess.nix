@@ -4,19 +4,43 @@
   lib,
   ...
 }: let
-  lc0-cuda = pkgs.lc0.overrideAttrs (old: {
-    nativeBuildInputs =
-      old.nativeBuildInputs
-      ++ [
-        pkgs.cudaPackages.cuda_nvcc
-      ];
-    buildInputs =
-      old.buildInputs
-      ++ [
-        pkgs.cudaPackages.cudnn
-        pkgs.cudaPackages.cuda_cudart
-        pkgs.cudaPackages.libcublas
-      ];
+  lc0-cuda = pkgs.stdenv.mkDerivation {
+    pname = "lc0-cuda";
+    version = "0.31.2";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "LeelaChessZero";
+      repo = "lc0";
+      tag = "v0.31.2";
+      hash = "sha256-8watDDxSyZ5khYqpXPyjQso2MkOzfI6o2nt0vkuiEUI=";
+      fetchSubmodules = true;
+    };
+
+    patchPhase = ''
+      runHook prePatch
+      patchShebangs --build scripts/*
+      runHook postPatch
+    '';
+
+    strictDeps = true;
+
+    nativeBuildInputs = with pkgs; [
+      meson
+      ninja
+      pkg-config
+      python3
+      cudaPackages.cuda_nvcc
+    ];
+
+    buildInputs = with pkgs; [
+      eigen
+      gtest
+      zlib
+      cudaPackages.cudnn
+      cudaPackages.cuda_cudart
+      cudaPackages.libcublas
+    ];
+
     mesonFlags = [
       "-Dplain_cuda=true"
       "-Dcudnn=true"
@@ -24,7 +48,15 @@
       "-Dmetal=disabled"
       "-Dembed=false"
     ];
-  });
+
+    enableParallelBuilding = true;
+
+    meta = {
+      homepage = "https://lczero.org/";
+      description = "Open source neural network based chess engine (with CUDA/cuDNN)";
+      license = lib.licenses.gpl3Plus;
+    };
+  };
 in {
   home.packages = with pkgs; [
     # Wrap en-croissant to force X11/XWayland (Tauri/WebKit crashes on native Wayland)
