@@ -37,5 +37,6 @@
     btop
     python314Packages.huggingface-hub
     deadbranch
+    delta
   ];
 }

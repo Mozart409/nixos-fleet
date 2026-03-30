@@ -52,17 +52,53 @@
         "*.swp"
       ];
     };
+    delta = {
+      enable = true;
+      options = {
+        navigate = true;
+        side-by-side = true;
+        line-numbers = true;
+        syntax-theme = "Catppuccin Mocha";
+        dark = true;
+        hyperlinks = true;
+      };
+    };
     lazygit = {
       enable = true;
-      settings.gui.theme = {
-        activeBorderColor = ["#89b4fa" "bold"];
-        inactiveBorderColor = ["#a6adc8"];
-        optionsTextColor = ["#89b4fa"];
-        selectedLineBgColor = ["#313244"];
-        selectedRangeBgColor = ["#313244"];
-        unstagedChangesColor = ["#f38ba8"];
-        defaultFgColor = ["#cdd6f4"];
-        searchingActiveBorderColor = ["#f9e2af"];
+      settings = {
+        gui = {
+          showIcons = true;
+          showFileTree = true;
+          showListFooter = false;
+          showRandomTip = false;
+          showCommandLog = false;
+          nerdFontsVersion = "3";
+          border = "rounded";
+          expandFocusedSidePanel = true;
+          mouseEvents = true;
+          skipDiscardChangeWarning = false;
+          theme = {
+            activeBorderColor = ["#89b4fa" "bold"];
+            inactiveBorderColor = ["#a6adc8"];
+            optionsTextColor = ["#89b4fa"];
+            selectedLineBgColor = ["#313244"];
+            selectedRangeBgColor = ["#313244"];
+            unstagedChangesColor = ["#f38ba8"];
+            defaultFgColor = ["#cdd6f4"];
+            searchingActiveBorderColor = ["#f9e2af"];
+          };
+        };
+        git = {
+          paging = {
+            colorArg = "always";
+            pager = "delta --dark --paging=never";
+          };
+          autoFetch = true;
+          autoRefresh = true;
+          branchLogCmd = "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --";
+        };
+        promptToReturnFromSubprocess = false;
+        os.editPreset = "nvim";
       };
     };
   };
