@@ -4,6 +4,21 @@
   lib,
   ...
 }: let
+  cudnn = pkgs.cudaPackages.cudnn;
+  cuda_cudart = pkgs.cudaPackages.cuda_cudart;
+  libcublas = pkgs.cudaPackages.libcublas;
+
+  cudaLibDirs = [
+    "${cudnn.lib}/lib"
+    "${cuda_cudart.lib}/lib"
+    "${libcublas.lib}/lib"
+  ];
+  cudaIncludeDirs = [
+    "${cudnn.dev}/include"
+    "${cuda_cudart.dev}/include"
+    "${libcublas.dev}/include"
+  ];
+
   lc0-cuda = pkgs.stdenv.mkDerivation {
     pname = "lc0-cuda";
     version = "0.31.2";
@@ -36,9 +51,9 @@
       eigen
       gtest
       zlib
-      cudaPackages.cudnn
-      cudaPackages.cuda_cudart
-      cudaPackages.libcublas
+      cudnn
+      cuda_cudart
+      libcublas
     ];
 
     mesonFlags = [
@@ -47,6 +62,8 @@
       "-Daccelerate=false"
       "-Dmetal=disabled"
       "-Dembed=false"
+      "-Dcudnn_libdirs=${builtins.concatStringsSep "," cudaLibDirs}"
+      "-Dcudnn_include=${builtins.concatStringsSep "," cudaIncludeDirs}"
     ];
 
     enableParallelBuilding = true;
