@@ -10,13 +10,15 @@
 
   cudaLibDirs = [
     "${cudnn.lib}/lib"
-    "${cuda_cudart.lib}/lib"
+    "${cuda_cudart}/lib"
     "${libcublas.lib}/lib"
   ];
+  cuda_nvcc = pkgs.cudaPackages.cuda_nvcc;
   cudaIncludeDirs = [
     "${cudnn.dev}/include"
-    "${cuda_cudart.dev}/include"
+    "${cuda_cudart}/include"
     "${libcublas.dev}/include"
+    "${cuda_nvcc}/include"
   ];
 
   lc0-cuda = pkgs.stdenv.mkDerivation {
@@ -65,6 +67,9 @@
       "-Dcudnn_libdirs=${builtins.concatStringsSep "," cudaLibDirs}"
       "-Dcudnn_include=${builtins.concatStringsSep "," cudaIncludeDirs}"
     ];
+
+    # Ensure g++ can find all CUDA headers (crt/host_defines.h etc.)
+    NIX_CFLAGS_COMPILE = builtins.concatStringsSep " " (map (d: "-isystem ${d}") cudaIncludeDirs);
 
     enableParallelBuilding = true;
 
