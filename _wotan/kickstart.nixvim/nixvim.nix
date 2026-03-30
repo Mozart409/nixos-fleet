@@ -401,7 +401,7 @@
 
     plugins = {
       # Adds icons for plugins to utilize in ui
-      better-escape.enable = true;
+      better-escape.enable = false;
       web-devicons.enable = true;
       # Detect tabstop and shiftwidth automatically
       # https://nix-community.github.io/nixvim/plugins/sleuth/index.html
