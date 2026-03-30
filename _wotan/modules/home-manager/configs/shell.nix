@@ -4,6 +4,47 @@
   lib,
   ...
 }: {
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {
+      add_newline = true;
+      format = "$directory$git_branch$git_status$nix_shell$cmd_duration$line_break$character";
+      character = {
+        success_symbol = "[ॐ](bold green)";
+        error_symbol = "[ॐ](bold red)";
+      };
+      directory = {
+        truncation_length = 3;
+        truncate_to_repo = false;
+      };
+      git_branch = {
+        format = "[$symbol$branch]($style) ";
+        symbol = " ";
+      };
+      git_status = {
+        format = "([$all_status$ahead_behind]($style) )";
+        conflicted = "=";
+        ahead = "⇡\${count}";
+        behind = "⇣\${count}";
+        diverged = "⇕⇡\${ahead_count}⇣\${behind_count}";
+        untracked = "?\${count}";
+        stashed = "$\${count}";
+        modified = "!\${count}";
+        staged = "+\${count}";
+        deleted = "✘\${count}";
+      };
+      nix_shell = {
+        format = "[$symbol$state]($style) ";
+        symbol = " ";
+      };
+      cmd_duration = {
+        min_time = 2000;
+        format = "[$duration]($style) ";
+      };
+    };
+  };
+
   programs.zsh = {
     enable = true;
     zprof.enable = false;
@@ -43,8 +84,7 @@
     };
     oh-my-zsh = {
       enable = true;
-      # theme = "fino";
-      theme = "dogenpunk";
+      theme = ""; # disabled — using starship for prompt
       plugins = [
         "git"
         "z"
