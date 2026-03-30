@@ -89,12 +89,12 @@
           };
         };
         git = {
-          pagers = {
-            colorArg = "always";
-            diff = "delta --dark --paging=never";
-            log = "delta --dark --paging=never";
-            show = "delta --dark --paging=never";
-          };
+          pagers = [
+            {
+              pager = "delta --dark --paging=never";
+              colorArg = "always";
+            }
+          ];
           autoFetch = true;
           autoRefresh = true;
           branchLogCmd = "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --";
