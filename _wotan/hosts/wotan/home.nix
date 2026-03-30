@@ -28,6 +28,7 @@
     ../../modules/home-manager/packages/halloy.nix
     ../../modules/home-manager/packages/quickshell.nix
     ../../modules/home-manager/packages/zinc-oxide.nix
+    ../../modules/home-manager/packages/chess.nix
   ];
 
   desktop.waybar.enable = false;
