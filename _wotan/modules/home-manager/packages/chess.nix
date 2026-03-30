@@ -5,6 +5,11 @@
   ...
 }: let
   lc0-cuda = pkgs.lc0.overrideAttrs (old: {
+    nativeBuildInputs =
+      old.nativeBuildInputs
+      ++ [
+        pkgs.cudaPackages.cuda_nvcc
+      ];
     buildInputs =
       old.buildInputs
       ++ [
@@ -12,11 +17,13 @@
         pkgs.cudaPackages.cuda_cudart
         pkgs.cudaPackages.libcublas
       ];
-    mesonFlags =
-      builtins.filter (f: f != "-Dplain_cuda=false" && f != "-Dnative_cuda=false") old.mesonFlags
-      ++ [
-        "-Dplain_cuda=true"
-      ];
+    mesonFlags = [
+      "-Dplain_cuda=true"
+      "-Dcudnn=true"
+      "-Daccelerate=false"
+      "-Dmetal=disabled"
+      "-Dembed=false"
+    ];
   });
 in {
   home.packages = with pkgs; [
