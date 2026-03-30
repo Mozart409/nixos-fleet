@@ -90,4 +90,32 @@ RowLayout {
       onTriggered: ramProc.running = true
     }
   }
+
+  // GPU usage
+  Text {
+    id: gpuText
+    color: "#cfd6f4"
+    font.family: "FiraCode Nerd Font"
+    font.pixelSize: 13
+    text: " G ---%"
+
+    Process {
+      id: gpuProc
+      command: ["sh", "-c", "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{printf \"%d\", $1}'"]
+      running: true
+
+      stdout: StdioCollector {
+        onStreamFinished: {
+          gpuText.text = " G " + this.text.trim() + "%"
+        }
+      }
+    }
+
+    Timer {
+      interval: 2000
+      running: true
+      repeat: true
+      onTriggered: gpuProc.running = true
+    }
+  }
 }
