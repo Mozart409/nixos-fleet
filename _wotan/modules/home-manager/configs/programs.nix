@@ -89,9 +89,11 @@
           };
         };
         git = {
-          paging = {
+          pagers = {
             colorArg = "always";
-            pager = "delta --dark --paging=never";
+            diff = "delta --dark --paging=never";
+            log = "delta --dark --paging=never";
+            show = "delta --dark --paging=never";
           };
           autoFetch = true;
           autoRefresh = true;
