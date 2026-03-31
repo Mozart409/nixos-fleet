@@ -21,7 +21,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          diskText.text = " D " + this.text.trim() + "%"
+          diskText.text = " D " + this.text.trim().padStart(3, ' ') + "%"
         }
       }
     }
@@ -50,7 +50,7 @@ RowLayout {
       stdout: StdioCollector {
         onStreamFinished: {
           let val = parseFloat(this.text.trim())
-          cpuText.text = " C " + val.toFixed(0) + "%"
+          cpuText.text = " C " + val.toFixed(0).padStart(3, ' ') + "%"
         }
       }
     }
@@ -78,7 +78,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          ramText.text = " M " + this.text.trim() + "%"
+          ramText.text = " M " + this.text.trim().padStart(3, ' ') + "%"
         }
       }
     }
@@ -106,7 +106,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          gpuText.text = " G " + this.text.trim() + "%"
+          gpuText.text = " G " + this.text.trim().padStart(3, ' ') + "%"
         }
       }
     }
