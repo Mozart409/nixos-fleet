@@ -6,12 +6,22 @@ import Quickshell.Io
 RowLayout {
   spacing: 12
 
+  // Measure the widest possible text to keep layout stable
+  TextMetrics {
+    id: sysMetrics
+    font.family: "FiraCode Nerd Font"
+    font.pixelSize: 13
+    text: " D 100%"
+  }
+
   // Root disk free percentage
   Text {
     id: diskText
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: sysMetrics.width
     text: " D ---%"
 
     Process {
@@ -21,7 +31,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          diskText.text = " D " + this.text.trim().padStart(3, ' ') + "%"
+          diskText.text = " D " + this.text.trim() + "%"
         }
       }
     }
@@ -40,6 +50,8 @@ RowLayout {
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: sysMetrics.width
     text: " C ---%"
 
     Process {
@@ -50,7 +62,7 @@ RowLayout {
       stdout: StdioCollector {
         onStreamFinished: {
           let val = parseFloat(this.text.trim())
-          cpuText.text = " C " + val.toFixed(0).padStart(3, ' ') + "%"
+          cpuText.text = " C " + val.toFixed(0) + "%"
         }
       }
     }
@@ -69,6 +81,8 @@ RowLayout {
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: sysMetrics.width
     text: " M ---%"
 
     Process {
@@ -78,7 +92,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          ramText.text = " M " + this.text.trim().padStart(3, ' ') + "%"
+          ramText.text = " M " + this.text.trim() + "%"
         }
       }
     }
@@ -97,6 +111,8 @@ RowLayout {
     color: "#cfd6f4"
     font.family: "FiraCode Nerd Font"
     font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: sysMetrics.width
     text: " G ---%"
 
     Process {
@@ -106,7 +122,7 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          gpuText.text = " G " + this.text.trim().padStart(3, ' ') + "%"
+          gpuText.text = " G " + this.text.trim() + "%"
         }
       }
     }

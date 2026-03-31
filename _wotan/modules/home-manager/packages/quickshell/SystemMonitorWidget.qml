@@ -95,7 +95,7 @@ PanelWindow {
         stdout: StdioCollector {
           onStreamFinished: {
             let val = parseFloat(this.text.trim())
-            cpuPercent.text = val.toFixed(0).padStart(3, ' ') + "%"
+            cpuPercent.text = val.toFixed(0) + "%"
             cpuBar.width = (val / 100) * cpuBar.parent.width
           }
         }
@@ -154,7 +154,7 @@ PanelWindow {
         stdout: StdioCollector {
           onStreamFinished: {
             let val = parseFloat(this.text.trim())
-            ramPercent.text = val.toFixed(0).padStart(3, ' ') + "%"
+            ramPercent.text = val.toFixed(0) + "%"
             ramBar.width = (val / 100) * ramBar.parent.width
           }
         }
