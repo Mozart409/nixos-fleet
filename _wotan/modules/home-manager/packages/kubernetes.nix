@@ -14,6 +14,10 @@
     hcloud
   ];
 
+  home.sessionVariables = {
+    KUBECONFIG = "$HOME/.kube/config-k3s:$HOME/.kube/config";
+  };
+
   programs.kubeswitch = {
     enable = true;
     enableZshIntegration = true;
