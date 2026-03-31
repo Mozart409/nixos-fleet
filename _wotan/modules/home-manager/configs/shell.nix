@@ -37,6 +37,7 @@
       nix_shell = {
         format = "[$symbol$state]($style) ";
         symbol = " ";
+        impure_msg = "";
       };
       cmd_duration = {
         min_time = 2000;
