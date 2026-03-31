@@ -15,10 +15,12 @@
     hcloud
   ];
 
-  xdg.configFile."kubie/kubie.yaml".text = ''
+  home.file.".kube/kubie.yaml".text = ''
     configs:
       include:
-        - ${config.home.homeDirectory}/.kube/config
-        - ${config.home.homeDirectory}/.kube/config-k3s
+        - ~/.kube/config
+        - ~/.kube/config-*
+      exclude:
+        - ~/.kube/kubie.yaml
   '';
 }
