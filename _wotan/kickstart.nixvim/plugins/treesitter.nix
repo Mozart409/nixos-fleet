@@ -15,6 +15,7 @@
           "c"
           "c_sharp"
           "css"
+          "cue"
           "diff"
           "gitcommit"
           "go"

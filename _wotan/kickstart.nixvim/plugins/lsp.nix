@@ -93,7 +93,8 @@
         bashls = {
           enable = true;
         };
-        dagger = {
+        # Native CUE language server (replaces discontinued dagger LSP)
+        cue = {
           enable = true;
         };
         docker_compose_language_service = {
@@ -109,6 +110,18 @@
           enable = true;
         };
         htmx = {
+          enable = true;
+        };
+        jsonls = {
+          enable = true;
+        };
+        yamlls = {
+          enable = true;
+        };
+        cssls = {
+          enable = true;
+        };
+        marksman = {
           enable = true;
         };
         nil_ls = {
