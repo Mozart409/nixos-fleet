@@ -18,7 +18,6 @@
   xdg.configFile."kubie/kubie.yaml".text = ''
     configs:
       include:
-        - ~/.kube/config
-        - ~/.kube/config-k3s
+        - ${config.home.homeDirectory}/.kube/config*
   '';
 }
