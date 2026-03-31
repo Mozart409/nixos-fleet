@@ -17,5 +17,16 @@
   programs.kubeswitch = {
     enable = true;
     enableZshIntegration = true;
+    settings = {
+      kind = "SwitchConfig";
+      version = "v1alpha1";
+      kubeconfigStores = [
+        {
+          kind = "filesystem";
+          kubeconfigName = "config*";
+          paths = ["~/.kube"];
+        }
+      ];
+    };
   };
 }
