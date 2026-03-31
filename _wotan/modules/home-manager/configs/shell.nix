@@ -9,7 +9,7 @@
     enableZshIntegration = true;
     settings = {
       add_newline = true;
-      format = "$directory$git_branch$git_status$nix_shell$cmd_duration$line_break$character";
+      format = "$directory$git_branch$git_status$nix_shell$kubernetes$cmd_duration$line_break$character";
       character = {
         success_symbol = "[ॐ](bold green)";
         error_symbol = "[ॐ](bold red)";
@@ -38,6 +38,11 @@
         format = "[$symbol$state]($style) ";
         symbol = " ";
         impure_msg = "";
+      };
+      kubernetes = {
+        disabled = false;
+        format = "[$symbol$context( \\($namespace\\))]($style) ";
+        symbol = "☸ ";
       };
       cmd_duration = {
         min_time = 2000;
