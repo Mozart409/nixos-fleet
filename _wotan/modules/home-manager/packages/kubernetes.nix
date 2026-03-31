@@ -11,16 +11,11 @@
     helmsman
     helmfile
     talosctl
-    kubie
     hcloud
   ];
 
-  home.file.".kube/kubie.yaml".text = ''
-    configs:
-      include:
-        - ~/.kube/config
-        - ~/.kube/config-*
-      exclude:
-        - ~/.kube/kubie.yaml
-  '';
+  programs.kubeswitch = {
+    enable = true;
+    enableZshIntegration = true;
+  };
 }
