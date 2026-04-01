@@ -171,11 +171,23 @@
 
     # Inject NetAlertX API key from agenix secret at activation time
     home.activation.setupOpencodeSecrets = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      API_KEY=$(cat ${config.age.secrets.netalertx-api-key.path})
-      ${pkgs.jq}/bin/jq '.mcp.netalertx.headers.NETALERTX_API_KEY = $key' \
-        --arg key "Bearer $API_KEY" \
-        ${config.home.homeDirectory}/.config/opencode/opencode.json > /tmp/opencode.json.tmp && \
-      mv /tmp/opencode.json.tmp ${config.home.homeDirectory}/.config/opencode/opencode.json
+      # Find the agenix secret file dynamically (if accessible)
+      API_KEY_FILE=""
+      if [ -d /run/agenix.d ] && [ -r /run/agenix.d ]; then
+        API_KEY_FILE=$(find /run/agenix.d -name "netalertx-api-key" -type f 2>/dev/null | head -1)
+      fi
+
+      if [ -n "$API_KEY_FILE" ] && [ -f "$API_KEY_FILE" ]; then
+        API_KEY=$(cat "$API_KEY_FILE")
+        ${pkgs.jq}/bin/jq '.mcp.netalertx.headers.NETALERTX_API_KEY = $key' \
+          --arg key "Bearer $API_KEY" \
+          ${config.home.homeDirectory}/.config/opencode/opencode.json > /tmp/opencode.json.tmp && \
+        mv /tmp/opencode.json.tmp ${config.home.homeDirectory}/.config/opencode/opencode.json
+        echo "NetAlertX API key injected successfully"
+      else
+        echo "Note: NetAlertX API key not available (agenix secret not decrypted yet)" >&2
+        echo "The config will work once you run 'sudo nixos-rebuild switch'" >&2
+      fi
     '';
   };
 }

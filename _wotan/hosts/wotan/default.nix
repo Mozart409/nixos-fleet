@@ -182,8 +182,9 @@
 
   # Environment variables
   environment.sessionVariables = {
-    # Agenix secret
+    # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
+    NETALERTX_API_KEY_FILE = config.age.secrets.netalertx-api-key.path;
 
     # NVIDIA Wayland environment variables for better compatibility
     GBM_BACKEND = "nvidia-drm";
