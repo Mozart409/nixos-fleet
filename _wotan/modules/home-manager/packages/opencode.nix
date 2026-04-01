@@ -41,6 +41,13 @@
                   output = 65536;
                 };
               };
+              "NVIDIA-Nemotron3-Nano-4B-Q4_K_M" = {
+                name = "Nemotron 3 Nano 4B (Q4_K_M)";
+                limit = {
+                  context = 262144;
+                  output = 65536;
+                };
+              };
             };
           };
         };
@@ -48,6 +55,13 @@
           homeassistant = {
             type = "remote";
             url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";
+          };
+          netalertx = {
+            type = "remote";
+            url = "http://192.168.2.100:20212/mcp/sse";
+            headers = {
+              NETALERTX_API_KEY = "PLACEHOLDER";
+            };
           };
           gh_grep = {
             type = "remote";
@@ -154,5 +168,14 @@
     home.file."${config.opencode.commandsDir}/.gitkeep" = {
       text = "";
     };
+
+    # Inject NetAlertX API key from agenix secret at activation time
+    home.activation.setupOpencodeSecrets = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      API_KEY=$(cat ${config.age.secrets.netalertx-api-key.path})
+      ${pkgs.jq}/bin/jq '.mcp.netalertx.headers.NETALERTX_API_KEY = $key' \
+        --arg key "Bearer $API_KEY" \
+        ${config.home.homeDirectory}/.config/opencode/opencode.json > /tmp/opencode.json.tmp && \
+      mv /tmp/opencode.json.tmp ${config.home.homeDirectory}/.config/opencode/opencode.json
+    '';
   };
 }

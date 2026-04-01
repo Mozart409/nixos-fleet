@@ -115,6 +115,7 @@
           opencode
           cocogitto
           claude-code
+          agenix.packages.${system}.default
         ];
         shellHook = ''
           echo "Welcome to the NixOS configuration development shell!"

@@ -11,4 +11,5 @@ let
 in {
   # CONTEXT7 API key for OpenCode MCP server
   "secrets/context7-api-key.age".publicKeys = allKeys;
+  "secrets/netalertx-api-key.age".publicKeys = allUsers;
 }

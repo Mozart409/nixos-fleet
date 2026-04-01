@@ -173,6 +173,13 @@
     group = "users";
   };
 
+  age.secrets.netalertx-api-key = {
+    file = ../../secrets/netalertx-api-key.age;
+    mode = "440";
+    owner = "amadeus";
+    group = "users";
+  };
+
   # Environment variables
   environment.sessionVariables = {
     # Agenix secret
