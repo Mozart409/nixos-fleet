@@ -155,6 +155,22 @@
   # System state version
   system.stateVersion = "24.11";
 
+  # RVGL Launcher (Re-Volt) via Flatpak
+  systemd.services.flatpak-rvgl = {
+    wantedBy = ["multi-user.target"];
+    after = ["network-online.target" "flatpak-repo.service"];
+    wants = ["network-online.target"];
+    path = [pkgs.flatpak];
+    script = ''
+      flatpak remote-add --if-not-exists rvgl https://mickael9.gitlab.io/rvgl-flatpak
+      flatpak install --noninteractive rvgl org.rvgl.rvmm || true
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+  };
+
   # Ensure storage mount is owned by amadeus and create models directory
   systemd.tmpfiles.rules = [
     "Z /mnt/storage 0755 amadeus users -"
