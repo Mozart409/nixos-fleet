@@ -7,6 +7,7 @@
 }: {
   imports = [
     inputs.hyprland.nixosModules.default
+    ./next-wallpaper.nix
   ];
 
   options.desktop.hyprland = {
@@ -18,51 +19,9 @@
     };
   };
 
-  config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") (let
-    nextWallpaper = pkgs.writeShellScriptBin "next-wallpaper" ''
-      set -euo pipefail
+  config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
+    desktop.nextWallpaper.enable = true;
 
-      wallpaperDir="${config.users.users.amadeus.home}/Pictures/Wallpapers"
-      stateDir="''${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper-rotator"
-      queueFile="$stateDir/queue.txt"
-
-      build_queue() {
-        mkdir -p "$stateDir"
-
-        ${pkgs.findutils}/bin/find "$wallpaperDir" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) -print0 \
-          | ${pkgs.coreutils}/bin/shuf -z \
-          | while IFS= read -r -d "" file; do printf '%s\n' "$file"; done \
-          > "$queueFile"
-
-        if [ ! -s "$queueFile" ]; then
-          rm -f "$queueFile"
-          return 1
-        fi
-      }
-
-      if [ ! -s "$queueFile" ]; then
-        if ! build_queue; then
-          echo "next-wallpaper: No wallpapers found in $wallpaperDir" >&2
-          exit 1
-        fi
-      fi
-
-      wallpaper="$(${pkgs.coreutils}/bin/head -n 1 "$queueFile")"
-      ${pkgs.coreutils}/bin/tail -n +2 "$queueFile" > "$queueFile.tmp" || true
-
-      if [ -s "$queueFile.tmp" ]; then
-        mv "$queueFile.tmp" "$queueFile"
-      else
-        rm -f "$queueFile.tmp" "$queueFile"
-      fi
-
-      if [ $# -eq 0 ]; then
-        set -- --transition-type random
-      fi
-
-      exec ${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww}/bin/awww img "$wallpaper" "$@"
-    '';
-  in {
     security.sudo.extraConfig = ''
       Defaults!${pkgs.gparted}/bin/gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
       Defaults!${pkgs.polkit.bin}/bin/pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
@@ -93,7 +52,6 @@
       # Blue light filter
       inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
-      nextWallpaper
 
       # Notifications
       dunst
@@ -225,6 +183,7 @@
 
             # Wallpaper
             "$mod, W, exec, next-wallpaper"
+            "$mod SHIFT, W, exec, previous-wallpaper"
 
             # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
             ", Print, exec, hyprshot -m region -o ~/Pictures/hyprshot"
@@ -342,5 +301,5 @@
       # Hyprshot screenshot directory
       HYPRSHOT_DIR = "${config.users.users.amadeus.home}/Pictures/hyprshot";
     };
-  });
+  };
 }
