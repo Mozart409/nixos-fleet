@@ -160,10 +160,13 @@
     wantedBy = ["multi-user.target"];
     after = ["network-online.target" "flatpak-repo.service"];
     wants = ["network-online.target"];
-    path = [pkgs.flatpak];
+    path = [pkgs.flatpak pkgs.curl];
     script = ''
-      flatpak remote-add --if-not-exists rvgl https://mickael9.gitlab.io/rvgl-flatpak
-      flatpak install --noninteractive rvgl org.rvgl.rvmm || true
+      if ! flatpak info org.rvgl.rvmm &>/dev/null; then
+        curl -fsSL -o /tmp/org.rvgl.rvmm.flatpakref https://mickael9.gitlab.io/rvgl-flatpak/org.rvgl.rvmm.flatpakref
+        flatpak install --noninteractive /tmp/org.rvgl.rvmm.flatpakref
+        rm -f /tmp/org.rvgl.rvmm.flatpakref
+      fi
     '';
     serviceConfig = {
       Type = "oneshot";
