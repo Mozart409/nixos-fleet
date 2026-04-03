@@ -18,7 +18,51 @@
     };
   };
 
-  config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") {
+  config = lib.mkIf (config.desktop.enable && config.desktop.environment == "hyprland") (let
+    nextWallpaper = pkgs.writeShellScriptBin "next-wallpaper" ''
+      set -euo pipefail
+
+      wallpaperDir="${config.users.users.amadeus.home}/Pictures/Wallpapers"
+      stateDir="''${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper-rotator"
+      queueFile="$stateDir/queue.txt"
+
+      build_queue() {
+        local tmpFile
+
+        mkdir -p "$stateDir"
+        tmpFile="$(${pkgs.coreutils}/bin/mktemp)"
+
+        while IFS= read -r -d "" file; do
+          printf '%s\n' "$file"
+        done < <(${pkgs.findutils}/bin/find "$wallpaperDir" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) -print0 | ${pkgs.coreutils}/bin/shuf -z) > "$tmpFile"
+
+        if [ ! -s "$tmpFile" ]; then
+          rm -f "$tmpFile"
+          return 1
+        fi
+
+        mv "$tmpFile" "$queueFile"
+      }
+
+      if [ ! -s "$queueFile" ]; then
+        if ! build_queue; then
+          echo "No wallpapers found in $wallpaperDir" >&2
+          exit 1
+        fi
+      fi
+
+      wallpaper="$(${pkgs.coreutils}/bin/head -n 1 "$queueFile")"
+
+      ${pkgs.coreutils}/bin/tail -n +2 "$queueFile" > "$queueFile.tmp"
+      mv "$queueFile.tmp" "$queueFile"
+
+      if [ $# -eq 0 ]; then
+        set -- --transition-type random
+      fi
+
+      exec ${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww}/bin/awww img "$wallpaper" "$@"
+    '';
+  in {
     security.sudo.extraConfig = ''
       Defaults!${pkgs.gparted}/bin/gparted env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
       Defaults!${pkgs.polkit.bin}/bin/pkexec env_keep+="DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR"
@@ -49,6 +93,7 @@
       # Blue light filter
       inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
+      nextWallpaper
 
       # Notifications
       dunst
@@ -179,7 +224,7 @@
             "$mod, E, exec, yazi"
 
             # Wallpaper
-            "$mod, W, exec, awww img \"\$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.png' -o -name '*.gif' \\) | shuf -n1)\" --transition-type random"
+            "$mod, W, exec, next-wallpaper"
 
             # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
             ", Print, exec, hyprshot -m region -o ~/Pictures/hyprshot"
@@ -246,7 +291,7 @@
           "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland"
           "systemctl --user start hyprland-session.target"
           "awww-daemon"
-          "sleep 1 && awww img \"$(find ~/Pictures/Wallpapers -type f \\( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.webp' \\) | shuf -n1)\" --transition-type grow --transition-fps 60"
+          "sleep 1 && next-wallpaper --transition-type random --transition-fps 60"
           "hyprsunset -t 5000"
           "hypridle"
         ];
@@ -297,5 +342,5 @@
       # Hyprshot screenshot directory
       HYPRSHOT_DIR = "${config.users.users.amadeus.home}/Pictures/hyprshot";
     };
-  };
+  });
 }
