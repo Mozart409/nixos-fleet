@@ -34,7 +34,7 @@ in {
 
     xdg.configFile."hypr/hypridle.conf".text = ''
       general {
-          lock_cmd = pidof hyprlock || hyprlock       # avoid starting multiple hyprlock instances
+          lock_cmd = hyprctl dispatch dpms on; pidof hyprlock || hyprlock       # turn on display so screenshot isn't blank, avoid starting multiple hyprlock instances
           before_sleep_cmd = loginctl lock-session    # lock before suspend
           after_sleep_cmd = hyprctl dispatch dpms on; systemctl --user restart ironbar  # turn on display and restart bar after sleep
           ignore_dbus_inhibit = false                 # respect idle-inhibit requests (e.g., from firefox, steam)
