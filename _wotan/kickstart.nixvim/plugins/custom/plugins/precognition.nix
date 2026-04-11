@@ -9,7 +9,7 @@
     extraConfigLua = ''
       require("precognition").setup({
         -- Start with hints visible
-        startVisible = true,
+        startVisible = false,
 
         -- Show blank virtual line
         showBlankVirtLine = true,
