@@ -6,6 +6,8 @@
 }: {
   home.packages = with pkgs; [
     haruna
+    obsidian
+    basalt
     signal-desktop
     comet-gog
     discord
