@@ -73,19 +73,20 @@
       # Font configuration
       fonts = {
         packages = with pkgs; [
+          # keep-sorted start
+
+          # Additional fonts
+          dejavu_fonts
+          # Programming fonts (jetbrains-mono provided by nerd-fonts in home-manager)
+          fira-code
+          liberation_ttf
           # Core fonts
           noto-fonts
           noto-fonts-cjk-sans
           noto-fonts-color-emoji
-          liberation_ttf
-
-          # Programming fonts (jetbrains-mono provided by nerd-fonts in home-manager)
-          fira-code
           source-code-pro
-
-          # Additional fonts
-          dejavu_fonts
           ubuntu-classic
+          # keep-sorted end
         ];
 
         fontconfig = {

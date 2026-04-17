@@ -18,8 +18,10 @@
   };
 in {
   home.packages = with pkgs; [
-    helium-browser
-    chromium
+    # keep-sorted start
     brave
+    chromium
+    helium-browser
+    # keep-sorted end
   ];
 }

@@ -5,17 +5,19 @@
   ...
 }: {
   home.packages = with pkgs; [
-    busybox
-    nettools
-    file
-    just
-    xclip
+    # keep-sorted start
     bat
+    busybox
+    file
     glow
     gparted
-    rclone
-    vulnix
+    just
+    nettools
     nvtopPackages.full
+    rclone
     steam-devices-udev-rules
+    vulnix
+    xclip
+    # keep-sorted end
   ];
 }

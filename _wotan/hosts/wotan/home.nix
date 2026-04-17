@@ -6,29 +6,31 @@
   ...
 }: {
   imports = [
-    ../../modules/home-manager/common-packages.nix
-    ../../modules/home-manager/packages/development.nix
-    ../../modules/home-manager/packages/kubernetes.nix
-    ../../modules/home-manager/packages/database.nix
-    ../../modules/home-manager/packages/system.nix
-    ../../modules/home-manager/packages/desktop.nix
-    ../../modules/home-manager/packages/browsers.nix
-    ../../modules/home-manager/packages/fun.nix
-    ../../modules/home-manager/packages/ironbar.nix
-    ../../modules/home-manager/packages/waybar.nix
+    # keep-sorted start
     ../../kickstart.nixvim/nixvim.nix
-    ../../modules/home-manager/packages/tmux.nix
-    ../../modules/home-manager/packages/terminals.nix
-    ../../modules/home-manager/packages/yazi.nix
-    ../../modules/home-manager/packages/opencode.nix
-    ../../modules/home-manager/packages/hyprland-configs.nix
-    ../../modules/home-manager/packages/rofi.nix
-    ../../modules/home-manager/packages/podman.nix
+    ../../modules/home-manager/common-packages.nix
+    ../../modules/home-manager/packages/browsers.nix
+    ../../modules/home-manager/packages/chess.nix
+    ../../modules/home-manager/packages/database.nix
+    ../../modules/home-manager/packages/desktop.nix
+    ../../modules/home-manager/packages/development.nix
+    ../../modules/home-manager/packages/fun.nix
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
+    ../../modules/home-manager/packages/hyprland-configs.nix
+    ../../modules/home-manager/packages/ironbar.nix
+    ../../modules/home-manager/packages/kubernetes.nix
+    ../../modules/home-manager/packages/opencode.nix
+    ../../modules/home-manager/packages/podman.nix
     ../../modules/home-manager/packages/quickshell.nix
+    ../../modules/home-manager/packages/rofi.nix
+    ../../modules/home-manager/packages/system.nix
+    ../../modules/home-manager/packages/terminals.nix
+    ../../modules/home-manager/packages/tmux.nix
+    ../../modules/home-manager/packages/waybar.nix
+    ../../modules/home-manager/packages/yazi.nix
     ../../modules/home-manager/packages/zinc-oxide.nix
-    ../../modules/home-manager/packages/chess.nix
+    # keep-sorted end
   ];
 
   desktop.waybar.enable = false;

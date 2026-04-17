@@ -4,6 +4,8 @@
   ...
 }: {
   imports = [
+    # keep-sorted start
+
     # NOTE: The first thing you will want to do is uncommented on of the three imports below
     # depending on which module you chose to use to install Nixvim.
     #
@@ -14,16 +16,47 @@
     # Uncomment if you are using the nix-darwin module
     #inputs.nixvim.nixDarwinModules.nixvim
 
+    ./plugins/conform.nix
+    # Code navigation
+    ./plugins/custom/plugins/aerial.nix
+    # ./plugins/custom/plugins/snacks.nix
+    ./plugins/custom/plugins/autocommands.nix
+    ./plugins/custom/plugins/comment.nix
+    ./plugins/custom/plugins/cyberdream.nix
+    ./plugins/custom/plugins/dashboard.nix
+    ./plugins/custom/plugins/dressing.nix
+    ./plugins/custom/plugins/drop.nix
+    ./plugins/custom/plugins/flash.nix
+    # Other plugins
+    ./plugins/custom/plugins/fzf-lua.nix
+    ./plugins/custom/plugins/inc-rename.nix
+    # Documentation
+    ./plugins/custom/plugins/neogen.nix
+    ./plugins/custom/plugins/neogit.nix
+    ./plugins/custom/plugins/neoscroll.nix
+    ./plugins/custom/plugins/noice.nix
+    ./plugins/custom/plugins/nvim-bqf.nix
+    ./plugins/custom/plugins/nvim-colorizer.nix
+    ./plugins/custom/plugins/nvim-navic.nix
+    ./plugins/custom/plugins/oil.nix
+    ./plugins/custom/plugins/opencode.nix
+    #./plugins/custom/plugins/nvim-lightbulb.nix
+    ./plugins/custom/plugins/precognition.nix
+    ./plugins/custom/plugins/roslyn.nix
+    ./plugins/custom/plugins/spectre.nix
+    #
+    # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
+    # Add your plugins to ./plugins/custom/plugins and import them below
+    # Quick wins
+    ./plugins/custom/plugins/todo-comments.nix
+    ./plugins/custom/plugins/trouble.nix
+    #./plugins/custom/plugins/fff.nix
+    ./plugins/custom/plugins/typescript-tools.nix
+    ./plugins/custom/plugins/vague.nix
+    ./plugins/custom/plugins/zenburn.nix
     # Plugins
     ./plugins/gitsigns.nix
-    ./plugins/which-key.nix
-    ./plugins/telescope.nix
-    ./plugins/conform.nix
-    ./plugins/lsp.nix
-    ./plugins/nvim-cmp.nix
-    ./plugins/mini.nix
-    ./plugins/treesitter.nix
-
+    ./plugins/kickstart/plugins/autopairs.nix
     # NOTE: Add/Configure additional plugins for Kickstart.nixvim
     #
     #  Here are some example plugins that I've included in the Kickstart repository.
@@ -31,47 +64,16 @@
     #
     ./plugins/kickstart/plugins/indent-blankline.nix
     ./plugins/kickstart/plugins/lint.nix
-    ./plugins/kickstart/plugins/autopairs.nix
     ./plugins/kickstart/plugins/neo-tree.nix
-    #
-    # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
-    # Add your plugins to ./plugins/custom/plugins and import them below
-    # Quick wins
-    ./plugins/custom/plugins/todo-comments.nix
-    ./plugins/custom/plugins/nvim-colorizer.nix
-    ./plugins/custom/plugins/dressing.nix
-    ./plugins/custom/plugins/inc-rename.nix
-    # Code navigation
-    ./plugins/custom/plugins/aerial.nix
-    ./plugins/custom/plugins/nvim-navic.nix
-    # Documentation
-    ./plugins/custom/plugins/neogen.nix
-    # Other plugins
-    ./plugins/custom/plugins/fzf-lua.nix
-    ./plugins/custom/plugins/nvim-bqf.nix
-    #./plugins/custom/plugins/nvim-lightbulb.nix
-    ./plugins/custom/plugins/precognition.nix
-    ./plugins/custom/plugins/cyberdream.nix
-    ./plugins/custom/plugins/zenburn.nix
-    ./plugins/custom/plugins/vague.nix
-    ./plugins/custom/plugins/oil.nix
-    ./plugins/custom/plugins/opencode.nix
-    # ./plugins/custom/plugins/snacks.nix
-    ./plugins/custom/plugins/autocommands.nix
-    ./plugins/custom/plugins/trouble.nix
-    ./plugins/custom/plugins/dashboard.nix
-    ./plugins/custom/plugins/drop.nix
-    ./plugins/custom/plugins/comment.nix
-    ./plugins/custom/plugins/noice.nix
-    ./plugins/custom/plugins/neogit.nix
-    ./plugins/custom/plugins/neoscroll.nix
-    #./plugins/custom/plugins/fff.nix
-    ./plugins/custom/plugins/typescript-tools.nix
-    ./plugins/custom/plugins/roslyn.nix
-    ./plugins/custom/plugins/spectre.nix
-    ./plugins/custom/plugins/flash.nix
+    ./plugins/lsp.nix
+    ./plugins/mini.nix
+    ./plugins/nvim-cmp.nix
+    ./plugins/telescope.nix
+    ./plugins/treesitter.nix
+    ./plugins/which-key.nix
     # ./plugins/custom/plugins/schemastore.nix
     # ./plugins/custom/plugins/zk.nix
+    # keep-sorted end
   ];
 
   /*

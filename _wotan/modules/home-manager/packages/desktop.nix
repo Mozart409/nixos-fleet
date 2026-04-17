@@ -5,17 +5,19 @@
   ...
 }: {
   home.packages = with pkgs; [
-    haruna
-    obsidian
+    # keep-sorted start
     basalt
-    signal-desktop
+    bitwarden-cli
+    bitwarden-desktop
     comet-gog
     discord
+    haruna
     lutris-unwrapped
+    obsidian
     pavucontrol
     # Security
     proton-pass
-    bitwarden-desktop
-    bitwarden-cli
+    signal-desktop
+    # keep-sorted end
   ];
 }

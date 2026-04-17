@@ -5,17 +5,19 @@
   ...
 }: {
   home.packages = with pkgs; [
-    charasay
-    fortune
-    dwt1-shell-color-scripts
-    cowsay
-    nerd-fonts.jetbrains-mono
-    kdePackages.kwallet-pam
-    openrgb-with-all-plugins
-    handbrake
+    # keep-sorted start
     # makemkv # TODO: re-enable when expat header issue is fixed upstream
     anki-bin
-    mpv
+    charasay
+    cowsay
+    dwt1-shell-color-scripts
+    fortune
+    handbrake
+    kdePackages.kwallet-pam
     llmfit
+    mpv
+    nerd-fonts.jetbrains-mono
+    openrgb-with-all-plugins
+    # keep-sorted end
   ];
 }
