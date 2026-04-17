@@ -7,3 +7,6 @@ pre-commit:
     - name: nix flake check
       run: nix flake check
       stage_fixed: false
+    - name: keep-sorted
+      run: keep-sorted {staged_files}
+      stage_fixed: true

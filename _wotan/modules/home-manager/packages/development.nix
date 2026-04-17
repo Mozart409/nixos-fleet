@@ -5,37 +5,41 @@
   ...
 }: {
   home.packages = with pkgs; [
-    eza
-    cocogitto
-    mergiraf
-    rustscan
+    # keep-sorted start
     bacon
-    nodejs_22
-    tpi
-    pnpm
-    rainfrog
-    lazydocker
+    btop
     cargo-binstall
-    dioxus-cli
-    wasm-bindgen-cli
-    pwgen
-    hadolint
-    vale
+    cocogitto
+    deadbranch
     devenv
+    dioxus-cli
+    dprint
+    eza
+    gnused
+    hadolint
+    insomnia
+    jq
+    keep-sorted
+    lazydocker
+    lefthook
+    mergiraf
     nix-prefetch
     nix-prefetch-github
-    dprint
+    nodejs_22
+    otel-cli
     pkg-configUpstream
+    pnpm
+    pwgen
+    python314Packages.huggingface-hub
     radicle-desktop
     radicle-tui
-    insomnia
+    rainfrog
+    rustscan
+    tpi
+    vale
+    wasm-bindgen-cli
     wev
     zk
-    jq
-    gnused
-    lefthook
-    btop
-    python314Packages.huggingface-hub
-    deadbranch
+    # keep-sorted end
   ];
 }
