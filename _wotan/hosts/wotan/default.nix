@@ -35,7 +35,7 @@
   networking.hostName = "wotan";
 
   # Host-specific DNS settings
-  networking.nameservers = ["192.168.2.1" "1.1.1.1"];
+  networking.nameservers = ["192.168.2.1" "192.168.2.145" "1.1.1.1"];
 
   nix.settings.download-buffer-size = 512 * 1024 * 1024;
 
