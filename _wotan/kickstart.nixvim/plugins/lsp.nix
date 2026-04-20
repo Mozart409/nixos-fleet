@@ -111,6 +111,7 @@
         };
         htmx = {
           enable = true;
+          filetypes = ["html" "templ"];
         };
         jsonls = {
           enable = true;
