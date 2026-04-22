@@ -13,7 +13,7 @@
                 type = "filesystem";
                 format = "btrfs";
                 mountpoint = "/mnt/games";
-                mountOptions = ["nofail" "exec" "user" "users"];
+                mountOptions = ["nofail" "user" "users" "exec"];
                 extraArgs = ["-f"];
               };
             };
