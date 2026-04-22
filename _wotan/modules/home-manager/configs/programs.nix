@@ -63,6 +63,27 @@
         hyperlinks = true;
       };
     };
+    mangohud = {
+      enable = true;
+      settings = {
+        fps = true;
+        frametime = true;
+        cpu_stats = true;
+        cpu_temp = true;
+        gpu_stats = true;
+        gpu_temp = true;
+        ram = true;
+        vram = true;
+        engine_version = true;
+        vulkan_driver = true;
+        wine = true;
+        frame_timing = true;
+        position = "top-left";
+        background_alpha = "0.5";
+        font_size = 18;
+        toggle_hud = "Shift_R+F12";
+      };
+    };
     lazygit = {
       enable = true;
       settings = {

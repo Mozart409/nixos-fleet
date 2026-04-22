@@ -96,6 +96,7 @@
   environment.systemPackages = with pkgs; [
     steam
     heroic
+    mangohud
     bcachefs-tools
   ];
 
