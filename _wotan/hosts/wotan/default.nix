@@ -95,6 +95,7 @@
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
+    heroic
     bcachefs-tools
   ];
 
