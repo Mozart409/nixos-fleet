@@ -18,6 +18,8 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [
       inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar
+      pkgs.pwvucontrol # Modern PipeWire volume control GUI
+      pkgs.pulsemixer # TUI audio mixer
     ];
 
     xdg.configFile."ironbar/config.toml".text = ''
@@ -48,6 +50,14 @@ in {
       cmd = "${config.xdg.configHome}/ironbar/scripts/disk-free.sh"
       mode = "poll"
       interval = 60000
+
+      [[end]]
+      type = "script"
+      cmd = "${config.xdg.configHome}/ironbar/scripts/audio-current.sh"
+      mode = "poll"
+      interval = 2000
+      on_click_left = "${config.xdg.configHome}/ironbar/scripts/audio-switch.sh"
+      on_click_right = "${pkgs.pwvucontrol}/bin/pwvucontrol"
 
       [[end]]
       type = "volume"
@@ -375,6 +385,53 @@ in {
       '';
     };
 
+    xdg.configFile."ironbar/scripts/audio-switch.sh" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        # Get current default sink
+        default_sink=$(${pkgs.wireplumber}/bin/wpctl inspect @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep "node.nick" | cut -d'"' -f2)
+
+        # List all audio sinks with their IDs
+        sinks=$(${pkgs.wireplumber}/bin/wpctl status | sed -n '/Audio/,/Video/{/Sinks:/,/│.*Sources:/p}' | grep -E '^\s*[│├└].*\*?\s+[0-9]+\.' | sed 's/[│├└]//g' | sed 's/^\s*//')
+
+        if [ -z "$sinks" ]; then
+          notify-send "Audio" "No audio sinks found"
+          exit 1
+        fi
+
+        # Show rofi menu and get selection
+        selected=$(echo "$sinks" | ${pkgs.rofi}/bin/rofi -dmenu -i -p "Audio Output" -theme-str 'window {width: 400px;}')
+
+        if [ -n "$selected" ]; then
+          # Extract sink ID (the number after the asterisk or space)
+          sink_id=$(echo "$selected" | grep -oE '[0-9]+\.' | head -1 | tr -d '.')
+          if [ -n "$sink_id" ]; then
+            ${pkgs.wireplumber}/bin/wpctl set-default "$sink_id"
+            sink_name=$(echo "$selected" | sed 's/^[* ]*[0-9]*\. //' | cut -d'[' -f1 | xargs)
+            notify-send "Audio" "Switched to: $sink_name"
+          fi
+        fi
+      '';
+    };
+
+    xdg.configFile."ironbar/scripts/audio-current.sh" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        # Show abbreviated current audio output name
+        sink=$(${pkgs.wireplumber}/bin/wpctl inspect @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep "node.nick" | cut -d'"' -f2)
+        if [ -n "$sink" ]; then
+          # Truncate to 15 chars
+          echo "🔊 ''${sink:0:15}"
+        else
+          echo "🔊 ?"
+        fi
+      '';
+    };
+
     systemd.user.services.ironbar = {
       Unit = {
         Description = "Ironbar status bar";
@@ -395,6 +452,9 @@ in {
             gnused
             findutils
             curl
+            wireplumber
+            libnotify
+            rofi
           ])}:/run/current-system/sw/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin"
         ];
       };

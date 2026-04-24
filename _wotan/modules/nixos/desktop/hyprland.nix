@@ -230,6 +230,10 @@
             "$mod, TAB, changegroupactive, f"
             "$mod SHIFT, TAB, changegroupactive, b"
             "$mod SHIFT, G, moveoutofgroup"
+
+            # Audio output switching
+            "$mod, A, exec, ~/.config/ironbar/scripts/audio-switch.sh"
+            "$mod SHIFT, A, exec, pwvucontrol"
           ]
           ++ (
             # Workspace bindings
