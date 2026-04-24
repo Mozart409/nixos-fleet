@@ -18,8 +18,7 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [
       inputs.ironbar.packages.${pkgs.stdenv.hostPlatform.system}.ironbar
-      pkgs.pwvucontrol # Modern PipeWire volume control GUI
-      pkgs.pulsemixer # TUI audio mixer
+      # Audio tools (pwvucontrol, pulsemixer) are in quickshell.nix
     ];
 
     xdg.configFile."ironbar/config.toml".text = ''

@@ -8,6 +8,31 @@
   cfg = config.desktop.quickshell;
   quickshell = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+  # Audio switch script using rofi
+  audio-switch = pkgs.writeShellScriptBin "audio-switch" ''
+    set -euo pipefail
+
+    # List all audio sinks
+    sinks=$(${pkgs.wireplumber}/bin/wpctl status | sed -n '/Audio/,/Video/{/Sinks:/,/Sources:/p}' | grep -E '^\s*[│├└].*[0-9]+\.' | sed 's/[│├└]//g; s/^\s*//')
+
+    if [ -z "$sinks" ]; then
+      ${pkgs.libnotify}/bin/notify-send "Audio" "No audio sinks found"
+      exit 1
+    fi
+
+    # Show rofi menu
+    selected=$(echo "$sinks" | ${pkgs.rofi}/bin/rofi -dmenu -i -p "󰓃 Audio Output" -theme-str 'window {width: 450px;}')
+
+    if [ -n "$selected" ]; then
+      sink_id=$(echo "$selected" | grep -oE '[0-9]+\.' | head -1 | tr -d '.')
+      if [ -n "$sink_id" ]; then
+        ${pkgs.wireplumber}/bin/wpctl set-default "$sink_id"
+        sink_name=$(echo "$selected" | sed 's/^[* ]*[0-9]*\. //' | cut -d'[' -f1 | xargs)
+        ${pkgs.libnotify}/bin/notify-send "󰓃 Audio" "Switched to: $sink_name"
+      fi
+    fi
+  '';
+
   # Runtime dependencies for shell scripts and widgets
   dependencies = with pkgs; [
     bash
@@ -16,6 +41,9 @@
     gnugrep
     procps
     curl # for weather widget
+    wireplumber # for wpctl audio control
+    libnotify # for notify-send
+    rofi # for audio device selection menu
   ];
 
   # QML import paths for Qt6
@@ -33,7 +61,12 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [quickshell];
+    home.packages = [
+      quickshell
+      audio-switch # Rofi-based audio output switcher
+      pkgs.pwvucontrol # Modern PipeWire volume control GUI
+      pkgs.pulsemixer # TUI audio mixer
+    ];
 
     # Set QML import path for proper module resolution
     home.sessionVariables.QML2_IMPORT_PATH = qmlImportPath;

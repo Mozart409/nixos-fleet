@@ -231,8 +231,8 @@
             "$mod SHIFT, TAB, changegroupactive, b"
             "$mod SHIFT, G, moveoutofgroup"
 
-            # Audio output switching
-            "$mod, A, exec, ~/.config/ironbar/scripts/audio-switch.sh"
+            # Audio output switching (rofi menu / pwvucontrol GUI)
+            "$mod, A, exec, audio-switch"
             "$mod SHIFT, A, exec, pwvucontrol"
           ]
           ++ (
