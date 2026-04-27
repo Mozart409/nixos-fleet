@@ -15,6 +15,7 @@
     handbrake
     kdePackages.kwallet-pam
     llmfit
+    mesen
     mpv
     nerd-fonts.jetbrains-mono
     openrgb-with-all-plugins
