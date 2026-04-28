@@ -44,6 +44,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 5;
 
+  # Enable aarch64 emulation for cross-compilation (e.g., building aarch64 ISOs)
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
   # Desktop environment configuration
   desktop.enable = true;
 
