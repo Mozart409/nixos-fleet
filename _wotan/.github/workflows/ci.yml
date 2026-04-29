@@ -1,35 +1,28 @@
 name: NixOS Configuration Check
-
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-
 jobs:
   check:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v6
       - name: Install Nix
-        uses: cachix/install-nix-action@v27
+        uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
             accept-flake-config = true
-
       - name: Check Nix formatting
         run: nix run nixpkgs#alejandra -- --check .
-
       - name: Check flake
         run: nix flake check
-
       - name: Build NixOS configuration
         run: nix build .#nixosConfigurations.wotan.config.system.build.toplevel --no-link
-
       - name: Build home-manager configuration
         run: nix build .#homeConfigurations.amadeus@wotan.activationPackage --no-link
