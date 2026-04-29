@@ -10,3 +10,6 @@ pre-commit:
     - name: keep-sorted
       run: keep-sorted {staged_files}
       stage_fixed: true
+    - name: just
+      run: just --fmt
+      stage_fixed: true
