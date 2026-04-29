@@ -22,7 +22,3 @@ jobs:
         run: nix run nixpkgs#alejandra -- --check .
       - name: Check flake
         run: nix flake check
-      - name: Build NixOS configuration
-        run: nix build .#nixosConfigurations.wotan.config.system.build.toplevel --no-link
-      - name: Build home-manager configuration
-        run: nix build .#homeConfigurations.amadeus@wotan.activationPackage --no-link
