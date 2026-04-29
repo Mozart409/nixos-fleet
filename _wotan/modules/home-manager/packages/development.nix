@@ -10,6 +10,7 @@
     btop
     cargo-binstall
     cocogitto
+    d2
     deadbranch
     devenv
     dioxus-cli

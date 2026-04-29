@@ -23,6 +23,7 @@
     ./plugins/custom/plugins/autocommands.nix
     ./plugins/custom/plugins/comment.nix
     ./plugins/custom/plugins/cyberdream.nix
+    ./plugins/custom/plugins/d2.nix
     ./plugins/custom/plugins/dashboard.nix
     ./plugins/custom/plugins/dressing.nix
     ./plugins/custom/plugins/drop.nix
