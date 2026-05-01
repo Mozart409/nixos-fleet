@@ -58,7 +58,7 @@
 
       # Hyprland plugins
       inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
+      # hyprtrails disabled: incompatible with hyprland 0.54.0 (missing IPassElement::type() impl)
       # Theming
       qt6.qtwayland
       libsForQt5.qtwayland
@@ -102,8 +102,8 @@
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
-        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
         inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
+        # hyprtrails disabled: incompatible with hyprland 0.54.0
       ];
       settings = {
         # Monitor configuration (host-specific)
