@@ -56,11 +56,9 @@
       # Notifications
       dunst
 
-      # Hyprland plugins (disabled due to build errors - waiting for upstream to update)
-      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-      # Disabled: incompatible with hyprland 0.54.0
-      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
-      # Disabled: incompatible with hyprland 0.54.0
+      # Hyprland plugins
+      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
+      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
       # Theming
       qt6.qtwayland
       libsForQt5.qtwayland
@@ -104,8 +102,8 @@
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
-        # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
-        # inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprtrails
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
       ];
       settings = {
         # Monitor configuration (host-specific)
