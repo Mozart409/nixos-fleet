@@ -57,7 +57,7 @@
       dunst
 
       # Hyprland plugins
-      inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
+      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
       # hyprtrails disabled: incompatible with hyprland 0.54.0 (missing IPassElement::type() impl)
       # Theming
       qt6.qtwayland
@@ -102,7 +102,8 @@
       package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
-        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
+        # hyprbars disabled: testing if plugin causes session crash on reboot
+        # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
         # hyprtrails disabled: incompatible with hyprland 0.54.0
       ];
       settings = {
@@ -258,14 +259,15 @@
         ];
 
         # Plugin configurations
-        "plugin:hyprtrails" = {
-          "bezier_points" = "0.1,0.1,0.9,0.9";
-          "bezier_step" = 0.01;
-          "bezier_curve" = "catmull-rom";
-          "trail_color" = "rgba(33ccffee)";
-          "trail_size" = 3;
-          "trail_steps" = 5;
-        };
+        # hyprtrails config commented out - plugin disabled
+        # "plugin:hyprtrails" = {
+        #   "bezier_points" = "0.1,0.1,0.9,0.9";
+        #   "bezier_step" = 0.01;
+        #   "bezier_curve" = "catmull-rom";
+        #   "trail_color" = "rgba(33ccffee)";
+        #   "trail_size" = 3;
+        #   "trail_steps" = 5;
+        # };
 
         # Window rules for ueberzugpp (yazi image preview)
         windowrule = [
