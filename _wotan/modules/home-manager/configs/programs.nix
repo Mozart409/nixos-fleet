@@ -116,7 +116,7 @@
               colorArg = "always";
             }
           ];
-          autoFetch = true;
+          autoFetch = false;
           autoRefresh = true;
           branchLogCmd = "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --";
         };
