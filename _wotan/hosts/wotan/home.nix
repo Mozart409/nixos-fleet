@@ -57,6 +57,27 @@
     options = "--delete-generations +5";
   };
 
+  # SSH configuration - agent key for internal hosts, ed25519 for privileged access
+  programs.ssh = {
+    enable = true;
+    addKeysToAgent = "confirm";
+    matchBlocks = {
+      "192.168.* 10.* *.internal *.local" = {
+        user = "agent";
+        identityFile = "~/.ssh/id_agent";
+        identitiesOnly = true;
+      };
+      "amadeus@*" = {
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+      "root@*" = {
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+    };
+  };
+
   # Host-specific home-manager packages can be added here
   # For example, if you want certain packages only on wotan:
   # home.packages = with pkgs; [
