@@ -81,15 +81,12 @@
         identityFile = "~/.ssh/id_agent";
         identitiesOnly = true;
       };
-      "amadeus@*" = {
-        identityFile = "~/.ssh/id_ed25519";
-        identitiesOnly = true;
-      };
-      "root@*" = {
-        identityFile = "~/.ssh/id_ed25519";
-        identitiesOnly = true;
-      };
     };
+    extraConfig = ''
+      Match User amadeus,root
+        IdentityFile ~/.ssh/id_ed25519
+        IdentitiesOnly yes
+    '';
   };
 
   # Host-specific home-manager packages can be added here
