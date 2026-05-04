@@ -60,8 +60,12 @@
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
   programs.ssh = {
     enable = true;
-    addKeysToAgent = "confirm";
     matchBlocks = {
+      "*" = {
+        extraOptions = {
+          AddKeysToAgent = "confirm";
+        };
+      };
       "192.168.* 10.* *.internal *.local" = {
         user = "agent";
         identityFile = "~/.ssh/id_agent";
