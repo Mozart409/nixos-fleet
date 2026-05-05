@@ -133,6 +133,11 @@
         XCURSOR_SIZE = "24";
       };
 
+      # Prevent Razer Barracuda X 2.4 dongle from USB autosuspend (fixes audio dropout)
+      services.udev.extraRules = ''
+        ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1532", ATTR{idProduct}=="0550", ATTR{power/autosuspend}="-1"
+      '';
+
       # Enable common services
       services = {
         # Network management is handled elsewhere
