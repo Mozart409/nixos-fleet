@@ -111,7 +111,23 @@
         alsa.support32Bit = true;
         pulse.enable = true;
         jack.enable = true;
-        wireplumber.enable = true;
+        wireplumber = {
+          enable = true;
+          extraConfig = {
+            "10-disable-suspend" = {
+              "monitor.alsa.rules" = [
+                {
+                  matches = [{"node.name" = "~alsa_output.*";}];
+                  actions = {
+                    update-props = {
+                      "session.suspend-timeout-seconds" = 300;
+                    };
+                  };
+                }
+              ];
+            };
+          };
+        };
       };
 
       # X11 keyboard configuration (common to both DEs)
