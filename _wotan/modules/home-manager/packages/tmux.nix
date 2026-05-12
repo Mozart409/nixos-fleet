@@ -51,7 +51,6 @@
       tmuxPlugins.rose-pine
       tmuxPlugins.tmux-floax
       tmuxPlugins.mode-indicator
-      tmuxPlugins.tokyo-night-tmux
     ];
   };
 }
