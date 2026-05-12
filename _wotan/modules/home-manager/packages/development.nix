@@ -8,6 +8,7 @@
     # keep-sorted start
     bacon
     btop
+    bun
     cargo-binstall
     cocogitto
     d2
