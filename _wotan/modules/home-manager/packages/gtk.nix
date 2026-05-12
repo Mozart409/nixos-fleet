@@ -10,15 +10,18 @@
   };
 
   config = lib.mkIf config.desktop.gtk.enable {
-    # GTK enabled for dconf portal support but no theming
+    # GTK with Catppuccin theming
     gtk = {
       enable = true;
 
-      # No GTK3 theme
-      theme = null;
-
-      # No GTK4 theme
-      gtk4.theme = null;
+      # Catppuccin Mocha theme
+      theme = {
+        name = "catppuccin-mocha-blue-standard";
+        package = pkgs.catppuccin-gtk.override {
+          accents = ["blue"];
+          variant = "mocha";
+        };
+      };
 
       # Active icon theme: Colloid
       iconTheme = {
@@ -28,8 +31,8 @@
 
       # XCursor fallback for apps that don't support hyprcursor (GTK, Qt)
       cursorTheme = {
-        name = "Bibata-Modern-Ice";
-        package = pkgs.bibata-cursors;
+        name = "catppuccin-mocha-blue-cursors";
+        package = pkgs.catppuccin-cursors.mochaBlue;
         size = 24;
       };
 
@@ -47,8 +50,8 @@
       colloid-icon-theme
       # Inactive but available icon themes
       papirus-icon-theme
-      # XCursor fallback
-      bibata-cursors
+      # XCursor fallback (Catppuccin)
+      catppuccin-cursors.mochaBlue
       # Hyprcursor theme
       inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
@@ -59,7 +62,7 @@
       HYPRCURSOR_THEME = "rose-pine-hyprcursor";
       HYPRCURSOR_SIZE = "24";
       # XCursor fallback for GTK/Qt apps
-      XCURSOR_THEME = "Bibata-Modern-Ice";
+      XCURSOR_THEME = "catppuccin-mocha-blue-cursors";
       XCURSOR_SIZE = "24";
     };
   };

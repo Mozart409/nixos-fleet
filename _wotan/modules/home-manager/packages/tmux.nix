@@ -43,12 +43,10 @@
 
     '';
     plugins = with pkgs; [
-      tmuxPlugins.cpu
       tmuxPlugins.yank
-      tmuxPlugins.weather
       tmuxPlugins.urlview
       tmuxPlugins.sensible
-      tmuxPlugins.rose-pine
+      tmuxPlugins.catppuccin
       tmuxPlugins.tmux-floax
       tmuxPlugins.mode-indicator
     ];
