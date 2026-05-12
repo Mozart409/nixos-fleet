@@ -1,6 +1,6 @@
 # NixOS Multi-Host Configuration
 
-This is a multi-host NixOS configuration with shared modules and host-specific settings.
+This is a multi-host NixOS configuration with shared modules and host-specific settings currenlty used in my nixos desktop.
 
 ## 📁 Directory Structure
 
@@ -186,4 +186,3 @@ Each host can override or extend the shared configuration:
 - Automatic garbage collection is configured weekly
 - Development shell provides helpful commands and tools
 - Git hooks ensure configuration quality
-
