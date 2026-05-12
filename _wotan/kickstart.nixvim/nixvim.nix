@@ -31,6 +31,7 @@
     # Other plugins
     ./plugins/custom/plugins/fzf-lua.nix
     ./plugins/custom/plugins/inc-rename.nix
+    ./plugins/custom/plugins/lazygit.nix
     # Documentation
     ./plugins/custom/plugins/neogen.nix
     ./plugins/custom/plugins/neogit.nix
