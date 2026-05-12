@@ -62,6 +62,7 @@ in {
       modules = [
         ../hosts/${hostname}/home.nix
         inputs.nixvim.homeModules.nixvim
+        inputs.agenix.homeManagerModules.default
         {
           nixpkgs.overlays = anytypeOverlay pkgsStable;
         }
