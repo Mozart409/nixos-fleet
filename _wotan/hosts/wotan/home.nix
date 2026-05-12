@@ -9,6 +9,7 @@
     # keep-sorted start
     ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/common-packages.nix
+    ../../modules/home-manager/node-security.nix
     ../../modules/home-manager/packages/browsers.nix
     ../../modules/home-manager/packages/chess.nix
     ../../modules/home-manager/packages/database.nix
