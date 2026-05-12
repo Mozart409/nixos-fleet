@@ -44,6 +44,11 @@
   # Enable opencode custom commands
   opencode.enable = true;
 
+  # Dedicated age identity for agenix (no passphrase, never expires)
+  age.identityPaths = [
+    "${config.home.homeDirectory}/.config/age/keys.txt"
+  ];
+
   # Load CONTEXT7 API key from agenix secret file
   home.sessionVariablesExtra = ''
     if [ -n "$CONTEXT7_API_KEY_FILE" ] && [ -f "$CONTEXT7_API_KEY_FILE" ]; then

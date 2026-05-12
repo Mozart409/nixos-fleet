@@ -6,6 +6,7 @@
 }: {
   home.packages = with pkgs; [
     # keep-sorted start
+    age
     bat
     busybox
     file
