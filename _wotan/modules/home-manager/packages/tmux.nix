@@ -38,6 +38,9 @@
       bind '"' split-window -v -c "#{pane_current_path}"
       bind % split-window -h -c "#{pane_current_path}"
 
+      # Auto-setup: 3 windows, first runs nvim
+      set-hook -g session-created 'new-window ; new-window ; select-window -t :1 ; send-keys "nvim ." Enter'
+
     '';
     plugins = with pkgs; [
       tmuxPlugins.cpu
