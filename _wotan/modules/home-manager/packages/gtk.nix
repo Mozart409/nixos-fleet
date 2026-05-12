@@ -23,6 +23,9 @@
         };
       };
 
+      # GTK4 uses libadwaita, no theme override
+      gtk4.theme = null;
+
       # Active icon theme: Colloid
       iconTheme = {
         name = "Colloid-dark";
