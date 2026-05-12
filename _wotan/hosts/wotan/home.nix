@@ -80,6 +80,7 @@
         controlPersist = "no";
         extraOptions = {
           AddKeysToAgent = "confirm";
+          LogLevel = "DEBUG3";
         };
       };
       "192.168.* 10.* *.internal *.local" = {
