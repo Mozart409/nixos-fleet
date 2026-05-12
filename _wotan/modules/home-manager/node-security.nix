@@ -109,4 +109,17 @@
     "$HOME/.local/share/pnpm"
     "$HOME/.bun/bin"
   ];
+
+  # Shell aliases - bun requires explicit --config flag for global config
+  # See: https://github.com/oven-sh/bun/issues/26408
+  programs.zsh.shellAliases = {
+    # Wrap bun commands to use global security config
+    bun = "command bun --config ~/.bunfig.toml";
+    bunx = "command bunx --config ~/.bunfig.toml";
+  };
+
+  programs.bash.shellAliases = {
+    bun = "command bun --config ~/.bunfig.toml";
+    bunx = "command bunx --config ~/.bunfig.toml";
+  };
 }
