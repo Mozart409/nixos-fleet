@@ -57,13 +57,6 @@
             type = "remote";
             url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";
           };
-          netalertx = {
-            type = "remote";
-            url = "http://192.168.2.100:20212/mcp/sse";
-            headers = {
-              NETALERTX_API_KEY = "PLACEHOLDER";
-            };
-          };
           gh_grep = {
             type = "remote";
             url = "https://mcp.grep.app";
