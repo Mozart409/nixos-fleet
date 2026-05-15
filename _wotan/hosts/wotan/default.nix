@@ -214,18 +214,10 @@
     group = "users";
   };
 
-  age.secrets.netalertx-api-key = {
-    file = ../../secrets/netalertx-api-key.age;
-    mode = "440";
-    owner = "amadeus";
-    group = "users";
-  };
-
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
-    NETALERTX_API_KEY_FILE = config.age.secrets.netalertx-api-key.path;
 
     # NVIDIA Wayland environment variables for better compatibility
     GBM_BACKEND = "nvidia-drm";

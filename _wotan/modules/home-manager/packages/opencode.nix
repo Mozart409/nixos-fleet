@@ -162,27 +162,5 @@
     home.file."${config.opencode.commandsDir}/.gitkeep" = {
       text = "";
     };
-
-    # Inject NetAlertX API key from agenix secret at activation time
-    home.activation.setupOpencodeSecrets = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Use the known agenix symlink path directly
-      API_KEY_FILE="/run/agenix/netalertx-api-key"
-
-      if [ -f "$API_KEY_FILE" ] && [ -r "$API_KEY_FILE" ]; then
-        API_KEY=$(cat "$API_KEY_FILE")
-        if [ -n "$API_KEY" ]; then
-          ${pkgs.jq}/bin/jq '.mcp.netalertx.headers.NETALERTX_API_KEY = $key' \
-            --arg key "Bearer $API_KEY" \
-            ${config.home.homeDirectory}/.config/opencode/opencode.json > /tmp/opencode.json.tmp && \
-          mv /tmp/opencode.json.tmp ${config.home.homeDirectory}/.config/opencode/opencode.json
-          echo "NetAlertX API key injected successfully"
-        else
-          echo "Note: NetAlertX API key file is empty" >&2
-        fi
-      else
-        echo "Note: NetAlertX API key not available (agenix secret not decrypted yet)" >&2
-        echo "The config will work once you run 'sudo nixos-rebuild switch'" >&2
-      fi
-    '';
   };
 }
