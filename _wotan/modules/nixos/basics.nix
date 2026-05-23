@@ -12,12 +12,8 @@
       "nix-command"
       "flakes"
     ];
-    trusted-users = [
-      "root"
-      "user"
-      "@wheel"
-      "amadeus"
-    ];
+    # Restrict to root only - wheel/users can still build, just not bypass sandbox
+    trusted-users = ["root"];
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"

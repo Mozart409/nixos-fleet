@@ -18,10 +18,12 @@
 
     # Common modules
     ../../modules/nixos/common-packages.nix
+    ../../modules/nixos/security.nix
     ../../modules/nixos/flatpak.nix
     ../../modules/nixos/razer.nix
     ../../modules/nixos/llama-cpp.nix
-    ../../modules/nixos/open-webui.nix
+    # TODO: Re-enable when nixpkgs fixes open-webui build (missing @internationalized/date)
+    # ../../modules/nixos/open-webui.nix
     ../../modules/nixos/desktop/default.nix
     # ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/hyprland.nix
@@ -49,6 +51,16 @@
 
   # Desktop environment configuration
   desktop.enable = true;
+
+  # Security hardening
+  security.hardening = {
+    enable = true;
+    firewall.allowedTCPPorts = [
+      # Add ports as needed, e.g.:
+      # 22    # SSH (if needed externally)
+    ];
+    audit.enable = false; # Enable for security auditing (generates logs)
+  };
 
   # Display manager auto-login (KDE specific)
   services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
