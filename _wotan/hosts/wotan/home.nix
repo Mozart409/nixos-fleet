@@ -66,8 +66,9 @@
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     settings = {
-      Host."*" = {
+      "*" = {
         ForwardAgent = "no";
         Compression = "no";
         ServerAliveInterval = 0;
@@ -79,16 +80,17 @@
         ControlPersist = "no";
         AddKeysToAgent = "confirm";
       };
-      Host."192.168.* 10.* *.internal *.local" = {
+      "192.168.* 10.* *.internal *.local" = {
         User = "agent";
         IdentityFile = "~/.ssh/id_agent";
         IdentitiesOnly = "yes";
       };
-      Match."User amadeus,root" = {
-        IdentityFile = "~/.ssh/id_ed25519";
-        IdentitiesOnly = "yes";
-      };
     };
+    extraConfig = ''
+      Match User amadeus,root
+        IdentityFile ~/.ssh/id_ed25519
+        IdentitiesOnly yes
+    '';
   };
 
   # Host-specific home-manager packages can be added here
