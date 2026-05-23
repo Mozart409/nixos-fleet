@@ -235,7 +235,7 @@
             "$mod SHIFT, A, exec, pwvucontrol"
           ]
           ++ (
-            # Workspace bindings
+            # Workspace bindings (number row: code:10-18)
             builtins.concatLists (builtins.genList (
                 i: let
                   ws = i + 1;
@@ -245,6 +245,23 @@
                 ]
               )
               9)
+          )
+          ++ (
+            # Numpad workspace bindings (KP_1-KP_9)
+            # Numpad layout: 7(79) 8(80) 9(81) / 4(83) 5(84) 6(85) / 1(87) 2(88) 3(89)
+            let
+              numpadCodes = [87 88 89 83 84 85 79 80 81]; # KP_1 through KP_9
+            in
+              builtins.concatLists (builtins.genList (
+                  i: let
+                    ws = i + 1;
+                    code = builtins.elemAt numpadCodes i;
+                  in [
+                    "$mod, code:${toString code}, workspace, ${toString ws}"
+                    "$mod SHIFT, code:${toString code}, movetoworkspace, ${toString ws}"
+                  ]
+                )
+                9)
           );
 
         # Startup applications
