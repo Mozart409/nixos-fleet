@@ -66,33 +66,29 @@
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false;
-    matchBlocks = {
-      "*" = {
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
-        extraOptions = {
-          AddKeysToAgent = "confirm";
-        };
+    settings = {
+      Host."*" = {
+        ForwardAgent = "no";
+        Compression = "no";
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = "no";
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
+        AddKeysToAgent = "confirm";
       };
-      "192.168.* 10.* *.internal *.local" = {
-        user = "agent";
-        identityFile = "~/.ssh/id_agent";
-        identitiesOnly = true;
+      Host."192.168.* 10.* *.internal *.local" = {
+        User = "agent";
+        IdentityFile = "~/.ssh/id_agent";
+        IdentitiesOnly = "yes";
+      };
+      Match."User amadeus,root" = {
+        IdentityFile = "~/.ssh/id_ed25519";
+        IdentitiesOnly = "yes";
       };
     };
-    extraConfig = ''
-      Match User amadeus,root
-        IdentityFile ~/.ssh/id_ed25519
-        IdentitiesOnly yes
-    '';
   };
 
   # Host-specific home-manager packages can be added here
