@@ -9,6 +9,8 @@
         filesystem = {
           # Let neo-tree open in its configured position when starting with a directory
           hijack_netrw_behavior = "open_default";
+          # Watch filesystem for changes and auto-refresh (not just on focus)
+          use_libuv_file_watcher = true;
           window = {
             mappings = {
               "\\" = "close_window";
