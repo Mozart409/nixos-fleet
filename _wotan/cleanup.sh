@@ -30,54 +30,51 @@ echo 'Optimise store...'
 nix store optimise
 
 # ===== PARALLEL CLEANUP TASKS =====
+# Each task runs in a subshell with stdin from /dev/null so terminal
+# escape-sequence responses (e.g. cursor position reports) do not leak
+# into the parent shell.  Output is collected in temp files and printed
+# after all jobs finish to avoid interleaving.
 
-run_docker_cleanup() {
-  if command -v docker >/dev/null 2>&1; then
-    echo ''
-    echo 'Pruning Docker system...'
-    docker system prune -f --volumes
-  fi
+cleanup_task() {
+  name="$1"
+  shift
+  (
+    "$@"
+  ) </dev/null >"/tmp/cleanup_${name}.log" 2>&1
 }
 
-run_podman_cleanup() {
-  if command -v podman >/dev/null 2>&1; then
-    echo ''
-    echo 'Pruning Podman system...'
-    podman system prune -f
-    podman volume prune -f
-  fi
-}
+if command -v docker >/dev/null 2>&1; then
+  cleanup_task docker docker system prune -f --volumes &
+fi
 
-run_flatpak_cleanup() {
-  if command -v flatpak >/dev/null 2>&1; then
-    echo ''
-    echo 'Removing unused Flatpak runtimes...'
-    flatpak uninstall --unused -y || true
-  fi
-}
+if command -v podman >/dev/null 2>&1; then
+  (
+    cleanup_task podman sh -c 'podman system prune -f && podman volume prune -f'
+  ) &
+fi
 
-run_journal_cleanup() {
-  echo ''
-  echo 'Vacuuming journal logs (keeping 30 days)...'
-  sudo journalctl --vacuum-time=30d
-}
+if command -v flatpak >/dev/null 2>&1; then
+  cleanup_task flatpak sh -c 'flatpak uninstall --unused -y || true' &
+fi
 
-run_tmp_cleanup() {
-  echo ''
-  echo 'Cleaning up old files in /tmp...'
+cleanup_task journal sudo journalctl --vacuum-time=30d &
+
+cleanup_task tmp sh -c '
   sudo find /tmp -mindepth 1 -maxdepth 1 -type f -atime +7 -delete 2>/dev/null || true
   sudo find /tmp -mindepth 1 -maxdepth 1 -type d -empty -delete 2>/dev/null || true
-}
-
-# Start all cleanup tasks in parallel
-run_docker_cleanup &
-run_podman_cleanup &
-run_flatpak_cleanup &
-run_journal_cleanup &
-run_tmp_cleanup &
+' &
 
 # Wait for all background jobs to finish
 wait
+
+# Print collected output sequentially
+for log in /tmp/cleanup_*.log; do
+  if [ -f "$log" ] && [ -s "$log" ]; then
+    echo ''
+    cat "$log"
+  fi
+  rm -f "$log"
+done
 
 echo ''
 echo 'Disk usage after cleanup:'
