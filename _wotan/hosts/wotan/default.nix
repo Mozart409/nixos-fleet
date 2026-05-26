@@ -21,6 +21,7 @@
     ../../modules/nixos/security.nix
     ../../modules/nixos/flatpak.nix
     ../../modules/nixos/razer.nix
+    ../../modules/nixos/moza.nix
     ../../modules/nixos/llama-cpp.nix
     # TODO: Re-enable when nixpkgs fixes open-webui build (missing @internationalized/date)
     # ../../modules/nixos/open-webui.nix
