@@ -9,7 +9,7 @@
     enableZshIntegration = true;
     shellWrapperName = "y";
     settings = {
-      manager = {
+      mgr = {
         show_hidden = true;
         sort_by = "natural";
         sort_dir_first = true;
@@ -28,7 +28,7 @@
 
     # Keybindings - yazi uses vim-like keys by default
     keymap = {
-      manager.keymap = [
+      mgr.keymap = [
         {
           on = ["<Esc>"];
           run = "escape";
@@ -350,13 +350,8 @@
 
     # Theme - matching kanagawa style
     theme = {
-      manager = {
+      mgr = {
         cwd = {fg = "#7E9CD8";};
-        hovered = {
-          fg = "#1F1F28";
-          bg = "#7E9CD8";
-        };
-        preview_hovered = {underline = true;};
 
         find_keyword = {
           fg = "#E6C384";
@@ -380,45 +375,52 @@
           bg = "#FF5D62";
         };
 
-        tab_active = {
-          fg = "#1F1F28";
-          bg = "#7E9CD8";
-        };
-        tab_inactive = {
-          fg = "#DCD7BA";
-          bg = "#2A2A37";
-        };
-        tab_width = 1;
-
         border_symbol = "│";
         border_style = {fg = "#54546D";};
       };
 
-      status = {
-        separator_open = "";
-        separator_close = "";
-
-        separator_style = {
-          fg = "#2A2A37";
+      tabs = {
+        active = {
+          fg = "#1F1F28";
+          bg = "#7E9CD8";
+        };
+        inactive = {
+          fg = "#DCD7BA";
           bg = "#2A2A37";
         };
+      };
 
-        mode_normal = {
+      mode = {
+        normal_main = {
           fg = "#1F1F28";
           bg = "#7E9CD8";
           bold = true;
         };
-        mode_select = {
+        normal_alt = {
+          fg = "#7E9CD8";
+          bg = "#2A2A37";
+        };
+        select_main = {
           fg = "#1F1F28";
           bg = "#98BB6C";
           bold = true;
         };
-        mode_unset = {
+        select_alt = {
+          fg = "#98BB6C";
+          bg = "#2A2A37";
+        };
+        unset_main = {
           fg = "#1F1F28";
           bg = "#FF5D62";
           bold = true;
         };
+        unset_alt = {
+          fg = "#FF5D62";
+          bg = "#2A2A37";
+        };
+      };
 
+      status = {
         progress_label = {
           fg = "#DCD7BA";
           bold = true;
@@ -432,11 +434,11 @@
           bg = "#2A2A37";
         };
 
-        permissions_t = {fg = "#7E9CD8";};
-        permissions_r = {fg = "#E6C384";};
-        permissions_w = {fg = "#FF5D62";};
-        permissions_x = {fg = "#98BB6C";};
-        permissions_s = {fg = "#54546D";};
+        perm_type = {fg = "#7E9CD8";};
+        perm_read = {fg = "#E6C384";};
+        perm_write = {fg = "#FF5D62";};
+        perm_exec = {fg = "#98BB6C";};
+        perm_sep = {fg = "#54546D";};
       };
 
       input = {
@@ -446,7 +448,7 @@
         selected = {reversed = true;};
       };
 
-      select = {
+      pick = {
         border = {fg = "#7E9CD8";};
         active = {fg = "#E6C384";};
         inactive = {};
