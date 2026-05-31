@@ -3,7 +3,19 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  # Build a minimal blank .docx / .xlsx with Noto Sans 14pt as the default
+  # style. OOXML stores defaults inside the document, so this is the only
+  # reliable way to override Calibri 11pt for new files.
+  mkTemplate = name: src:
+    pkgs.runCommand name {nativeBuildInputs = [pkgs.zip];} ''
+      cd ${src}
+      zip -rX $out . -x '*.swp'
+    '';
+
+  blankDocx = mkTemplate "blank.docx" ./onlyoffice-templates/docx;
+  blankXlsx = mkTemplate "blank.xlsx" ./onlyoffice-templates/xlsx;
+in {
   # OnlyOffice Desktop Editors — declarative companion to LibreOffice.
   # Use for new spreadsheets / documents; LibreOffice remains the default
   # MIME handler until migration is complete.
@@ -26,15 +38,19 @@
       # Window state
       maximized = true;
       titlebar = "custom";
-
-      # Default editor font for new documents (Noto Sans @ 14pt).
-      # NOTE: These key names are best-effort. After first launch, run
-      #   cat ~/.config/onlyoffice/DesktopEditors.conf
-      # and align the keys below with what OnlyOffice actually persisted.
-      "fonts/default-name" = "Noto Sans";
-      "fonts/default-size" = 14;
-      "editor.font-name" = "Noto Sans";
-      "editor.font-size" = 14;
     };
+  };
+
+  # Blank templates with Noto Sans 14pt as default. Use via:
+  #   - Thunar right-click "Create Document" / "Create Spreadsheet"
+  #   - OnlyOffice: File -> Open -> ~/Templates/blank.docx (then Save As)
+  xdg.userDirs = {
+    enable = true;
+    templates = "${config.home.homeDirectory}/Templates";
+  };
+
+  home.file = {
+    "Templates/Empty Document.docx".source = blankDocx;
+    "Templates/Empty Spreadsheet.xlsx".source = blankXlsx;
   };
 }

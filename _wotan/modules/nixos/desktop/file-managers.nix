@@ -11,7 +11,7 @@
   config = lib.mkIf (config.desktop.enable && config.desktop.fileManagers.enable) {
     programs.thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
+      plugins = with pkgs; [
         thunar-archive-plugin
         thunar-volman
       ];
