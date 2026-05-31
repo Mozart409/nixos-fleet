@@ -5,7 +5,7 @@
   ...
 }: {
   options.desktop.fileManagers = {
-    enable = lib.mkEnableOption "GUI file managers (Thunar + Cosmic Files)";
+    enable = lib.mkEnableOption "GUI file manager (Thunar)";
   };
 
   config = lib.mkIf (config.desktop.enable && config.desktop.fileManagers.enable) {
@@ -18,9 +18,7 @@
     };
 
     environment.systemPackages = with pkgs; [
-      cosmic-files
-
-      # Thumbnail/preview generators (used by tumbler + cosmic-files)
+      # Thumbnail/preview generators for tumbler
       ffmpegthumbnailer # video thumbnails
       poppler-utils # PDF thumbnails (pdftoppm)
       libgsf # ODF/MS Office thumbnails
@@ -29,7 +27,7 @@
       librsvg # SVG previews
       libheif # HEIF/HEIC image previews
 
-      # GStreamer codecs (video/audio preview in both managers)
+      # GStreamer codecs (video/audio preview)
       gst_all_1.gstreamer
       gst_all_1.gst-plugins-base
       gst_all_1.gst-plugins-good

@@ -178,7 +178,7 @@
             "$mod, N, exec, neovim"
 
             # File manager
-            "$mod, E, exec, yazi"
+            "$mod, E, exec, thunar"
 
             # Wallpaper
             "$mod, W, exec, next-wallpaper"
