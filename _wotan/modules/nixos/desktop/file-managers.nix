@@ -1,0 +1,43 @@
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  options.desktop.fileManagers = {
+    enable = lib.mkEnableOption "GUI file managers (Thunar + Cosmic Files)";
+  };
+
+  config = lib.mkIf (config.desktop.enable && config.desktop.fileManagers.enable) {
+    programs.thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
+
+    environment.systemPackages = with pkgs; [
+      cosmic-files
+
+      # Thumbnail/preview generators (used by tumbler + cosmic-files)
+      ffmpegthumbnailer # video thumbnails
+      poppler-utils # PDF thumbnails (pdftoppm)
+      libgsf # ODF/MS Office thumbnails
+      freetype # font previews
+      webp-pixbuf-loader # webp image previews
+      librsvg # SVG previews
+      libheif # HEIF/HEIC image previews
+
+      # GStreamer codecs (video/audio preview in both managers)
+      gst_all_1.gstreamer
+      gst_all_1.gst-plugins-base
+      gst_all_1.gst-plugins-good
+      gst_all_1.gst-plugins-bad
+      gst_all_1.gst-plugins-ugly
+      gst_all_1.gst-libav
+    ];
+
+    services.tumbler.enable = true;
+  };
+}
