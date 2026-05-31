@@ -21,6 +21,7 @@
     ../../modules/home-manager/packages/hyprland-configs.nix
     ../../modules/home-manager/packages/ironbar.nix
     ../../modules/home-manager/packages/kubernetes.nix
+    ../../modules/home-manager/packages/onlyoffice.nix
     ../../modules/home-manager/packages/opencode.nix
     ../../modules/home-manager/packages/podman.nix
     ../../modules/home-manager/packages/quickshell.nix
