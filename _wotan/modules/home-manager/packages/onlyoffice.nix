@@ -47,6 +47,7 @@ in {
   xdg.userDirs = {
     enable = true;
     templates = "${config.home.homeDirectory}/Templates";
+    setSessionVariables = true;
   };
 
   home.file = {
