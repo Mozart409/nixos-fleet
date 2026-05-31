@@ -12,8 +12,8 @@ echo 'Pushing to all remotes'
 git push origin
 
 echo ''
-nh os switch -b backup .#nixosConfigurations.wotan
-nh home switch -b backup . -c amadeus@wotan
+nh os switch .#nixosConfigurations.wotan
+nh home switch . -c amadeus@wotan
 
 sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5
 
