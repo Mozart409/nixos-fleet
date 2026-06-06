@@ -76,21 +76,6 @@
         "url": "https://codeberg.org/LGFae/awww"
       }
     },
-    "crane": {
-      "locked": {
-        "lastModified": 1780099841,
-        "narHash": "sha256-EVZd2RsbpreRUDSi9rBwPY+ZxoyMaiEBbZxxhljbaS4=",
-        "owner": "ipetkov",
-        "repo": "crane",
-        "rev": "0532eb17955225173906d671fb36306bdeb1e2dc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ipetkov",
-        "repo": "crane",
-        "type": "github"
-      }
-    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -161,21 +146,6 @@
       },
       "original": {
         "owner": "NixOS",
-        "repo": "flake-compat",
-        "type": "github"
-      }
-    },
-    "flake-compat_3": {
-      "locked": {
-        "lastModified": 1767039857,
-        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
-        "owner": "edolstra",
-        "repo": "flake-compat",
-        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
-        "type": "github"
-      },
-      "original": {
-        "owner": "edolstra",
         "repo": "flake-compat",
         "type": "github"
       }
@@ -783,44 +753,6 @@
         "type": "github"
       }
     },
-    "ironbar": {
-      "inputs": {
-        "crane": "crane",
-        "flake-compat": "flake-compat_3",
-        "nix-systems": "nix-systems",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1780527039,
-        "narHash": "sha256-ROxiaRmBEDU1tMB808pWPihwwmVundKiwSE7vyTkhDg=",
-        "owner": "JakeStanger",
-        "repo": "ironbar",
-        "rev": "185e99d43e9db6e3928fc6372755dad654c9173b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "JakeStanger",
-        "repo": "ironbar",
-        "type": "github"
-      }
-    },
-    "nix-systems": {
-      "locked": {
-        "lastModified": 1689347949,
-        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
-        "owner": "nix-systems",
-        "repo": "default-linux",
-        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default-linux",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1763934636,
@@ -992,7 +924,6 @@
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
         "hyprsunset": "hyprsunset",
-        "ironbar": "ironbar",
         "nixpkgs": "nixpkgs_5",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
