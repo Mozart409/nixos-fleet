@@ -86,7 +86,15 @@ in {
       environment = {
         HOME = "/var/lib/vllm";
         HF_HOME = "/var/lib/vllm/huggingface";
+        TRITON_CACHE_DIR = "/var/lib/vllm/triton-cache";
       };
+
+      preStart = ''
+        # Stale half-written .so files from a previous crash can fail to mmap
+        # on restart ("failed to map segment from shared object"). Wipe the
+        # Triton compile cache so the next start always starts clean.
+        rm -rf /var/lib/vllm/triton-cache
+      '';
 
       serviceConfig = {
         DynamicUser = true;

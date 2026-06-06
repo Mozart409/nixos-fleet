@@ -194,7 +194,9 @@
     port = 10808;
     host = "127.0.0.1";
     maxModelLen = 40960; # 40K — Qwen3-8B native context
-    gpuMemoryUtilization = 0.9;
+    # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
+    # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
+    gpuMemoryUtilization = 0.80;
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
     extraArgs = [
       "--kv-cache-dtype"
