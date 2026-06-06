@@ -32,6 +32,7 @@
     pkg-configUpstream
     pnpm
     pwgen
+    python3
     python314Packages.huggingface-hub
     radicle-desktop
     radicle-tui
