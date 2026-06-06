@@ -66,6 +66,10 @@ in {
         inputs.nixvim.homeModules.nixvim
         inputs.agenix.homeManagerModules.default
         {
+          # Setting `nixpkgs.overlays` here makes home-manager re-import nixpkgs
+          # internally — which drops the `config` from our outer `pkgs` import.
+          # We therefore have to repeat the config so allow-lists survive.
+          nixpkgs.config = sharedNixpkgsConfig;
           nixpkgs.overlays = anytypeOverlay pkgsStable;
           # Pin nixvim's nixpkgs source to ours — suppresses the warning about
           # `inputs.nixvim.inputs.nixpkgs.follows` skewing the default.
