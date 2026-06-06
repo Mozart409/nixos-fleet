@@ -36,7 +36,7 @@ in {
       general {
           lock_cmd = hyprctl dispatch dpms on; pidof hyprlock || hyprlock       # turn on display so screenshot isn't blank, avoid starting multiple hyprlock instances
           before_sleep_cmd = loginctl lock-session    # lock before suspend
-          after_sleep_cmd = hyprctl dispatch dpms on; systemctl --user restart ironbar  # turn on display and restart bar after sleep
+          after_sleep_cmd = hyprctl dispatch dpms on  # turn on display after sleep
           ignore_dbus_inhibit = false                 # respect idle-inhibit requests (e.g., from firefox, steam)
           ignore_systemd_inhibit = false              # respect systemd-inhibit --what=idle inhibitors
       }

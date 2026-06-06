@@ -4,9 +4,9 @@
   ...
 }: {
   # Shared Hyprland systemd session target
-  # This target is used by multiple home-manager modules (ironbar, quickshell, etc.)
+  # This target is used by home-manager modules (quickshell, etc.)
   # to coordinate service startup after Hyprland is ready
-  systemd.user.targets.hyprland-session = lib.mkIf (config.desktop.ironbar.enable || config.desktop.quickshell.enable) {
+  systemd.user.targets.hyprland-session = lib.mkIf config.desktop.quickshell.enable {
     Unit = {
       Description = "Hyprland compositor session";
       Documentation = "man:systemd.special(7)";

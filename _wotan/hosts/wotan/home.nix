@@ -19,7 +19,6 @@
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
-    ../../modules/home-manager/packages/ironbar.nix
     ../../modules/home-manager/packages/kubernetes.nix
     ../../modules/home-manager/packages/onlyoffice.nix
     ../../modules/home-manager/packages/opencode.nix
@@ -36,7 +35,6 @@
   ];
 
   desktop.waybar.enable = false;
-  desktop.ironbar.enable = false;
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;

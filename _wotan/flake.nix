@@ -29,11 +29,6 @@
 
     hyprsunset.url = "github:hyprwm/hyprsunset";
 
-    ironbar = {
-      url = "github:JakeStanger/ironbar";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -69,7 +64,6 @@
     hyprland-plugins,
     hypr-dynamic-cursors,
     hyprsunset,
-    ironbar,
     quickshell,
     disko,
     awww,
