@@ -253,7 +253,7 @@ The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acce
 **Model cache location:** `/var/lib/vllm/huggingface/` (HF transformers format, NOT GGUF)
 
 **Currently configured model** (see `hosts/wotan/default.nix`):
-- `Qwen/Qwen3.5-35B-A3B-GPTQ-Int4` — official Qwen MoE (36B total / 3B active), 64K serving context, CPU expert offload to system RAM
+- `Qwen/Qwen3-8B-AWQ` — official Qwen dense AWQ-4bit, 40K context. Dense rather than MoE because vLLM 0.16.0 does NOT yet support the `Qwen3_5MoeForConditionalGeneration` architecture (only `Qwen3MoeForCausalLM` / `Qwen3ForCausalLM`). Revisit when vllm bumps to ≥ 0.18.
 
 **Switching models:**
 Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative model candidates are listed in the comment block above the `services.vllm` declaration. Stick to **trusted repos** (`Qwen/`, `RedHatAI/`) while CVE-2026-27893 (RCE via hardcoded `trust_remote_code`) remains unpatched in nixpkgs vllm 0.16.0.

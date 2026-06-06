@@ -35,10 +35,10 @@
               baseURL = "http://127.0.0.1:10808/v1";
             };
             models = {
-              "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4" = {
-                name = "Qwen3.5-35B-A3B (GPTQ, MoE + CPU offload)";
+              "Qwen/Qwen3-8B-AWQ" = {
+                name = "Qwen3-8B (AWQ)";
                 limit = {
-                  context = 65536;
+                  context = 40960;
                   output = 8192;
                 };
               };

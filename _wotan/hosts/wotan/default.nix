@@ -158,46 +158,45 @@
 
   # vLLM OpenAI-compatible inference server.
   # Models cached to /var/lib/vllm/huggingface on first run.
-  # Model: Qwen3.5-35B-A3B MoE (3B active params) with CPU expert offload.
+  # Model: Qwen3-8B dense AWQ. Picked because vLLM 0.16.0 in nixpkgs does NOT
+  # support the newer Qwen3.5/3.6 architectures (`Qwen3_5MoeForConditionalGeneration`
+  # is missing from the registry; only `Qwen3MoeForCausalLM` / `Qwen3ForCausalLM`
+  # are recognized). When nixpkgs bumps vllm to >= 0.18, revisit and switch to a
+  # Qwen3.5 MoE quant for huge context.
   # Official Qwen quant — important because vllm 0.16.0 has CVE-2026-27893 (RCE
   # via hardcoded trust_remote_code), so we MUST stick to trusted repos.
-  # Selected via llmfit: ~3GB VRAM for active weights + ~15GB RAM for inactive experts.
-  # KV cache stays on GPU, so maxModelLen is bounded by remaining VRAM, not the
-  # model's 262K theoretical max — start at 64K, tune up if memory allows.
   #
   # Alternative models for RTX 3060 (12GB VRAM) + 62GB RAM. Trust-tier matters
   # while CVE-2026-27893 is unpatched — prefer Qwen/ official, then RedHatAI/.
   # All picked via `llmfit fit` (runtime=vLLM, mode=GPU, fit=Perfect/Good).
   # Verified 2026-06-06 — re-verify before switching, repos may move/disappear.
   #
-  #   Official Qwen MoE (preferred while CVE-2026-27893 stands):
-  #     Qwen/Qwen3.5-35B-A3B-GPTQ-Int4    # current pick, 262K ctx, 22 tok/s
+  #   Official Qwen3 (vllm 0.16-compatible architectures only):
+  #     Qwen/Qwen3-8B-AWQ                          # current pick, dense, 41K ctx
+  #     Qwen/Qwen3-30B-A3B-Instruct-2507           # MoE 262K ctx, needs CPU offload
+  #     Qwen/Qwen3-Coder-30B-A3B-Instruct          # MoE coder-tuned, 262K ctx
   #
-  #   Community MoE quants (only if you trust the publisher):
-  #     QuantTrio/Qwen3.6-35B-A3B-AWQ                  # 262K ctx, 22 tok/s
-  #     Chunity/Qwen3.6-35B-A3B-AutoRound-AWQ-4bit     # 262K ctx, 24 tok/s
-  #     stelterlab/Qwen3-Coder-30B-A3B-Instruct-AWQ    # coder-tuned, 19 tok/s
-  #     codgician/Qwen3.5-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GPTQ-int4
+  #   Official Qwen3.5/3.6 MoE (waiting on vllm >= 0.18):
+  #     Qwen/Qwen3.5-35B-A3B-GPTQ-Int4             # 262K ctx, 22 tok/s
   #
-  #   Smaller dense alternatives (no CPU offload, official only):
-  #     Qwen/Qwen3-8B-AWQ                   # 41K ctx, 48 tok/s, ~85% VRAM
-  #     Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4  # 33K ctx, 52 tok/s, ~50% VRAM
+  #   Other dense alternatives:
+  #     Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4         # 33K ctx, 52 tok/s, ~50% VRAM
   #     RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16  # 1M model ctx, 49 tok/s
   #
   #   Notes:
   #     - Kimi K2 (16M ctx!) is GGUF/llama.cpp only — not vLLM-compatible.
+  #     - Community MoE quants exist (QuantTrio, Chunity, stelterlab) but most
+  #       are Qwen3.5/3.6 — same vllm-0.16 architecture mismatch.
   #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
   services.vllm = {
     enable = true;
-    model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+    model = "Qwen/Qwen3-8B-AWQ";
     port = 10808;
     host = "127.0.0.1";
-    maxModelLen = 65536; # 64K — increase if KV cache fits
+    maxModelLen = 40960; # 40K — Qwen3-8B native context
     gpuMemoryUtilization = 0.9;
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
     extraArgs = [
-      "--cpu-offload-gb"
-      "16" # Offload up to 16GB of inactive MoE experts to system RAM
       "--kv-cache-dtype"
       "fp8" # Quantize KV cache to save VRAM
     ];
