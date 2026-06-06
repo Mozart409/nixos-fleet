@@ -11,4 +11,10 @@ let
 in {
   # CONTEXT7 API key for OpenCode MCP server
   "secrets/context7-api-key.age".publicKeys = allKeys;
+
+  # HuggingFace read-only token for vLLM (gated models like Llama-3.1).
+  # Content must be a systemd EnvironmentFile line:
+  #   HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  # Edit with: agenix -e secrets/hf-token.age
+  "secrets/hf-token.age".publicKeys = allKeys;
 }

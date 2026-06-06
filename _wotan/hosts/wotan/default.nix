@@ -22,7 +22,7 @@
     ../../modules/nixos/flatpak.nix
     ../../modules/nixos/razer.nix
     ../../modules/nixos/moza.nix
-    ../../modules/nixos/llama-cpp.nix
+    ../../modules/nixos/vllm.nix
     # TODO: Re-enable when nixpkgs fixes open-webui build (missing @internationalized/date)
     # ../../modules/nixos/open-webui.nix
     ../../modules/nixos/desktop/default.nix
@@ -156,28 +156,50 @@
     ''
   ];
 
-  # llama.cpp server with models directory
-  # Models are stored in /var/lib/llama-cpp/models (the service's state directory)
-  # Per-model presets are in modules/nixos/llama-cpp.nix
-  services.llama-cpp = {
+  # vLLM OpenAI-compatible inference server.
+  # Models cached to /var/lib/vllm/huggingface on first run.
+  # Model: Qwen3.5-35B-A3B MoE (3B active params) with CPU expert offload.
+  # Official Qwen quant — important because vllm 0.16.0 has CVE-2026-27893 (RCE
+  # via hardcoded trust_remote_code), so we MUST stick to trusted repos.
+  # Selected via llmfit: ~3GB VRAM for active weights + ~15GB RAM for inactive experts.
+  # KV cache stays on GPU, so maxModelLen is bounded by remaining VRAM, not the
+  # model's 262K theoretical max — start at 64K, tune up if memory allows.
+  #
+  # Alternative models for RTX 3060 (12GB VRAM) + 62GB RAM. Trust-tier matters
+  # while CVE-2026-27893 is unpatched — prefer Qwen/ official, then RedHatAI/.
+  # All picked via `llmfit fit` (runtime=vLLM, mode=GPU, fit=Perfect/Good).
+  # Verified 2026-06-06 — re-verify before switching, repos may move/disappear.
+  #
+  #   Official Qwen MoE (preferred while CVE-2026-27893 stands):
+  #     Qwen/Qwen3.5-35B-A3B-GPTQ-Int4    # current pick, 262K ctx, 22 tok/s
+  #
+  #   Community MoE quants (only if you trust the publisher):
+  #     QuantTrio/Qwen3.6-35B-A3B-AWQ                  # 262K ctx, 22 tok/s
+  #     Chunity/Qwen3.6-35B-A3B-AutoRound-AWQ-4bit     # 262K ctx, 24 tok/s
+  #     stelterlab/Qwen3-Coder-30B-A3B-Instruct-AWQ    # coder-tuned, 19 tok/s
+  #     codgician/Qwen3.5-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GPTQ-int4
+  #
+  #   Smaller dense alternatives (no CPU offload, official only):
+  #     Qwen/Qwen3-8B-AWQ                   # 41K ctx, 48 tok/s, ~85% VRAM
+  #     Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4  # 33K ctx, 52 tok/s, ~50% VRAM
+  #     RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16  # 1M model ctx, 49 tok/s
+  #
+  #   Notes:
+  #     - Kimi K2 (16M ctx!) is GGUF/llama.cpp only — not vLLM-compatible.
+  #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
+  services.vllm = {
     enable = true;
-    modelsDir = "/var/lib/llama-cpp/models";
-    extraFlags = [
-      "--n-gpu-layers"
-      "99" # Offload all layers to GPU
-      "--cpu-moe" # Keep MoE expert weights in CPU RAM (required for large MoE models like Qwen3-30B-A3B)
-      "--parallel"
-      "1" # Single slot for max context
-      "--ctx-size"
-      "98304" # 96K context for your 96K token requests
-      "--rope-scale"
-      "2.5" # Scale 40K training context to 100K
-      "--cache-type-k"
-      "q4_0" # Quantized KV cache to save VRAM
-      "--cache-type-v"
-      "q4_0" # Quantized KV cache to save VRAM
-      "--models-preset"
-      "/etc/llama-cpp-presets.ini"
+    model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+    port = 10808;
+    host = "127.0.0.1";
+    maxModelLen = 65536; # 64K — increase if KV cache fits
+    gpuMemoryUtilization = 0.9;
+    huggingfaceTokenFile = config.age.secrets.hf-token.path;
+    extraArgs = [
+      "--cpu-offload-gb"
+      "16" # Offload up to 16GB of inactive MoE experts to system RAM
+      "--kv-cache-dtype"
+      "fp8" # Quantize KV cache to save VRAM
     ];
   };
 
@@ -226,6 +248,13 @@
     mode = "440";
     owner = "amadeus";
     group = "users";
+  };
+
+  age.secrets.hf-token = {
+    file = ../../secrets/hf-token.age;
+    mode = "440";
+    # Owned by root so the vllm systemd service can read it via EnvironmentFile.
+    # Format inside the file: HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
   };
 
   # Environment variables

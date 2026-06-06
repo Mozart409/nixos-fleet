@@ -28,25 +28,18 @@
       text = builtins.toJSON {
         "$schema" = "https://opencode.ai/config.json";
         provider = {
-          "llama.cpp" = {
+          vllm = {
             npm = "@ai-sdk/openai-compatible";
-            name = "llama-server (local)";
+            name = "vLLM (local)";
             options = {
               baseURL = "http://127.0.0.1:10808/v1";
             };
             models = {
-              "Qwen3-8B-Q5_K_M" = {
-                name = "Qwen3-8B (Q5_K_M)";
+              "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4" = {
+                name = "Qwen3.5-35B-A3B (GPTQ, MoE + CPU offload)";
                 limit = {
-                  context = 131072;
-                  output = 65536;
-                };
-              };
-              "NVIDIA-Nemotron3-Nano-4B-Q4_K_M" = {
-                name = "Nemotron 3 Nano 4B (Q4_K_M)";
-                limit = {
-                  context = 262144;
-                  output = 65536;
+                  context = 65536;
+                  output = 8192;
                 };
               };
             };
