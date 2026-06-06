@@ -38,7 +38,7 @@
               "Qwen/Qwen3-8B-AWQ" = {
                 name = "Qwen3-8B (AWQ)";
                 limit = {
-                  context = 40960;
+                  context = 28672;
                   output = 8192;
                 };
               };

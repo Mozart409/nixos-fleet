@@ -193,7 +193,9 @@
     model = "Qwen/Qwen3-8B-AWQ";
     port = 10808;
     host = "127.0.0.1";
-    maxModelLen = 40960; # 40K — Qwen3-8B native context
+    maxModelLen = 28672; # 28K — bounded by ~2.15 GiB KV-cache budget on RTX 3060.
+    # vLLM reported "estimated maximum model length is 31296" at gpu_mem=0.80.
+    # Bump up if you raise gpuMemoryUtilization; lower if you see OOM during prefill.
     # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
     # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
     gpuMemoryUtilization = 0.80;
