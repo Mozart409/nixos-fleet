@@ -29,6 +29,11 @@
 
     hyprsunset.url = "github:hyprwm/hyprsunset";
 
+    llama-cpp = {
+      url = "github:ggml-org/llama.cpp";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,6 +69,7 @@
     hyprland-plugins,
     hypr-dynamic-cursors,
     hyprsunset,
+    llama-cpp,
     quickshell,
     disko,
     awww,

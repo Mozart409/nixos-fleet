@@ -2,8 +2,11 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
-}: {
+}: let
+  llamaCppCuda = inputs.llama-cpp.packages.${pkgs.stdenv.hostPlatform.system}.cuda;
+in {
   # llama.cpp configuration with NVIDIA CUDA support
   # The service is disabled by default - enable in host config with:
   #
@@ -22,16 +25,18 @@
   # Models location: /var/lib/llama-cpp/models/ (systemd state directory)
   # Add models with: sudo mv model.gguf /var/lib/llama-cpp/models/
 
-  # Use CUDA-enabled llama-cpp for NVIDIA GPUs
+  # Use CUDA-enabled llama-cpp from the upstream flake.
+  # The upstream CI publishes these exact builds to llama-cpp.cachix.org,
+  # so this should hit the binary cache instead of recompiling.
   services.llama-cpp = {
-    package = lib.mkDefault (pkgs.llama-cpp.override {cudaSupport = true;});
+    package = lib.mkDefault llamaCppCuda;
     port = lib.mkDefault 10808; # Less common port to avoid conflicts
     host = lib.mkDefault "127.0.0.1"; # Only local access by default
   };
 
   # Install llama-cpp CLI tools system-wide for manual usage
-  environment.systemPackages = with pkgs; [
-    (llama-cpp.override {cudaSupport = true;})
+  environment.systemPackages = [
+    llamaCppCuda
   ];
 
   # Per-model configuration presets for llama-cpp
