@@ -201,6 +201,12 @@
     extraArgs = [
       "--kv-cache-dtype"
       "fp8" # Quantize KV cache to save VRAM
+      # Disables torch.compile + CUDA graph capture. Necessary because the
+      # nixpkgs build of vllm 0.16.0 produces a Triton/Inductor .so that
+      # fails `dlopen` ("failed to map segment from shared object"). Costs
+      # ~10-15% throughput but lets the engine actually start.
+      # TODO: drop when nixpkgs ships a working vllm build (try after >=0.20).
+      "--enforce-eager"
     ];
   };
 
