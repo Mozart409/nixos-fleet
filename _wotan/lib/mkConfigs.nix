@@ -6,10 +6,25 @@
   home-manager,
 }: let
   # Helper to create pkgsStable - shared between mkHost and mkHome
+  # Shared nixpkgs config — kept in sync between mkHost and mkHome so both
+  # nixos and home-manager evaluations see the same allow/insecure lists.
+  sharedNixpkgsConfig = {
+    allowUnfree = true;
+    permittedInsecurePackages = [
+      # Required by anytype (overlaid from nixpkgs-stable). EOL Electron release;
+      # the upstream anytype team controls when this gets bumped.
+      "electron-39.8.10"
+      # vLLM 0.16.0 — three CVEs documented in modules/nixos/vllm.nix.
+      # Mitigations: loopback-only bind, trusted-repo-only models. Drop when
+      # nixpkgs ships vllm >= 0.20.0.
+      "python3.13-vllm-0.16.0"
+    ];
+  };
+
   mkPkgsStable = system:
     import nixpkgs-stable {
       inherit system;
-      config.allowUnfree = true;
+      config = sharedNixpkgsConfig;
     };
 
   # Shared overlay for anytype package
@@ -29,7 +44,7 @@ in {
         ../hosts/${hostname}/default.nix
         {
           nixpkgs.hostPlatform = system;
-          nixpkgs.config.allowUnfree = true;
+          nixpkgs.config = sharedNixpkgsConfig;
           nixpkgs.overlays = anytypeOverlay pkgsStable;
         }
       ];
@@ -39,7 +54,7 @@ in {
   mkHome = hostname: system: let
     pkgs = import nixpkgs {
       inherit system;
-      config.allowUnfree = true;
+      config = sharedNixpkgsConfig;
     };
     pkgsStable = mkPkgsStable system;
   in
@@ -52,6 +67,9 @@ in {
         inputs.agenix.homeManagerModules.default
         {
           nixpkgs.overlays = anytypeOverlay pkgsStable;
+          # Pin nixvim's nixpkgs source to ours — suppresses the warning about
+          # `inputs.nixvim.inputs.nixpkgs.follows` skewing the default.
+          programs.nixvim.nixpkgs.source = pkgs.path;
         }
       ];
     };

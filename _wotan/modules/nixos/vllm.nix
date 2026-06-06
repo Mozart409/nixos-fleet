@@ -62,7 +62,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # vllm 0.16.0 in nixpkgs is flagged for 3 CVEs (verified 2026-06-06):
+    # NOTE: vllm 0.16.0 is flagged for 3 CVEs in nixpkgs. The insecure-package
+    # exception lives in `lib/mkConfigs.nix` (sharedNixpkgsConfig) so it applies
+    # to both nixos and home-manager evals. See that file for the full list,
+    # and below for per-CVE details:
     #   CVE-2026-27893 (RCE, fixed in 0.18.0): hardcoded `trust_remote_code=True`
     #     in two model files bypasses the user's `--trust-remote-code=False`.
     #     Mitigation: only load models from trusted HF repos (Qwen/, RedHatAI/,
@@ -72,10 +75,7 @@ in {
     #   CVE-2026-44223 (DoS, fixed in 0.20.0): repetition/frequency/presence
     #     penalties crash the EngineCore. Mitigation: clients should avoid these
     #     params; systemd Restart=on-failure auto-recovers.
-    # TODO: drop this once nixpkgs ships vllm >= 0.20.0.
-    nixpkgs.config.permittedInsecurePackages = [
-      "python3.13-vllm-0.16.0"
-    ];
+    # TODO: drop the exception in mkConfigs.nix once nixpkgs ships vllm >= 0.20.0.
 
     systemd.services.vllm = {
       description = "vLLM OpenAI-compatible inference server";
