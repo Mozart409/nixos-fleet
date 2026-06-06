@@ -246,46 +246,60 @@ Before committing changes:
 6. **Secrets:** Use agenix for sensitive data (see `age.secrets` in wotan config)
 7. **Systemd sandboxing:** Services with `DynamicUser=true` and `ProtectHome=true` cannot access `/home/`. Use state directories (e.g., `/var/lib/<service>/`) instead.
 
-## 🤖 LLaMA.cpp Server
+## 🤖 vLLM Inference Server
 
-The llama-cpp service runs with strict systemd sandboxing (`ProtectHome=true`), so models must be stored in the service's state directory.
+The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs under `DynamicUser=true` with a state directory at `/var/lib/vllm/`. Models are pulled from HuggingFace on first launch, not stored as local files.
 
-**Models location:** `/var/lib/llama-cpp/models/`
+**Model cache location:** `/var/lib/vllm/huggingface/` (HF transformers format, NOT GGUF)
 
-**Currently installed models:**
-- `Qwen3-8B-Q5_K_M.gguf` - Primary model with native tool calling (~50-70 tok/s, ~5.5GB VRAM, 64K context)
+**Currently configured model** (see `hosts/wotan/default.nix`):
+- `Qwen/Qwen3.5-35B-A3B-GPTQ-Int4` — official Qwen MoE (36B total / 3B active), 64K serving context, CPU expert offload to system RAM
 
-**Adding models:**
-```bash
-# Using llmfit (recommended)
-llmfit download unsloth/LFM2-8B-A1B-GGUF --quant Q6_K
-sudo mv ~/.cache/llmfit/models/*.gguf /var/lib/llama-cpp/models/
+**Switching models:**
+Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative model candidates are listed in the comment block above the `services.vllm` declaration. Stick to **trusted repos** (`Qwen/`, `RedHatAI/`) while CVE-2026-27893 (RCE via hardcoded `trust_remote_code`) remains unpatched in nixpkgs vllm 0.16.0.
 
-# Manual download
-sudo mv model.gguf /var/lib/llama-cpp/models/
-```
-
-**API endpoints:**
+**API endpoints (OpenAI-compatible):**
 - List models: `http://127.0.0.1:10808/v1/models`
 - Chat completions: `http://127.0.0.1:10808/v1/chat/completions`
+- Completions: `http://127.0.0.1:10808/v1/completions`
 
 **Service management:**
 ```bash
-systemctl status llama-cpp          # Check status
-journalctl -u llama-cpp -f          # Follow logs
-sudo systemctl restart llama-cpp    # Restart service
+systemctl status vllm               # Check status
+journalctl -u vllm -f               # Follow logs (watch model load on first start)
+sudo systemctl restart vllm         # Restart service
 ```
 
-**Configuration:** `modules/nixos/llama-cpp.nix` (shared) and `hosts/wotan/default.nix` (host-specific)
+**HuggingFace token (for gated models):**
+The HF token is stored as an agenix secret at `secrets/hf-token.age` and mounted as a systemd `EnvironmentFile`. Format inside the file:
+```
+HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+Edit with: `nix run github:ryantm/agenix -- -e secrets/hf-token.age`
+
+**Configuration:** `modules/nixos/vllm.nix` (module + options) and `hosts/wotan/default.nix` (host-specific model + flags)
+
+**Known issues (vllm 0.16.0, see CVE block in `modules/nixos/vllm.nix`):**
+- CVE-2026-27893 — RCE if loading untrusted model repos
+- CVE-2026-44222 — DoS via multimodal token injection (mitigated by loopback bind)
+- CVE-2026-44223 — DoS when client sends `repetition_penalty` / `frequency_penalty` / `presence_penalty`. `Restart=on-failure` auto-recovers.
 
 ### Hardware fitting with llmfit
 
+`llmfit` recommends GGUF/llama.cpp models by default — filter to vLLM-compatible HF format with `runtime=vLLM`:
+
 ```bash
-llmfit system                    # Show hardware specs
-llmfit fit --json --limit 20     # Find fitting models
-llmfit recommend --json          # Top recommendations
-llmfit info "model/name"         # Detailed model info
-llmfit hf-search "query"         # Search HuggingFace for GGUFs
+llmfit system                                            # Show hardware specs
+llmfit --memory 12G fit                                  # Find fitting models (table)
+llmfit --memory 12G --max-context 262144 --json fit      # JSON output for scripting
+llmfit info "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"             # Detailed model info
+llmfit search "qwen"                                     # Search by name
+```
+
+Filter JSON output to vLLM-compatible candidates:
+```bash
+llmfit --memory 12G --json fit \
+  | jq '.models[] | select(.runtime=="vLLM" and (.fit_level=="Perfect" or .fit_level=="Good"))'
 ```
 
 ## 📚 Additional Resources

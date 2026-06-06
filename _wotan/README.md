@@ -164,11 +164,12 @@ Each host can override or extend the shared configuration:
 ### Current Host: wotan
 
 - **Desktop**: Hyprland (Wayland compositor)
-- **Graphics**: NVIDIA (stable drivers)
+- **Graphics**: NVIDIA (stable drivers, CUDA enabled)
 - **Sound**: PipeWire with PulseAudio compatibility
 - **Special Features**: Steam, Podman, Tailscale
-- **Bar**: Ironbar
+- **Bar**: Quickshell
 - **Terminal**: Kitty, Alacritty
+- **Local LLM**: vLLM (OpenAI-compatible, CUDA, served on `127.0.0.1:10808`)
 
 ### Shared Features
 
