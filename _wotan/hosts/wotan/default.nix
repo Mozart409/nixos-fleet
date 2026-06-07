@@ -229,6 +229,7 @@
       # so the old Triton .so permission crash is no longer an issue.
       # TODO: try removing this flag once the container image ships vllm >= 0.20.
       "--enforce-eager"
+      "--enable-metrics" # Expose Prometheus metrics at /metrics
     ];
   };
 
