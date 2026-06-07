@@ -39,7 +39,10 @@
   networking.hostName = "wotan";
 
   # Host-specific DNS settings
-  networking.nameservers = ["192.168.2.1" "192.168.2.145" "1.1.1.1"];
+  # 192.168.2.145 = local Unbound resolver (primary)
+  # 192.168.2.1   = router fallback
+  # 1.1.1.1       = Cloudflare public fallback
+  networking.nameservers = ["192.168.2.145" "192.168.2.1" "1.1.1.1"];
 
   # Static IP configuration for enp38s0 (main Ethernet)
   networking.useDHCP = lib.mkForce false;
