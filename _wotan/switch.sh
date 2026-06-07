@@ -9,7 +9,10 @@ echo ''
 
 echo ''
 echo 'Pushing to all remotes'
-git push origin
+git remote | while read remote; do
+  echo "  -> pushing to $remote"
+  git push "$remote"
+done
 
 echo ''
 nh os switch .#nixosConfigurations.wotan
