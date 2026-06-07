@@ -41,6 +41,19 @@
   # Host-specific DNS settings
   networking.nameservers = ["192.168.2.1" "192.168.2.145" "1.1.1.1"];
 
+  # Static IP configuration for enp38s0 (main Ethernet)
+  networking.useDHCP = lib.mkForce false;
+  networking.interfaces.enp38s0.ipv4.addresses = [
+    {
+      address = "192.168.2.71";
+      prefixLength = 24;
+    }
+  ];
+  networking.defaultGateway = {
+    address = "192.168.2.1";
+    interface = "enp38s0";
+  };
+
   nix.settings.download-buffer-size = 4 * 1024 * 1024 * 1024;
 
   # Bootloader configuration
