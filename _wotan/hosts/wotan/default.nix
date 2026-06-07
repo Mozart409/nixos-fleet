@@ -109,6 +109,10 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+  # Enable NVIDIA Container Toolkit so Podman can pass GPUs to containers
+  # via CDI (--device nvidia.com/gpu=all).
+  hardware.nvidia-container-toolkit.enable = true;
+
   # Host-specific packages
   environment.systemPackages = with pkgs; [
     steam
@@ -203,11 +207,11 @@
     extraArgs = [
       "--kv-cache-dtype"
       "fp8" # Quantize KV cache to save VRAM
-      # Disables torch.compile + CUDA graph capture. Necessary because the
-      # nixpkgs build of vllm 0.16.0 produces a Triton/Inductor .so that
-      # fails `dlopen` ("failed to map segment from shared object"). Costs
-      # ~10-15% throughput but lets the engine actually start.
-      # TODO: drop when nixpkgs ships a working vllm build (try after >=0.20).
+      # Disables torch.compile + CUDA graph capture. Kept as a safeguard
+      # because the nixpkgs vllm 0.16.0 build can be flaky with Inductor.
+      # NOTE: vLLM now runs inside a Podman container (vllm/vllm-openai),
+      # so the old Triton .so permission crash is no longer an issue.
+      # TODO: try removing this flag once the container image ships vllm >= 0.20.
       "--enforce-eager"
     ];
   };
