@@ -34,7 +34,7 @@
     automatic = true;
     dates = "weekly";
     persistent = true;
-    options = "--delete-generations +5";
+    options = "--delete-older-than 7d";
   };
 
   programs.nh = {

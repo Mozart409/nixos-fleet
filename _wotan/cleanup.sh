@@ -9,17 +9,38 @@ echo ''
 
 # ===== NIX OPERATIONS (sequential — same store) =====
 
+delete_generations() {
+  local profile_path="$1"
+  local keep="$2"
+  local sudo_prefix="$3"
+
+  # Method 1: nix-env (traditional profiles)
+  if $sudo_prefix nix-env --list-generations --profile "$profile_path" >/dev/null 2>&1; then
+    $sudo_prefix nix-env --profile "$profile_path" --delete-generations +"$keep"
+    return
+  fi
+
+  # Method 2: nix profile (new-style profiles)
+  if nix profile history --profile "$profile_path" >/dev/null 2>&1; then
+    $sudo_prefix nix profile wipe-history --profile "$profile_path" --keep-last "$keep"
+  fi
+}
+
 echo ''
 echo 'Deleting old system generations (keeping last 5)...'
-sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5
+delete_generations /nix/var/nix/profiles/system 5 "sudo"
 
 echo ''
 echo 'Deleting old home-manager generations (keeping last 5)...'
-nix-env -p /home/amadeus/.local/state/nix/profiles/home-manager --delete-generations +5
+delete_generations /home/amadeus/.local/state/nix/profiles/home-manager 5 ""
 
 echo ''
 echo 'Deleting old user profile generations (keeping last 5)...'
-nix-env --delete-generations +5
+if nix-env --list-generations >/dev/null 2>&1; then
+  nix-env --delete-generations +5
+else
+  delete_generations /home/amadeus/.local/state/nix/profiles/profile 5 ""
+fi
 
 echo ''
 echo 'Running garbage collection...'

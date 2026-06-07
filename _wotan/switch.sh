@@ -15,6 +15,12 @@ echo ''
 nh os switch .#nixosConfigurations.wotan
 nh home switch . -c amadeus@wotan -b backup
 
-sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5
+echo ''
+echo 'Cleaning up old generations and store...'
+nh clean all
+
+echo ''
+echo 'Optimising store...'
+nix store optimise
 
 exit 0
