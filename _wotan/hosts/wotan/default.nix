@@ -59,8 +59,7 @@
   security.hardening = {
     enable = true;
     firewall.allowedTCPPorts = [
-      # Add ports as needed, e.g.:
-      # 22    # SSH (if needed externally)
+      10808 # vLLM OpenAI-compatible API
     ];
     audit.enable = false; # Enable for security auditing (generates logs)
   };
@@ -197,7 +196,7 @@
     enable = true;
     model = "Qwen/Qwen3-8B-AWQ";
     port = 10808;
-    host = "127.0.0.1";
+    host = "0.0.0.0";
     maxModelLen = 28672; # 28K — bounded by ~2.15 GiB KV-cache budget on RTX 3060.
     # vLLM reported "estimated maximum model length is 31296" at gpu_mem=0.80.
     # Bump up if you raise gpuMemoryUtilization; lower if you see OOM during prefill.
