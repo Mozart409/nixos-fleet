@@ -52,6 +52,25 @@
         "*.swp"
       ];
     };
+    jujutsu = {
+      enable = true;
+      settings = {
+        user = {
+          name = "Amadeus Mader";
+          email = "amadeus@mozart409.com";
+        };
+        signing = {
+          behavior = "own";
+          backend = "ssh";
+          key = "/home/amadeus/.ssh/id_ed25519.pub";
+          backends.ssh."allowed-signers" = "/home/amadeus/.ssh/allowed_signers";
+        };
+        ui = {
+          pager = "delta";
+          diff-formatter = ":git";
+        };
+      };
+    };
     delta = {
       enable = true;
       options = {
