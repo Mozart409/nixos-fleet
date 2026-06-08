@@ -48,7 +48,7 @@
         mcp = {
           homeassistant = {
             type = "remote";
-            url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";
+            url = "https://mcp.homelab.local/mcp";
           };
           gh_grep = {
             type = "remote";
