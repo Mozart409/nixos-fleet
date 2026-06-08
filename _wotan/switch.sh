@@ -1,17 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-set -euo
+set -euo pipefail
 
 clear
 
 chara say -t round -r switching ...
 echo ''
 
-echo ''
 echo 'Pushing to all remotes'
-git remote | while read remote; do
+for remote in $(git remote); do
   echo "  -> pushing to $remote"
-  git push "$remote"
+  if git push "$remote"; then
+    echo "     ✓ $remote"
+  else
+    echo "     ✗ failed to push to $remote (continuing)" >&2
+  fi
 done
 
 echo ''
@@ -25,5 +28,3 @@ nh clean all
 echo ''
 echo 'Optimising store...'
 nix store optimise
-
-exit 0
