@@ -25,26 +25,23 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 
 ```bash
 # Using nh (recommended - prettier output, diffs, faster)
-nh os switch .#nixosConfigurations.wotan     # Apply NixOS system changes
+nh os switch .#nixosConfigurations.wotan     # Apply NixOS system + home-manager changes
 nh os test .#nixosConfigurations.wotan       # Test without persistence
-nh home switch . -c amadeus@wotan            # Apply home-manager changes
 
 # Traditional commands (fallback)
 sudo nixos-rebuild switch --flake .#wotan    # Apply system changes
 sudo nixos-rebuild test --flake .#wotan      # Test without persistence
-home-manager switch --flake .#amadeus@wotan  # Apply home-manager changes
 
 # Using just (interactive menu)
 just                          # Show interactive menu
-just switch wotan            # Switch NixOS config
-just switch-home             # Switch home-manager (default: amadeus@wotan)
-just switch-all wotan        # Switch both system and home-manager
+just switch wotan            # Switch NixOS config (includes home-manager)
+just switch-all wotan        # Switch NixOS config
 just test wotan              # Test NixOS config
-just test-all wotan          # Test both configs
+just test-all wotan          # Test NixOS config
 
 # Build configurations (dry-run to check)
 nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
-nix build .#homeConfigurations."amadeus@wotan".activationPackage --dry-run
+nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
 ```
 
 **Note:** `nh` is enabled via `programs.nh` in `modules/nixos/basics.nix` with the default flake set to `/etc/nixos`.
@@ -59,7 +56,6 @@ alejandra {staged_files}     # Format staged files only
 # Validate flake configuration
 nix flake check             # Check all outputs
 nix flake check .#nixosConfigurations.wotan
-nix flake check .#homeConfigurations."amadeus@wotan"
 
 # Update dependencies
 nix flake update            # Update all inputs
@@ -201,8 +197,8 @@ home.packages = with pkgs; [
 1. Create `hosts/{hostname}/` directory
 2. Add `default.nix` (system config) and `home.nix` (user config)
 3. Generate hardware config: `nixos-generate-config --show-hardware-config`
-4. Update `flake.nix` to include new host in `nixosConfigurations` and `homeConfigurations`
-5. Use helper functions: `mkHost "hostname" system` and `mkHome "hostname" system`
+4. Update `flake.nix` to include new host in `nixosConfigurations`
+5. Use helper function: `mkHost "hostname" system`
 
 ### Module Organization
 
@@ -220,9 +216,6 @@ For quick iteration on a specific host:
 ```bash
 # System config (won't persist after reboot)
 sudo nixos-rebuild test --flake .#wotan
-
-# Home-manager (persists)
-home-manager switch --flake .#amadeus@wotan
 ```
 
 ### Full Validation Pipeline
@@ -232,17 +225,18 @@ Before committing changes:
 1. **Format:** `alejandra .`
 2. **Validate:** `nix flake check`
 3. **Build test:** `nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run`
-4. **Test config:** `sudo nixos-rebuild test --flake .#wotan` (if changing system)
-5. **Commit:** Changes with descriptive message
-6. **Switch:** `just switch-all wotan` to persist
+4. **Build home test:** `nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run`
+5. **Test config:** `sudo nixos-rebuild test --flake .#wotan` (if changing system)
+6. **Commit:** Changes with descriptive message
+7. **Switch:** `just switch-all wotan` to persist
 
 ## 🚨 Common Pitfalls
 
 1. **Forgetting to format:** Always run `alejandra` before committing
 2. **Absolute paths:** Use relative paths from current file location
 3. **Unfree packages:** Already configured globally, no need to add per-package
-4. **Home-manager vs NixOS:** System services in NixOS modules, user config in home-manager
-5. **Rebuilds require sudo:** System rebuilds need `sudo`, home-manager doesn't
+4. **Home-manager vs NixOS:** System services in NixOS modules, user config in home-manager. Home-manager is integrated via `home-manager.nixosModules.home-manager` so a single `nixos-rebuild switch` activates both.
+5. **Rebuilds require sudo:** System rebuilds need `sudo`
 6. **Secrets:** Use agenix for sensitive data (see `age.secrets` in wotan config)
 7. **Systemd sandboxing:** Services with `DynamicUser=true` and `ProtectHome=true` cannot access `/home/`. Use state directories (e.g., `/var/lib/<service>/`) instead.
 

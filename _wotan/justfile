@@ -10,31 +10,25 @@ default:
 switch hostname:
     sudo nixos-rebuild switch --flake .#{{ hostname }}
 
-# Switch home-manager configuration (default: amadeus@wotan)
-switch-home hostname="wotan" user="amadeus":
-    nh home switch . -c {{ user }}@{{ hostname }}
-
-# Switch both NixOS and home-manager configurations
+# Switch both NixOS and home-manager configurations (home-manager is integrated)
 switch-all hostname:
     just switch {{ hostname }}
-    just switch-home {{ hostname }}
 
 # Test NixOS configuration for specific host (doesn't persist after reboot)
 test hostname:
     sudo nixos-rebuild test --flake .#{{ hostname }}
 
-# Test both NixOS and home-manager configurations
+# Test both NixOS and home-manager configurations (home-manager is integrated)
 test-all hostname:
     just test {{ hostname }}
-    just switch-home {{ hostname }}
 
 # Build NixOS configuration (dry run to check)
 build hostname:
     nix build .#nixosConfigurations.{{ hostname }}.config.system.build.toplevel --dry-run
 
-# Build home-manager configuration (dry run to check)
+# Build home-manager activation package (dry run to check)
 build-home hostname="wotan" user="amadeus":
-    nix build .#homeConfigurations."{{ user }}@{{ hostname }}".activationPackage --dry-run
+    nix build .#nixosConfigurations.{{ hostname }}.config.home-manager.users.{{ user }}.home.activationPackage --dry-run
 
 # Update flake inputs
 update:

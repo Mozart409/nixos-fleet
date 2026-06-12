@@ -72,9 +72,9 @@
     system = "x86_64-linux";
 
     helpers = import ./lib/mkConfigs.nix {
-      inherit lib inputs nixpkgs home-manager;
+      inherit lib inputs nixpkgs;
     };
-    inherit (helpers) mkHost mkHome;
+    inherit (helpers) mkHost sharedNixpkgsConfig;
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
@@ -84,19 +84,11 @@
       # server = mkHost "server" system;
     };
 
-    # Home-manager configurations for each user/host
-    homeConfigurations = {
-      "amadeus@wotan" = mkHome "wotan" system;
-      # Add more user/host combinations here:
-      # "amadeus@laptop" = mkHome "laptop" system;
-      # "user@server" = mkHome "server" system;
-    };
-
     # Development shell for working with this configuration
     devShells.${system}.default = let
       pkgs = import nixpkgs {
         inherit system;
-        config.allowUnfree = true;
+        config = sharedNixpkgsConfig;
       };
     in
       pkgs.mkShell {
@@ -113,9 +105,7 @@
           echo "Welcome to the NixOS configuration development shell!"
           echo "Available commands:"
           echo "  nix flake check .#nixosConfigurations.wotan"
-          echo "  nix flake check .#homeConfigurations.amadeus@wotan"
           echo "  sudo nixos-rebuild switch --flake .#wotan"
-          echo "  home-manager switch --flake .#amadeus@wotan"
           lefthook install
           cog install-hook
         '';

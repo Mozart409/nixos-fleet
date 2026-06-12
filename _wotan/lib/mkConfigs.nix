@@ -2,12 +2,14 @@
   lib,
   inputs,
   nixpkgs,
-  home-manager,
 }: let
-  # Shared nixpkgs config — kept in sync between mkHost and mkHome so both
-  # nixos and home-manager evaluations see the same allow/insecure lists.
+  # Shared nixpkgs config — single source of truth for all nixos and
+  # home-manager evaluations.  cudaSupport is included here because it
+  # affects the package set that the cache.nixos-cuda.org substituter
+  # carries (vLLM, torch, etc.).
   sharedNixpkgsConfig = {
     allowUnfree = true;
+    cudaSupport = true;
     permittedInsecurePackages = [
       # anytype currently links against EOL Electron; upstream controls bumps.
       "electron-39.8.10"
@@ -18,7 +20,11 @@
     ];
   };
 in {
-  # Helper function to generate host configurations
+  inherit sharedNixpkgsConfig;
+
+  # Helper function to generate host configurations.
+  # Home-manager is integrated via the NixOS module so a single
+  # `nixos-rebuild switch` activates both system and user config.
   mkHost = hostname: system:
     lib.nixosSystem {
       specialArgs = {inherit inputs;};
@@ -28,31 +34,24 @@ in {
           nixpkgs.hostPlatform = system;
           nixpkgs.config = sharedNixpkgsConfig;
         }
-      ];
-    };
-
-  # Helper function to generate home-manager configurations
-  mkHome = hostname: system: let
-    pkgs = import nixpkgs {
-      inherit system;
-      config = sharedNixpkgsConfig;
-    };
-  in
-    home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      extraSpecialArgs = {inherit inputs;};
-      modules = [
-        ../hosts/${hostname}/home.nix
-        inputs.nixvim.homeModules.nixvim
-        inputs.agenix.homeManagerModules.default
-        {
-          # Repeated here because setting any nixpkgs.* option in a home-manager
-          # module makes it re-import nixpkgs and drop the config from `pkgs`.
-          nixpkgs.config = sharedNixpkgsConfig;
-          # Pin nixvim's nixpkgs source to ours — suppresses the warning about
-          # `inputs.nixvim.inputs.nixpkgs.follows` skewing the default.
-          programs.nixvim.nixpkgs.source = pkgs.path;
-        }
+        inputs.home-manager.nixosModules.home-manager
+        ({pkgs, ...}: {
+          home-manager = {
+            extraSpecialArgs = {inherit inputs;};
+            useGlobalPkgs = true;
+            sharedModules = [
+              inputs.nixvim.homeModules.nixvim
+              inputs.agenix.homeManagerModules.default
+              {
+                # Pin nixvim's nixpkgs source to ours — suppresses the
+                # warning about `inputs.nixvim.inputs.nixpkgs.follows`
+                # skewing the default.
+                programs.nixvim.nixpkgs.source = pkgs.path;
+              }
+            ];
+            users.amadeus = import ../hosts/${hostname}/home.nix;
+          };
+        })
       ];
     };
 }

@@ -4,19 +4,18 @@ pre-commit:
     - run: alejandra {staged_files}
       glob: "*.{nix}"
       stage_fixed: true
-    - name: nix flake check
-      run: nix flake check
-      stage_fixed: false
     - name: keep-sorted
       run: keep-sorted {staged_files}
       stage_fixed: true
     - name: just
       run: just --fmt
       stage_fixed: true
-
 pre-push:
+  parallel: true
   jobs:
     - name: build NixOS system
       run: nh os build .#nixosConfigurations.wotan
     - name: build home-manager activation
       run: nh home build . -c amadeus@wotan
+    - name: nix flake check
+      run: nix flake check

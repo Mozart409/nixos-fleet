@@ -43,13 +43,7 @@
   };
 
   # Common networking settings
-  networking = {
-    networkmanager.enable = true;
-    firewall.enable = true;
-  };
-
-  # Common printing support
-  services.printing.enable = true;
+  networking.networkmanager.enable = true;
 
   # Enable Docker on all hosts
   virtualisation.docker.enable = true;

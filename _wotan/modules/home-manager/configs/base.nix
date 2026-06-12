@@ -8,9 +8,6 @@
   home.username = "amadeus";
   home.homeDirectory = "/home/amadeus";
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
   # Common session variables
   home.sessionVariables = {
     EDITOR = "nvim";

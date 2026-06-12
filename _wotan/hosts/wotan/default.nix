@@ -85,9 +85,6 @@
     user = "amadeus";
   };
 
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
-
   # Razer device support
   hardware.razer.enable = true;
 

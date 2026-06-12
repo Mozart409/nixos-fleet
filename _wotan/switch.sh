@@ -11,10 +11,6 @@ echo 'Switching NixOS configuration...'
 nh os switch .#nixosConfigurations.wotan
 
 echo ''
-echo 'Switching home-manager configuration...'
-nh home switch . -c amadeus@wotan -b backup
-
-echo ''
 echo 'Pushing to all remotes'
 for remote in $(git remote); do
   echo "  -> pushing to $remote"

@@ -42,15 +42,6 @@
     flake = "/etc/nixos";
   };
 
-  # Allow unfree packages on all hosts
-  nixpkgs.config.allowUnfree = true;
-
-  # Build CUDA-enabled variants of packages that support it (vLLM, llama-cpp,
-  # pytorch, ffmpeg, etc.). Required for cache.nixos-cuda.org hits — that cache
-  # only carries the cudaSupport=true variant; with this flag off you'd build
-  # vllm/torch as CPU-only locally despite the substituter being configured.
-  nixpkgs.config.cudaSupport = true;
-
   # Common time and locale settings
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";

@@ -38,20 +38,20 @@ improvements, not breakage.
 
 ## Medium — consolidation & scaling
 
-- [ ] **5. Scattered duplicate settings** (all merge to the same value, so harmless
-  but confusing — give each one owner):
-  - `allowUnfree` in **4 places**: `lib/mkConfigs.nix:10`, `flake.nix:99`,
-    `modules/nixos/basics.nix:46`, `modules/home-manager/configs/base.nix:12`.
-    The last two are redundant (pkgs is already configured via
-    `sharedNixpkgsConfig`). Also move `cudaSupport` (only in `basics.nix:46`) into
-    `sharedNixpkgsConfig` for a single source of truth.
-  - `services.printing.enable` in 3 files: `common-packages.nix:53`,
-    `desktop/kde.nix:58`, `desktop/default.nix:171`.
-  - `hardware.bluetooth.enable`/`powerOnBoot` in `hosts/wotan/default.nix:89-90`
-    duplicate the richer block in `desktop/default.nix` — host lines are dead.
-  - `firewall.enable = true` (`common-packages.nix:49`) overlaps the
-    `security.hardening` module that owns the firewall (`security.nix:48`).
-  - `security.polkit.enable` in `desktop/kde.nix:66` and `desktop/default.nix:240`.
+- [x] **5. Scattered duplicate settings** — deduplicated and given single owners:
+  - `allowUnfree` + `cudaSupport`: moved both into `sharedNixpkgsConfig` in
+    `lib/mkConfigs.nix` (single source of truth). Removed from `basics.nix`,
+    `base.nix`, and `flake.nix` devShell (now uses `sharedNixpkgsConfig`).
+  - `services.printing.enable`: removed from `common-packages.nix` and `kde.nix`;
+    kept in `desktop/default.nix`.
+  - `hardware.bluetooth.enable`/`powerOnBoot`: removed from `hosts/wotan/default.nix`;
+    kept in `desktop/default.nix`.
+  - `firewall.enable = true`: removed from `common-packages.nix`; owned by
+    `security.nix` (enabled when `security.hardening.enable = true`).
+  - `security.polkit.enable`: removed from `desktop/kde.nix`; kept in
+    `desktop/default.nix`.
+  - `services.gvfs.enable` / `services.udisks2.enable`: removed from `kde.nix`;
+    kept in `desktop/default.nix`.
 
 - [ ] **6. "Multi-host" aspiration vs. hardcoded `amadeus`** (33 occurrences;
   `users.users.amadeus` at `common-packages.nix:36`). The flake comments invite
@@ -65,17 +65,19 @@ improvements, not breakage.
   **Fix:** consider a `modules/nixos/default.nix` aggregator that imports all and
   gates each by an `enable` flag — scales as hosts are added.
 
-- [ ] **8. Standalone home-manager** (separate `homeConfigurations`, two-step
-  activation). For a single workstation, integrated `home-manager.nixosModules`
-  + `home-manager.users.amadeus` avoids drift and a second activation step.
-  Preference, not a defect — noting the tradeoff.
+- [x] **8. Standalone home-manager** — integrated into NixOS.
+  Removed `homeConfigurations` from `flake.nix` and `mkHome` from `lib/mkConfigs.nix`.
+  Added `home-manager.nixosModules.home-manager` to `mkHost` so a single
+  `nixos-rebuild switch` activates both system and user config. Updated
+  `switch.sh`, `justfile`, `lefthook.yml`, and `AGENTS.md` to remove the
+  standalone `home-manager switch` / `nh home switch` steps.
 
 ---
 
 ## Low — polish
 
-- [ ] **9.** `services.pulseaudio.enable = false` with `support32Bit = true` right
-  after (`desktop/default.nix`) — the latter is dead config.
+- [x] **9.** `services.pulseaudio.support32Bit = true` — removed from
+  `desktop/default.nix` (pulseaudio is disabled, so the option is dead).
 - [x] **10.** `lefthook.yml` runs full `nix flake check` on **pre-commit** (slow,
   every commit) — moved to pre-push. `nix flake check` stays in pre-commit, but
   `nh os build` and `nh home build` moved to pre-push.

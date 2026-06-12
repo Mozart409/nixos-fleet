@@ -51,19 +51,7 @@
     services = {
       # Power management
       power-profiles-daemon.enable = true;
-
-      # Bluetooth is handled in common desktop config
-
-      # Printing
-      printing.enable = true;
-
-      # Auto-mount USB drives
-      gvfs.enable = true;
-      udisks2.enable = true;
     };
-
-    # Enable polkit
-    security.polkit.enable = true;
 
     # KDE-specific settings
     # KDE partition manager can be installed as a package instead
