@@ -16,6 +16,6 @@ pre-push:
     - name: build NixOS system
       run: nh os build .#nixosConfigurations.wotan
     - name: build home-manager activation
-      run: nh home build . -c amadeus@wotan
+      run: nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
     - name: nix flake check
       run: nix flake check
