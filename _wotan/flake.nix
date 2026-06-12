@@ -47,7 +47,7 @@
     };
 
     zinc-oxide = {
-      url = "git+file:///home/amadeus/code/rust/zinc_oxide";
+      url = "github:Mozart409/zinc_oxide";
       flake = false;
     };
   };

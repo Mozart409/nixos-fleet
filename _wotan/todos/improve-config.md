@@ -12,29 +12,17 @@ improvements, not breakage.
 
 ## High impact — reproducibility & correctness
 
-- [ ] **1. `zinc-oxide` is a local-path flake input** — `flake.nix:50`
-  ```nix
-  zinc-oxide.url = "git+file:///home/amadeus/code/rust/zinc_oxide";
-  ```
-  Breaks flake portability. Built in `modules/home-manager/packages/zinc-oxide.nix`
-  (`src = inputs.zinc-oxide`), so the home config is unbuildable on any machine
-  without that exact local checkout, and `nix flake update` fails if the path
-  moves/is absent. The module's `meta.homepage` already points at the public repo.
-  **Fix:** point the input at GitHub (keep `flake = false`):
-  ```nix
-  zinc-oxide = {
-    url = "github:Mozart409/zinc_oxide";
-    flake = false;
-  };
-  ```
-  CI is green only because the locked store path is still resolvable — fragile.
+- [x] **1. `zinc-oxide` is a local-path flake input** — `flake.nix:50`
+  Fixed: changed to `github:Mozart409/zinc_oxide` (kept `flake = false`).
+  This also unblocked `nix flake update` — see #2.
 
-- [ ] **2. flake.lock is stale & updates aren't automated.** Root `nixpkgs` locked
-  to **2025-11-23** (~6 months old) while Hyprland inputs are current (2026-06).
-  Large drift for `nixos-unstable`. Updates are manual (`just update`); Dependabot
-  only covers `github-actions` (`.github/dependabot.yml`).
-  **Fix:** add a scheduled `DeterminateSystems/update-flake-lock` workflow to open
-  input-bump PRs automatically. Then run a normal `just update` to refresh now.
+- [x] **2. `nix flake update` was silently broken by the local `zinc-oxide` input.**
+  Because the input was `git+file://` (unlocked), Nix refused to write `flake.lock`
+  at all, so `just update` ran but never persisted changes. The lock file was stuck
+  at 2025-11-23 for `nixpkgs`. Fixed by #1 (GitHub URL). After the fix, a normal
+  `nix flake update` updated all inputs including `nixpkgs` to 2026-06-10.
+  **Automation:** Optional — add a scheduled `update-flake-lock` workflow if desired,
+  but manual `just update` now works correctly.
 
 - [ ] **3. CI gives false confidence** — `.github/workflows/ci.yml`. Runs
   `alejandra --check` + `nix flake check`, which *evaluates* but never *realises*
