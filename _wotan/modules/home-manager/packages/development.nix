@@ -18,11 +18,9 @@
     dprint
     eza
     gnused
-    hadolint
     insomnia
     jq
     keep-sorted
-    lazydocker
     lefthook
     mergiraf
     nix-prefetch

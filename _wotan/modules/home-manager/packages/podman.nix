@@ -9,6 +9,5 @@
     podman-compose
     podman-desktop
     podman-tui
-    lazydocker
   ];
 }

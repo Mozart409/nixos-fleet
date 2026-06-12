@@ -12,7 +12,6 @@
           # "vale"
         ];
         #clojure = ["clj-kondo"];
-        dockerfile = ["hadolint"];
         #inko = ["inko"];
         #janet = ["janet"];
         # json = [ "jsonlint" ];
