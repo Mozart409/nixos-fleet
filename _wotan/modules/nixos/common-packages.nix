@@ -17,7 +17,6 @@
     pinentry-curses
     pinentry-gnome3
     dig
-    libreoffice-qt-fresh
   ];
 
   # Common programs that should be enabled on all hosts
