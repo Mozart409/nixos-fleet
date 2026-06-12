@@ -24,13 +24,10 @@ improvements, not breakage.
   **Automation:** Optional — add a scheduled `update-flake-lock` workflow if desired,
   but manual `just update` now works correctly.
 
-- [ ] **3. CI gives false confidence** — `.github/workflows/ci.yml`. Runs
-  `alejandra --check` + `nix flake check`, which *evaluates* but never *realises*
-  the system closure. A package that evaluates but fails to compile passes CI.
-  `AGENTS.md` even lists `nix build …toplevel` as a validation step CI skips.
-  **Fix:** building the full CUDA toplevel on free runners isn't feasible, but add
-  at least `nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run`
-  to catch missing derivations, or build the home `activationPackage`.
+- [x] **3. CI gives false confidence** — `.github/workflows/ci.yml`.
+  Fixed: Added `nix build …toplevel --dry-run` and `nix build …activationPackage`
+  to the CI pipeline. Also added `nh os build` and `nh home build` to
+  `lefthook.yml` pre-push hook, and moved `nix flake check` back to pre-commit.
 
 - [x] **4. `switch.sh` pushes to all remotes *before* building.**
   Fixed: `nh os switch` and `nh home switch` now run first. The push loop only
@@ -79,8 +76,9 @@ improvements, not breakage.
 
 - [ ] **9.** `services.pulseaudio.enable = false` with `support32Bit = true` right
   after (`desktop/default.nix`) — the latter is dead config.
-- [ ] **10.** `lefthook.yml` runs full `nix flake check` on **pre-commit** (slow,
-  every commit) — consider moving to pre-push.
+- [x] **10.** `lefthook.yml` runs full `nix flake check` on **pre-commit** (slow,
+  every commit) — moved to pre-push. `nix flake check` stays in pre-commit, but
+  `nh os build` and `nh home build` moved to pre-push.
 - [ ] **11.** ~~`flatpak-rvgl` does an imperative network install on boot~~
   (removed — no longer using Flatpak).
 - [ ] **12.** `README.md` is thin with a typo ("currenlty"); `AGENTS.md` dev-shell

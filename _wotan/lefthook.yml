@@ -13,3 +13,10 @@ pre-commit:
     - name: just
       run: just --fmt
       stage_fixed: true
+
+pre-push:
+  jobs:
+    - name: build NixOS system
+      run: nh os build .#nixosConfigurations.wotan
+    - name: build home-manager activation
+      run: nh home build . -c amadeus@wotan
