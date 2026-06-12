@@ -32,9 +32,10 @@ improvements, not breakage.
   at least `nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run`
   to catch missing derivations, or build the home `activationPackage`.
 
-- [ ] **4. `switch.sh` pushes to all remotes *before* building.** The push loop
-  runs ahead of `nh os switch`, so a failed build still publishes a broken commit.
-  **Fix:** flip the order — build/test first, push only on success.
+- [x] **4. `switch.sh` pushes to all remotes *before* building.**
+  Fixed: `nh os switch` and `nh home switch` now run first. The push loop only
+  executes if both succeed. With `set -euo pipefail`, a failed build exits the
+  script before any push happens.
 
 ---
 

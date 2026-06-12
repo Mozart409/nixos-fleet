@@ -7,6 +7,14 @@ clear
 chara say -t round -r switching ...
 echo ''
 
+echo 'Switching NixOS configuration...'
+nh os switch .#nixosConfigurations.wotan
+
+echo ''
+echo 'Switching home-manager configuration...'
+nh home switch . -c amadeus@wotan -b backup
+
+echo ''
 echo 'Pushing to all remotes'
 for remote in $(git remote); do
   echo "  -> pushing to $remote"
@@ -16,10 +24,6 @@ for remote in $(git remote); do
     echo "     ✗ failed to push to $remote (continuing)" >&2
   fi
 done
-
-echo ''
-nh os switch .#nixosConfigurations.wotan
-nh home switch . -c amadeus@wotan -b backup
 
 echo ''
 echo 'Cleaning up old generations and store...'
