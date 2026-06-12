@@ -34,6 +34,9 @@
   #                     activation set it. Bottles' default sandbox already
   #                     covers xdg-download (drag-in installers) and its own
   #                     app data dir.
+  #   --filesystem=/mnt/games
+  #                     Grant access to Assetto Corsa install and Wine
+  #                     prefix data on the secondary Steam library drive.
   systemd.services.flatpak-bottles = {
     wantedBy = ["multi-user.target"];
     after = ["network-online.target" "flatpak-repo.service"];
@@ -48,6 +51,7 @@
       flatpak install -y --noninteractive flathub com.usebottles.bottles
       flatpak override com.usebottles.bottles \
         --nofilesystem=host \
+        --filesystem=/mnt/games \
         --device=all
     '';
   };
