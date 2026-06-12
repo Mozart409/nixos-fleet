@@ -22,10 +22,7 @@
     ../../modules/nixos/razer.nix
     ../../modules/nixos/moza.nix
     ../../modules/nixos/vllm.nix
-    # TODO: Re-enable when nixpkgs fixes open-webui build (missing @internationalized/date)
-    # ../../modules/nixos/open-webui.nix
     ../../modules/nixos/desktop/default.nix
-    # ../../modules/nixos/desktop/kde.nix
     ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/file-managers.nix
     ../../modules/nixos/desktop/user-experience.nix

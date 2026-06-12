@@ -6,7 +6,6 @@
 }: {
   home.packages = with pkgs; [
     # keep-sorted start
-    # makemkv # TODO: re-enable when expat header issue is fixed upstream
     anki-bin
     charasay
     cowsay

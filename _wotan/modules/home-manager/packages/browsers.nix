@@ -21,7 +21,6 @@ in {
     # keep-sorted start
     brave
     chromium
-    helium-browser
     # keep-sorted end
   ];
 }

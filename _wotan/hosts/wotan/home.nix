@@ -28,13 +28,11 @@
     ../../modules/home-manager/packages/system.nix
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/tmux.nix
-    ../../modules/home-manager/packages/waybar.nix
     ../../modules/home-manager/packages/yazi.nix
     ../../modules/home-manager/packages/zinc-oxide.nix
     # keep-sorted end
   ];
 
-  desktop.waybar.enable = false;
   desktop.hyprland-configs.enable = true;
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;

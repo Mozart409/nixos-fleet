@@ -7,7 +7,7 @@
   home.packages = with pkgs; [
     duckdb
     sqlite
-    postgresql_16
+    postgresql_18
     dbeaver-bin
   ];
 }
