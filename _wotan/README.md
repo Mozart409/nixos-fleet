@@ -15,7 +15,6 @@ This is a multi-host NixOS configuration with shared modules and host-specific s
 │   ├── nixos/                # NixOS system modules
 │   │   ├── basics.nix
 │   │   ├── common-packages.nix
-│   │   ├── flatpak.nix
 │   │   └── desktop/          # Desktop environment modules
 │   └── home-manager/         # Home-manager user modules
 │       ├── common-packages.nix
@@ -127,7 +126,7 @@ nix flake update
 
 - Essential system packages (vim, curl, git, etc.)
 - Common programs (zsh, etc.)
-- Common services (flatpak, pcscd, etc.)
+- Common services (pcscd, etc.)
 - Nix settings and garbage collection
 - User configuration
 - Networking, locale, and time settings
@@ -177,7 +176,7 @@ Each host can override or extend the shared configuration:
 - **Editor**: Neovim with Kickstart NixVim configuration
 - **Terminals**: Kitty, Alacritty, Ghostty
 - **Version Control**: Git with signing
-- **Package Management**: Flatpak + Nix
+- **Package Management**: Nix
 - **Privacy**: Tor browser and services
 
 ## 📝 Notes

@@ -19,7 +19,6 @@
     # Common modules
     ../../modules/nixos/common-packages.nix
     ../../modules/nixos/security.nix
-    ../../modules/nixos/flatpak.nix
     ../../modules/nixos/razer.nix
     ../../modules/nixos/moza.nix
     ../../modules/nixos/vllm.nix
@@ -241,25 +240,6 @@
 
   # System state version
   system.stateVersion = "24.11";
-
-  # RVGL Launcher (Re-Volt) via Flatpak
-  systemd.services.flatpak-rvgl = {
-    wantedBy = ["multi-user.target"];
-    after = ["network-online.target" "flatpak-repo.service"];
-    wants = ["network-online.target"];
-    path = [pkgs.flatpak pkgs.curl];
-    script = ''
-      if ! flatpak info org.rvgl.rvmm &>/dev/null; then
-        curl -fsSL -o /tmp/org.rvgl.rvmm.flatpakref https://mickael9.gitlab.io/rvgl-flatpak/org.rvgl.rvmm.flatpakref
-        flatpak install --noninteractive /tmp/org.rvgl.rvmm.flatpakref
-        rm -f /tmp/org.rvgl.rvmm.flatpakref
-      fi
-    '';
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-  };
 
   # Ensure storage mount is owned by amadeus and create models directory
   systemd.tmpfiles.rules = [

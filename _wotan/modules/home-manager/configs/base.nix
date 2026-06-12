@@ -16,10 +16,7 @@
     EDITOR = "nvim";
   };
 
-  home.sessionPath = [
-    "/var/lib/flatpak/exports/share"
-    "/home/amadeus/.local/share/flatpak/exports/share"
-  ];
+  home.sessionPath = [];
 
   # GPG agent configuration - uses system pinentry (pinentry-gnome3)
   services.gpg-agent.enable = true;

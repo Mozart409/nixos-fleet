@@ -17,7 +17,6 @@
     pinentry-curses
     pinentry-gnome3
     dig
-    flatpak
     libreoffice-qt-fresh
   ];
 

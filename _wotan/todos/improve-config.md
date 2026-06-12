@@ -74,7 +74,7 @@ improvements, not breakage.
   are reusable.
 
 - [ ] **7. Top-level NixOS modules imported individually per host** (security,
-  flatpak, razer, moza, vllm in `hosts/wotan/default.nix`). The `desktop/` tree's
+  razer, moza, vllm in `hosts/wotan/default.nix`). The `desktop/` tree's
   enable-flag pattern is nicer.
   **Fix:** consider a `modules/nixos/default.nix` aggregator that imports all and
   gates each by an `enable` flag — scales as hosts are added.
@@ -92,8 +92,8 @@ improvements, not breakage.
   after (`desktop/default.nix`) — the latter is dead config.
 - [ ] **10.** `lefthook.yml` runs full `nix flake check` on **pre-commit** (slow,
   every commit) — consider moving to pre-push.
-- [ ] **11.** `flatpak-rvgl` does an imperative network install on boot
-  (`hosts/wotan/default.nix`) — pragmatic but impure; add a comment acknowledging it.
+- [ ] **11.** ~~`flatpak-rvgl` does an imperative network install on boot~~
+  (removed — no longer using Flatpak).
 - [ ] **12.** `README.md` is thin with a typo ("currenlty"); `AGENTS.md` dev-shell
   list omits `cocogitto`/`claude-code`/`agenix`. Minor doc drift.
 

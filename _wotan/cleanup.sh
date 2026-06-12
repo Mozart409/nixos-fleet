@@ -74,10 +74,6 @@ if command -v podman >/dev/null 2>&1; then
   ) &
 fi
 
-if command -v flatpak >/dev/null 2>&1; then
-  cleanup_task flatpak sh -c 'flatpak uninstall --unused -y || true' &
-fi
-
 cleanup_task journal sudo journalctl --vacuum-time=30d &
 
 cleanup_task tmp sh -c '
