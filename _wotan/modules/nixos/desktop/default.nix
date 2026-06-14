@@ -168,9 +168,11 @@
 
         # Hardware integration
         printing.enable = true;
-        printing.drivers = [pkgs.hplipWithPlugin];
-
-        # Scanner support is handled by packages
+        printing.drivers = with pkgs; [
+          hplipWithPlugin
+          epson-escpr
+          epson-escpr2
+        ];
 
         # Camera support is handled by pipewire and v4l-utils
 
@@ -180,6 +182,13 @@
 
         # Tablet support
         libinput.enable = true;
+      };
+
+      # Network printer/scanner discovery
+      services.avahi = {
+        enable = true;
+        nssmdns4 = true;
+        openFirewall = true;
       };
 
       # Systemd service to unblock Bluetooth automatically
@@ -224,6 +233,10 @@
         printers = {
           ensurePrinters = [];
           ensureDefaultPrinter = null;
+        };
+        sane = {
+          enable = true;
+          extraBackends = [pkgs.epsonscan2];
         };
       };
 
