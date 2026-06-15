@@ -184,9 +184,9 @@
             "$mod SHIFT, W, exec, previous-wallpaper"
 
             # Screenshot (saves to ~/Pictures/hyprshot and copies to clipboard)
-            ", Print, exec, hyprshot -m region -o ~/Pictures/hyprshot"
+            ", Print, exec, hyprshot -m region --freeze -o ~/Pictures/hyprshot"
             "$mod, Print, exec, hyprshot -m window -o ~/Pictures/hyprshot"
-            "$mod SHIFT, Print, exec, hyprshot -m output -o ~/Pictures/hyprshot"
+            "$mod SHIFT, Print, exec, hyprshot -m output --freeze -o ~/Pictures/hyprshot"
 
             # Lockscreen
             "$mod, L, exec, hyprlock"
