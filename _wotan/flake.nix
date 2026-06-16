@@ -15,7 +15,10 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprland.url = "github:hyprwm/Hyprland";
+    # Pinned to 0.54.x (fcbbd6d) — 0.55.0 broke SUPER/mod-key bindings (a modifier-state
+    # regression; binds register but never fire). See hyprwm/Hyprland#14099.
+    # Unpin (drop the /<rev> suffix) once 0.55.x ships a fix, then `nix flake update hyprland`.
+    hyprland.url = "github:hyprwm/Hyprland/fcbbd6d4d80033c40e3b702518e1a2ba3f479452";
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
