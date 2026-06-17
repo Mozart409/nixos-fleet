@@ -13,7 +13,7 @@
       yamlfmt
       alejandra
       d2
-      prettierd
+      biome
       shfmt
       terraform
       clang-tools
@@ -44,15 +44,13 @@
           d2 = ["d2"];
           python = ["ruff"];
           json = ["fixjson"];
-          jsonc = ["prettierd"];
-          javascript = ["prettierd"];
-          typescript = ["prettierd"];
-          javascriptreact = ["prettierd"];
-          typescriptreact = ["prettierd"];
-          html = ["prettierd"];
-          css = ["prettierd"];
-          scss = ["prettierd"];
-          markdown = ["prettierd"];
+          jsonc = ["biome"];
+          javascript = ["biome"];
+          typescript = ["biome"];
+          javascriptreact = ["biome"];
+          typescriptreact = ["biome"];
+          css = ["biome"];
+          markdown = ["dprint"];
           yaml = ["yamlfmt"];
           sh = ["shfmt"];
           bash = ["shfmt"];
