@@ -146,7 +146,7 @@
         tofu_ls = {
           enable = false;
         };
-        # .NET / C# language server (lightweight alternative, disable if using roslyn plugin)
+        # .NET / C# language server
         csharp_ls = {
           enable = false;
         };

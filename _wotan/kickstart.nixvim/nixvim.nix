@@ -44,7 +44,6 @@
     ./plugins/custom/plugins/opencode.nix
     #./plugins/custom/plugins/nvim-lightbulb.nix
     ./plugins/custom/plugins/precognition.nix
-    ./plugins/custom/plugins/roslyn.nix
     ./plugins/custom/plugins/spectre.nix
     #
     # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
