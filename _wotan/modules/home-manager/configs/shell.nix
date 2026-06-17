@@ -51,6 +51,25 @@
     };
   };
 
+  # Directory jumping (replaces oh-my-zsh `z` plugin).
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  # Fuzzy finder: Ctrl-R history, Ctrl-T files, Alt-C cd.
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  # Per-directory dev shells via `use flake` in .envrc.
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     enable = true;
     zprof.enable = false;
@@ -58,8 +77,8 @@
       expireDuplicatesFirst = true;
       extended = true;
       ignoreDups = true;
-      save = 5000;
-      size = 5000;
+      save = 50000;
+      size = 50000;
       saveNoDups = true;
       share = true;
     };
@@ -70,7 +89,7 @@
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     shellAliases = {
-      l = "ls -lah";
+      l = "eza -lah --git --icons --group-directories-first";
       lg = "lazygit";
       sys = "systemctl status";
       syr = "systemctl restart";
@@ -82,14 +101,6 @@
       t = "tmux";
       op = "opencode";
       s = "kitty +kitten ssh";
-    };
-    oh-my-zsh = {
-      enable = true;
-      theme = ""; # disabled — using starship for prompt
-      plugins = [
-        "git"
-        "z"
-      ];
     };
   };
 }
