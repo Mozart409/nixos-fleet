@@ -23,7 +23,7 @@ done
 
 echo ''
 echo 'Cleaning up old generations and store...'
-nh clean all
+nh clean all --keep 3 --keep-since 3d
 
 echo ''
 echo 'Optimising store...'
