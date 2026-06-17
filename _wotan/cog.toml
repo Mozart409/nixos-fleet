@@ -1,0 +1,2 @@
+tag_prefix = "v"
+from_latest_tag = true
