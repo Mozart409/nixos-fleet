@@ -103,6 +103,10 @@
     enable = true;
     defaultEditor = true;
 
+    # Disable the Ruby provider (we don't use Ruby plugins); silences the
+    # ":checkhealth" warning about a missing `neovim` gem.
+    withRuby = false;
+
     performance.byteCompileLua.enable = true;
     extraPlugins = with pkgs.vimPlugins; [
       # Useful for getting pretty icons, but requires a Nerd Font.
