@@ -10,9 +10,15 @@ pre-commit:
     - name: just
       run: just --fmt
       stage_fixed: true
+commit-msg:
+  jobs:
+    - name: cog verify
+      run: cog verify --file {1}
 pre-push:
   parallel: true
   jobs:
+    - name: cog check
+      run: cog check --from-latest-tag
     - name: build NixOS system
       run: nh os build .#nixosConfigurations.wotan
     - name: build home-manager activation
