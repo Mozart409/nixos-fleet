@@ -82,7 +82,8 @@ in {
   config = lib.mkIf cfg.enable {
     virtualisation.oci-containers.containers.vllm = {
       image = cfg.image;
-      autoStart = true;
+      # Don't start at boot — launch manually with `systemctl start podman-vllm`.
+      autoStart = false;
       ports = ["${cfg.host}:${toString cfg.port}:8000"];
       volumes = [
         "/var/lib/vllm/huggingface:/root/.cache/huggingface"
