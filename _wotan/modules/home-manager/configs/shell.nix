@@ -89,6 +89,11 @@
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     shellAliases = {
+      # Directory traversal (previously provided by oh-my-zsh core lib).
+      ".." = "cd ..";
+      "..." = "cd ../..";
+      "...." = "cd ../../..";
+      "....." = "cd ../../../..";
       l = "eza -lah --git --icons --group-directories-first";
       lg = "lazygit";
       sys = "systemctl status";
