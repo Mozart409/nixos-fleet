@@ -26,7 +26,6 @@
     ./plugins/custom/plugins/d2.nix
     ./plugins/custom/plugins/dashboard.nix
     ./plugins/custom/plugins/dressing.nix
-    ./plugins/custom/plugins/drop.nix
     ./plugins/custom/plugins/flash.nix
     # Other plugins
     ./plugins/custom/plugins/fzf-lua.nix
