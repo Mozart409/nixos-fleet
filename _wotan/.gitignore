@@ -5,3 +5,15 @@ result
 .direnv/ 
 .gitmodules
 /nvim.log
+
+# Claude Code sandbox session artifacts
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.profile
+/.ripgreprc
+/.zprofile
+/.zshrc
+/.idea
+/.vscode
+/.mcp.json
