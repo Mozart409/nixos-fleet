@@ -206,9 +206,10 @@
             "$mod, up, movefocus, u"
             "$mod, down, movefocus, d"
 
-            # Move windows to adjacent monitor (left/right) or swap within workspace (up/down)
-            "$mod SHIFT, left, movewindow, mon:-1"
-            "$mod SHIFT, right, movewindow, mon:+1"
+            # Move/swap window within workspace; crosses to adjacent monitor only
+            # when there is no window in that direction
+            "$mod SHIFT, left, movewindow, l"
+            "$mod SHIFT, right, movewindow, r"
             "$mod SHIFT, up, movewindow, u"
             "$mod SHIFT, down, movewindow, d"
 
