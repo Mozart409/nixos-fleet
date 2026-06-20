@@ -107,7 +107,11 @@
           enable = true;
           filetypes = ["html" "templ"];
         };
-        jsonls = {
+        # Biome: Rust-based LSP for JSON/JSONC/JS/TS/CSS (replaces jsonls,
+        # whose upstream Node bundle crashes on Node 24 with an ESM/require error).
+        # NOTE: Biome does not provide JSON Schema completions; it covers
+        # parsing, formatting, and linting. Attaches when a biome.json is present.
+        biome = {
           enable = true;
         };
         yamlls = {
