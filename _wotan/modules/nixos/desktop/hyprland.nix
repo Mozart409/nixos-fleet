@@ -286,8 +286,12 @@
         #   "trail_steps" = 5;
         # };
 
-        # Window rules for ueberzugpp (yazi image preview)
+        # Window rules
         windowrule = [
+          # Force Brave windows to open tiled (it sometimes requests floating)
+          "tile on, match:class (?i)brave.*"
+
+          # ueberzugpp (yazi image preview) must stay floating
           "no_focus on, match:class ueberzugpp"
           "no_shadow on, match:class ueberzugpp"
           "no_blur on, match:class ueberzugpp"
