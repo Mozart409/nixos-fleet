@@ -93,7 +93,7 @@
           defaultFonts = {
             serif = ["Noto Serif"];
             sansSerif = ["Noto Sans"];
-            monospace = ["JetBrains Mono"];
+            monospace = ["JetBrains Mono" "Symbols Nerd Font"];
             emoji = ["Noto Color Emoji"];
           };
         };

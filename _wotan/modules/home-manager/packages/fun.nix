@@ -17,7 +17,7 @@
     mesen
     mpv
     nerd-fonts.jetbrains-mono
-    openrgb-with-all-plugins
+    nerd-fonts.symbols-only
     # keep-sorted end
   ];
 }
