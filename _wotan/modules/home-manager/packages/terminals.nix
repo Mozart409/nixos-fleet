@@ -25,23 +25,29 @@
       enable_audio_bell = false;
 
       # Font
+      # Use "auto" for styled faces so kitty derives bold/italic from the
+      # JetBrainsMono family. Explicit names like "JetBrainsMono Nerd Font Bold"
+      # do not match any face and silently fall back to NotoSansMono.
       font_family = "JetBrainsMono Nerd Font";
-      bold_font = "JetBrainsMono Nerd Font Bold";
-      italic_font = "JetBrainsMono Nerd Font Italic";
-      bold_italic_font = "JetBrainsMono Nerd Font Bold Italic";
+      bold_font = "auto";
+      italic_font = "auto";
+      bold_italic_font = "auto";
       font_size = 13;
 
       # Misc
       update_check_interval = 0;
       background_opacity = "1.0";
 
-      # Startup directory
-      startup_session = "none";
-
-      # Working directory
-      working_directory = "${config.home.homeDirectory}/code";
+      # Open in ~/code via a session file. kitty has no "working_directory"
+      # key (that is an Alacritty/Ghostty option and is silently ignored).
+      startup_session = "${config.xdg.configHome}/kitty/startup.session";
     };
   };
+
+  xdg.configFile."kitty/startup.session".text = ''
+    cd ${config.home.homeDirectory}/code
+    launch
+  '';
 
   programs.ghostty = {
     enable = false;
