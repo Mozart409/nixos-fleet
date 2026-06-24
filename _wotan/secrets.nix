@@ -17,4 +17,6 @@ in {
   #   HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   # Edit with: agenix -e secrets/hf-token.age
   "secrets/hf-token.age".publicKeys = allKeys;
+  # Format AXON_GATEWAY-TOKEN=ABC123
+  "secrets/axon-gateway-env.age".publicKeys = allKeys;
 }

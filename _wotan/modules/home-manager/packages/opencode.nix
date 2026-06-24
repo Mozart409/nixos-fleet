@@ -46,7 +46,13 @@
           };
         };
         mcp = {
+          axon-gateway = {
+            type = "remote";
+            url = "https://axon.homelab.local/mcp";
+            headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
+          };
           homeassistant = {
+            enabled = false;
             type = "remote";
             url = "https://mcp.homelab.local/mcp";
           };
