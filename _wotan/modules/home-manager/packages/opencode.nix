@@ -47,12 +47,14 @@
         };
         mcp = {
           axon-gateway = {
-            type = "http";
+            type = "remote";
             url = "https://axon.homelab.local/mcp";
+            transport = "http";
+            oauth = false;
             headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
+            enabled = false;
           };
           homeassistant = {
-            enabled = false;
             type = "remote";
             url = "https://mcp.homelab.local/mcp";
           };
