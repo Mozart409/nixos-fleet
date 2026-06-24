@@ -213,6 +213,13 @@
             "$mod SHIFT, up, movewindow, u"
             "$mod SHIFT, down, movewindow, d"
 
+            # Push window to an adjacent monitor unconditionally (works for
+            # tiled and fullscreen windows, e.g. moving a fullscreen video)
+            "$mod CTRL, left, movewindow, mon:l"
+            "$mod CTRL, right, movewindow, mon:r"
+            "$mod CTRL, up, movewindow, mon:u"
+            "$mod CTRL, down, movewindow, mon:d"
+
             # Media keys (pass through to applications like Firefox)
             ", XF86AudioPlay, exec, playerctl play-pause"
             ", XF86AudioStop, exec, playerctl stop"
