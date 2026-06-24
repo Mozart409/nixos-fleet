@@ -46,10 +46,13 @@
     "${config.home.homeDirectory}/.config/age/keys.txt"
   ];
 
-  # Load CONTEXT7 API key from agenix secret file
+  # Load agenix secrets into shell environment variables
   home.sessionVariablesExtra = ''
     if [ -n "$CONTEXT7_API_KEY_FILE" ] && [ -f "$CONTEXT7_API_KEY_FILE" ]; then
       export CONTEXT7_API_KEY=$(cat "$CONTEXT7_API_KEY_FILE")
+    fi
+    if [ -n "$AXON_GATEWAY_TOKEN_FILE" ] && [ -f "$AXON_GATEWAY_TOKEN_FILE" ]; then
+      export AXON_GATEWAY_TOKEN=$(cat "$AXON_GATEWAY_TOKEN_FILE" | sed 's/AXON_GATEWAY_TOKEN=//')
     fi
   '';
 

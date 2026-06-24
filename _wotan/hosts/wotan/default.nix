@@ -260,10 +260,19 @@
     # Format inside the file: HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
   };
 
+  age.secrets.axon-gateway-env = {
+    file = ../../secrets/axon-gateway-env.age;
+    mode = "440";
+    owner = "amadeus";
+    group = "users";
+    # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
+  };
+
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
+    AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-gateway-env.path;
 
     # NVIDIA Wayland environment variables for better compatibility
     GBM_BACKEND = "nvidia-drm";

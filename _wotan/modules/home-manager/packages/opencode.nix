@@ -49,6 +49,7 @@
           axon-gateway = {
             type = "remote";
             url = "https://axon.homelab.local/mcp";
+            oauth = false;
             headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
           };
           homeassistant = {
