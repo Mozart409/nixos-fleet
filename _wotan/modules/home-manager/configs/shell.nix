@@ -107,6 +107,17 @@
       s = "kitty +kitten ssh";
     };
     initContent = ''
+      # Keep vi keybindings (zsh auto-selects vi mode because $EDITOR=nvim), but
+      # make Alt+word combos act on words *while staying in insert mode*. Without
+      # these, Alt sends ESC and drops into vi command mode: Alt+b/Alt+w happen to
+      # run vi b/w motions, but Alt+d triggers the `d` delete-operator that waits
+      # for a motion, so it appears to do nothing.
+      bindkey -M viins '\eb' backward-word    # Alt+b  - jump word left
+      bindkey -M viins '\ew' forward-word      # Alt+w  - jump word right
+      bindkey -M viins '\ed' kill-word         # Alt+d  - delete word forward
+      bindkey -M viins '\ef' forward-word      # Alt+f  - (emacs-style alias)
+      bindkey -M viins '^W' backward-kill-word # Ctrl+W - delete word backward
+
       # `t` opens (or re-attaches to) ONE tmux session per directory.
       # Session name = sanitized folder basename. `new-session -A` attaches to
       # an existing session of that name instead of spawning a duplicate, so
