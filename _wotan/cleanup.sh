@@ -1,90 +1,75 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-set -uo pipefail
+set -euo pipefail
 
 clear
 
 chara say -t round -r cleaning up ...
 echo ''
 
-# ===== NIX OPERATIONS (sequential — same store) =====
-
-delete_generations() {
-  local profile_path="$1"
-  local keep="$2"
-  local sudo_prefix="$3"
-
-  # Method 1: nix-env (traditional profiles)
-  if $sudo_prefix nix-env --list-generations --profile "$profile_path" >/dev/null 2>&1; then
-    $sudo_prefix nix-env --profile "$profile_path" --delete-generations +"$keep"
-    return
-  fi
-
-  # Method 2: nix profile (new-style profiles)
-  if nix profile history --profile "$profile_path" >/dev/null 2>&1; then
-    $sudo_prefix nix profile wipe-history --profile "$profile_path" --keep-last "$keep"
-  fi
-}
-
+echo '=== Disk usage before cleanup ==='
+df -h /
 echo ''
-echo 'Deleting old system generations (keeping last 5)...'
-delete_generations /nix/var/nix/profiles/system 5 "sudo"
 
-echo ''
-echo 'Deleting old home-manager generations (keeping last 5)...'
-delete_generations /home/amadeus/.local/state/nix/profiles/home-manager 5 ""
+# ===== NIX OPERATIONS =====
 
-echo ''
-echo 'Deleting old user profile generations (keeping last 5)...'
-if nix-env --list-generations >/dev/null 2>&1; then
-  nix-env --delete-generations +5
+echo 'Cleaning Nix generations and store...'
+if command -v nh >/dev/null 2>&1; then
+  nh clean all --keep 2
 else
-  delete_generations /home/amadeus/.local/state/nix/profiles/profile 5 ""
+  sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +2
+  nix-env --profile "$HOME/.local/state/nix/profiles/home-manager" --delete-generations +2 2>/dev/null || true
+  nix-env --delete-generations +2 2>/dev/null || true
+  nix-collect-garbage
 fi
 
 echo ''
-echo 'Running garbage collection...'
-nix-collect-garbage
-
-echo ''
-echo 'Optimise store...'
+echo 'Optimising Nix store...'
 nix store optimise
 
 # ===== PARALLEL CLEANUP TASKS =====
 # Each task runs in a subshell with stdin from /dev/null so terminal
-# escape-sequence responses (e.g. cursor position reports) do not leak
-# into the parent shell.  Output is collected in temp files and printed
-# after all jobs finish to avoid interleaving.
+# escape-sequence responses do not leak into the parent shell.
 
 cleanup_task() {
-  name="$1"
+  local name="$1"
   shift
   (
     "$@"
   ) </dev/null >"/tmp/cleanup_${name}.log" 2>&1
 }
 
-if command -v docker >/dev/null 2>&1; then
-  cleanup_task docker docker system prune -f --volumes &
-fi
+# Rust build artifacts (huge space hogs)
+echo 'Cleaning Rust build artifacts...'
+cleanup_task rust find ~/code/rust -type d -name target -prune -exec rm -rf {} + 2>/dev/null || true
 
+# Container cleanup
 if command -v podman >/dev/null 2>&1; then
-  (
-    cleanup_task podman sh -c 'podman system prune -f && podman volume prune -f'
-  ) &
+  cleanup_task podman sh -c 'podman system prune -f && podman volume prune -f' 2>/dev/null || true
 fi
 
-cleanup_task journal sudo journalctl --vacuum-time=30d &
+if command -v docker >/dev/null 2>&1; then
+  cleanup_task docker docker system prune -f --volumes 2>/dev/null || true
+fi
 
+# Flatpak cleanup
+if command -v flatpak >/dev/null 2>&1; then
+  cleanup_task flatpak flatpak uninstall --unused -y 2>/dev/null || true
+fi
+
+# Journal cleanup
+cleanup_task journal sudo journalctl --vacuum-time=30d 2>/dev/null || true
+
+# /tmp cleanup
 cleanup_task tmp sh -c '
   sudo find /tmp -mindepth 1 -maxdepth 1 -type f -atime +7 -delete 2>/dev/null || true
   sudo find /tmp -mindepth 1 -maxdepth 1 -type d -empty -delete 2>/dev/null || true
-' &
+' 2>/dev/null || true
 
-# Wait for all background jobs to finish
+# Wait for all background jobs
 wait
 
-# Print collected output sequentially
+# Print collected output
 for log in /tmp/cleanup_*.log; do
   if [ -f "$log" ] && [ -s "$log" ]; then
     echo ''
@@ -94,7 +79,10 @@ for log in /tmp/cleanup_*.log; do
 done
 
 echo ''
-echo 'Disk usage after cleanup:'
+echo '=== Disk usage after cleanup ==='
 df -h /
+
+echo ''
+echo 'Cleanup complete!'
 
 exit 0
