@@ -38,6 +38,9 @@
       bind '"' split-window -v -c "#{pane_current_path}"
       bind % split-window -h -c "#{pane_current_path}"
 
+      # Fast "I'm done here": prefix + X kills the whole session (with confirm).
+      bind X confirm-before -p "kill session '#S'? (y/n)" kill-session
+
       # Auto-setup: 3 windows, first runs nvim
       set-hook -g session-created 'new-window ; new-window ; select-window -t :1 ; send-keys "nvim ." Enter'
 

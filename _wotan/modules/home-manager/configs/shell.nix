@@ -103,9 +103,26 @@
       pup = "podman-compose up -d";
       pwn = "podman-compose down";
       n = "nvim .";
-      t = "tmux";
       op = "opencode";
       s = "kitty +kitten ssh";
     };
+    initContent = ''
+      # `t` opens (or re-attaches to) ONE tmux session per directory.
+      # Session name = sanitized folder basename. `new-session -A` attaches to
+      # an existing session of that name instead of spawning a duplicate, so
+      # running `t` again in the same folder never opens a second nvim.
+      t() {
+        local name="''${''${PWD:t}//[.:]/_}"
+        tmux new-session -A -s "$name"
+      }
+
+      # `tk` kills the tmux session for the current directory (run from shell).
+      tk() {
+        local name="''${''${PWD:t}//[.:]/_}"
+        tmux kill-session -t "$name" 2>/dev/null \
+          && echo "killed tmux session: $name" \
+          || echo "no tmux session: $name"
+      }
+    '';
   };
 }
