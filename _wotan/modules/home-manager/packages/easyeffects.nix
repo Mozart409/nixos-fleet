@@ -82,5 +82,45 @@
           }
       }
     '';
+
+    # Pin "Easy Effects Sink" as the default output so apps route through the
+    # effects automatically — declaratively, without relying on WirePlumber's
+    # mutable ~/.local/state. The EE sink is a client-created null-sink that no
+    # WirePlumber rules-table targets, so a `priority.session` rule can't attach
+    # to it; instead this oneshot sets the configured-default metadata by name
+    # (exactly what `wpctl set-default` does) once the sink appears. It runs with
+    # and re-runs after the EE daemon (PartOf), and falls back gracefully to the
+    # hardware sink if EasyEffects ever isn't running.
+    systemd.user.services.easyeffects-default-sink = {
+      Unit = {
+        Description = "Route the default audio output through EasyEffects";
+        After = ["easyeffects.service"];
+        PartOf = ["easyeffects.service"];
+      };
+
+      Service = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = let
+          ee-default-sink = pkgs.writeShellScript "ee-default-sink" ''
+            set -eu
+            # EasyEffects creates "easyeffects_sink" shortly after the daemon
+            # starts; wait up to ~30s for it before pinning it as default.
+            for _ in $(seq 1 60); do
+              if ${pkgs.pipewire}/bin/pw-cli ls Node 2>/dev/null | grep -q '"easyeffects_sink"'; then
+                ${pkgs.pipewire}/bin/pw-metadata -n default 0 \
+                  default.configured.audio.sink '{"name":"easyeffects_sink"}'
+                exit 0
+              fi
+              sleep 0.5
+            done
+            echo "easyeffects_sink did not appear within timeout" >&2
+            exit 1
+          '';
+        in "${ee-default-sink}";
+      };
+
+      Install.WantedBy = ["easyeffects.service"];
+    };
   };
 }
