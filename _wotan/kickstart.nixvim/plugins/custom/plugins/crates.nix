@@ -13,10 +13,14 @@
       # Pull extra metadata from crates.io (downloads, homepage, etc.).
       loading_indicator = true;
 
-      # Wire completion into the existing nvim-cmp setup.
-      completion = {
-        cmp.enabled = true;
-        crates.enabled = true;
+      # Use the in-process LSP source instead of the deprecated nvim-cmp
+      # source. crates.nvim spins up a tiny LSP that feeds completion,
+      # code actions, and hover to whatever completion engine is attached.
+      lsp = {
+        enabled = true;
+        actions = true;
+        completion = true;
+        hover = true;
       };
     };
   };
