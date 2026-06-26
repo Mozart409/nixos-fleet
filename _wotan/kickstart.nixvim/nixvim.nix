@@ -22,6 +22,7 @@
     # ./plugins/custom/plugins/snacks.nix
     ./plugins/custom/plugins/autocommands.nix
     ./plugins/custom/plugins/comment.nix
+    ./plugins/custom/plugins/crates.nix
     ./plugins/custom/plugins/cyberdream.nix
     ./plugins/custom/plugins/d2.nix
     ./plugins/custom/plugins/dashboard.nix
