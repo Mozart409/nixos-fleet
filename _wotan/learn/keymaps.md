@@ -178,6 +178,22 @@ A comprehensive reference for all keymaps and plugin shortcuts in your Neovim co
 
 ---
 
+## 🦀 Rust Crates (crates.nvim)
+
+These keymaps are **buffer-local** — they are only active inside a `Cargo.toml` file. Latest crates.io versions are shown inline as virtual text.
+
+| Keymap       | Description                  | Mode | Plugin |
+| ------------ | ---------------------------- | ---- | ------ |
+| `<leader>ct` | Toggle inline version info   | n    | crates |
+| `<leader>cr` | Reload crate data            | n    | crates |
+| `<leader>cv` | Show versions popup          | n    | crates |
+| `<leader>cf` | Show features popup          | n    | crates |
+| `<leader>cu` | Update crate(s) to req       | n, v | crates |
+| `<leader>cU` | Upgrade crate(s) to latest   | n, v | crates |
+| `<leader>cA` | Upgrade all crates           | n    | crates |
+
+---
+
 ## 🔗 Code Outline (Aerial)
 
 | Keymap      | Description                   | Mode | Plugin |
