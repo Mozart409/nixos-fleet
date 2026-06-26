@@ -15,6 +15,7 @@
     ../../modules/home-manager/packages/database.nix
     ../../modules/home-manager/packages/desktop.nix
     ../../modules/home-manager/packages/development.nix
+    ../../modules/home-manager/packages/easyeffects.nix
     ../../modules/home-manager/packages/fun.nix
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
@@ -37,6 +38,7 @@
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
   desktop.quickshell.enable = true;
+  desktop.easyeffects.enable = true;
 
   # Enable opencode custom commands
   opencode.enable = true;
