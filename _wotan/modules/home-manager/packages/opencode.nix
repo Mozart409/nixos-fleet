@@ -52,7 +52,7 @@
             transport = "http";
             oauth = false;
             headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
-            enabled = false;
+            enabled = true;
           };
           homeassistant = {
             type = "remote";
