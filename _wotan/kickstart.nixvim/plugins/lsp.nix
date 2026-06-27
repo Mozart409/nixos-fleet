@@ -146,7 +146,7 @@
           enable = true;
         };
         just = {
-          enable = false;
+          enable = true;
         };
         tofu_ls = {
           enable = false;
