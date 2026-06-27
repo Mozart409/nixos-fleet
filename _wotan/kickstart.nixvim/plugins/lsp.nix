@@ -9,6 +9,7 @@
       typescript-language-server
       typescript
       tofu-ls
+      biome
     ];
 
     # Dependencies
