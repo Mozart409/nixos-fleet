@@ -24,7 +24,3 @@ done
 echo ''
 echo 'Cleaning up old generations and store...'
 nh clean all --keep 2 --keep-since 1d
-
-echo ''
-echo 'Optimising store...'
-nix store optimise
