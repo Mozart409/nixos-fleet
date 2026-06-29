@@ -31,8 +31,16 @@
     # can also reformat floats. This file is byte-for-byte what EasyEffects 8.2.4
     # itself exports, so it loads with no "wrong format" error.
     #
+    # Chain (plugins_order): autogain -> compressor -> limiter. Autogain levels
+    # loudness between sources toward `target`, the compressor tames dynamic range
+    # within a source, then the limiter catches peaks.
+    #
     # Tuning: autogain `target` is the EBU R128 loudness goal in LUFS (-16 is
-    # desktop-friendly; toward 0 = louder). Limiter `threshold` (-1 dB) leaves
+    # desktop-friendly; toward 0 = louder); `maximum-history` (10s) is the trailing
+    # window it averages over — shorter reacts faster but pumps more. Compressor
+    # `threshold` (-20 dB) / `ratio` (3:1) are tuned down from the GUI defaults
+    # (-12 dB / 4:1) to gently reduce dynamic range; all other compressor keys are
+    # verbatim EasyEffects 8.2.4 export. Limiter `threshold` (-1 dB) leaves
     # headroom so boosted-quiet content can't clip; `alr` smooths gain changes.
     xdg.dataFile."easyeffects/output/loudness.json".text = ''
       {
@@ -41,7 +49,7 @@
                   "bypass": false,
                   "force-silence": false,
                   "input-gain": 0.0,
-                  "maximum-history": 15,
+                  "maximum-history": 10,
                   "output-gain": 0.0,
                   "reference": "Integrated",
                   "silence-threshold": -70.0,
@@ -75,8 +83,46 @@
                   "stereo-link": 100.0,
                   "threshold": -1.0
               },
+              "compressor#0": {
+                  "attack": 20.0,
+                  "boost-amount": 6.0,
+                  "boost-threshold": -72.0,
+                  "bypass": false,
+                  "dry": -80.01,
+                  "hpf-frequency": 10.0,
+                  "hpf-mode": "Off",
+                  "input-gain": 0.0,
+                  "input-to-link": -80.01,
+                  "input-to-sidechain": -80.01,
+                  "knee": -6.0,
+                  "link-to-input": -80.01,
+                  "link-to-sidechain": -80.01,
+                  "lpf-frequency": 20000.0,
+                  "lpf-mode": "Off",
+                  "makeup": 0.0,
+                  "mode": "Downward",
+                  "output-gain": 0.0,
+                  "ratio": 3.0,
+                  "release": 100.0,
+                  "release-threshold": -80.01,
+                  "sidechain": {
+                      "lookahead": 0.0,
+                      "mode": "Peak",
+                      "preamp": 0.0,
+                      "reactivity": 10.0,
+                      "source": "Middle",
+                      "stereo-split-source": "Left/Right",
+                      "type": "Feed-forward"
+                  },
+                  "sidechain-to-input": -80.01,
+                  "sidechain-to-link": -80.01,
+                  "stereo-split": false,
+                  "threshold": -20.0,
+                  "wet": 0.0
+              },
               "plugins_order": [
                   "autogain#0",
+                  "compressor#0",
                   "limiter#0"
               ]
           }
