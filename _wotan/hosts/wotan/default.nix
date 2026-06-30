@@ -152,11 +152,16 @@
   };
   # gamescope micro-compositor — wraps games so Hyprland sees one
   # well-behaved window (fixes Xwayland fullscreen/cursor weirdness,
-  # e.g. S.T.A.L.K.E.R. GAMMA via Heroic). capSysNice allows realtime
-  # scheduling priority.
+  # e.g. S.T.A.L.K.E.R. GAMMA via Heroic).
+  #
+  # capSysNice MUST stay false: it installs gamescope as a setcap wrapper
+  # at /run/wrappers/bin, which fails ("failed to inherit capabilities")
+  # inside Heroic's no-new-privs bubblewrap sandbox and bails instantly.
+  # false installs the plain binary at /run/current-system/sw/bin, which
+  # the sandbox can run (we only forgo realtime scheduling priority).
   programs.gamescope = {
     enable = true;
-    capSysNice = true;
+    capSysNice = false;
   };
   services.tailscale.enable = true;
 
