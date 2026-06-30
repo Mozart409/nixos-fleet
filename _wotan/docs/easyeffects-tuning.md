@@ -39,7 +39,7 @@ mistyped key triggers a "wrong format" error on load. Edit the JSON inside the
 | Key | Current | Tune toward |
 |---|---|---|
 | `target` | `-16.0` | **Louder overall:** raise toward `-14` / `-12`. Quieter: lower. |
-| `maximum-history` | `10.0` | **Snappier** adjustment: lower (e.g. `6`). **Smoother / less pumping:** raise (`15`). |
+| `maximum-history` | `20.0` | **Snappier** adjustment: lower (e.g. `6`). **Smoother / less pumping:** raise (`30`). Raised from `10` to stop game ambience over-boosting during streamer silences. |
 | `reference` | `"Integrated"` | `"Short-term"` / `"Momentary"` react faster to quiet→loud jumps, but pump more. |
 
 The output-gain readout swinging between `0` and `+24 dB` is **normal** — `+24 dB`

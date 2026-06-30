@@ -36,8 +36,9 @@
     # within a source, then the limiter catches peaks.
     #
     # Tuning: autogain `target` is the EBU R128 loudness goal in LUFS (-16 is
-    # desktop-friendly; toward 0 = louder); `maximum-history` (10s) is the trailing
-    # window it averages over — shorter reacts faster but pumps more. Compressor
+    # desktop-friendly; toward 0 = louder); `maximum-history` (20s) is the trailing
+    # window it averages over — shorter reacts faster but pumps more (e.g. game
+    # ambience over-boosting when a streamer falls silent). Compressor
     # `threshold` (-20 dB) / `ratio` (3:1) are tuned down from the GUI defaults
     # (-12 dB / 4:1) to gently reduce dynamic range; all other compressor keys are
     # verbatim EasyEffects 8.2.4 export. Limiter `threshold` (-1 dB) leaves
@@ -49,7 +50,7 @@
                   "bypass": false,
                   "force-silence": false,
                   "input-gain": 0.0,
-                  "maximum-history": 10,
+                  "maximum-history": 20,
                   "output-gain": 0.0,
                   "reference": "Integrated",
                   "silence-threshold": -70.0,
