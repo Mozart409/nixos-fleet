@@ -150,6 +150,14 @@
       ];
     };
   };
+  # gamescope micro-compositor — wraps games so Hyprland sees one
+  # well-behaved window (fixes Xwayland fullscreen/cursor weirdness,
+  # e.g. S.T.A.L.K.E.R. GAMMA via Heroic). capSysNice allows realtime
+  # scheduling priority.
+  programs.gamescope = {
+    enable = true;
+    capSysNice = true;
+  };
   services.tailscale.enable = true;
 
   # Trust Homelab CA root certificate (step-ca)
