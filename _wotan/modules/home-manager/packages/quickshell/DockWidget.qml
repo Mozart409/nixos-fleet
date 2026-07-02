@@ -3,13 +3,19 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
-// App launcher dock - bottom center
-PanelWindow {
-  id: dock
+// App launcher dock - bottom center, one per monitor
+Scope {
+  Variants {
+    model: Quickshell.screens
 
-  anchors {
-    bottom: true
-  }
+    PanelWindow {
+      id: dock
+      required property var modelData
+      screen: modelData
+
+      anchors {
+        bottom: true
+      }
 
   // Center horizontally
   margins {
@@ -114,6 +120,8 @@ PanelWindow {
           }
         }
       }
+    }
+  }
     }
   }
 }
