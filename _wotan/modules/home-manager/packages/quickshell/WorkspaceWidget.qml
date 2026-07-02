@@ -24,7 +24,7 @@ RowLayout {
       property int wsId: workspaceWidget.startWorkspace + index
       property bool isActive: workspaceWidget.monitor?.activeWorkspace?.id === wsId
       property bool hasWindows: {
-        for (let ws of Hyprland.workspaces) {
+        for (let ws of Hyprland.workspaces.values) {
           if (ws.id === wsId && ws.windows > 0) return true
         }
         return false
