@@ -90,6 +90,11 @@ in {
         ExecStart = lib.getExe quickshell;
         Restart = "on-failure";
         RestartSec = 3;
+        # Only kill quickshell itself on stop/restart, not apps launched from
+        # the dock. Dock apps (Quickshell.execDetached) inherit this service's
+        # cgroup; the default KillMode=control-group would take them down with
+        # a `systemctl restart`.
+        KillMode = "process";
       };
 
       Install = {
