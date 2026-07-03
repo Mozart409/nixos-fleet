@@ -7,7 +7,6 @@
 }: {
   imports = [
     # keep-sorted start
-    ../../kickstart.nixvim/nixvim.nix
     ../../modules/home-manager/common-packages.nix
     ../../modules/home-manager/node-security.nix
     ../../modules/home-manager/packages/browsers.nix
@@ -31,6 +30,7 @@
     ../../modules/home-manager/packages/tmux.nix
     ../../modules/home-manager/packages/yazi.nix
     ../../modules/home-manager/packages/zinc-oxide.nix
+    inputs.mozart409-nixvim.homeModules.default
     # keep-sorted end
   ];
 

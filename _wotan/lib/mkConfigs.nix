@@ -40,14 +40,10 @@ in {
             extraSpecialArgs = {inherit inputs;};
             useGlobalPkgs = true;
             sharedModules = [
-              inputs.nixvim.homeModules.nixvim
+              # nixvim's Home Manager module (and the nixpkgs source pin) are
+              # brought in by inputs.mozart409-nixvim.homeModules.default, which
+              # wotan's home.nix imports.
               inputs.agenix.homeManagerModules.default
-              {
-                # Pin nixvim's nixpkgs source to ours — suppresses the
-                # warning about `inputs.nixvim.inputs.nixpkgs.follows`
-                # skewing the default.
-                programs.nixvim.nixpkgs.source = pkgs.path;
-              }
             ];
             users.amadeus = import ../hosts/${hostname}/home.nix;
           };

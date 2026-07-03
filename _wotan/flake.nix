@@ -50,6 +50,15 @@
       url = "github:Mozart409/zinc_oxide";
       flake = false;
     };
+
+    # Neovim (nixvim) configuration, moved out to its own public repo so it
+    # can be reused at work with plain Nix + Home Manager. Its nixvim/nixpkgs
+    # follow ours so we don't pull in a second copy.
+    mozart409-nixvim = {
+      url = "github:Mozart409/mozart409-nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixvim.follows = "nixvim";
+    };
   };
 
   outputs = {
@@ -67,6 +76,7 @@
     awww,
     rose-pine-hyprcursor,
     zinc-oxide,
+    mozart409-nixvim,
   } @ inputs: let
     lib = nixpkgs.lib;
     system = "x86_64-linux";

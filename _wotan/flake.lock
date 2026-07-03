@@ -753,6 +753,29 @@
         "type": "github"
       }
     },
+    "mozart409-nixvim": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixvim": [
+          "nixvim"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783068495,
+        "narHash": "sha256-/0TbPSCToGVp7hy+dn0EyMdHVFX6PLL2Z7DKZ6SO6Sk=",
+        "owner": "Mozart409",
+        "repo": "mozart409-nixvim",
+        "rev": "df661ae04910d0e8cf3442d564fb8956b6cdd27a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mozart409",
+        "repo": "mozart409-nixvim",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1763934636,
@@ -908,6 +931,7 @@
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
         "hyprsunset": "hyprsunset",
+        "mozart409-nixvim": "mozart409-nixvim",
         "nixpkgs": "nixpkgs_5",
         "nixvim": "nixvim",
         "quickshell": "quickshell",
