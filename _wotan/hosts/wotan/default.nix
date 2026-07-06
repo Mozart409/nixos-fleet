@@ -236,10 +236,11 @@
       "--enable-auto-tool-choice"
       "--tool-call-parser"
       "hermes"
-      # Route Qwen3 <think> blocks into reasoning_content instead of the
-      # visible text. Harmless for non-thinking models (e.g. Qwen2.5-Coder).
-      "--reasoning-parser"
-      "qwen3"
+      # NOTE: --reasoning-parser qwen3 was removed here. It is NOT harmless for
+      # non-thinking models: Qwen3ReasoningParser aborts at startup if the
+      # tokenizer has no <think>/</think> tokens, which Qwen2.5-Coder lacks
+      # ("could not locate think start/end tokens"). Re-add it only when
+      # switching back to the Qwen3-30B MoE model above.
       # Disables torch.compile + CUDA graph capture. Kept because CUDA graphs
       # cost extra VRAM we don't have, and --cpu-offload-gb is best supported
       # in eager mode. Try removing only after the model swap is proven stable.
