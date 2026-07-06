@@ -69,6 +69,7 @@
           homeassistant = {
             type = "remote";
             url = "https://mcp.homelab.local/mcp";
+            enabled = false;
           };
           gh_grep = {
             type = "remote";
