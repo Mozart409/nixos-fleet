@@ -233,6 +233,15 @@
     extraArgs = [
       "--kv-cache-dtype"
       "fp8" # Quantize KV cache to save VRAM
+      # Tool calling (required by opencode and other agentic clients).
+      # "hermes" is the correct parser for both Qwen3 and Qwen2.5 models.
+      "--enable-auto-tool-choice"
+      "--tool-call-parser"
+      "hermes"
+      # Route Qwen3 <think> blocks into reasoning_content instead of the
+      # visible text. Harmless for non-thinking models (e.g. Qwen2.5-Coder).
+      "--reasoning-parser"
+      "qwen3"
       # Disables torch.compile + CUDA graph capture. Kept because CUDA graphs
       # cost extra VRAM we don't have, and --cpu-offload-gb is best supported
       # in eager mode. Try removing only after the model swap is proven stable.
