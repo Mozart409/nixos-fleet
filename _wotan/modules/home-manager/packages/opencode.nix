@@ -29,6 +29,34 @@
       force = true;
       text = builtins.toJSON {
         "$schema" = "https://opencode.ai/config.json";
+        # Local vLLM endpoint (services.vllm in hosts/wotan/default.nix, port 10808).
+        # vLLM serves ONE model at a time — only the entry matching
+        # services.vllm.model actually responds; the other 404s until you
+        # switch the served model and rebuild. Both are listed so the
+        # opencode model picker works across switches without editing this file.
+        provider.vllm = {
+          npm = "@ai-sdk/openai-compatible";
+          name = "vLLM (local)";
+          options.baseURL = "http://127.0.0.1:10808/v1";
+          models = {
+            # Currently served: 30B MoE, CPU-offloaded (~19 tok/s est.)
+            "Qwen/Qwen3-30B-A3B-GPTQ-Int4" = {
+              name = "Qwen3 30B A3B (local)";
+              limit = {
+                context = 32768;
+                output = 8192;
+              };
+            };
+            # Next test: dense coder, fits fully in VRAM (~52 tok/s est.)
+            "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ" = {
+              name = "Qwen2.5 Coder 7B (local)";
+              limit = {
+                context = 32768;
+                output = 8192;
+              };
+            };
+          };
+        };
         mcp = {
           axon-gateway = {
             type = "remote";

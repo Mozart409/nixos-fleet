@@ -211,6 +211,12 @@
   services.vllm = {
     enable = true;
     model = "Qwen/Qwen3-30B-A3B-GPTQ-Int4";
+    # NEXT TEST — dense coder, fits fully in VRAM (llmfit "Perfect", ~51%
+    # utilization, ~52 tok/s est., 32K native ctx). To switch: uncomment the
+    # line below, comment out the 30B line above, and REMOVE cpuOffloadGb
+    # (not needed when weights fit in VRAM — offload only slows it down).
+    # Also listed in the opencode provider config (opencode.nix).
+    # model = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ";
     port = 10808;
     host = "0.0.0.0";
     maxModelLen = 32768; # Model max is 40960. KV at fp8 is ~24 KB/token
