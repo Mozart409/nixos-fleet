@@ -4,7 +4,7 @@ This guide provides essential information for agentic coding agents operating in
 
 ## 🏗️ Repository Overview
 
-This is a **multi-host NixOS configuration** using flakes, home-manager, and nixvim. The primary host is `wotan` (main workstation).
+This is a **multi-host NixOS configuration** using flakes and home-manager. The primary host is `wotan` (main workstation).
 
 **Architecture:**
 - `/etc/nixos/` - Root configuration directory (this is the working directory)
@@ -12,7 +12,10 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 - `hosts/{hostname}/` - Per-host system and home-manager configurations
 - `modules/nixos/` - Shared NixOS system modules
 - `modules/home-manager/` - Shared home-manager user modules
-- `kickstart.nixvim/` - Neovim configuration using nixvim
+- `lib/mkConfigs.nix` - `mkHost` helper and shared nixpkgs config
+- `secrets/` + `secrets.nix` - agenix-encrypted secrets
+
+**Neovim:** The nixvim configuration lives in its own repo, consumed as the flake input `mozart409-nixvim` (`github:Mozart409/mozart409-nixvim`). Neovim changes happen there, then `nix flake update mozart409-nixvim` here.
 
 **Hosts:**
 - `wotan` - Main desktop workstation (Hyprland, NVIDIA, Podman)
@@ -25,8 +28,9 @@ This is a **multi-host NixOS configuration** using flakes, home-manager, and nix
 
 ```bash
 # Using nh (recommended - prettier output, diffs, faster)
-nh os switch .#nixosConfigurations.wotan     # Apply NixOS system + home-manager changes
-nh os test .#nixosConfigurations.wotan       # Test without persistence
+# programs.nh.flake is preset to /etc/nixos, so no flake argument is needed.
+nh os switch                  # Apply NixOS system + home-manager changes
+nh os test                    # Test without persistence
 
 # Traditional commands (fallback)
 sudo nixos-rebuild switch --flake .#wotan    # Apply system changes
@@ -34,14 +38,13 @@ sudo nixos-rebuild test --flake .#wotan      # Test without persistence
 
 # Using just (interactive menu)
 just                          # Show interactive menu
-just switch wotan            # Switch NixOS config (includes home-manager)
-just switch-all wotan        # Switch NixOS config
-just test wotan              # Test NixOS config
-just test-all wotan          # Test NixOS config
+just switch wotan             # Switch NixOS config (home-manager is integrated)
+just test wotan               # Test NixOS config
+# (switch-all/test-all are aliases for switch/test — no separate home-manager step)
 
 # Build configurations (dry-run to check)
-nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
-nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
+just build wotan              # = nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
+just build-home               # = nix build ...home-manager.users.amadeus.home.activationPackage --dry-run
 ```
 
 **Note:** `nh` is enabled via `programs.nh` in `modules/nixos/basics.nix` with the default flake set to `/etc/nixos`.
@@ -55,15 +58,15 @@ alejandra {staged_files}     # Format staged files only
 
 # Validate flake configuration
 nix flake check             # Check all outputs
-nix flake check .#nixosConfigurations.wotan
 
-# Update dependencies
+# Update dependencies (run as YOUR USER, never sudo — sudo breaks flake.lock ownership)
 nix flake update            # Update all inputs
 nix flake update nixpkgs    # Update specific input
 just update                 # Same as nix flake update --accept-flake-config
+just update-input nixpkgs   # Update a single input
 
 # Development shell
-nix develop                 # Enter dev shell with git, alejandra, lefthook
+nix develop                 # Enter dev shell with git, alejandra, lefthook, opencode
 
 # MCP Servers (if available)
 # Use context7 or grepmcp for enhanced code search and documentation queries
@@ -116,24 +119,7 @@ nix develop                 # Enter dev shell with git, alejandra, lefthook
 
 ### Formatting Rules (Alejandra)
 
-- **Indentation:** 2 spaces (enforced by Alejandra)
-- **Line length:** Soft limit ~100 chars (Alejandra handles wrapping)
-- **Lists:** One item per line for readability
-- **Attribute sets:** Use multi-line format when >2 attributes
-- **Let-in:** Use for complex derivations or repeated values
-- **String interpolation:** `"${variable}"` for Nix, `''${literal}''` in multi-line
-
-```nix
-# GOOD
-environment.systemPackages = with pkgs; [
-  vim
-  git
-  curl
-];
-
-# AVOID (single line for long lists)
-environment.systemPackages = with pkgs; [ vim git curl wget htop ];
-```
+Alejandra enforces layout (2-space indent, wrapping, one list item per line) — run `alejandra .` and don't hand-format. Beyond that: use `let-in` for repeated values, and `"${variable}"` for interpolation (`''${literal}''` in multi-line strings).
 
 ### Types and Validation
 
@@ -198,7 +184,7 @@ home.packages = with pkgs; [
 2. Add `default.nix` (system config) and `home.nix` (user config)
 3. Generate hardware config: `nixos-generate-config --show-hardware-config`
 4. Update `flake.nix` to include new host in `nixosConfigurations`
-5. Use helper function: `mkHost "hostname" system`
+5. Use helper function: `mkHost "hostname" system` (defined in `lib/mkConfigs.nix`)
 
 ### Module Organization
 
@@ -224,11 +210,11 @@ Before committing changes:
 
 1. **Format:** `alejandra .`
 2. **Validate:** `nix flake check`
-3. **Build test:** `nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run`
-4. **Build home test:** `nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run`
+3. **Build test:** `just build wotan`
+4. **Build home test:** `just build-home`
 5. **Test config:** `sudo nixos-rebuild test --flake .#wotan` (if changing system)
 6. **Commit:** Changes with descriptive message
-7. **Switch:** `just switch-all wotan` to persist
+7. **Switch:** `just switch wotan` (or `nh os switch`) to persist
 
 ## 🚨 Common Pitfalls
 
@@ -236,21 +222,22 @@ Before committing changes:
 2. **Absolute paths:** Use relative paths from current file location
 3. **Unfree packages:** Already configured globally, no need to add per-package
 4. **Home-manager vs NixOS:** System services in NixOS modules, user config in home-manager. Home-manager is integrated via `home-manager.nixosModules.home-manager` so a single `nixos-rebuild switch` activates both.
-5. **Rebuilds require sudo:** System rebuilds need `sudo`
+5. **Rebuilds require sudo, updates do NOT:** System rebuilds need `sudo`, but `nix flake update` must run as the regular user — running it with sudo makes `flake.lock` root-owned and breaks later user-level updates.
 6. **Secrets:** Use agenix for sensitive data (see `age.secrets` in wotan config)
 7. **Systemd sandboxing:** Services with `DynamicUser=true` and `ProtectHome=true` cannot access `/home/`. Use state directories (e.g., `/var/lib/<service>/`) instead.
+8. **NVIDIA driver version bumps break `nh os switch`:** the NVIDIA container CDI generator runs against the new driver while the old kernel module is still loaded (NVML mismatch). After a flake update that bumps the driver, use `sudo nixos-rebuild boot --flake .#wotan` and reboot instead of switching live.
 
 ## 🤖 vLLM Inference Server
 
-The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs under `DynamicUser=true` with a state directory at `/var/lib/vllm/`. Models are pulled from HuggingFace on first launch, not stored as local files.
+The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs as a **Podman OCI container** (`vllm/vllm-openai` image, see `services.vllm.image` for the pinned version) managed by `virtualisation.oci-containers`, so the systemd unit is **`podman-vllm.service`**. `autoStart = false` — it does not start at boot; launch it manually. Models are pulled from HuggingFace on first launch, not stored as local files.
 
-**Model cache location:** `/var/lib/vllm/huggingface/` (HF transformers format, NOT GGUF)
+**Model cache location:** `/var/lib/vllm/huggingface/` on the host, mounted into the container (HF transformers format, NOT GGUF)
 
 **Currently configured model** (see `hosts/wotan/default.nix`):
-- `Qwen/Qwen3-8B-AWQ` — official Qwen dense AWQ-4bit, 40K context. Dense rather than MoE because vLLM 0.16.0 does NOT yet support the `Qwen3_5MoeForConditionalGeneration` architecture (only `Qwen3MoeForCausalLM` / `Qwen3ForCausalLM`). Revisit when vllm bumps to ≥ 0.18.
+- `Qwen/Qwen3-30B-A3B-GPTQ-Int4` — official Qwen MoE (30B total, ~3B active per token), 4-bit GPTQ, 32K context configured (40K model max). Weights (15.6 GB) exceed the RTX 3060's 12 GB VRAM, so `cpuOffloadGb = 10` offloads part of the weights to system RAM (llmfit: "Good" fit, ~19 tok/s est.).
 
 **Switching models:**
-Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative model candidates are listed in the comment block above the `services.vllm` declaration. Stick to **trusted repos** (`Qwen/`, `RedHatAI/`) while CVE-2026-27893 (RCE via hardcoded `trust_remote_code`) remains unpatched in nixpkgs vllm 0.16.0.
+Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative candidates are listed in the comment block above the `services.vllm` declaration — re-verify with `llmfit --memory 12G fit` first. Prefer **trusted repos** (`Qwen/`, `RedHatAI/`) over community quants. Dense models that fit fully in VRAM should drop `cpuOffloadGb`.
 
 **API endpoints (OpenAI-compatible):**
 - List models: `http://127.0.0.1:10808/v1/models`
@@ -259,24 +246,20 @@ Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative
 
 **Service management:**
 ```bash
-systemctl status vllm               # Check status
-journalctl -u vllm -f               # Follow logs (watch model load on first start)
-sudo systemctl restart vllm         # Restart service
+sudo systemctl start podman-vllm    # Start (not auto-started at boot)
+systemctl status podman-vllm        # Check status
+journalctl -u podman-vllm -f        # Follow logs (watch model load on first start)
+sudo systemctl restart podman-vllm  # Restart service
 ```
 
 **HuggingFace token (for gated models):**
-The HF token is stored as an agenix secret at `secrets/hf-token.age` and mounted as a systemd `EnvironmentFile`. Format inside the file:
+The HF token is stored as an agenix secret at `secrets/hf-token.age` and passed to the container as an environment file. Format inside the file:
 ```
 HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 Edit with: `nix run github:ryantm/agenix -- -e secrets/hf-token.age`
 
-**Configuration:** `modules/nixos/vllm.nix` (module + options) and `hosts/wotan/default.nix` (host-specific model + flags)
-
-**Known issues (vllm 0.16.0, see CVE block in `modules/nixos/vllm.nix`):**
-- CVE-2026-27893 — RCE if loading untrusted model repos
-- CVE-2026-44222 — DoS via multimodal token injection (mitigated by loopback bind)
-- CVE-2026-44223 — DoS when client sends `repetition_penalty` / `frequency_penalty` / `presence_penalty`. `Restart=on-failure` auto-recovers.
+**Configuration:** `modules/nixos/vllm.nix` (module + options, including `cpuOffloadGb`) and `hosts/wotan/default.nix` (host-specific model + flags)
 
 ### Hardware fitting with llmfit
 

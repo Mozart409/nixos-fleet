@@ -20,6 +20,10 @@
       "--max-model-len"
       (toString cfg.maxModelLen)
     ]
+    ++ lib.optionals (cfg.cpuOffloadGb != null) [
+      "--cpu-offload-gb"
+      (toString cfg.cpuOffloadGb)
+    ]
     ++ cfg.extraArgs;
 in {
   options.services.vllm = {
@@ -60,6 +64,17 @@ in {
       type = lib.types.float;
       default = 0.9;
       description = "Fraction of GPU memory vLLM may allocate (0.0–1.0).";
+    };
+
+    cpuOffloadGb = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
+      default = null;
+      example = 10;
+      description = ''
+        GiB of model weights to offload to system RAM (--cpu-offload-gb).
+        Required for models whose weights exceed VRAM (e.g. 30B MoE quants
+        on a 12 GB card). Costs PCIe bandwidth per forward pass.
+      '';
     };
 
     extraArgs = lib.mkOption {

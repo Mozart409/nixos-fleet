@@ -182,58 +182,54 @@
     ''
   ];
 
-  # vLLM OpenAI-compatible inference server.
+  # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
   # Models cached to /var/lib/vllm/huggingface on first run.
-  # Model: Qwen3-8B dense AWQ. Picked because vLLM 0.16.0 in nixpkgs does NOT
-  # support the newer Qwen3.5/3.6 architectures (`Qwen3_5MoeForConditionalGeneration`
-  # is missing from the registry; only `Qwen3MoeForCausalLM` / `Qwen3ForCausalLM`
-  # are recognized). When nixpkgs bumps vllm to >= 0.18, revisit and switch to a
-  # Qwen3.5 MoE quant for huge context.
-  # Official Qwen quant — important because vllm 0.16.0 has CVE-2026-27893 (RCE
-  # via hardcoded trust_remote_code), so we MUST stick to trusted repos.
   #
-  # Alternative models for RTX 3060 (12GB VRAM) + 62GB RAM. Trust-tier matters
-  # while CVE-2026-27893 is unpatched — prefer Qwen/ official, then RedHatAI/.
-  # All picked via `llmfit fit` (runtime=vLLM, mode=GPU, fit=Perfect/Good).
-  # Verified 2026-06-06 — re-verify before switching, repos may move/disappear.
+  # Model: Qwen3-30B-A3B MoE, official Qwen GPTQ-Int4 quant. Weights are
+  # 15.6 GB — more than the 3060's 12 GB — so ~10 GiB of (mostly inactive-
+  # expert) weights are offloaded to system RAM via --cpu-offload-gb.
+  # llmfit rates the fit "Good" in MoE-offload mode: ~3.6 GB active experts
+  # in VRAM, ~19 tok/s estimated. Only ~3B params are active per token.
+  # Prefer official Qwen/ or RedHatAI/ repos over community quants.
   #
-  #   Official Qwen3 (vllm 0.16-compatible architectures only):
-  #     Qwen/Qwen3-8B-AWQ                          # current pick, dense, 41K ctx
-  #     Qwen/Qwen3-30B-A3B-Instruct-2507           # MoE 262K ctx, needs CPU offload
-  #     Qwen/Qwen3-Coder-30B-A3B-Instruct          # MoE coder-tuned, 262K ctx
+  # Alternatives for RTX 3060 (12GB VRAM) + 62GB RAM, via `llmfit fit`
+  # (runtime=vLLM). Verified 2026-07-06 — re-verify before switching.
   #
-  #   Official Qwen3.5/3.6 MoE (waiting on vllm >= 0.18):
-  #     Qwen/Qwen3.5-35B-A3B-GPTQ-Int4             # 262K ctx, 22 tok/s
+  #   MoE (need cpuOffloadGb, weights > 12 GB):
+  #     Qwen/Qwen3-30B-A3B-GPTQ-Int4               # current pick, 40K ctx
+  #     Qwen/Qwen3-30B-A3B-Instruct-2507           # bf16 ~61GB — too big even offloaded
+  #     Qwen/Qwen3-Coder-30B-A3B-Instruct          # coder-tuned, bf16 — same problem
   #
-  #   Other dense alternatives:
+  #   Dense, fit fully in VRAM (drop cpuOffloadGb, faster per token):
+  #     Qwen/Qwen3-8B-AWQ                          # previous pick, 41K ctx
   #     Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4         # 33K ctx, 52 tok/s, ~50% VRAM
   #     RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16  # 1M model ctx, 49 tok/s
   #
   #   Notes:
   #     - Kimi K2 (16M ctx!) is GGUF/llama.cpp only — not vLLM-compatible.
-  #     - Community MoE quants exist (QuantTrio, Chunity, stelterlab) but most
-  #       are Qwen3.5/3.6 — same vllm-0.16 architecture mismatch.
   #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
   services.vllm = {
     enable = true;
-    model = "Qwen/Qwen3-8B-AWQ";
+    model = "Qwen/Qwen3-30B-A3B-GPTQ-Int4";
     port = 10808;
     host = "0.0.0.0";
-    maxModelLen = 28672; # 28K — bounded by ~2.15 GiB KV-cache budget on RTX 3060.
-    # vLLM reported "estimated maximum model length is 31296" at gpu_mem=0.80.
-    # Bump up if you raise gpuMemoryUtilization; lower if you see OOM during prefill.
+    maxModelLen = 32768; # Model max is 40960. KV at fp8 is ~24 KB/token
+    # (48 layers × 4 KV heads × 128 dim, GQA), so 32K ctx ≈ 0.75 GiB —
+    # cheap next to the weights. Raise toward 40960 if no OOM during prefill.
     # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
     # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
     gpuMemoryUtilization = 0.80;
+    # Weights are 15.6 GB vs ~9.3 GiB GPU budget: offload 10 GiB to RAM,
+    # keeping ~5.6 GiB on GPU + headroom for KV cache and activations.
+    # More offload = slower (PCIe-bound); lower this if a smaller model is used.
+    cpuOffloadGb = 10;
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
     extraArgs = [
       "--kv-cache-dtype"
       "fp8" # Quantize KV cache to save VRAM
-      # Disables torch.compile + CUDA graph capture. Kept as a safeguard
-      # because the nixpkgs vllm 0.16.0 build can be flaky with Inductor.
-      # NOTE: vLLM now runs inside a Podman container (vllm/vllm-openai),
-      # so the old Triton .so permission crash is no longer an issue.
-      # TODO: try removing this flag once the container image ships vllm >= 0.20.
+      # Disables torch.compile + CUDA graph capture. Kept because CUDA graphs
+      # cost extra VRAM we don't have, and --cpu-offload-gb is best supported
+      # in eager mode. Try removing only after the model swap is proven stable.
       "--enforce-eager"
     ];
   };
