@@ -185,24 +185,25 @@
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
   # Models cached to /var/lib/vllm/huggingface on first run.
   #
-  # Model: Qwen3-30B-A3B MoE, official Qwen GPTQ-Int4 quant. Weights are
-  # 15.6 GB — more than the 3060's 12 GB — so ~10 GiB of (mostly inactive-
-  # expert) weights are offloaded to system RAM via --cpu-offload-gb.
-  # llmfit rates the fit "Good" in MoE-offload mode: ~3.6 GB active experts
-  # in VRAM, ~19 tok/s estimated. Only ~3B params are active per token.
-  # Prefer official Qwen/ or RedHatAI/ repos over community quants.
+  # Model: Qwen2.5-Coder-7B, official Qwen AWQ quant. Dense, fits fully in
+  # VRAM (llmfit "Perfect", ~51% utilization, ~52 tok/s est.), non-thinking —
+  # picked for agentic use in opencode where the 30B MoE's ~20 tok/s and
+  # hybrid thinking (turns can end with empty content, looks like a stall)
+  # were the bottleneck. Prefer official Qwen/ or RedHatAI/ repos over
+  # community quants.
   #
   # Alternatives for RTX 3060 (12GB VRAM) + 62GB RAM, via `llmfit fit`
   # (runtime=vLLM). Verified 2026-07-06 — re-verify before switching.
   #
-  #   MoE (need cpuOffloadGb, weights > 12 GB):
-  #     Qwen/Qwen3-30B-A3B-GPTQ-Int4               # current pick, 40K ctx
+  #   MoE (need cpuOffloadGb = 10, weights > 12 GB):
+  #     Qwen/Qwen3-30B-A3B-GPTQ-Int4               # tested 2026-07-06: works, 20 tok/s
+  #                                                # measured KV headroom 61k tok, smartest
   #     Qwen/Qwen3-30B-A3B-Instruct-2507           # bf16 ~61GB — too big even offloaded
   #     Qwen/Qwen3-Coder-30B-A3B-Instruct          # coder-tuned, bf16 — same problem
   #
-  #   Dense, fit fully in VRAM (drop cpuOffloadGb, faster per token):
-  #     Qwen/Qwen3-8B-AWQ                          # previous pick, 41K ctx
-  #     Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4         # 33K ctx, 52 tok/s, ~50% VRAM
+  #   Dense, fit fully in VRAM (no cpuOffloadGb, faster per token):
+  #     Qwen/Qwen2.5-Coder-7B-Instruct-AWQ         # current pick, coder, 32K ctx
+  #     Qwen/Qwen3-8B-AWQ                          # earlier pick, thinking, 41K ctx
   #     RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16  # 1M model ctx, 49 tok/s
   #
   #   Notes:
@@ -210,25 +211,22 @@
   #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
   services.vllm = {
     enable = true;
-    model = "Qwen/Qwen3-30B-A3B-GPTQ-Int4";
-    # NEXT TEST — dense coder, fits fully in VRAM (llmfit "Perfect", ~51%
-    # utilization, ~52 tok/s est., 32K native ctx). To switch: uncomment the
-    # line below, comment out the 30B line above, and REMOVE cpuOffloadGb
-    # (not needed when weights fit in VRAM — offload only slows it down).
-    # Also listed in the opencode provider config (opencode.nix).
-    # model = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ";
+    model = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ";
+    # To switch back to the 30B MoE: swap the model lines and re-enable
+    # cpuOffloadGb below. Both models are listed in the opencode provider
+    # config (opencode.nix), so no client change is needed.
+    # model = "Qwen/Qwen3-30B-A3B-GPTQ-Int4";
     port = 10808;
     host = "0.0.0.0";
-    maxModelLen = 32768; # Model max is 40960. KV at fp8 is ~24 KB/token
-    # (48 layers × 4 KV heads × 128 dim, GQA), so 32K ctx ≈ 0.75 GiB —
-    # cheap next to the weights. Raise toward 40960 if no OOM during prefill.
+    maxModelLen = 32768; # Qwen2.5-Coder-7B's native max context.
+    # (30B MoE note: its model max is 40960 and measured KV headroom was
+    # 61,744 tokens at this budget — it could run at the full 40960.)
     # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
     # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
     gpuMemoryUtilization = 0.80;
-    # Weights are 15.6 GB vs ~9.3 GiB GPU budget: offload 10 GiB to RAM,
-    # keeping ~5.6 GiB on GPU + headroom for KV cache and activations.
-    # More offload = slower (PCIe-bound); lower this if a smaller model is used.
-    cpuOffloadGb = 10;
+    # cpuOffloadGb is only needed for the 30B MoE (15.6 GB weights vs ~9.3 GiB
+    # GPU budget). The 7B fits fully in VRAM — offload would only slow it down.
+    # cpuOffloadGb = 10;
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
     extraArgs = [
       "--kv-cache-dtype"
