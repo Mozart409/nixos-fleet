@@ -14,13 +14,10 @@
     gtk = {
       enable = true;
 
-      # Catppuccin Mocha theme
+      # Adwaita dark theme
       theme = {
-        name = "catppuccin-mocha-blue-standard";
-        package = pkgs.catppuccin-gtk.override {
-          accents = ["blue"];
-          variant = "mocha";
-        };
+        name = "Adwaita-dark";
+        package = pkgs.gnome-themes-extra;
       };
 
       # GTK4 uses libadwaita, no theme override

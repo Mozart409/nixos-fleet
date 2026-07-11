@@ -11,7 +11,7 @@
     cowsay
     dwt1-shell-color-scripts
     fortune
-    handbrake
+    # handbrake  # TODO: re-enable — broken upstream, bundled ffmpeg mov patch fails to apply to ffmpeg 8.1.2
     kdePackages.kwallet-pam
     llmfit
     mesen
