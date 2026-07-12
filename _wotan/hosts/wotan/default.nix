@@ -18,6 +18,7 @@
 
     # Common modules
     ../../modules/nixos/common-packages.nix
+    ../../modules/nixos/claude-code.nix
     ../../modules/nixos/security.nix
     ../../modules/nixos/razer.nix
     ../../modules/nixos/moza.nix
