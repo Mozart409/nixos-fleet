@@ -11,6 +11,43 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # wlogout layout ($mod+Q menu). Copied from the package default MINUS the
+    # Hibernate button: hibernation is disabled by security.protectKernelImage
+    # (nohibernate kernel param), so the button was a silent no-op. Styling and
+    # icons fall back to the packaged style.css.
+    xdg.configFile."wlogout/layout".text = ''
+      {
+          "label" : "lock",
+          "action" : "loginctl lock-session",
+          "text" : "Lock",
+          "keybind" : "l"
+      }
+      {
+          "label" : "logout",
+          "action" : "loginctl terminate-user $USER",
+          "text" : "Logout",
+          "keybind" : "e"
+      }
+      {
+          "label" : "shutdown",
+          "action" : "systemctl poweroff",
+          "text" : "Shutdown",
+          "keybind" : "s"
+      }
+      {
+          "label" : "suspend",
+          "action" : "systemctl suspend",
+          "text" : "Suspend",
+          "keybind" : "u"
+      }
+      {
+          "label" : "reboot",
+          "action" : "systemctl reboot",
+          "text" : "Reboot",
+          "keybind" : "r"
+      }
+    '';
+
     xdg.configFile."hypr/hyprsunset.conf".text = ''
       # Maximum gamma value (percentage, 100 = 1.0x)
       max-gamma = 100
