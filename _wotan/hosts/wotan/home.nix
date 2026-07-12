@@ -43,6 +43,13 @@
   # Enable opencode custom commands
   opencode.enable = true;
 
+  # Skip building the nixvim option-reference manpage. As of 2026-07-11 nixpkgs
+  # (nixos-render-docs) merged the GFM-alert/admonition support that the current
+  # nixvim (2026-07-10 HEAD) still applies as a patch, so the patch fails with
+  # "Reversed (or previously applied)" and breaks the build. We don't need the
+  # generated manpage. Revisit once nixvim drops the redundant patch.
+  programs.nixvim.enableMan = false;
+
   # Dedicated age identity for agenix (no passphrase, never expires)
   age.identityPaths = [
     "${config.home.homeDirectory}/.config/age/keys.txt"
