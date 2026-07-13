@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  username,
   ...
 }: {
   imports = [
@@ -31,9 +32,9 @@
   };
 
   # Common user configuration
-  users.users.amadeus = {
+  users.users.${username} = {
     isNormalUser = true;
-    description = "amadeus";
+    description = username;
     extraGroups = ["networkmanager" "wheel" "scanner"];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [

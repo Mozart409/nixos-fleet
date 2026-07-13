@@ -33,8 +33,8 @@
       settings = {
         user.name = "Amadeus Mader";
         user.email = "amadeus@mozart409.com";
-        user.signingkey = "/home/amadeus/.ssh/id_ed25519.pub";
-        gpg.ssh.allowedSignersFile = "/home/amadeus/.ssh/allowed_signers";
+        user.signingkey = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+        gpg.ssh.allowedSignersFile = "${config.home.homeDirectory}/.ssh/allowed_signers";
         aliases = {
           ci = "commit";
           s = "status";
@@ -62,8 +62,8 @@
         signing = {
           behavior = "own";
           backend = "ssh";
-          key = "/home/amadeus/.ssh/id_ed25519.pub";
-          backends.ssh."allowed-signers" = "/home/amadeus/.ssh/allowed_signers";
+          key = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+          backends.ssh."allowed-signers" = "${config.home.homeDirectory}/.ssh/allowed_signers";
         };
         ui = {
           pager = "delta";

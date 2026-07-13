@@ -20,7 +20,3 @@ for remote in $(git remote); do
     echo "     ✗ failed to push to $remote (continuing)" >&2
   fi
 done
-
-echo ''
-echo 'Cleaning up old generations and store...'
-nh clean all --keep 2 --keep-since 1d

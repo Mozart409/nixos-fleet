@@ -1,4 +1,11 @@
-{...}: {
+{
+  config,
+  lib,
+  ...
+}: {
+  options.programs.claudeCodeMcp.enable =
+    lib.mkEnableOption "system-managed MCP servers for Claude Code (/etc/claude-code/managed-mcp.json)";
+
   # Managed MCP servers for Claude Code (system-wide).
   #
   # Unlike opencode (whose MCP list lives in the user's config), Claude Code does
@@ -12,12 +19,14 @@
   # secret — see hosts/wotan/home.nix (sessionVariablesExtra) and
   # hosts/wotan/default.nix (age.secrets.axon-gateway-env) — so launch `claude`
   # from a login shell for the token to resolve.
-  environment.etc."claude-code/managed-mcp.json".text = builtins.toJSON {
-    mcpServers = {
-      axon-gateway = {
-        type = "http";
-        url = "https://axon.homelab.local/mcp";
-        headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
+  config = lib.mkIf config.programs.claudeCodeMcp.enable {
+    environment.etc."claude-code/managed-mcp.json".text = builtins.toJSON {
+      mcpServers = {
+        axon-gateway = {
+          type = "http";
+          url = "https://axon.homelab.local/mcp";
+          headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
+        };
       };
     };
   };

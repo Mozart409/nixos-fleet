@@ -3,6 +3,7 @@
   pkgs,
   lib,
   inputs,
+  username,
   ...
 }: {
   imports = [
@@ -74,7 +75,7 @@
       settings = {
         initial_session = {
           command = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
-          user = "amadeus";
+          user = username;
         };
         default_session = {
           command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --time --theme 'border=darkgray;text=yellow;prompt=lightyellow;time=yellow;action=yellow;button=darkgray;container=black' --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
@@ -331,7 +332,7 @@
       _JAVA_AWT_WM_NONREPARENTING = "1";
 
       # Hyprshot screenshot directory
-      HYPRSHOT_DIR = "${config.users.users.amadeus.home}/Pictures/hyprshot";
+      HYPRSHOT_DIR = "${config.users.users.${username}.home}/Pictures/hyprshot";
     };
   };
 }

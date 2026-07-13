@@ -24,10 +24,12 @@ improvements, not breakage.
   **Automation:** Optional — add a scheduled `update-flake-lock` workflow if desired,
   but manual `just update` now works correctly.
 
-- [x] **3. CI gives false confidence** — `.github/workflows/ci.yml`.
-  Fixed: Added `nix build …toplevel --dry-run` and `nix build …activationPackage`
-  to the CI pipeline. Also added `nh os build` and `nh home build` to
-  `lefthook.yml` pre-push hook, and moved `nix flake check` back to pre-commit.
+- [x] **3. CI removed entirely.** The GitHub Actions workflow only ran
+  `alejandra --check` + `nix flake check` (never built the toplevel), and this
+  repo isn't used with CI. Deleted `.github/workflows/ci.yml` and
+  `.github/dependabot.yml`. The real safety net is the `lefthook.yml` **pre-push**
+  hook: `cog check`, `nh os build`, home `activationPackage --dry-run`, and
+  `nix flake check`.
 
 - [x] **4. `switch.sh` pushes to all remotes *before* building.**
   Fixed: `nh os switch` and `nh home switch` now run first. The push loop only
@@ -53,17 +55,22 @@ improvements, not breakage.
   - `services.gvfs.enable` / `services.udisks2.enable`: removed from `kde.nix`;
     kept in `desktop/default.nix`.
 
-- [ ] **6. "Multi-host" aspiration vs. hardcoded `amadeus`** (33 occurrences;
-  `users.users.amadeus` at `common-packages.nix:36`). The flake comments invite
-  `laptop`/`server` hosts, but the user is baked into shared modules.
-  **Fix:** thread a `username` through `specialArgs`/`mkHost` so shared modules
-  are reusable.
+- [x] **6. `username` threaded through `mkHost`.** `mkHost` now takes a third
+  arg (`mkHost "wotan" system "amadeus"`) and passes `username` via
+  `specialArgs` (system) and `extraSpecialArgs` (home). Shared modules
+  (`basics`, `common-packages`, `razer`, `desktop/hyprland`,
+  `desktop/next-wallpaper`, home `base`) take `{username, ...}` instead of
+  hardcoding `amadeus`; host-specific spots (autoLogin, tmpfiles, age owners,
+  ssh `Match User`) interpolate it too. Remaining literals are identity
+  (git email/name, ssh key material in `secrets.nix`), which are not
+  username-derived.
 
-- [ ] **7. Top-level NixOS modules imported individually per host** (security,
-  razer, moza, vllm in `hosts/wotan/default.nix`). The `desktop/` tree's
-  enable-flag pattern is nicer.
-  **Fix:** consider a `modules/nixos/default.nix` aggregator that imports all and
-  gates each by an `enable` flag — scales as hosts are added.
+- [x] **7. `modules/nixos/default.nix` aggregator added.** Hosts now import the
+  single directory `../../modules/nixos` instead of listing each module. Every
+  optional module is gated by its own `enable` flag; added flags to the two that
+  lacked them — `hardware.moza.enable` (`moza.nix`) and
+  `programs.claudeCodeMcp.enable` (`claude-code.nix`) — both enabled on wotan to
+  preserve prior always-on behavior.
 
 - [x] **8. Standalone home-manager** — integrated into NixOS.
   Removed `homeConfigurations` from `flake.nix` and `mkHome` from `lib/mkConfigs.nix`.
@@ -83,8 +90,10 @@ improvements, not breakage.
   `nh os build` and `nh home build` moved to pre-push.
 - [ ] **11.** ~~`flatpak-rvgl` does an imperative network install on boot~~
   (removed — no longer using Flatpak).
-- [ ] **12.** `README.md` is thin with a typo ("currenlty"); `AGENTS.md` dev-shell
-  list omits `cocogitto`/`claude-code`/`agenix`. Minor doc drift.
+- [x] **12.** Fixed `README.md` typo ("currenlty" → "currently"); `AGENTS.md`
+  dev-shell list now includes `cocogitto`/`claude-code`/`agenix`, and the
+  "Adding New Hosts" section documents the new `mkHost … "username"` signature
+  and the `modules/nixos` aggregator.
 
 ## Not a bug (do not "fix")
 

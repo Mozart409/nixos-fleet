@@ -25,9 +25,11 @@ in {
   # Helper function to generate host configurations.
   # Home-manager is integrated via the NixOS module so a single
   # `nixos-rebuild switch` activates both system and user config.
-  mkHost = hostname: system:
+  # `username` is threaded through specialArgs (system) and extraSpecialArgs
+  # (home) so shared modules stay reusable across hosts/users.
+  mkHost = hostname: system: username:
     lib.nixosSystem {
-      specialArgs = {inherit inputs;};
+      specialArgs = {inherit inputs username;};
       modules = [
         ../hosts/${hostname}/default.nix
         {
@@ -37,7 +39,7 @@ in {
         inputs.home-manager.nixosModules.home-manager
         ({pkgs, ...}: {
           home-manager = {
-            extraSpecialArgs = {inherit inputs;};
+            extraSpecialArgs = {inherit inputs username;};
             useGlobalPkgs = true;
             sharedModules = [
               # nixvim's Home Manager module (and the nixpkgs source pin) are
@@ -45,7 +47,7 @@ in {
               # wotan's home.nix imports.
               inputs.agenix.homeManagerModules.default
             ];
-            users.amadeus = import ../hosts/${hostname}/home.nix;
+            users.${username} = import ../hosts/${hostname}/home.nix;
           };
         })
       ];

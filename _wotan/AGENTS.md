@@ -66,7 +66,7 @@ just update                 # Same as nix flake update --accept-flake-config
 just update-input nixpkgs   # Update a single input
 
 # Development shell
-nix develop                 # Enter dev shell with git, alejandra, lefthook, opencode
+nix develop                 # Enter dev shell (git, alejandra, lefthook, opencode, cocogitto, claude-code, agenix)
 
 # MCP Servers (if available)
 # Use context7 or grepmcp for enhanced code search and documentation queries
@@ -184,7 +184,13 @@ home.packages = with pkgs; [
 2. Add `default.nix` (system config) and `home.nix` (user config)
 3. Generate hardware config: `nixos-generate-config --show-hardware-config`
 4. Update `flake.nix` to include new host in `nixosConfigurations`
-5. Use helper function: `mkHost "hostname" system` (defined in `lib/mkConfigs.nix`)
+5. Use helper function: `mkHost "hostname" system "username"` (defined in `lib/mkConfigs.nix`).
+   `username` is threaded through `specialArgs`/`extraSpecialArgs`, so shared
+   modules take it as a function arg (`{username, ...}`) instead of hardcoding `amadeus`.
+6. Import shared modules via the aggregator: `../../modules/nixos` (imports every
+   shared module; each optional one is gated by its own `enable` flag — e.g.
+   `hardware.razer.enable`, `hardware.moza.enable`, `services.vllm.enable`,
+   `programs.claudeCodeMcp.enable`, `desktop.enable`).
 
 ### Module Organization
 
@@ -284,7 +290,7 @@ llmfit --memory 12G --json fit \
 - Main README: `/etc/nixos/README.md`
 - Justfile commands: `/etc/nixos/justfile`
 - Flake configuration: `/etc/nixos/flake.nix`
-- Development shell: `nix develop` (includes git, alejandra, lefthook, opencode)
+- Development shell: `nix develop` (includes git, alejandra, lefthook, opencode, cocogitto, claude-code, agenix)
 
 ---
 

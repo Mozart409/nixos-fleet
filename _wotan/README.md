@@ -1,6 +1,6 @@
 # NixOS Multi-Host Configuration
 
-This is a multi-host NixOS configuration with shared modules and host-specific settings currenlty used in my nixos desktop.
+This is a multi-host NixOS configuration with shared modules and host-specific settings currently used in my nixos desktop.
 
 ## 📁 Directory Structure
 

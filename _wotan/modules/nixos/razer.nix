@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  username,
   ...
 }: {
   options.hardware.razer = {
@@ -16,7 +17,7 @@
     # OpenRazer daemon for Razer hardware support
     hardware.openrazer = {
       enable = true;
-      users = ["amadeus"];
+      users = [username];
     };
 
     # Razer management tools

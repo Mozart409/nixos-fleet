@@ -88,10 +88,10 @@
   in {
     # NixOS configurations for each host
     nixosConfigurations = {
-      wotan = mkHost "wotan" system;
-      # Add more hosts here:
-      # laptop = mkHost "laptop" system;
-      # server = mkHost "server" system;
+      wotan = mkHost "wotan" system "amadeus";
+      # Add more hosts here (mkHost hostname system username):
+      # laptop = mkHost "laptop" system "amadeus";
+      # server = mkHost "server" system "amadeus";
     };
 
     # Development shell for working with this configuration

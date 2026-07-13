@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  username,
   ...
 }: {
   # Common Nix settings
@@ -12,7 +13,7 @@
       "nix-command"
       "flakes"
     ];
-    trusted-users = ["root" "amadeus"];
+    trusted-users = ["root" username];
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"

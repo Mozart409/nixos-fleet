@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  username,
   ...
 }: {
   imports = [
@@ -16,17 +17,8 @@
     # Agenix for secrets management
     inputs.agenix.nixosModules.default
 
-    # Common modules
-    ../../modules/nixos/common-packages.nix
-    ../../modules/nixos/claude-code.nix
-    ../../modules/nixos/security.nix
-    ../../modules/nixos/razer.nix
-    ../../modules/nixos/moza.nix
-    ../../modules/nixos/vllm.nix
-    ../../modules/nixos/desktop/default.nix
-    ../../modules/nixos/desktop/hyprland.nix
-    ../../modules/nixos/desktop/file-managers.nix
-    ../../modules/nixos/desktop/user-experience.nix
+    # Shared NixOS modules (aggregator — each gated by its own enable flag)
+    ../../modules/nixos
 
     # Desktop configuration
     ./desktop-config.nix
@@ -80,11 +72,17 @@
   # Display manager auto-login (KDE specific)
   services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
     enable = true;
-    user = "amadeus";
+    user = username;
   };
 
   # Razer device support
   hardware.razer.enable = true;
+
+  # MOZA sim-racing wheelbase support
+  hardware.moza.enable = true;
+
+  # System-managed MCP servers for Claude Code
+  programs.claudeCodeMcp.enable = true;
 
   services.xserver.videoDrivers = ["nvidia"];
 
@@ -259,10 +257,10 @@
   # System state version
   system.stateVersion = "24.11";
 
-  # Ensure storage mount is owned by amadeus and create models directory
+  # Ensure storage mount is owned by the primary user and create models directory
   systemd.tmpfiles.rules = [
-    "Z /mnt/storage 0755 amadeus users -"
-    "d /home/amadeus/models 0755 amadeus users -"
+    "Z /mnt/storage 0755 ${username} users -"
+    "d /home/${username}/models 0755 ${username} users -"
   ];
 
   # Agenix secrets configuration
@@ -273,7 +271,7 @@
   age.secrets.context7-api-key = {
     file = ../../secrets/context7-api-key.age;
     mode = "440";
-    owner = "amadeus";
+    owner = username;
     group = "users";
   };
 
@@ -287,7 +285,7 @@
   age.secrets.axon-gateway-env = {
     file = ../../secrets/axon-gateway-env.age;
     mode = "440";
-    owner = "amadeus";
+    owner = username;
     group = "users";
     # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
   };

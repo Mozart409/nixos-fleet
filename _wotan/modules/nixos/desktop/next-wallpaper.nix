@@ -3,18 +3,19 @@
   pkgs,
   lib,
   inputs,
+  username,
   ...
 }: {
   options.desktop.nextWallpaper = {
     enable = lib.mkEnableOption "next-wallpaper script with history and notifications";
     wallpaperDir = lib.mkOption {
       type = lib.types.path;
-      default = "${config.users.users.amadeus.home}/Pictures/Wallpapers";
+      default = "${config.users.users.${username}.home}/Pictures/Wallpapers";
       description = "Directory containing wallpapers";
     };
     stateDir = lib.mkOption {
       type = lib.types.path;
-      default = "${config.users.users.amadeus.home}/.local/state/wallpaper-rotator";
+      default = "${config.users.users.${username}.home}/.local/state/wallpaper-rotator";
       description = "Directory for state files (queue, history)";
     };
   };

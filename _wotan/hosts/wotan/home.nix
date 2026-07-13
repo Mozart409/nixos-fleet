@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  username,
   ...
 }: {
   imports = [
@@ -96,7 +97,7 @@
       };
     };
     extraConfig = ''
-      Match User amadeus,root
+      Match User ${username},root
         IdentityFile ~/.ssh/id_ed25519
         IdentitiesOnly yes
     '';

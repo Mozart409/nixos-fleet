@@ -2,11 +2,12 @@
   config,
   pkgs,
   lib,
+  username,
   ...
 }: {
   # Home Manager needs basic information
-  home.username = "amadeus";
-  home.homeDirectory = "/home/amadeus";
+  home.username = username;
+  home.homeDirectory = "/home/${username}";
 
   # Common session variables
   home.sessionVariables = {
