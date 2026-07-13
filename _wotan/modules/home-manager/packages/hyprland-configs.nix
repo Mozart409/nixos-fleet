@@ -23,28 +23,16 @@ in {
           "keybind" : "l"
       }
       {
-          "label" : "logout",
-          "action" : "loginctl terminate-user $USER",
-          "text" : "Logout",
-          "keybind" : "e"
-      }
-      {
-          "label" : "shutdown",
-          "action" : "systemctl poweroff",
-          "text" : "Shutdown",
-          "keybind" : "s"
-      }
-      {
           "label" : "suspend",
           "action" : "systemctl suspend",
           "text" : "Suspend",
           "keybind" : "u"
       }
       {
-          "label" : "reboot",
-          "action" : "systemctl reboot",
-          "text" : "Reboot",
-          "keybind" : "r"
+          "label" : "shutdown",
+          "action" : "systemctl poweroff",
+          "text" : "Shutdown",
+          "keybind" : "s"
       }
     '';
 
@@ -55,6 +43,14 @@ in {
       # Evening profile - warm color temperature at night
       profile {
           time = 20:00
+          temperature = 5800
+          gamma = 1.0
+          identity = 0
+      }
+
+      # Night profile - warm color temperature at night
+      profile {
+          time = 22:00
           temperature = 3400
           gamma = 1.0
           identity = 0
@@ -62,7 +58,7 @@ in {
 
       # Morning profile - return to daylight temperature
       profile {
-          time = 06:00
+          time = 08:00
           temperature = 6500
           gamma = 1.0
           identity = 0
