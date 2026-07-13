@@ -29,7 +29,7 @@
         behind = "⇣\${count}";
         diverged = "⇕⇡\${ahead_count}⇣\${behind_count}";
         untracked = "?\${count}";
-        stashed = "$\${count}";
+        stashed = "\\$\${count}";
         modified = "!\${count}";
         staged = "+\${count}";
         deleted = "✘\${count}";
