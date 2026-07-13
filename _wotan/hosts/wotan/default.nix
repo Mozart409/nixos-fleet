@@ -63,9 +63,7 @@
   # Security hardening
   security.hardening = {
     enable = true;
-    firewall.allowedTCPPorts = [
-      10808 # vLLM OpenAI-compatible API
-    ];
+    firewall.allowedTCPPorts = [];
     audit.enable = false; # Enable for security auditing (generates logs)
   };
 
@@ -209,7 +207,9 @@
   #     - Kimi K2 (16M ctx!) is GGUF/llama.cpp only — not vLLM-compatible.
   #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
   services.vllm = {
-    enable = true;
+    # Disabled — not currently in use. Flip back to true (and re-pull the image
+    # + models) to bring the inference server back. All tuning notes below kept.
+    enable = false;
     model = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ";
     # To switch back to the 30B MoE: swap the model lines and re-enable
     # cpuOffloadGb below. Both models are listed in the opencode provider
