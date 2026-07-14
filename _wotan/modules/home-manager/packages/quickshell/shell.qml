@@ -6,7 +6,6 @@ ShellRoot {
 
   // Desktop widgets
   SystemMonitorWidget {}
-  MusicPlayerWidget {}
   WeatherWidget {}
 
   // App dock (bottom center)
