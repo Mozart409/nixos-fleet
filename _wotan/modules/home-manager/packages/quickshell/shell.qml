@@ -5,8 +5,9 @@ ShellRoot {
   Bar {}
 
   // Desktop widgets
-  SystemMonitorWidget {}
-  WeatherWidget {}
+  // SystemMonitorWidget disabled (kept in SystemMonitorWidget.qml)
+  // SystemMonitorWidget {}
+  // WeatherWidget {}
 
   // App dock (bottom center)
   DockWidget {}

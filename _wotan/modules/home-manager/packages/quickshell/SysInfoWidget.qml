@@ -14,6 +14,13 @@ RowLayout {
     text: " D 100%"
   }
 
+  TextMetrics {
+    id: tempMetrics
+    font.family: "FiraCode Nerd Font"
+    font.pixelSize: 13
+    text: " 10000K"
+  }
+
   // Root disk free percentage
   Text {
     id: diskText
@@ -41,6 +48,37 @@ RowLayout {
       running: true
       repeat: true
       onTriggered: diskProc.running = true
+    }
+  }
+
+  // Screen color temperature (hyprsunset)
+  Text {
+    id: tempText
+    color: "#cfd6f4"
+    font.family: "FiraCode Nerd Font"
+    font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: tempMetrics.width
+    text: " ----K"
+
+    Process {
+      id: tempProc
+      command: ["sh", "-c", "hyprctl hyprsunset temperature | tr -d '[:space:]'"]
+      running: true
+
+      stdout: StdioCollector {
+        onStreamFinished: {
+          let val = this.text.trim()
+          tempText.text = val.length > 0 ? " " + val + "K" : " ----K"
+        }
+      }
+    }
+
+    Timer {
+      interval: 2000
+      running: true
+      repeat: true
+      onTriggered: tempProc.running = true
     }
   }
 
