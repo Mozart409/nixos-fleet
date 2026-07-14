@@ -81,7 +81,7 @@ PanelWindow {
     Text {
       text: weatherWidget.icon
       color: "#33ccff"
-      font.family: "FiraCode Nerd Font"
+      font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
       font.pixelSize: 42
     }
 
@@ -93,7 +93,7 @@ PanelWindow {
       Text {
         text: weatherWidget.temperature + "°C"
         color: "#cfd6f4"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 22
         font.bold: true
       }
@@ -102,7 +102,7 @@ PanelWindow {
       Text {
         text: weatherWidget.condition
         color: "#a6adc8"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 11
       }
 
@@ -110,7 +110,7 @@ PanelWindow {
       Text {
         text: weatherWidget.location
         color: "#595959"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 9
         visible: weatherWidget.location !== ""
       }

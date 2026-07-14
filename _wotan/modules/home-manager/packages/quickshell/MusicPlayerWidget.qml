@@ -69,7 +69,7 @@ PanelWindow {
         anchors.centerIn: parent
         text: ""
         color: "#595959"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 32
         visible: !musicWidget.player?.trackArtUrl
       }
@@ -86,7 +86,7 @@ PanelWindow {
         Layout.fillWidth: true
         text: musicWidget.player?.trackTitle ?? "No music playing"
         color: "#cfd6f4"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 12
         font.bold: true
         elide: Text.ElideRight
@@ -97,7 +97,7 @@ PanelWindow {
         Layout.fillWidth: true
         text: musicWidget.player?.trackArtists?.join(", ") ?? ""
         color: "#a6adc8"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 10
         elide: Text.ElideRight
         visible: musicWidget.player?.trackArtists?.length > 0
@@ -113,7 +113,7 @@ PanelWindow {
         Text {
           text: "󰒮"
           color: musicWidget.player?.canGoPrevious ? "#cfd6f4" : "#595959"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 18
 
           MouseArea {
@@ -128,7 +128,7 @@ PanelWindow {
         Text {
           text: musicWidget.player?.playbackState === MprisPlaybackState.Playing ? "󰏤" : "󰐊"
           color: musicWidget.player?.canTogglePlaying ? "#33ccff" : "#595959"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 24
 
           MouseArea {
@@ -143,7 +143,7 @@ PanelWindow {
         Text {
           text: "󰒭"
           color: musicWidget.player?.canGoNext ? "#cfd6f4" : "#595959"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 18
 
           MouseArea {

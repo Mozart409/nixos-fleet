@@ -45,7 +45,7 @@ PanelWindow {
     Text {
       text: "System Monitor"
       color: "#33ccff"
-      font.family: "FiraCode Nerd Font"
+      font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
       font.pixelSize: 12
       font.bold: true
     }
@@ -59,7 +59,7 @@ PanelWindow {
         Text {
           text: " CPU"
           color: "#cfd6f4"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 11
         }
         Item { Layout.fillWidth: true }
@@ -67,7 +67,7 @@ PanelWindow {
           id: cpuPercent
           text: "--%"
           color: "#cfd6f4"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 11
         }
       }
@@ -118,7 +118,7 @@ PanelWindow {
         Text {
           text: " RAM"
           color: "#cfd6f4"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 11
         }
         Item { Layout.fillWidth: true }
@@ -126,7 +126,7 @@ PanelWindow {
           id: ramPercent
           text: "--%"
           color: "#cfd6f4"
-          font.family: "FiraCode Nerd Font"
+          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
           font.pixelSize: 11
         }
       }

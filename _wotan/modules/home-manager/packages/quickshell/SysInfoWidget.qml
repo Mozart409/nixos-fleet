@@ -37,14 +37,14 @@ RowLayout {
   // Measure the widest possible text to keep layout stable
   TextMetrics {
     id: sysMetrics
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     text: " D 100%"
   }
 
   TextMetrics {
     id: tempMetrics
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     text: " 10000K"
   }
@@ -53,7 +53,7 @@ RowLayout {
   Text {
     id: diskText
     color: "#cfd6f4"
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     horizontalAlignment: Text.AlignRight
     Layout.minimumWidth: sysMetrics.width
@@ -85,7 +85,7 @@ RowLayout {
   Text {
     id: tempText
     color: "#cfd6f4"
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     horizontalAlignment: Text.AlignRight
     Layout.minimumWidth: tempMetrics.width
@@ -117,7 +117,7 @@ RowLayout {
   Text {
     id: cpuText
     color: "#cfd6f4"
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     horizontalAlignment: Text.AlignRight
     Layout.minimumWidth: sysMetrics.width
@@ -149,7 +149,7 @@ RowLayout {
   Text {
     id: ramText
     color: "#cfd6f4"
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     horizontalAlignment: Text.AlignRight
     Layout.minimumWidth: sysMetrics.width
@@ -181,7 +181,7 @@ RowLayout {
   Text {
     id: gpuText
     color: "#cfd6f4"
-    font.family: "FiraCode Nerd Font"
+    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
     font.pixelSize: 13
     horizontalAlignment: Text.AlignRight
     Layout.minimumWidth: sysMetrics.width

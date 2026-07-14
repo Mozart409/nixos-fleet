@@ -81,14 +81,14 @@ RowLayout {
       Text {
         text: ""
         color: gitWidget.dirtyCount > 0 ? "#f38ba8" : "#a6adc8"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 14
       }
 
       Text {
         text: gitWidget.dirtyCount >= 0 ? gitWidget.dirtyCount.toString() : "---"
         color: gitWidget.dirtyCount > 0 ? "#f38ba8" : "#cfd6f4"
-        font.family: "FiraCode Nerd Font"
+        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
         font.pixelSize: 12
         font.bold: gitWidget.dirtyCount > 0
       }
