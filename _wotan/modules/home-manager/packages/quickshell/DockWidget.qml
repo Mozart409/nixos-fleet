@@ -74,7 +74,7 @@ Scope {
           anchors.centerIn: parent
           text: appButton.modelData.icon
           color: mouseArea.containsMouse ? "#33ccff" : "#cfd6f4"
-          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+          font.family: "FiraCode Nerd Font" // Nerd Font icon glyph
           font.pixelSize: 24
 
           Behavior on color {
@@ -115,7 +115,7 @@ Scope {
             anchors.centerIn: parent
             text: appButton.modelData.name
             color: "#cfd6f4"
-            font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+            font.family: "Berkeley Mono"
             font.pixelSize: 11
           }
         }

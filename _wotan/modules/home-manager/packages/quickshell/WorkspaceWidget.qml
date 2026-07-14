@@ -41,7 +41,7 @@ RowLayout {
         anchors.centerIn: parent
         text: wsButton.wsId
         color: wsButton.isActive ? "#1a1a1f" : "#cfd6f4"
-        font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+        font.family: "Berkeley Mono"
         font.pixelSize: 12
         font.bold: wsButton.isActive
       }

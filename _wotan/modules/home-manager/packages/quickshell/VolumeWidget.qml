@@ -34,7 +34,7 @@ RowLayout {
         return name.length > 12 ? name.substring(0, 12) + "…" : name
       }
       color: "#a6adc8"
-      font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+      font.family: "Berkeley Mono"
       font.pixelSize: 10
     }
 
@@ -59,7 +59,7 @@ RowLayout {
       return "󰕾"
     }
     color: muted ? "#595959" : "#cfd6f4"
-    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+    font.family: "FiraCode Nerd Font" // Nerd Font volume icon glyph
     font.pixelSize: 14
 
     MouseArea {
@@ -147,7 +147,7 @@ RowLayout {
   Text {
     text: Math.round(volume * 100) + "%"
     color: muted ? "#595959" : "#a6adc8"
-    font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+    font.family: "Berkeley Mono"
     font.pixelSize: 11
     Layout.minimumWidth: 32
   }
@@ -182,7 +182,7 @@ RowLayout {
         Text {
           text: "Audio Output"
           color: "#cfd6f4"
-          font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+          font.family: "Berkeley Mono"
           font.pixelSize: 11
           font.bold: true
         }
@@ -219,7 +219,7 @@ RowLayout {
               Text {
                 text: modelData.properties?.["node.nick"] ?? modelData.properties?.["node.description"] ?? modelData.name ?? "Unknown"
                 color: "#cfd6f4"
-                font.families: ["Berkeley Mono", "FiraCode Nerd Font"]
+                font.family: "Berkeley Mono"
                 font.pixelSize: 11
                 elide: Text.ElideRight
                 Layout.fillWidth: true
