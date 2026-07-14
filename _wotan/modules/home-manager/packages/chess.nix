@@ -42,20 +42,24 @@
     strictDeps = true;
 
     nativeBuildInputs = with pkgs; [
+      # keep-sorted start
+      cudaPackages.cuda_nvcc
       meson
       ninja
       pkg-config
       python3
-      cudaPackages.cuda_nvcc
+      # keep-sorted end
     ];
 
     buildInputs = with pkgs; [
+      # keep-sorted start
+      cuda_cudart
+      cudnn
       eigen
       gtest
-      zlib
-      cudnn
-      cuda_cudart
       libcublas
+      zlib
+      # keep-sorted end
     ];
 
     mesonFlags = [

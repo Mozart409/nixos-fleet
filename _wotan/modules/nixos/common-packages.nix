@@ -9,15 +9,17 @@
   ];
   # Common system packages that should be available on all hosts
   environment.systemPackages = with pkgs; [
-    vim # Essential editor
-    wget
-    curl
-    git
-    dust
+    # keep-sorted start
     alejandra
+    curl
+    dig
+    dust
+    git
     pinentry-curses
     pinentry-gnome3
-    dig
+    vim # Essential editor
+    wget
+    # keep-sorted end
   ];
 
   # Common programs that should be enabled on all hosts

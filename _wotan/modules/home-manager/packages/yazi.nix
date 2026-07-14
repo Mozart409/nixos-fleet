@@ -538,14 +538,16 @@
   home.packages = with pkgs; [
     ueberzugpp
     # Additional tools yazi can use
-    ffmpegthumbnailer # Video thumbnails
-    poppler # PDF previews
+    # keep-sorted start
     fd # Fast file finder
-    ripgrep # Fast text search
+    ffmpegthumbnailer # Video thumbnails
     fzf # Fuzzy finder
-    zoxide # Smart directory jumping
     jq # JSON preview
-    unzip # Archive preview
     p7zip # Archive preview
+    poppler # PDF previews
+    ripgrep # Fast text search
+    unzip # Archive preview
+    zoxide # Smart directory jumping
+    # keep-sorted end
   ];
 }

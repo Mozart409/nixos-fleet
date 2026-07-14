@@ -5,13 +5,15 @@
   ...
 }: {
   home.packages = with pkgs; [
+    # keep-sorted start
+    hcloud
+    helm-ls
+    helmfile
+    helmsman
     kubectl
     kubernetes-helm
-    helm-ls
-    helmsman
-    helmfile
     talosctl
-    hcloud
+    # keep-sorted end
   ];
 
   home.sessionVariables = {

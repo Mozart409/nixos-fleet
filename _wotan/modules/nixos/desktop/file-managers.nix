@@ -12,8 +12,10 @@
     programs.thunar = {
       enable = true;
       plugins = with pkgs; [
+        # keep-sorted start
         thunar-archive-plugin
         thunar-volman
+        # keep-sorted end
       ];
     };
 

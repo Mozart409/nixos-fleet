@@ -5,9 +5,11 @@
   ...
 }: {
   home.packages = with pkgs; [
-    duckdb
-    sqlite
-    postgresql_18
+    # keep-sorted start
     dbeaver-bin
+    duckdb
+    postgresql_18
+    sqlite
+    # keep-sorted end
   ];
 }

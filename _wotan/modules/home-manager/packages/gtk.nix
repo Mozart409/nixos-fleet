@@ -46,14 +46,16 @@
     dconf.enable = true;
 
     home.packages = with pkgs; [
-      # Active icon theme
-      colloid-icon-theme
-      # Inactive but available icon themes
-      papirus-icon-theme
+      # keep-sorted start
       # XCursor fallback
       bibata-cursors
+      # Active icon theme
+      colloid-icon-theme
       # Hyprcursor theme
       inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
+      # Inactive but available icon themes
+      papirus-icon-theme
+      # keep-sorted end
     ];
 
     # Cursor environment variables
