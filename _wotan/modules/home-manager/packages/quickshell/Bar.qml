@@ -71,21 +71,12 @@ Scope {
         // Spacer
         Item { Layout.fillWidth: true }
 
-        // Right: System info + Volume
+        // Right: System info
         RowLayout {
           Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
           spacing: 16
 
           SysInfoWidget {}
-
-          // Separator
-          Rectangle {
-            width: 1
-            height: 16
-            color: "#595959"
-          }
-
-          VolumeWidget {}
         }
       }
     }
