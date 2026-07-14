@@ -279,7 +279,10 @@
           "systemctl --user start hyprland-session.target"
           "awww-daemon"
           "sleep 1 && next-wallpaper --transition-type random --transition-fps 60"
-          "hyprsunset -t 5000"
+          # hyprsunset runs via its systemd user service (hyprsunset.service),
+          # which loads the time-based profiles from hyprsunset.conf. Launching a
+          # second instance here grabbed the CTM lock first and made the service
+          # fail with "A CTM manager is already running" -> start-limit-hit.
           "hypridle"
         ];
 
