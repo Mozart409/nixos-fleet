@@ -43,7 +43,7 @@ in {
       # Evening profile - warm color temperature at night
       profile {
           time = 20:00
-          temperature = 5800
+          temperature = 5500
           gamma = 1.0
           identity = 0
       }
@@ -51,7 +51,7 @@ in {
       # Night profile - warm color temperature at night
       profile {
           time = 22:00
-          temperature = 3400
+          temperature = 3500
           gamma = 1.0
           identity = 0
       }
