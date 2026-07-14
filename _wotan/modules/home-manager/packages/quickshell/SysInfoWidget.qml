@@ -4,7 +4,35 @@ import Quickshell
 import Quickshell.Io
 
 RowLayout {
+  id: sysInfo
   spacing: 12
+
+  // Threshold-based text colors ---------------------------------------------
+  // Tweak the pivot numbers below to taste.
+  readonly property color colOk: "#cfd6f4" // default / healthy
+  readonly property color colWarn: "#f5c542" // caution
+  readonly property color colCrit: "#ff6b6b" // critical
+
+  // Usage metrics (CPU/RAM/GPU): higher = worse
+  function usageColor(pct) {
+    if (pct >= 85) return colCrit
+    if (pct >= 60) return colWarn
+    return colOk
+  }
+
+  // Free space: lower = worse (inverted)
+  function freeColor(pct) {
+    if (pct <= 15) return colCrit
+    if (pct <= 30) return colWarn
+    return colOk
+  }
+
+  // Screen temperature: tint warm (low K) vs cool (high K)
+  function tempColor(k) {
+    if (k <= 4000) return "#ff9e64" // warm / orange
+    if (k >= 6000) return "#7dcfff" // cool / blue
+    return colOk
+  }
 
   // Measure the widest possible text to keep layout stable
   TextMetrics {
@@ -38,7 +66,9 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          diskText.text = " D " + this.text.trim() + "%"
+          let val = parseFloat(this.text.trim())
+          diskText.text = " D " + val.toFixed(0) + "%"
+          diskText.color = sysInfo.freeColor(val)
         }
       }
     }
@@ -68,8 +98,9 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          let val = this.text.trim()
-          tempText.text = val.length > 0 ? " " + val + "K" : " ----K"
+          let raw = this.text.trim()
+          tempText.text = raw.length > 0 ? " " + raw + "K" : " ----K"
+          if (raw.length > 0) tempText.color = sysInfo.tempColor(parseInt(raw))
         }
       }
     }
@@ -101,6 +132,7 @@ RowLayout {
         onStreamFinished: {
           let val = parseFloat(this.text.trim())
           cpuText.text = " C " + val.toFixed(0) + "%"
+          cpuText.color = sysInfo.usageColor(val)
         }
       }
     }
@@ -130,7 +162,9 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          ramText.text = " M " + this.text.trim() + "%"
+          let val = parseFloat(this.text.trim())
+          ramText.text = " M " + val.toFixed(0) + "%"
+          ramText.color = sysInfo.usageColor(val)
         }
       }
     }
@@ -160,7 +194,9 @@ RowLayout {
 
       stdout: StdioCollector {
         onStreamFinished: {
-          gpuText.text = " G " + this.text.trim() + "%"
+          let val = parseFloat(this.text.trim())
+          gpuText.text = " G " + val.toFixed(0) + "%"
+          gpuText.color = sysInfo.usageColor(val)
         }
       }
     }
