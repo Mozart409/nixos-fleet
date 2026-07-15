@@ -2,9 +2,11 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }: let
   cfg = config.desktop.hyprland-configs;
+  hyprsunsetPkg = inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset;
 in {
   options.desktop.hyprland-configs = {
     enable = lib.mkEnableOption "hyprland configs";
@@ -64,6 +66,33 @@ in {
           identity = 0
       }
     '';
+
+    # hyprsunset daemon. The package ships a systemd user unit, but it is only
+    # linked (never enabled/WantedBy the session), so nothing started it and the
+    # `.hyprsunset.sock` was never created -> `hyprctl hyprsunset ...` (the mod+H
+    # keybind and the quickshell SysInfoWidget) failed with a socket error.
+    # Managing it here wires it into graphical-session.target and applies the
+    # time-based profiles from hyprsunset.conf on login.
+    systemd.user.services.hyprsunset = {
+      Unit = {
+        Description = "hyprsunset blue-light filter";
+        Documentation = "https://wiki.hyprland.org/Hypr-Ecosystem/hyprsunset/";
+        PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
+        ConditionEnvironment = "WAYLAND_DISPLAY";
+        # hyprsunset 0.3.3 asserts-and-crashes when the compositor connection
+        # drops (e.g. DPMS off from hypridle). Disable the restart rate limiter
+        # so it self-heals instead of hitting start-limit-hit and staying dead.
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${hyprsunsetPkg}/bin/hyprsunset";
+        Restart = "on-failure";
+        RestartSec = 2;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
 
     xdg.configFile."hypr/hypridle.conf".text = ''
       general {
