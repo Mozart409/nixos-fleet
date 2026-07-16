@@ -49,38 +49,6 @@ RowLayout {
     text: " 10000K"
   }
 
-  // Root disk free percentage
-  Text {
-    id: diskText
-    color: "#cfd6f4"
-    font.family: "Berkeley Mono"
-    font.pixelSize: 13
-    horizontalAlignment: Text.AlignRight
-    Layout.minimumWidth: sysMetrics.width
-    text: " D ---%"
-
-    Process {
-      id: diskProc
-      command: ["sh", "-c", "df -P / | awk 'NR==2 {gsub(/%/, \"\", $5); printf \"%d\", 100 - $5}'"]
-      running: true
-
-      stdout: StdioCollector {
-        onStreamFinished: {
-          let val = parseFloat(this.text.trim())
-          diskText.text = " D " + val.toFixed(0) + "%"
-          diskText.color = sysInfo.freeColor(val)
-        }
-      }
-    }
-
-    Timer {
-      interval: 10000
-      running: true
-      repeat: true
-      onTriggered: diskProc.running = true
-    }
-  }
-
   // Screen color temperature (hyprsunset)
   Text {
     id: tempText
@@ -110,6 +78,38 @@ RowLayout {
       running: true
       repeat: true
       onTriggered: tempProc.running = true
+    }
+  }
+
+  // Root disk free percentage
+  Text {
+    id: diskText
+    color: "#cfd6f4"
+    font.family: "Berkeley Mono"
+    font.pixelSize: 13
+    horizontalAlignment: Text.AlignRight
+    Layout.minimumWidth: sysMetrics.width
+    text: " D ---%"
+
+    Process {
+      id: diskProc
+      command: ["sh", "-c", "df -P / | awk 'NR==2 {gsub(/%/, \"\", $5); printf \"%d\", 100 - $5}'"]
+      running: true
+
+      stdout: StdioCollector {
+        onStreamFinished: {
+          let val = parseFloat(this.text.trim())
+          diskText.text = " D " + val.toFixed(0) + "%"
+          diskText.color = sysInfo.freeColor(val)
+        }
+      }
+    }
+
+    Timer {
+      interval: 10000
+      running: true
+      repeat: true
+      onTriggered: diskProc.running = true
     }
   }
 
