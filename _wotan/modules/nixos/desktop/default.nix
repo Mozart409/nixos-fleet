@@ -203,6 +203,16 @@
         };
       };
 
+      # Disable btusb USB autosuspend. The Intel AX210 controller (USB
+      # 8087:0032) defaults to a 2s USB autosuspend that powers the radio down
+      # mid-stream, producing kernel "hci0: link tx timeout" -> "killing stalled
+      # connection" and breaking A2DP audio playback (WirePlumber then fails to
+      # acquire the Bluetooth audio transport). Keeping the controller awake
+      # fixes the recurring audio dropouts / stalled connections.
+      boot.extraModprobeConfig = ''
+        options btusb enable_autosuspend=0
+      '';
+
       # Hardware support packages
       hardware = {
         bluetooth = {
