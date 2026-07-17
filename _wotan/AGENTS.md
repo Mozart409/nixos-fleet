@@ -232,6 +232,7 @@ Before committing changes:
 6. **Secrets:** Use agenix for sensitive data (see `age.secrets` in wotan config)
 7. **Systemd sandboxing:** Services with `DynamicUser=true` and `ProtectHome=true` cannot access `/home/`. Use state directories (e.g., `/var/lib/<service>/`) instead.
 8. **NVIDIA driver version bumps break `nh os switch`:** the NVIDIA container CDI generator runs against the new driver while the old kernel module is still loaded (NVML mismatch). After a flake update that bumps the driver, use `sudo nixos-rebuild boot --flake .#wotan` and reboot instead of switching live.
+9. **Bluetooth audio dropouts / stalled connections (Intel AX210):** the AX210 controller (USB `8087:0032`) defaults to a 2s USB autosuspend that powers the radio down mid-stream, causing kernel `hci0: link tx timeout` -> `killing stalled connection`, `spa.bluez5: Acquire ... org.bluez.Error.Failed`, and "missing completion reports ... firmware bug?" in WirePlumber — A2DP sinks flicker in and out and no audio plays. Enough killed connections wedge the controller until it sees zero devices even after a USB rebind (needs a reboot to recover). Fixed declaratively by `boot.extraModprobeConfig = "options btusb enable_autosuspend=0"` in `modules/nixos/desktop/default.nix`; the modprobe option only applies on the next `btusb` load, so rebuild + reboot. Diagnose with `journalctl -k -b | grep hci0` and `journalctl --user -u wireplumber | grep bluez`.
 
 ## 🤖 vLLM Inference Server
 
