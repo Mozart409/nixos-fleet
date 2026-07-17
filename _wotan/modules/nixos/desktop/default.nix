@@ -125,6 +125,19 @@
                 }
               ];
             };
+            # Bluetooth: expose A2DP only, disable the HFP/HSP headset roles.
+            # When an app opens a BT speaker's mic (e.g. it advertises one), the
+            # device is forced into the HFP/headset profile, which downgrades
+            # audio to low-quality mono over a SCO/eSCO voice link that time-
+            # shares the radio with A2DP -> severely choppy music. Disabling the
+            # headset backend keeps speakers (like the Grundig CLUB) in
+            # high-quality A2DP stereo. (Trade-off: no BT headset mic for calls.)
+            "11-bluetooth-a2dp-only" = {
+              "monitor.bluez.properties" = {
+                "bluez5.roles" = ["a2dp_sink" "a2dp_source"];
+                "bluez5.hfphsp-backend" = "none";
+              };
+            };
           };
         };
       };
