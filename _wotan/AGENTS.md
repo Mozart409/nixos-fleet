@@ -81,6 +81,14 @@ nix develop                 # Enter dev shell (git, alejandra, lefthook, opencod
 
 **NEVER** commit unformatted Nix code. Always run `alejandra` first.
 
+### Git Configuration
+
+Set a short SSH connect timeout so git operations fail fast instead of hanging on an unreachable remote:
+
+```bash
+git config core.sshCommand "ssh -o ConnectTimeout=5"
+```
+
 ## 📝 Code Style Guidelines
 
 ### Nix File Structure
