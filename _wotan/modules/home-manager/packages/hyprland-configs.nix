@@ -45,7 +45,7 @@ in {
       # Evening profile - warm color temperature at night
       profile {
           time = 20:00
-          temperature = 5500
+          temperature = 4500
           gamma = 1.0
           identity = 0
       }
@@ -61,7 +61,7 @@ in {
       # Morning profile - return to daylight temperature
       profile {
           time = 08:00
-          temperature = 6500
+          temperature = 5500
           gamma = 1.0
           identity = 0
       }
