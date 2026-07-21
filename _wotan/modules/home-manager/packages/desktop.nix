@@ -8,15 +8,12 @@
     # keep-sorted start
     anytype
     basalt
-    bitwarden-cli
-    bitwarden-desktop
     comet-gog
     discord
     haruna
     lutris-unwrapped
     obsidian
     pavucontrol
-    # Security
     proton-pass
     signal-desktop
     # keep-sorted end
