@@ -10,5 +10,5 @@ ShellRoot {
   // WeatherWidget {}
 
   // App dock (bottom center)
-  DockWidget {}
+  // DockWidget {}
 }
