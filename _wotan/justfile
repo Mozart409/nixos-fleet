@@ -14,8 +14,8 @@ switch hostname:
 switch-all hostname:
     just switch {{ hostname }}
 
-# Test NixOS configuration for specific host (doesn't persist after reboot)
-test hostname:
+# Test NixOS configuration (doesn't persist after reboot); defaults to wotan
+test hostname="wotan":
     sudo nixos-rebuild test --flake .#{{ hostname }}
 
 # Test both NixOS and home-manager configurations (home-manager is integrated)
