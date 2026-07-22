@@ -167,7 +167,7 @@ Each host can override or extend the shared configuration:
 - **Sound**: PipeWire with PulseAudio compatibility
 - **Special Features**: Steam, Podman, Tailscale
 - **Bar**: Quickshell
-- **Terminal**: Kitty, Alacritty
+- **Terminal**: Kitty
 - **Local LLM**: vLLM (OpenAI-compatible, CUDA, served on `127.0.0.1:10808`)
 
 ### Shared Features

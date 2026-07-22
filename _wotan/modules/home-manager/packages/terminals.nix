@@ -11,7 +11,9 @@
     # themeFile = "Ciapre";
     # themeFile = "cherry_midnight";
     # themeFile = "VividPunk";
-    themeFile = "Thayer_Bright";
+    # themeFile = "Thayer_Bright";
+    # Bolder alternatives (one-line swap): kanagawa_dragon, Cyberpunk-Neon, Carbonfox
+    themeFile = "tokyo_night_storm";
     settings = {
       # Window
       window_padding_width = 5;
@@ -57,8 +59,9 @@
     enable = false;
   };
 
+  # Disabled: kitty is the only terminal in use. Kept for reference.
   programs.alacritty = {
-    enable = true;
+    enable = false;
     theme = "kanagawa_wave";
     # theme = "kanagawa_dragon";
     settings = {

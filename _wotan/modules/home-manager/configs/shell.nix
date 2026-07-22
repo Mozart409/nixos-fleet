@@ -9,21 +9,48 @@
     enableZshIntegration = true;
     settings = {
       add_newline = true;
+      palette = "tokyonight";
+
+      # Clean Tokyo Night two-line prompt: path + git / nix-shell / k8s /
+      # duration as plain colored segments on line one, prompt char on line two.
       format = "$directory$git_branch$git_status$nix_shell$kubernetes$cmd_duration$line_break$character";
+
+      palettes.tokyonight = {
+        crust = "#1a1b26";
+        base = "#24283b";
+        surface = "#292e42";
+        overlay = "#414868";
+        fg = "#c0caf5";
+        blue = "#7aa2f7";
+        cyan = "#7dcfff";
+        purple = "#bb9af7";
+        green = "#9ece6a";
+        red = "#f7768e";
+        orange = "#ff9e64";
+        yellow = "#e0af68";
+      };
+
       character = {
-        success_symbol = "[ॐ](bold green)";
-        error_symbol = "[ॐ](bold red)";
+        success_symbol = "[❯](bold green)";
+        error_symbol = "[❯](bold red)";
+        vimcmd_symbol = "[❮](bold purple)";
       };
       directory = {
+        format = "[$path]($style) ";
+        style = "bold blue";
         truncation_length = 3;
         truncate_to_repo = false;
+        read_only = " ";
+        read_only_style = "bold red";
       };
       git_branch = {
         format = "[$symbol$branch]($style) ";
         symbol = " ";
+        style = "bold green";
       };
       git_status = {
         format = "([$all_status$ahead_behind]($style) )";
+        style = "bold purple";
         conflicted = "=";
         ahead = "⇡\${count}";
         behind = "⇣\${count}";
@@ -37,16 +64,19 @@
       nix_shell = {
         format = "[$symbol$state]($style) ";
         symbol = " ";
+        style = "bold cyan";
         impure_msg = "";
       };
       kubernetes = {
         disabled = false;
         format = "[$symbol$context( \\($namespace\\))]($style) ";
         symbol = "☸ ";
+        style = "bold orange";
       };
       cmd_duration = {
         min_time = 2000;
-        format = "[$duration]($style) ";
+        format = "[ $duration]($style) ";
+        style = "bold yellow";
       };
     };
   };

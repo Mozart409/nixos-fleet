@@ -49,7 +49,7 @@
       tmuxPlugins.yank
       tmuxPlugins.urlview
       tmuxPlugins.sensible
-      tmuxPlugins.catppuccin
+      tmuxPlugins.tokyo-night-tmux
       tmuxPlugins.tmux-floax
       tmuxPlugins.mode-indicator
     ];

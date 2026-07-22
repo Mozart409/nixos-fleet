@@ -76,7 +76,7 @@
       # Default applications
       BROWSER = "brave";
       EDITOR = "nvim";
-      TERMINAL = lib.mkIf (config.desktop.environment == "niri") "alacritty";
+      TERMINAL = lib.mkIf (config.desktop.environment == "niri") "kitty";
     };
 
     # Auto-start applications configuration

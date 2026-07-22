@@ -14,7 +14,7 @@ in {
     programs.rofi = {
       enable = true;
       font = "JetBrainsMono 18";
-      terminal = "alacritty";
+      terminal = "kitty";
       cycle = true;
       location = "center";
       theme = "DarkBlue";
