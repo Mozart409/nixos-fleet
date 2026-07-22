@@ -17,7 +17,7 @@
   ];
 
   home.sessionVariables = {
-    KUBECONFIG = "$HOME/.kube/config-k3s:$HOME/.kube/config";
+    KUBECONFIG = "$HOME/.kube/config";
   };
 
   programs.kubeswitch = {
