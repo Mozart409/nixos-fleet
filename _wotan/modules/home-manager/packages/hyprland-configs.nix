@@ -13,6 +13,16 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # Hyprland 0.56 introduced a Lua-first config model and looks for
+    # hyprland.lua in ~/.config/hypr/ first. This is our real, hand-migrated
+    # config -- the old hyprlang programs.hyprland.settings in
+    # modules/nixos/desktop/hyprland.nix is commented out (kept for later
+    # reference), so there's no /etc/xdg/hypr/hyprland.conf to fall back to
+    # anymore. If ~/.config/hypr has neither a .lua nor a .conf, Hyprland
+    # silently drops a brand-new example config instead -- that's what broke
+    # kb_layout and the monitor order after the last update.
+    xdg.configFile."hypr/hyprland.lua".source = ./hyprland.lua;
+
     # wlogout layout ($mod+Q menu). Copied from the package default MINUS the
     # Hibernate button: hibernation is disabled by security.protectKernelImage
     # (nohibernate kernel param), so the button was a silent no-op. Styling and

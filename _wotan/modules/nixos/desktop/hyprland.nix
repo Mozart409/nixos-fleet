@@ -106,6 +106,10 @@
         # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
         # hyprtrails disabled: incompatible with hyprland 0.54.0
       ];
+      /*
+         Superseded by modules/home-manager/packages/hyprland.lua (Hyprland
+         0.56's Lua config). Kept commented out, not deleted, for reference
+         and for testing against the old hyprlang format later.
       settings = {
         # Monitor configuration (host-specific)
         monitor = config.desktop.hyprland.monitors;
@@ -319,6 +323,7 @@
           "$mod, mouse:273, resizewindow"
         ];
       };
+      */
     };
 
     # Lockscreen configuration
