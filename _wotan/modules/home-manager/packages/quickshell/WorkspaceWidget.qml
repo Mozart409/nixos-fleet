@@ -48,7 +48,10 @@ RowLayout {
 
       MouseArea {
         anchors.fill: parent
-        onClicked: Hyprland.dispatch("workspace " + wsButton.wsId)
+        // Hyprland 0.56 evaluates IPC dispatch as Lua (`return hl.dispatch(<arg>)`),
+        // so the old hyprlang "workspace N" string is a syntax error. Pass the Lua
+        // dispatcher object instead, matching hl.dsp.focus in hyprland.lua.
+        onClicked: Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsButton.wsId + " })")
       }
     }
   }
