@@ -35,7 +35,40 @@
     # keep-sorted end
   ];
 
-  desktop.hyprland-configs.enable = true;
+  # Two 1440p/144Hz panels side by side: DP-3 left, DP-2 right. Workspaces 1-5
+  # live on the left one, 6-10 on the right one. This is the only Hyprland
+  # config that is genuinely wotan-specific; it is rendered into
+  # ~/.config/hypr/host.lua by modules/home-manager/packages/hyprland-configs.nix.
+  desktop.hyprland-configs = {
+    enable = true;
+
+    monitors = [
+      {
+        output = "DP-3";
+        mode = "2560x1440@144";
+        position = "0x0";
+        scale = 1;
+      }
+      {
+        output = "DP-2";
+        mode = "2560x1440@144";
+        position = "2560x0";
+        scale = 1;
+      }
+    ];
+
+    workspaces =
+      map (id: {
+        inherit id;
+        monitor = "DP-3";
+        default = id == 1;
+      }) [1 2 3 4 5]
+      ++ map (id: {
+        inherit id;
+        monitor = "DP-2";
+        default = id == 6;
+      }) [6 7 8 9 10];
+  };
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
   desktop.quickshell.enable = true;
