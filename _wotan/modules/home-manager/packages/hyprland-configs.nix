@@ -89,6 +89,16 @@ in {
             default = false;
             description = "Whether this is the workspace its monitor opens on.";
           };
+
+          showInBar = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = ''
+              Whether the quickshell bar draws a button for this workspace.
+              Turn it off for workspaces the keybinds cannot reach -- the rule
+              still applies, the bar just does not advertise it.
+            '';
+          };
         };
       });
       default = [];

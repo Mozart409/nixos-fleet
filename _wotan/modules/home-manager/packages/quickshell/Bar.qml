@@ -9,6 +9,9 @@ Scope {
   // Time singleton for clock
   SystemClock { id: clock }
 
+  // Generated from desktop.hyprland-configs.workspaces by quickshell.nix.
+  WorkspaceLayout { id: wsLayout }
+
   Variants {
     model: Quickshell.screens
 
@@ -20,12 +23,13 @@ Scope {
       // Get the Hyprland monitor for this screen
       property var hyprMonitor: Hyprland.monitorFor(modelData)
       
-      // Workspace ranges per monitor (customize as needed)
-      // Monitor index 0: workspaces 6-9
-      // Monitor index 1: workspaces 1-5
-      property int monitorIndex: hyprMonitor?.id ?? 0
-      property int wsStart: monitorIndex === 0 ? 6 : 1
-      property int wsEnd: monitorIndex === 0 ? 9 : 5
+      // Which workspaces belong on this bar. Resolved by output name (DP-3,
+      // DP-2, ...), never by Hyprland's monitor id: the ids are assigned in
+      // output-enable order and swap between sessions, which silently put the
+      // wrong workspace set on each bar. modelData.name is the connector name
+      // and is available before Hyprland reports the monitor, so it is the key.
+      property string outputName: modelData.name
+      property var workspaceIds: wsLayout.byMonitor[outputName] ?? wsLayout.fallback
 
       anchors {
         top: true
@@ -45,15 +49,14 @@ Scope {
         // Left: Workspaces (per-monitor range)
         WorkspaceWidget {
           Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-          startWorkspace: panel.wsStart
-          endWorkspace: panel.wsEnd
+          workspaceIds: panel.workspaceIds
           monitor: panel.hyprMonitor
         }
 
         // Git status widget (only on primary monitor)
         Loader {
           Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-          active: panel.monitorIndex === 1
+          active: panel.outputName === wsLayout.primary
           sourceComponent: GitStatusWidget {
             scanPath: "/home/amadeus/code"
           }

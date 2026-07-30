@@ -67,6 +67,9 @@
         inherit id;
         monitor = "DP-2";
         default = id == 6;
+        # The number-row binds stop at 9, so nothing can focus 10 -- keep the
+        # rule (it still belongs to this output) but leave it out of the bar.
+        showInBar = id != 10;
       }) [6 7 8 9 10];
   };
   desktop.rofi.enable = true;

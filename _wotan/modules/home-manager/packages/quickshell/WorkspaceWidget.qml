@@ -7,21 +7,22 @@ RowLayout {
   id: workspaceWidget
   spacing: 4
 
-  // Which workspaces to show (configurable per-monitor)
-  property int startWorkspace: 1
-  property int endWorkspace: 9
+  // Workspace numbers to show, in order. Comes from WorkspaceLayout.qml, which
+  // quickshell.nix generates from the same option that writes Hyprland's
+  // workspace rules, so the bar cannot disagree with the compositor.
+  property var workspaceIds: []
 
   // Reference to the monitor this widget is on
   property var monitor: null
 
   Repeater {
-    model: workspaceWidget.endWorkspace - workspaceWidget.startWorkspace + 1
+    model: workspaceWidget.workspaceIds
 
     Rectangle {
       id: wsButton
-      required property int index
+      required property int modelData
 
-      property int wsId: workspaceWidget.startWorkspace + index
+      property int wsId: modelData
       property bool isActive: workspaceWidget.monitor?.activeWorkspace?.id === wsId
       property bool hasWindows: {
         for (let ws of Hyprland.workspaces.values) {
