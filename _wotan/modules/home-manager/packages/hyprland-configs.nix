@@ -214,9 +214,15 @@ in {
       general {
           # Hyprland 0.56 evaluates `hyprctl dispatch` as Lua, so the old
           # hyprlang "dpms on" string is a syntax error -- use hl.dsp.dpms.
-          lock_cmd = hyprctl dispatch 'hl.dsp.dpms({ state = "on" })'; pidof hyprlock || hyprlock       # turn on display so screenshot isn't blank, avoid starting multiple hyprlock instances
+          # The field MUST be `action`: hl.dsp.dpms parses the table with
+          # tableToggleAction(field = "action"), and an unrecognized field
+          # (e.g. `state`) SILENTLY falls back to TOGGLE, so every command
+          # below flipped the dpms state instead of setting it -- monitors
+          # ended up off while Hyprland reported dpmsStatus=true and key
+          # presses stopped waking them.
+          lock_cmd = hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'; pidof hyprlock || hyprlock       # turn on display so screenshot isn't blank, avoid starting multiple hyprlock instances
           before_sleep_cmd = loginctl lock-session    # lock before suspend
-          after_sleep_cmd = hyprctl dispatch 'hl.dsp.dpms({ state = "on" })'  # turn on display after sleep
+          after_sleep_cmd = hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'  # turn on display after sleep
           ignore_dbus_inhibit = false                 # respect idle-inhibit requests (e.g., from firefox, steam)
           ignore_systemd_inhibit = false              # respect systemd-inhibit --what=idle inhibitors
       }
@@ -231,8 +237,8 @@ in {
       # Screen off after 15 minutes
       listener {
           timeout = 900                               # 15 minutes
-          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then hyprctl dispatch 'hl.dsp.dpms({ state = "off" })'; fi      # turn off screen
-          on-resume = hyprctl dispatch 'hl.dsp.dpms({ state = "on" })'        # turn on screen
+          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'; fi      # turn off screen
+          on-resume = hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'        # turn on screen
       }
 
       # Lock screen after 20 minutes
