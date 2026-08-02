@@ -10,6 +10,10 @@ pre-commit:
     - name: just
       run: just --fmt
       stage_fixed: true
+    # No stage_fixed: shellcheck only reports, it does not rewrite files.
+    - name: shellcheck
+      run: shellcheck {staged_files}
+      glob: "*.sh"
 commit-msg:
   jobs:
     - name: cog verify

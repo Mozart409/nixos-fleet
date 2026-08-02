@@ -105,6 +105,7 @@
         buildInputs = with pkgs; [
           git
           alejandra
+          shellcheck
           lefthook
           opencode
           cocogitto
