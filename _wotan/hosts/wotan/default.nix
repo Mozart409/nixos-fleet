@@ -133,7 +133,16 @@
     defaultNetwork.settings.dns_enabled = true;
   };
 
-  virtualisation.containers.registries.search = ["docker.io"];
+  # v2 registries.conf schema. Replaces the deprecated
+  # `virtualisation.containers.registries.search`, which emitted the v1
+  # `[registries.search]` table; `unqualified-search-registries` is its v2
+  # equivalent. Setting `settings` also drops nixpkgs' default
+  # `registry = [docker.io quay.io]`, which configures those registries but
+  # does NOT make them searchable for unqualified names.
+  virtualisation.containers.registries.settings = {
+    unqualified-search-registries = ["quay.io"];
+  };
+
   programs.steam = {
     enable = true;
     extraCompatPackages = with pkgs; [
