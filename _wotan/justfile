@@ -30,6 +30,18 @@ build hostname:
 build-home hostname="wotan" user="amadeus":
     nix build .#nixosConfigurations.{{ hostname }}.config.home-manager.users.{{ user }}.home.activationPackage --dry-run
 
+# The attic recipes below need a one-time login on this machine:
+#   attic login homelab https://cache.homelab.local/homelab <push-token>
+# Paths already on cache.nixos.org are skipped, so only local builds upload.
+
+# Push a closure to the homelab attic binary cache (defaults to this system)
+attic-push path="/run/current-system" jobs="5":
+    attic push -j {{ jobs }} homelab {{ path }}
+
+# Build a host's system closure and push it to the homelab cache
+attic-push-host hostname="wotan":
+    attic push -j 5 homelab $(nix build --no-link --print-out-paths .#nixosConfigurations.{{ hostname }}.config.system.build.toplevel)
+
 # Update flake inputs
 update:
     nix flake update --accept-flake-config
