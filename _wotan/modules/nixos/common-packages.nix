@@ -11,6 +11,7 @@
   environment.systemPackages = with pkgs; [
     # keep-sorted start
     alejandra
+    attic-client # push build results to the homelab binary cache
     curl
     dig
     dust

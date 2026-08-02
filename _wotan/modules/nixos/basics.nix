@@ -15,6 +15,11 @@
     ];
     trusted-users = ["root" username];
     substituters = [
+      # Self-hosted attic (homelab `cache` host), on the wired LAN. Listed
+      # first so local hits win over the public caches. The URL must include
+      # the cache name — attic namespaces every binary-cache path under it, and
+      # https://cache.homelab.local on its own is not a valid substituter.
+      "https://cache.homelab.local/homelab"
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
@@ -23,12 +28,22 @@
       "https://cache.nixos-cuda.org"
     ];
     trusted-public-keys = [
+      "homelab:aswnRAo2zbP13gGnUTCINX78X/lURQgPAfrgNpHpQpY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     ];
+
+    # The homelab cache is a single VM on the HDD-backed zfs_pool, so it does go
+    # away — reboots, a colmena apply against the `cache` host, or pool
+    # contention. Without a short timeout nix waits out the default budget on
+    # every path it wants to substitute, turning a cache outage into minutes of
+    # stalling on an otherwise healthy build. `fallback` lets it build locally
+    # instead of aborting when substitution fails outright.
+    connect-timeout = 5;
+    fallback = true;
   };
 
   nix.gc = {
