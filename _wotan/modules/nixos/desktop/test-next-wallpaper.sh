@@ -4,7 +4,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TEST_DIR=$(mktemp -d)
 STATE_DIR="$TEST_DIR/state"
 WALLPAPER_DIR="$TEST_DIR/wallpapers"
