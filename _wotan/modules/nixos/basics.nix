@@ -24,15 +24,20 @@
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
       "https://hyprland.cachix.org"
-      "https://cache.garnix.io"
       "https://cache.nixos-cuda.org"
+      # cache.garnix.io was here. garnix shut down on 2026-07-15 and deletes
+      # user data; the host now serves 502 on every request, including
+      # /nix-cache-info, which hard-fails eval (see the comment in switch.sh).
+      # Do not re-add it. It was the only source for the unfree set — the
+      # nvidia-x11 stack, discord, obsidian, claude-code — none of which
+      # cache.nixos.org builds. Those closures were pushed to the homelab
+      # attic instead; `just attic-push` keeps them there after a rebuild.
     ];
     trusted-public-keys = [
       "homelab:aswnRAo2zbP13gGnUTCINX78X/lURQgPAfrgNpHpQpY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     ];
 

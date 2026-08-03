@@ -11,7 +11,8 @@ echo ''
 # skipped: nix treats a 5xx on a narinfo query as a transport error and aborts,
 # and `fallback = true` in modules/nixos/basics.nix does not rescue it — that
 # only covers a substitution that fails to *copy*, not one that fails to
-# *answer*. cache.garnix.io has served 502s across entire outages.
+# *answer*. cache.garnix.io served 502s across entire outages and has since been
+# dropped from basics.nix; the homelab cache is a VM and goes away on its own.
 #
 # So probe each configured cache and hand nix only the ones that respond. An
 # outage then degrades to "build those paths locally" instead of killing the
