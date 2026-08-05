@@ -6,29 +6,21 @@ set dotenv-load
 default:
     just --choose
 
-# Switch NixOS configuration for specific host (persists)
-switch hostname:
-    sudo nixos-rebuild switch --flake .#{{ hostname }}
+# Switch NixOS configuration (persists)
+switch:
+    sudo nixos-rebuild switch --flake .#wotan
 
-# Switch both NixOS and home-manager configurations (home-manager is integrated)
-switch-all hostname:
-    just switch {{ hostname }}
-
-# Test NixOS configuration (doesn't persist after reboot); defaults to wotan
-test hostname="wotan":
-    sudo nixos-rebuild test --flake .#{{ hostname }}
-
-# Test both NixOS and home-manager configurations (home-manager is integrated)
-test-all hostname:
-    just test {{ hostname }}
+# Test NixOS configuration (doesn't persist after reboot)
+test:
+    sudo nixos-rebuild test --flake .#wotan
 
 # Build NixOS configuration (dry run to check)
-build hostname:
-    nix build .#nixosConfigurations.{{ hostname }}.config.system.build.toplevel --dry-run
+build:
+    nh os build .#wotan --dry
 
 # Build home-manager activation package (dry run to check)
-build-home hostname="wotan" user="amadeus":
-    nix build .#nixosConfigurations.{{ hostname }}.config.home-manager.users.{{ user }}.home.activationPackage --dry-run
+build-home:
+    nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
 
 # The attic recipes below need a one-time login on this machine:
 #   attic login homelab https://cache.homelab.local/homelab <push-token>

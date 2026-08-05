@@ -90,7 +90,9 @@
     # Hyprland configuration
     programs.hyprland = {
       enable = true;
-      package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+      package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland.overrideAttrs (old: {
+        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pkgs.git];
+      });
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
         # hyprbars disabled: testing if plugin causes session crash on reboot
