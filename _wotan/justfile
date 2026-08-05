@@ -16,7 +16,7 @@ test:
 
 # Build NixOS configuration (dry run to check)
 build:
-    nh os build .#wotan --dry
+    nh os build .#wotan
 
 # Build home-manager activation package (dry run to check)
 build-home:
