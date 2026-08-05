@@ -35,6 +35,24 @@ in {
         {
           nixpkgs.hostPlatform = system;
           nixpkgs.config = sharedNixpkgsConfig;
+          # hyprland 0.56.1's CMakeLists requires `find_package(glaze 7...<8)`,
+          # but nixpkgs ships glaze 8.0.0, so CMake falls back to FetchContent
+          # (git clone) which fails in the sandboxed build. Pin glaze 7.9.1 until
+          # hyprland supports glaze 8. hyprshutdown (same 7.x requirement) also
+          # benefits. Drop once nixpkgs' hyprland builds against glaze 8.
+          nixpkgs.overlays = [
+            (final: prev: {
+              glaze = prev.glaze.overrideAttrs (old: {
+                version = "7.9.1";
+                src = prev.fetchFromGitHub {
+                  owner = "stephenberry";
+                  repo = "glaze";
+                  tag = "v7.9.1";
+                  hash = "sha256-NRRq5MGF2f5PW0teYnq58ELzson+U6KHVPaY6r30KLA=";
+                };
+              });
+            })
+          ];
         }
         inputs.home-manager.nixosModules.home-manager
         ({pkgs, ...}: {
