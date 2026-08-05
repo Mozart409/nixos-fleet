@@ -65,11 +65,11 @@
       enable = true;
       settings = {
         initial_session = {
-          command = "${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
+          command = "${pkgs.hyprland}/bin/start-hyprland";
           user = username;
         };
         default_session = {
-          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --time --theme 'border=darkgray;text=yellow;prompt=lightyellow;time=yellow;action=yellow;button=darkgray;container=black' --cmd ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/start-hyprland";
+          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --time --theme 'border=darkgray;text=yellow;prompt=lightyellow;time=yellow;action=yellow;button=darkgray;container=black' --cmd ${pkgs.hyprland}/bin/start-hyprland";
           user = "greeter";
         };
       };
@@ -87,12 +87,13 @@
       ];
     };
 
-    # Hyprland configuration
+    # Hyprland configuration — use nixpkgs hyprland (same version 0.56.1,
+    # builds correctly with glaze from nixpkgs). Flake hyprland fails because
+    # its CMakeLists.txt uses FetchContent to clone glaze from GitHub, which
+    # has no network access in the sandboxed build.
     programs.hyprland = {
       enable = true;
-      package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland.overrideAttrs (old: {
-        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pkgs.git];
-      });
+      package = pkgs.hyprland;
       portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       plugins = [
         # hyprbars disabled: testing if plugin causes session crash on reboot
