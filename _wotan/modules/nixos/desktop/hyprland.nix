@@ -6,8 +6,11 @@
   username,
   ...
 }: {
+  # Use nixpkgs's hyprland module (not the flake's) — nixpkgs packages glaze
+  # properly while the flake's CMakeLists.txt uses FetchContent to clone glaze
+  # from GitHub, which has no network access in the sandboxed build.
+  # Both are version 0.56.1.
   imports = [
-    inputs.hyprland.nixosModules.default
     ./next-wallpaper.nix
   ];
 
@@ -80,27 +83,15 @@
       enable = true;
       extraPortals = with pkgs; [
         xdg-desktop-portal-gtk
-        inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
+        xdg-desktop-portal-hyprland
       ];
       configPackages = with pkgs; [
-        inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
+        xdg-desktop-portal-hyprland
       ];
     };
 
-    # Hyprland configuration — use nixpkgs hyprland (same version 0.56.1,
-    # builds correctly with glaze from nixpkgs). Flake hyprland fails because
-    # its CMakeLists.txt uses FetchContent to clone glaze from GitHub, which
-    # has no network access in the sandboxed build.
-    programs.hyprland = {
-      enable = true;
-      package = pkgs.hyprland;
-      portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
-      plugins = [
-        # hyprbars disabled: testing if plugin causes session crash on reboot
-        # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-        # hyprtrails disabled: incompatible with hyprland 0.54.0
-      ];
-    };
+    # Hyprland configuration
+    programs.hyprland.enable = true;
 
     # Lockscreen configuration
     security.pam.services.hyprlock = {};
