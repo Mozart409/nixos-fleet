@@ -21,6 +21,7 @@ in {
     # keep-sorted start
     brave
     chromium
+    tor-browser
     # keep-sorted end
   ];
 }
