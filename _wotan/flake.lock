@@ -782,11 +782,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785712262,
-        "narHash": "sha256-IVdFu3JwCjNbRszXPHXy0gsb3GLLcX8+C3U/mEP8coA=",
+        "lastModified": 1786000129,
+        "narHash": "sha256-N65X9DXULf7w59pJL9GtZaH4odqmj0/HZ2+21i0gzIs=",
         "owner": "Mozart409",
         "repo": "mozart409-nixvim",
-        "rev": "e99297f823f462197128362c47b7933481f2b09f",
+        "rev": "c477f0fb30d976670ac41a7ad6c7ea4aebc8400f",
         "type": "github"
       },
       "original": {
