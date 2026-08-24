@@ -17,6 +17,7 @@
     ../../modules/home-manager/packages/development.nix
     ../../modules/home-manager/packages/easyeffects.nix
     ../../modules/home-manager/packages/fun.nix
+    ../../modules/home-manager/packages/git-sync.nix
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
@@ -76,6 +77,14 @@
   desktop.gtk.enable = true;
   desktop.quickshell.enable = true;
   desktop.easyeffects.enable = true;
+
+  # Every 4 hours, fast-forward-only pull/push every git repo under ~/code
+  # (skips dirty trees, never commits, never force-pushes or creates new
+  # remote branches). See modules/home-manager/packages/git-sync.nix.
+  gitSync = {
+    enable = true;
+    interval = "0/4:00:00";
+  };
 
   # Enable opencode custom commands
   opencode.enable = true;
