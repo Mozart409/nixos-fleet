@@ -6,17 +6,31 @@
 }: let
   # Runs as root (nix-daemon) after every successful local build. Logging in
   # every run is cheap and local-only (no network round trip), and keeps the
-  # token in sync if the agenix secret is ever rotated. Never fails the
-  # build/switch on a cache outage.
+  # token in sync if the agenix secret is ever rotated.
+  #
+  # nix-daemon only waits for this script's own exit, not its descendants, so
+  # the actual push is handed off to a detached background job with a hard
+  # timeout and this script returns immediately. A synchronous `attic push`
+  # walks the full closure of whatever just built, which can take a very long
+  # time on a big rebuild -- on 2026-08-24 that hung `nh os switch` on the
+  # trivial `system-units` derivation for 17+ minutes with no cache outage and
+  # no build error, just a slow closure walk blocking the daemon. Never do
+  # this synchronously again.
   postBuildHook = pkgs.writeShellScript "attic-push" ''
     set -eu
     set -f # disable globbing so $OUT_PATHS word-splits safely
     export IFS=' '
     export HOME=/root
 
-    token="$(${pkgs.coreutils}/bin/cat ${config.age.secrets.attic-token.path})"
-    ${pkgs.attic-client}/bin/attic login homelab https://cache.homelab.local/homelab "$token" >/dev/null 2>&1 || true
-    ${pkgs.attic-client}/bin/attic push -j 5 homelab $OUT_PATHS || echo "attic-push: failed to push to homelab cache" >&2
+    (
+      set -o pipefail
+      token="$(${pkgs.coreutils}/bin/cat ${config.age.secrets.attic-token.path})"
+      ${pkgs.attic-client}/bin/attic login homelab https://cache.homelab.local/homelab "$token" >/dev/null 2>&1 || true
+      ${pkgs.coreutils}/bin/timeout 300 ${pkgs.attic-client}/bin/attic push -j 5 homelab $OUT_PATHS 2>&1 \
+        | ${pkgs.util-linux}/bin/logger -t attic-push \
+        || ${pkgs.util-linux}/bin/logger -t attic-push "push failed or timed out"
+    ) </dev/null >/dev/null 2>&1 &
+    disown
   '';
 in {
   # Common Nix settings
