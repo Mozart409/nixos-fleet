@@ -3,7 +3,22 @@
   pkgs,
   username,
   ...
-}: {
+}: let
+  # Runs as root (nix-daemon) after every successful local build. Logging in
+  # every run is cheap and local-only (no network round trip), and keeps the
+  # token in sync if the agenix secret is ever rotated. Never fails the
+  # build/switch on a cache outage.
+  postBuildHook = pkgs.writeShellScript "attic-push" ''
+    set -eu
+    set -f # disable globbing so $OUT_PATHS word-splits safely
+    export IFS=' '
+    export HOME=/root
+
+    token="$(${pkgs.coreutils}/bin/cat ${config.age.secrets.attic-token.path})"
+    ${pkgs.attic-client}/bin/attic login homelab https://cache.homelab.local/homelab "$token" >/dev/null 2>&1 || true
+    ${pkgs.attic-client}/bin/attic push -j 5 homelab $OUT_PATHS || echo "attic-push: failed to push to homelab cache" >&2
+  '';
+in {
   # Common Nix settings
   nix.settings = {
     auto-optimise-store = true;
@@ -49,6 +64,17 @@
     # instead of aborting when substitution fails outright.
     connect-timeout = 5;
     fallback = true;
+
+    # Auto-push every locally-built path (system generations included) to the
+    # homelab attic cache -- this is what `just attic-push`/`attic-push-host`
+    # used to require running by hand. post-build-hook runs as the nix-daemon
+    # (root), outside the build sandbox, so it has network access and needs
+    # its own attic login; it reuses the same admin push token from
+    # `attic login homelab ...` that ~/.config/attic/config.toml already has,
+    # stored as the agenix secret age.secrets.attic-token (hosts/wotan/default.nix).
+    # A cache outage must never fail a build/switch, so both the login and the
+    # push are best-effort (`|| true` / logged-and-swallowed failure).
+    post-build-hook = "${postBuildHook}";
   };
 
   nix.gc = {
