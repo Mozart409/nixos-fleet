@@ -78,13 +78,13 @@
   desktop.quickshell.enable = true;
   desktop.easyeffects.enable = true;
 
-  # Every 4 hours, fast-forward-only pull/push every git repo under ~/code
-  # (skips dirty trees, never commits, never force-pushes or creates new
-  # remote branches). See modules/home-manager/packages/git-sync.nix.
-  gitSync = {
-    enable = true;
-    interval = "0/4:00:00";
-  };
+  # Disabled: every 4 hours, fast-forward-only pull/push every git repo under
+  # ~/code (skips dirty trees, never commits, never force-pushes or creates
+  # new remote branches). See modules/home-manager/packages/git-sync.nix.
+  # gitSync = {
+  #   enable = true;
+  #   interval = "0/4:00:00";
+  # };
 
   # Enable opencode custom commands
   opencode.enable = true;
