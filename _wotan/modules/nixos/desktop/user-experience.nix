@@ -14,8 +14,9 @@
     # System services for user experience
     services = {
       # Power management
+      # thermald is deliberately NOT enabled: it only supports Intel mobile
+      # platforms and exits with "Non mobile platform, exiting.." on AMD CPUs.
       tlp.enable = lib.mkDefault false;
-      thermald.enable = lib.mkDefault true;
 
       # User directories
       xserver.desktopManager.xterm.enable = false;
