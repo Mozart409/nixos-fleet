@@ -42,6 +42,7 @@
         };
         init.defaultBranch = "main";
         pull.rebase = "true";
+        push.autoSetupRemote = "true";
         core.sshCommand = "ssh -o ConnectTimeout=5";
         credential = {
           helper = "oauth";
