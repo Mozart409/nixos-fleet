@@ -67,6 +67,9 @@
     audit.enable = false; # Enable for security auditing (generates logs)
   };
 
+  # k3s pod/overlay networking must bypass the host firewall
+  networking.firewall.trustedInterfaces = ["cni0" "flannel.1"];
+
   # Display manager auto-login (KDE specific)
   services.displayManager.autoLogin = lib.mkIf (config.desktop.environment == "kde") {
     enable = true;
