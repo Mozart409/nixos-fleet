@@ -22,7 +22,6 @@ in {
         rofi-calc
         rofi-nerdy
         rofi-file-browser
-        rofi-pass-wayland
       ];
       modes = [
         "drun"
