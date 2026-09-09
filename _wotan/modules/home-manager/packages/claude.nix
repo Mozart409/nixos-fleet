@@ -36,6 +36,7 @@
     attribution = {
       commit = "";
       pr = "";
+      sessionUrl = false;
     };
     language = "english";
     spinnerTipsEnabled = true;
