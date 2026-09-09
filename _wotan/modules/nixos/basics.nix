@@ -44,11 +44,6 @@ in {
     ];
     trusted-users = ["root" username];
     substituters = [
-      # Self-hosted attic (homelab `cache` host), on the wired LAN. Listed
-      # first so local hits win over the public caches. The URL must include
-      # the cache name — attic namespaces every binary-cache path under it, and
-      # https://cache.homelab.local on its own is not a valid substituter.
-      "https://cache.homelab.local/homelab"
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://nixvim.cachix.org"
