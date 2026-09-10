@@ -103,11 +103,15 @@ Scope {
           maxLabelWidth: Math.max(70, Math.min(210, panel.width * 0.09))
         }
 
-        SystemTrayWidget {}
+        // System tray. Disabled -- the only items on this machine are
+        // nm-applet and Steam, and their dropdown menus are not wanted.
+        // Re-enabling it also needs `//@ pragma UseQApplication` back in
+        // shell.qml, or every tray click fails silently.
+        // SystemTrayWidget {}
 
         // Bluetooth and audio share a pill so the bar doesn't read as a row of
-        // disconnected numbers. Network lives in the nm-applet tray icon
-        // instead; NetworkWidget.qml is still here if you want it back.
+        // disconnected numbers. Nothing in the bar reports network state now
+        // -- NetworkWidget.qml is still here if that turns out to be missed.
         ModuleGroup {
           BluetoothWidget {
             filled: false
