@@ -3,250 +3,105 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Pipewire
 
-RowLayout {
-  id: volumeWidget
-  spacing: 8
+// Default sink volume. Scroll to adjust, left click to mute, right click for
+// the full mixer, middle click to cycle outputs -- which is the one that
+// matters on a machine that flips between speakers, headset and HDMI.
+BarModule {
+  id: root
 
-  // Track the default audio sink
+  // Without a tracker Pipewire won't populate the volume/mute fields.
   PwObjectTracker {
     objects: [Pipewire.defaultAudioSink]
   }
 
-  property var sink: Pipewire.defaultAudioSink
-  property real volume: sink?.audio?.volume ?? 0
-  property bool muted: sink?.audio?.mute ?? false
-  property bool popupVisible: false
+  readonly property var sink: Pipewire.defaultAudioSink
+  readonly property real volume: sink?.audio?.volume ?? 0
+  readonly property bool muted: sink?.audio?.mute ?? false
+  readonly property int percent: Math.round(volume * 100)
 
-  // Audio output selector (shows current device, click to switch)
-  Rectangle {
-    width: deviceName.width + 16
-    height: 20
-    radius: 4
-    color: deviceArea.containsMouse ? "#3a3a3f" : "transparent"
+  readonly property string sinkName: {
+    const props = sink?.properties;
+    return props?.["node.nick"] ?? props?.["node.description"] ?? sink?.name ?? "";
+  }
 
-    Text {
-      id: deviceName
-      anchors.centerIn: parent
-      // Get short name from sink
-      text: {
-        let name = sink?.properties?.["node.nick"] ?? sink?.properties?.["node.description"] ?? sink?.name ?? "?"
-        // Truncate to 12 chars
-        return name.length > 12 ? name.substring(0, 12) + "…" : name
-      }
-      color: "#a6adc8"
-      font.family: "Berkeley Mono"
-      font.pixelSize: 10
-    }
+  icon: {
+    if (muted || volume === 0)
+      return "󰝟";
+    if (volume < 0.34)
+      return "󰕿";
+    if (volume < 0.67)
+      return "󰖀";
+    return "󰕾";
+  }
+  // Over 100% is soft clipping territory -- worth flagging.
+  accent: muted ? Theme.muted : (percent > 100 ? Theme.warn : Theme.accent)
 
-    MouseArea {
-      id: deviceArea
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-
-      onClicked: {
-        volumeWidget.popupVisible = !volumeWidget.popupVisible
-      }
+  onClicked: mouse => {
+    if (!sink?.audio)
+      return;
+    if (mouse.button === Qt.LeftButton) {
+      sink.audio.mute = !sink.audio.mute;
+    } else if (mouse.button === Qt.RightButton) {
+      Quickshell.execDetached(["pwvucontrol"]);
+    } else if (mouse.button === Qt.MiddleButton) {
+      root.cycleSink();
     }
   }
 
-  // Volume icon
+  onWheel: wheel => {
+    if (!sink?.audio)
+      return;
+    const step = wheel.angleDelta.y > 0 ? 0.02 : -0.02;
+    // Cap at 1.0: PipeWire will happily go louder, and it sounds terrible.
+    sink.audio.volume = Math.max(0, Math.min(1, sink.audio.volume + step));
+    sink.audio.mute = false;
+  }
+
+  // Round-robin through the available sinks.
+  function cycleSink() {
+    const sinks = Pipewire.nodes.values.filter(n => n.isSink && n.audio && !n.isStream);
+    if (sinks.length < 2)
+      return;
+    const at = sinks.indexOf(Pipewire.defaultAudioSink);
+    Pipewire.defaultAudioSink = sinks[(at + 1) % sinks.length];
+  }
+
   Text {
-    text: {
-      if (muted || volume === 0) return "󰝟"
-      if (volume < 0.33) return "󰕿"
-      if (volume < 0.66) return "󰖀"
-      return "󰕾"
-    }
-    color: muted ? "#595959" : "#cfd6f4"
-    font.family: "FiraCode Nerd Font" // Nerd Font volume icon glyph
-    font.pixelSize: 14
-
-    MouseArea {
-      anchors.fill: parent
-      acceptedButtons: Qt.LeftButton | Qt.RightButton
-      onClicked: (mouse) => {
-        if (mouse.button === Qt.LeftButton) {
-          if (sink?.audio) {
-            sink.audio.mute = !sink.audio.mute
-          }
-        } else if (mouse.button === Qt.RightButton) {
-          // Open pwvucontrol for advanced control
-          Qt.openUrlExternally("file:///run/current-system/sw/bin/pwvucontrol")
-        }
-      }
-      cursorShape: Qt.PointingHandCursor
-    }
+    Layout.minimumWidth: volMetrics.width
+    horizontalAlignment: Text.AlignRight
+    text: root.muted ? "muted" : root.percent + "%"
+    color: root.muted ? Theme.muted : Theme.text
+    font.family: Theme.font
+    font.pixelSize: Theme.fontSize
   }
 
-  // Volume slider
+  // Inline level bar -- reads faster than the number alone.
   Rectangle {
-    width: 80
-    height: 6
-    radius: 3
-    color: "#2a2a2f"
+    Layout.preferredWidth: 34
+    Layout.preferredHeight: 4
+    Layout.alignment: Qt.AlignVCenter
+    radius: 2
+    color: Theme.module
 
     Rectangle {
-      width: parent.width * volume
+      width: parent.width * Math.min(1, root.volume)
       height: parent.height
-      radius: 3
-      color: muted ? "#595959" : "#33ccff"
+      radius: 2
+      color: root.muted ? Theme.muted : root.accent
 
       Behavior on width {
-        NumberAnimation { duration: 50 }
-      }
-    }
-
-    // Slider handle
-    Rectangle {
-      x: parent.width * volume - width / 2
-      y: -2
-      width: 10
-      height: 10
-      radius: 5
-      color: muted ? "#595959" : "#cfd6f4"
-      visible: sliderArea.containsMouse || sliderArea.pressed
-
-      Behavior on x {
-        NumberAnimation { duration: 50 }
-      }
-    }
-
-    MouseArea {
-      id: sliderArea
-      anchors.fill: parent
-      anchors.margins: -4
-      hoverEnabled: true
-
-      onPressed: updateVolume(mouse)
-      onPositionChanged: if (pressed) updateVolume(mouse)
-
-      function updateVolume(mouse) {
-        if (sink?.audio) {
-          let newVol = Math.max(0, Math.min(1, mouse.x / parent.width))
-          sink.audio.volume = newVol
-        }
-      }
-    }
-
-    // Scroll to change volume
-    MouseArea {
-      anchors.fill: parent
-      propagateComposedEvents: true
-
-      onWheel: (wheel) => {
-        if (sink?.audio) {
-          let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05
-          sink.audio.volume = Math.max(0, Math.min(1, sink.audio.volume + delta))
+        NumberAnimation {
+          duration: Theme.anim
+          easing.type: Easing.OutCubic
         }
       }
     }
   }
 
-  // Volume percentage
-  Text {
-    text: Math.round(volume * 100) + "%"
-    color: muted ? "#595959" : "#a6adc8"
-    font.family: "Berkeley Mono"
-    font.pixelSize: 11
-    Layout.minimumWidth: 32
-  }
-
-  // Audio device selection popup
-  PopupWindow {
-    id: sinkPopup
-    visible: volumeWidget.popupVisible
-    anchor {
-      window: volumeWidget.QsWindow.window
-      rect.x: volumeWidget.mapToItem(null, 0, 0).x
-      rect.y: volumeWidget.mapToItem(null, 0, 0).y + volumeWidget.height + 4
-    }
-    width: 280
-    height: sinkList.contentHeight + 16
-
-    color: "transparent"
-
-    Rectangle {
-      anchors.fill: parent
-      color: "#1e1e24"
-      border.color: "#33ccff44"
-      border.width: 1
-      radius: 8
-
-      Column {
-        id: sinkList
-        anchors.fill: parent
-        anchors.margins: 8
-        spacing: 4
-
-        Text {
-          text: "Audio Output"
-          color: "#cfd6f4"
-          font.family: "Berkeley Mono"
-          font.pixelSize: 11
-          font.bold: true
-        }
-
-        Rectangle {
-          width: parent.width
-          height: 1
-          color: "#33ccff44"
-        }
-
-        Repeater {
-          model: Pipewire.nodes.values.filter(n => n.isSink && n.audio)
-
-          Rectangle {
-            required property var modelData
-            width: sinkList.width
-            height: 28
-            radius: 4
-            color: isDefault ? "#33ccff33" : (sinkItemArea.containsMouse ? "#3a3a3f" : "transparent")
-
-            property bool isDefault: modelData === Pipewire.defaultAudioSink
-
-            RowLayout {
-              anchors.fill: parent
-              anchors.margins: 4
-              spacing: 8
-
-              Text {
-                text: isDefault ? "●" : "○"
-                color: isDefault ? "#33ccff" : "#595959"
-                font.pixelSize: 10
-              }
-
-              Text {
-                text: modelData.properties?.["node.nick"] ?? modelData.properties?.["node.description"] ?? modelData.name ?? "Unknown"
-                color: "#cfd6f4"
-                font.family: "Berkeley Mono"
-                font.pixelSize: 11
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-              }
-            }
-
-            MouseArea {
-              id: sinkItemArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-
-              onClicked: {
-                Pipewire.defaultAudioSink = modelData
-                volumeWidget.popupVisible = false
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Close popup when clicking outside
-    MouseArea {
-      anchors.fill: parent
-      z: -1
-      onClicked: volumeWidget.popupVisible = false
-    }
+  TextMetrics {
+    id: volMetrics
+    font.family: Theme.font
+    font.pixelSize: Theme.fontSize
+    text: "muted"
   }
 }

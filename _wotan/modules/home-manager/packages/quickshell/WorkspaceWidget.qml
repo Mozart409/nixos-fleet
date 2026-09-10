@@ -1,59 +1,192 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import Quickshell.Hyprland
 
-RowLayout {
-  id: workspaceWidget
-  spacing: 4
+// Workspace pills for one monitor.
+//
+// The active workspace is drawn as a single sliding highlight behind the row
+// rather than by recolouring each button, which is what gives the indicator
+// its travel animation when you switch.
+Item {
+  id: root
 
-  // Workspace numbers to show, in order. Comes from WorkspaceLayout.qml, which
-  // quickshell.nix generates from the same option that writes Hyprland's
-  // workspace rules, so the bar cannot disagree with the compositor.
+  // Workspace numbers to show, in order. Comes from the generated
+  // Generated.WorkspaceLayout singleton, which quickshell.nix renders from the
+  // same option that writes Hyprland's workspace rules -- so the bar cannot
+  // disagree with the compositor.
   property var workspaceIds: []
-
-  // Reference to the monitor this widget is on
+  // HyprlandMonitor this widget is drawn on.
   property var monitor: null
 
-  Repeater {
-    model: workspaceWidget.workspaceIds
+  readonly property int dotSize: 26
 
-    Rectangle {
-      id: wsButton
-      required property int modelData
+  implicitWidth: row.implicitWidth + 8
+  implicitHeight: Theme.moduleHeight + 4
 
-      property int wsId: modelData
-      property bool isActive: workspaceWidget.monitor?.activeWorkspace?.id === wsId
-      property bool hasWindows: {
-        for (let ws of Hyprland.workspaces.values) {
-          if (ws.id === wsId && ws.windows > 0) return true
+  Rectangle {
+    anchors.fill: parent
+    radius: Theme.radius
+    color: Theme.module
+  }
+
+  // Sliding active indicator. Positioned against the button the compositor
+  // currently reports as active; `Behavior` turns every switch into a glide.
+  Rectangle {
+    id: indicator
+
+    property Item target: null
+
+    visible: target !== null
+    x: target ? row.x + target.x : 0
+    y: (root.height - height) / 2
+    width: target ? target.width : 0
+    height: root.dotSize
+    radius: Theme.radius - 1
+    color: Theme.accent
+
+    Behavior on x {
+      NumberAnimation {
+        duration: Theme.animSlow
+        easing.type: Easing.OutBack
+        easing.overshoot: 0.9
+      }
+    }
+    Behavior on width {
+      NumberAnimation {
+        duration: Theme.animSlow
+        easing.type: Easing.OutCubic
+      }
+    }
+  }
+
+  RowLayout {
+    id: row
+    anchors.centerIn: parent
+    spacing: 2
+
+    Repeater {
+      model: root.workspaceIds
+
+      Item {
+        id: wsButton
+        required property int modelData
+
+        readonly property int wsId: modelData
+
+        // Hyprland's workspace list only contains workspaces that exist, so a
+        // never-used workspace has no entry at all -- absence means empty.
+        readonly property var ws: {
+          for (const w of Hyprland.workspaces.values)
+            if (w.id === wsId)
+              return w;
+          return null;
         }
-        return false
-      }
+        // HyprlandWorkspace has no `windows` count; the toplevel model is the
+        // supported way to ask whether anything lives here.
+        readonly property bool occupied: (ws?.toplevels?.values?.length ?? 0) > 0
+        readonly property bool urgent: ws?.urgent ?? false
+        readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
 
-      width: 24
-      height: 24
-      radius: 6
-      color: isActive ? "#33ccff" : (hasWindows ? "#2a2a2f" : "transparent")
-      border.width: hasWindows && !isActive ? 1 : 0
-      border.color: "#595959"
+        // The active pill widens to fit the label; the rest stay square dots.
+        implicitWidth: isActive ? label.implicitWidth + 16 : root.dotSize
+        implicitHeight: root.dotSize
 
-      Text {
-        anchors.centerIn: parent
-        text: wsButton.wsId
-        color: wsButton.isActive ? "#1a1a1f" : "#cfd6f4"
-        font.family: "Berkeley Mono"
-        font.pixelSize: 12
-        font.bold: wsButton.isActive
-      }
+        Behavior on implicitWidth {
+          NumberAnimation {
+            duration: Theme.animSlow
+            easing.type: Easing.OutCubic
+          }
+        }
 
-      MouseArea {
-        anchors.fill: parent
-        // Hyprland 0.56 evaluates IPC dispatch as Lua (`return hl.dispatch(<arg>)`),
-        // so the old hyprlang "workspace N" string is a syntax error. Pass the Lua
-        // dispatcher object instead, matching hl.dsp.focus in hyprland.lua.
-        onClicked: Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsButton.wsId + " })")
+        onIsActiveChanged: if (isActive)
+          indicator.target = wsButton
+        Component.onCompleted: if (isActive)
+          indicator.target = wsButton
+
+        // Urgency ring -- drawn behind the label, pulses until you look at it.
+        Rectangle {
+          anchors.fill: parent
+          radius: Theme.radius - 1
+          color: "transparent"
+          border.width: 1
+          border.color: Theme.crit
+          visible: wsButton.urgent && !wsButton.isActive
+
+          SequentialAnimation on opacity {
+            running: wsButton.urgent && !wsButton.isActive
+            loops: Animation.Infinite
+            NumberAnimation {
+              to: 0.25
+              duration: 700
+              easing.type: Easing.InOutQuad
+            }
+            NumberAnimation {
+              to: 1.0
+              duration: 700
+              easing.type: Easing.InOutQuad
+            }
+          }
+        }
+
+        Text {
+          id: label
+          anchors.centerIn: parent
+          text: wsButton.wsId
+          color: {
+            if (wsButton.isActive)
+              return Theme.inverse;
+            if (wsButton.urgent)
+              return Theme.crit;
+            return wsButton.occupied ? Theme.text : Theme.muted;
+          }
+          font.family: Theme.font
+          font.pixelSize: Theme.smallSize
+          font.bold: wsButton.isActive || wsButton.occupied
+
+          Behavior on color {
+            ColorAnimation {
+              duration: Theme.anim
+            }
+          }
+        }
+
+        // Occupancy dot under an inactive workspace that has windows on it.
+        Rectangle {
+          anchors.horizontalCenter: parent.horizontalCenter
+          anchors.bottom: parent.bottom
+          anchors.bottomMargin: 3
+          width: 4
+          height: 2
+          radius: 1
+          color: Theme.accent
+          visible: wsButton.occupied && !wsButton.isActive
+        }
+
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          // Hyprland 0.56 evaluates IPC dispatch as Lua (`return hl.dispatch(<arg>)`),
+          // so the old hyprlang "workspace N" string is a syntax error. Pass the
+          // Lua dispatcher object instead, matching hl.dsp.focus in hyprland.lua.
+          onClicked: Hyprland.dispatch(`hl.dsp.focus({ workspace = ${wsButton.wsId} })`)
+        }
       }
+    }
+  }
+
+  // Scrolling anywhere on the group steps through this monitor's workspaces.
+  MouseArea {
+    anchors.fill: parent
+    acceptedButtons: Qt.NoButton
+    onWheel: wheel => {
+      const ids = root.workspaceIds;
+      const current = ids.indexOf(root.monitor?.activeWorkspace?.id ?? -1);
+      if (current < 0 || ids.length === 0)
+        return;
+      const next = wheel.angleDelta.y < 0 ? Math.min(ids.length - 1, current + 1) : Math.max(0, current - 1);
+      if (next !== current)
+        Hyprland.dispatch(`hl.dsp.focus({ workspace = ${ids[next]} })`);
     }
   }
 }

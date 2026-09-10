@@ -23,9 +23,17 @@
       # GTK4 uses libadwaita, no theme override
       gtk4.theme = null;
 
-      # Active icon theme: Colloid
+      # Active icon theme: Colloid.
+      #
+      # The name must match the theme directory exactly -- it is
+      # "Colloid-Dark", with a capital D, and icon theme lookup is
+      # case-sensitive. This read "Colloid-dark" until 2026-09-10, which
+      # resolved to nothing at all: every themed icon silently fell back, and
+      # in Qt apps `QIcon::hasThemeIcon` returned false even for icons that
+      # plainly exist. Verify with `ls ~/.nix-profile/share/icons` and
+      # `grep '^Name=' .../Colloid-Dark/index.theme` before changing.
       iconTheme = {
-        name = "Colloid-dark";
+        name = "Colloid-Dark";
         package = pkgs.colloid-icon-theme;
       };
 

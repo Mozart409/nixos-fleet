@@ -1,14 +1,16 @@
 import Quickshell
 
 ShellRoot {
-  // Status bar (top)
+  // Top status bar, one per screen.
   Bar {}
 
-  // Desktop widgets
-  // SystemMonitorWidget disabled (kept in SystemMonitorWidget.qml)
+  // Floating volume display, follows the focused monitor.
+  VolumeOsd {}
+
+  // Desktop widgets, off by default -- the bar covers the same ground.
   // SystemMonitorWidget {}
   // WeatherWidget {}
 
-  // App dock (bottom center)
+  // App dock (bottom centre).
   // DockWidget {}
 }

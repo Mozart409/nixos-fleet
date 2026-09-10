@@ -75,7 +75,15 @@
   };
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
-  desktop.quickshell.enable = true;
+  desktop.quickshell = {
+    enable = true;
+    # ~/.config/quickshell points at the working tree instead of a store copy,
+    # so editing (or adding) a widget under
+    # modules/home-manager/packages/quickshell/ shows up immediately -- no
+    # rebuild. Trade-off: what is on screen is whatever is checked out, which
+    # is only the same as the flake once the tree is committed and rebuilt.
+    liveReload = true;
+  };
   desktop.easyeffects.enable = true;
 
   # Disabled: every 4 hours, fast-forward-only pull/push every git repo under

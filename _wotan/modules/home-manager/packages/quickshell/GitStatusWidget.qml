@@ -1,113 +1,70 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-RowLayout {
-  id: gitWidget
-  spacing: 8
+// How many repositories under `scanPath` have uncommitted work, via
+// zinc_oxide. Stays hidden unless the tool is on PATH, so the bar degrades
+// quietly on a machine that doesn't have it.
+BarModule {
+  id: root
 
-  // Configurable scan path
   property string scanPath: "/home/amadeus/code"
-  
-  // Internal state
+  property string terminal: "kitty"
+
   property bool available: false
   property int dirtyCount: -1
 
-  // Check if zinc_oxide is available
+  visible: available && dirtyCount >= 0
+  icon: ""
+  accent: dirtyCount > 0 ? Theme.peach : Theme.muted
+
+  onClicked: if (available)
+    Quickshell.execDetached([terminal, "--hold", "-e", "zinc_oxide", "--path", scanPath])
+
   Process {
     id: checkProc
-    command: ["which", "zinc_oxide"]
+    command: ["sh", "-c", "command -v zinc_oxide"]
     running: true
 
     stdout: StdioCollector {
       onStreamFinished: {
-        gitWidget.available = this.text.trim().length > 0
-        if (gitWidget.available) {
-          scanProc.running = true
-        }
+        root.available = this.text.trim().length > 0;
+        if (root.available)
+          scanProc.running = true;
       }
     }
   }
 
-  // Scan for dirty repos
   Process {
     id: scanProc
-    command: ["zinc_oxide", "--compact", "--path", gitWidget.scanPath]
+    command: ["zinc_oxide", "--compact", "--path", root.scanPath]
     running: false
 
     stdout: StdioCollector {
       onStreamFinished: {
-        let output = this.text.trim()
-        let count = parseInt(output)
-        gitWidget.dirtyCount = isNaN(count) ? 0 : count
+        const count = parseInt(this.text.trim());
+        root.dirtyCount = isNaN(count) ? 0 : count;
       }
     }
 
     stderr: StdioCollector {
-      onStreamFinished: {
-        // On error, set count to -1 to hide widget
-        if (this.text.trim().length > 0) {
-          gitWidget.dirtyCount = -1
-        }
-      }
+      onStreamFinished: if (this.text.trim().length > 0)
+        root.dirtyCount = -1
     }
   }
 
-  // Refresh timer (60 seconds)
   Timer {
     interval: 60000
-    running: gitWidget.available
+    running: root.available
     repeat: true
     onTriggered: scanProc.running = true
   }
 
-  // Only show if available and has a valid count
-  visible: gitWidget.available && gitWidget.dirtyCount >= 0
-
-  Rectangle {
-    width: gitRow.width + 16
-    height: 24
-    radius: 6
-    color: gitWidget.dirtyCount > 0 ? "#2a2a2f" : "transparent"
-    border.width: gitWidget.dirtyCount > 0 ? 1 : 0
-    border.color: gitWidget.dirtyCount > 0 ? "#f38ba8" : "transparent"
-
-    RowLayout {
-      id: gitRow
-      anchors.centerIn: parent
-      spacing: 6
-
-      Text {
-        text: ""
-        color: gitWidget.dirtyCount > 0 ? "#f38ba8" : "#a6adc8"
-        font.family: "Berkeley Mono"
-        font.pixelSize: 14
-      }
-
-      Text {
-        text: gitWidget.dirtyCount >= 0 ? gitWidget.dirtyCount.toString() : "---"
-        color: gitWidget.dirtyCount > 0 ? "#f38ba8" : "#cfd6f4"
-        font.family: "Berkeley Mono"
-        font.pixelSize: 12
-        font.bold: gitWidget.dirtyCount > 0
-      }
-    }
-
-    MouseArea {
-      anchors.fill: parent
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-        // Open terminal with full zinc_oxide output
-        openTerminalProc.running = true
-      }
-    }
-  }
-
-  // Process to open terminal with details
-  Process {
-    id: openTerminalProc
-    command: ["kitty", "--hold", "-e", "zinc_oxide", "--path", gitWidget.scanPath]
-    running: false
+  Text {
+    text: root.dirtyCount >= 0 ? root.dirtyCount : "--"
+    color: root.dirtyCount > 0 ? Theme.peach : Theme.subtext
+    font.family: Theme.font
+    font.pixelSize: Theme.fontSize
+    font.bold: root.dirtyCount > 0
   }
 }

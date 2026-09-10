@@ -1,16 +1,22 @@
-import Quickshell
-import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Wayland
+import Generated
 
+// Top bar, one instance per connected screen.
+//
+// Layout is three groups: workspaces and the focused window on the left, the
+// clock dead centre, and the status cluster on the right. The centre group is
+// positioned against the panel rather than placed between two stretchy
+// spacers, so the clock stays put when the window title changes length.
 Scope {
   id: root
 
-  // Time singleton for clock
-  SystemClock { id: clock }
-
-  // Generated from desktop.hyprland-configs.workspaces by quickshell.nix.
-  WorkspaceLayout { id: wsLayout }
+  SystemClock {
+    id: clock
+  }
 
   Variants {
     model: Quickshell.screens
@@ -20,16 +26,16 @@ Scope {
       required property var modelData
       screen: modelData
 
-      // Get the Hyprland monitor for this screen
-      property var hyprMonitor: Hyprland.monitorFor(modelData)
-      
       // Which workspaces belong on this bar. Resolved by output name (DP-3,
       // DP-2, ...), never by Hyprland's monitor id: the ids are assigned in
-      // output-enable order and swap between sessions, which silently put the
+      // output-enable order and swap between sessions, which silently puts the
       // wrong workspace set on each bar. modelData.name is the connector name
       // and is available before Hyprland reports the monitor, so it is the key.
-      property string outputName: modelData.name
-      property var workspaceIds: wsLayout.byMonitor[outputName] ?? wsLayout.fallback
+      readonly property string outputName: modelData.name
+      readonly property var hyprMonitor: Hyprland.monitorFor(modelData)
+      readonly property var workspaceIds: WorkspaceLayout.byMonitor[outputName] ?? WorkspaceLayout.fallback
+      // Widgets that should exist exactly once across all screens live here.
+      readonly property bool isPrimary: outputName === WorkspaceLayout.primary
 
       anchors {
         top: true
@@ -37,50 +43,121 @@ Scope {
         right: true
       }
 
-      implicitHeight: 32
-      color: "#1a1a1fdd"
+      implicitHeight: Theme.barHeight
+      color: "transparent"
+      WlrLayershell.layer: WlrLayer.Top
 
-      RowLayout {
+      Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 8
+        color: Theme.bar
 
-        // Left: Workspaces (per-monitor range)
+        // Hairline under the bar to separate it from whatever is behind.
+        Rectangle {
+          anchors.bottom: parent.bottom
+          width: parent.width
+          height: 1
+          color: Qt.alpha(Theme.accent, 0.12)
+        }
+      }
+
+      // Left ------------------------------------------------------------
+      RowLayout {
+        anchors.left: parent.left
+        anchors.leftMargin: Theme.groupGap
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Theme.gap
+
         WorkspaceWidget {
-          Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
           workspaceIds: panel.workspaceIds
           monitor: panel.hyprMonitor
         }
 
-        // Git status widget (only on primary monitor)
-        Loader {
-          Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-          active: panel.outputName === wsLayout.primary
-          sourceComponent: GitStatusWidget {
-            scanPath: "/home/amadeus/code"
+        GitStatusWidget {
+          visible: panel.isPrimary
+          scanPath: "/home/amadeus/code"
+        }
+
+        // Focused window title. Available but not wired up -- see
+        // ActiveWindowWidget.qml.
+        // ActiveWindowWidget { monitor: panel.hyprMonitor }
+      }
+
+      // Centre ----------------------------------------------------------
+      ClockWidget {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        time: clock
+      }
+
+      // Right -----------------------------------------------------------
+      RowLayout {
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.groupGap
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Theme.gap
+
+        MediaWidget {
+          // Keep the right-hand cluster clear of the centred clock: the title
+          // is the only elastic thing here, so it is what gives way on a
+          // narrow screen.
+          maxLabelWidth: Math.max(70, Math.min(210, panel.width * 0.09))
+        }
+
+        SystemTrayWidget {}
+
+        // Bluetooth and audio share a pill so the bar doesn't read as a row of
+        // disconnected numbers. Network lives in the nm-applet tray icon
+        // instead; NetworkWidget.qml is still here if you want it back.
+        ModuleGroup {
+          BluetoothWidget {
+            filled: false
+          }
+
+          VolumeWidget {
+            filled: false
           }
         }
 
-        // Spacer
-        Item { Layout.fillWidth: true }
+        // Resource cluster. Each entry polls its own command on its own
+        // cadence -- disk barely moves, GPU does.
+        ModuleGroup {
+          itemSpacing: 6
 
-        // Center: Clock
-        ClockWidget {
-          Layout.alignment: Qt.AlignCenter | Qt.AlignVCenter
-          time: clock
+          ResourceWidget {
+            icon: "󰻠"
+            interval: 2000
+            counterMode: true
+            command: "awk '/^cpu /{idle=$5+$6; total=0; for (i=2; i<=NF; i++) total+=$i; print idle, total; exit}' /proc/stat"
+            // hwmon numbers are handed out in probe order and move between
+            // boots, so find the AMD CPU sensor by name rather than by index.
+            subCommand: "for h in /sys/class/hwmon/*; do [ \"$(cat $h/name 2>/dev/null)\" = k10temp ] && awk '{printf \"%d\", $1/1000}' \"$h/temp1_input\" && break; done"
+            subUnit: "°"
+          }
+
+          ResourceWidget {
+            icon: ""
+            interval: 5000
+            command: "free | awk '/Mem:/ {printf \"%.0f\", $3/$2 * 100}'"
+          }
+
+          ResourceWidget {
+            icon: "󰢮"
+            interval: 2000
+            command: "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | head -1"
+            subCommand: "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | head -1"
+            subUnit: "°"
+          }
+
+          ResourceWidget {
+            icon: "󰋊"
+            interval: 60000
+            graph: false
+            higherIsWorse: false
+            command: "df -P / | awk 'NR==2 {gsub(/%/, \"\", $5); printf \"%d\", 100 - $5}'"
+          }
         }
 
-        // Spacer
-        Item { Layout.fillWidth: true }
-
-        // Right: System info
-        RowLayout {
-          Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-          spacing: 16
-
-          SysInfoWidget {}
-        }
+        PowerMenu {}
       }
     }
   }
