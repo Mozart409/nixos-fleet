@@ -15,8 +15,15 @@ import Quickshell.Widgets
 Item {
   id: root
 
-  readonly property var items: SystemTray.items.values
+  // Tray ids to leave out of the bar entirely. Steam is hidden because its
+  // item is inert here: it exports no working menu and, being an
+  // appindicator item, implements no activate action either -- so it was a
+  // permanent icon that did nothing when clicked. Hiding it in the bar does
+  // not stop Steam exporting it; turn the icon off in Steam itself under
+  // Settings -> Interface if you want it gone at the source.
+  property var hiddenItems: ["steam"]
 
+  readonly property var items: SystemTray.items.values.filter(i => root.hiddenItems.indexOf(i.id) === -1)
 
   implicitWidth: items.length > 0 ? row.implicitWidth + Theme.pad * 2 : 0
   implicitHeight: Theme.moduleHeight
