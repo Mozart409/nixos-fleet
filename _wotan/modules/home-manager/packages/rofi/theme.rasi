@@ -9,8 +9,12 @@
  */
 
 * {
-  /* Exactly Theme.bar (#f5111119, ARGB) restated as rasi's RGBA. */
-  bg:        #111119F5;
+  /* Theme.bar's colour, but fully opaque -- deliberately NOT the bar's 96%.
+     The bar sits over the wallpaper, where 4% of ghosting is invisible. The
+     launcher opens over whatever you were doing, and 4% of bright terminal
+     text on a near-black panel stays legible enough to read through the
+     results. Opacity here is legibility, not decoration. */
+  bg:        #111119FF;
   surface:   #1e1e28FF;
   module:    #ffffff1C;
   text:      #cfd6f4FF;
@@ -150,10 +154,15 @@ message {
   padding:          10px 12px;
   border-radius:    7px;
   background-color: @surface;
+  text-color:       @subtext;
 }
 
+/* `inherit`, not a fixed colour: rofi renders both `message` and
+   `error-message` bodies through a child textbox, so a concrete colour here
+   wins over whatever the container sets and every message comes out the same
+   shade. Inheriting lets the two containers below actually differ. */
 textbox {
-  text-color:       @subtext;
+  text-color:       inherit;
   background-color: transparent;
   vertical-align:   0.5;
 }
@@ -164,3 +173,4 @@ error-message {
   background-color: @surface;
   text-color:       @urgent;
 }
+
