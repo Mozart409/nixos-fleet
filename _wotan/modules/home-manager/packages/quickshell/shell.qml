@@ -13,6 +13,9 @@ ShellRoot {
   // Floating volume display, follows the focused monitor.
   VolumeOsd {}
 
+  // Homelab status board, one per screen, sitting on the wallpaper.
+  HomelabWidget {}
+
   // Desktop widgets, off by default -- the bar covers the same ground.
   // SystemMonitorWidget {}
   // WeatherWidget {}
