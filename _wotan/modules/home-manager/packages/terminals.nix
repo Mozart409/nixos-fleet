@@ -13,8 +13,45 @@
     # themeFile = "VividPunk";
     # themeFile = "Thayer_Bright";
     # Bolder alternatives (one-line swap): kanagawa_dragon, Cyberpunk-Neon, Carbonfox
-    themeFile = "tokyo_night_storm";
+    #
+    # BACKUP -- the previous theme. To go back, uncomment this line and delete
+    # the "Colours" block in settings below; themeFile and explicit colour
+    # settings both write colours into kitty.conf, so only one should be
+    # active at a time.
+    # themeFile = "tokyo_night_storm";
     settings = {
+      # Colours -- derived from quickshell/Theme.qml so the terminal, the bar,
+      # the launcher and notifications share one palette. tokyo_night_storm
+      # (kept above) is a fine theme, but its blue-grey #24283b base and blue
+      # accent sat visibly apart from this desktop's near-black and cyan.
+      background = "#111119"; # Theme.bar
+      foreground = "#cfd6f4"; # Theme.text
+      cursor = "#33ccff"; # Theme.accent
+      cursor_text_color = "#12121a"; # Theme.inverse
+      selection_background = "#33ccff";
+      selection_foreground = "#12121a";
+      url_color = "#33ccff";
+
+      # ANSI pairs: normal then bright. The semantic four (red/green/yellow/
+      # magenta) are Theme's crit/good/warn/special so a red in the terminal is
+      # the same red as a critical alert on the desktop.
+      color0 = "#1e1e28"; # Theme.surface
+      color8 = "#6c7086"; # Theme.muted
+      color1 = "#ff6b6b"; # Theme.crit
+      color9 = "#ff8b8b";
+      color2 = "#a6e3a1"; # Theme.good
+      color10 = "#bdecb9";
+      color3 = "#f5c542"; # Theme.warn
+      color11 = "#f8d774";
+      color4 = "#33ccff"; # Theme.accent
+      color12 = "#7addff";
+      color5 = "#cba6f7"; # Theme.special
+      color13 = "#dcc2fa";
+      color6 = "#94e2d5";
+      color14 = "#b4ece1";
+      color7 = "#cfd6f4"; # Theme.text
+      color15 = "#e6e9ef";
+
       # Window
       window_padding_width = 5;
       hide_window_decorations = false;

@@ -49,6 +49,15 @@ QtObject {
   readonly property int smallSize: 11
   readonly property int iconSize: 14
 
+  // Desktop widgets run a size up on the bar. The bar is a strip you read at
+  // arm's length; the desktop boards are read at a glance from further back,
+  // and on a 32" 1440p panel the bar's 11px rows were too small to scan.
+  // Widgets should use these rather than deriving from smallSize with
+  // subtraction, which is how they ended up at 8px.
+  readonly property int deskSize: 16
+  readonly property int deskSmall: 14
+  readonly property int deskMeta: 13
+
   // Metrics -----------------------------------------------------------------
   readonly property int barHeight: 34
   readonly property int moduleHeight: 24

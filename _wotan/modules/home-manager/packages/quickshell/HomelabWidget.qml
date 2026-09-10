@@ -62,7 +62,7 @@ Variants {
       right: 18
     }
 
-    implicitWidth: 360
+    implicitWidth: 460
     implicitHeight: card.implicitHeight
     color: "transparent"
 
@@ -212,14 +212,14 @@ Variants {
             text: "󰒋"
             color: Theme.accent
             font.family: Theme.iconFont
-            font.pixelSize: 15
+            font.pixelSize: Theme.deskSize + 3
           }
 
           Text {
             text: "HOMELAB"
             color: Theme.text
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize
+            font.pixelSize: Theme.deskSmall
             font.bold: true
           }
 
@@ -235,7 +235,7 @@ Variants {
               return panel.hostsUp === panel.hosts.length ? Theme.good : Theme.crit;
             }
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize
+            font.pixelSize: Theme.deskSmall
             font.bold: true
           }
         }
@@ -264,9 +264,9 @@ Variants {
               spacing: 5
 
               Rectangle {
-                width: 6
-                height: 6
-                radius: 3
+                width: 8
+                height: 8
+                radius: 4
                 color: hostRow.modelData.up ? Theme.good : Theme.crit
 
                 // Down hosts pulse; up hosts sit still. Motion is reserved for
@@ -290,7 +290,7 @@ Variants {
                 text: panel.shortName(hostRow.modelData.name)
                 color: hostRow.modelData.up ? Theme.subtext : Theme.crit
                 font.family: Theme.font
-                font.pixelSize: Theme.smallSize - 2
+                font.pixelSize: Theme.deskMeta
                 elide: Text.ElideRight
               }
             }
@@ -324,9 +324,9 @@ Variants {
               Rectangle {
                 Layout.alignment: Qt.AlignTop
                 Layout.topMargin: 3
-                width: 5
-                height: 5
-                radius: 2.5
+                width: 7
+                height: 7
+                radius: 3.5
                 color: panel.severityColor(alertRow.modelData.severity)
               }
 
@@ -335,7 +335,7 @@ Variants {
                 text: alertRow.modelData.summary
                 color: Theme.subtext
                 font.family: Theme.font
-                font.pixelSize: Theme.smallSize - 2
+                font.pixelSize: Theme.deskMeta
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
@@ -346,7 +346,7 @@ Variants {
                 text: panel.age(alertRow.modelData.since)
                 color: Theme.muted
                 font.family: Theme.font
-                font.pixelSize: Theme.smallSize - 3
+                font.pixelSize: Theme.deskMeta - 1
               }
             }
           }
@@ -355,7 +355,7 @@ Variants {
             text: `+${panel.alerts.length - 6} more`
             color: Theme.muted
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize - 3
+            font.pixelSize: Theme.deskMeta - 1
             visible: panel.alerts.length > 6
           }
         }
@@ -366,7 +366,7 @@ Variants {
           text: panel.reachable ? "no alerts firing" : panel.lastError
           color: panel.reachable ? Theme.good : Theme.muted
           font.family: Theme.font
-          font.pixelSize: Theme.smallSize - 2
+          font.pixelSize: Theme.deskMeta
           visible: panel.alerts.length === 0
         }
       }

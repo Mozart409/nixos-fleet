@@ -71,7 +71,7 @@
           user = username;
         };
         default_session = {
-          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --time --theme 'border=darkgray;text=yellow;prompt=lightyellow;time=yellow;action=yellow;button=darkgray;container=black' --cmd ${pkgs.hyprland}/bin/start-hyprland";
+          command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS!' --asterisks --remember --time --theme 'border=darkgray;text=white;prompt=cyan;time=cyan;action=cyan;button=darkgray;container=black' --cmd ${pkgs.hyprland}/bin/start-hyprland";
           user = "greeter";
         };
       };

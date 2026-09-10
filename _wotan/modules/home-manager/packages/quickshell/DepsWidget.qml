@@ -43,7 +43,7 @@ Variants {
       right: 18
     }
 
-    implicitWidth: 320
+    implicitWidth: 400
     implicitHeight: card.implicitHeight
     color: "transparent"
 
@@ -134,14 +134,14 @@ Variants {
             text: "󰚰"
             color: Theme.accent
             font.family: Theme.iconFont
-            font.pixelSize: 15
+            font.pixelSize: Theme.deskSize + 3
           }
 
           Text {
             text: "FLAKE INPUTS"
             color: Theme.text
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize
+            font.pixelSize: Theme.deskSmall
             font.bold: true
           }
 
@@ -163,7 +163,7 @@ Variants {
               return panel.behind.length > 0 ? Theme.warn : Theme.good;
             }
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize
+            font.pixelSize: Theme.deskSmall
             font.bold: true
           }
         }
@@ -192,9 +192,9 @@ Variants {
               spacing: 6
 
               Rectangle {
-                width: 5
-                height: 5
-                radius: 2.5
+                width: 7
+                height: 7
+                radius: 3.5
                 color: Theme.warn
               }
 
@@ -203,7 +203,7 @@ Variants {
                 text: behindRow.modelData.name
                 color: Theme.text
                 font.family: Theme.font
-                font.pixelSize: Theme.smallSize - 1
+                font.pixelSize: Theme.deskSmall
                 elide: Text.ElideRight
               }
 
@@ -214,7 +214,7 @@ Variants {
                 text: panel.ageText(behindRow.modelData.lockedAge)
                 color: Theme.muted
                 font.family: Theme.font
-                font.pixelSize: Theme.smallSize - 2
+                font.pixelSize: Theme.deskMeta
               }
             }
           }
@@ -228,9 +228,9 @@ Variants {
           visible: panel.unknown.length > 0
 
           Rectangle {
-            width: 5
-            height: 5
-            radius: 2.5
+            width: 7
+            height: 7
+            radius: 3.5
             color: Theme.muted
           }
 
@@ -239,7 +239,7 @@ Variants {
             text: `${panel.unknown.length} unreachable`
             color: Theme.muted
             font.family: Theme.font
-            font.pixelSize: Theme.smallSize - 2
+            font.pixelSize: Theme.deskMeta
             elide: Text.ElideRight
           }
         }
@@ -257,7 +257,7 @@ Variants {
           }
           color: panel.ok && panel.behind.length === 0 ? Theme.good : Theme.muted
           font.family: Theme.font
-          font.pixelSize: Theme.smallSize - 2
+          font.pixelSize: Theme.deskMeta
           wrapMode: Text.WordWrap
         }
       }

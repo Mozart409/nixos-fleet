@@ -255,7 +255,9 @@ in {
     '';
 
     xdg.configFile."hypr/hyprlock.conf".text = ''
-      $font = Monospace
+      # Matches the bar and the launcher. "Monospace" is whatever fontconfig
+      # decides that means, which is not Berkeley Mono.
+      $font = Berkeley Mono
 
       general {
           hide_cursor = false
@@ -285,7 +287,7 @@ in {
           check_color = rgba(00ff99ee) rgba(ff6633ee) 120deg
           fail_color = rgba(ff6633ee) rgba(ff0066ee) 40deg
 
-          font_color = rgb(143, 143, 143)
+          font_color = rgb(207, 214, 244)   # Theme.text
           fade_on_empty = false
           rounding = 15
 
@@ -333,8 +335,11 @@ in {
           monitor = 0;
           follow = "keyboard";
           # Replaced deprecated geometry setting with width, height, origin, offset
-          width = 320;
-          height = "(0, 100)";
+          width = 460;
+          # Max height, not fixed height. At the old 100px a two-line body no
+          # longer fit once the font went to 13px, so word_wrap silently gave
+          # way to mid-sentence ellipsis.
+          height = "(0, 220)";
           origin = "top-right";
           offset = "(32, 48)";
           transparency = 0;
@@ -342,7 +347,11 @@ in {
           padding = 18;
           horizontal_padding = 24;
           notification_limit = 2;
-          font = "FiraCode Nerd Font 10";
+          # Berkeley Mono, not FiraCode Nerd Font: that family is not installed
+          # on this host, so it resolved to Noto Sans and every notification
+          # rendered in a different typeface to the rest of the desktop.
+          # Check with `fc-match "<name>"` before changing.
+          font = "Berkeley Mono 13";
           line_height = 0;
           format = "<b>%s</b>\\n%b";
           alignment = "left";
@@ -363,24 +372,29 @@ in {
           mouse_right_click = "close_all";
         };
 
+        # Colours are Theme.qml's (see quickshell/Theme.qml) so notifications
+        # match the bar and the launcher. The frame carries the urgency: muted
+        # for low, accent for normal, crit for critical -- previously low was
+        # accent-cyan and normal was a green found nowhere else in the palette,
+        # which made a routine notification look more alarming than a low one.
         urgency_low = {
-          background = "#1a1a1f";
-          foreground = "#cfd6f4";
-          frame_color = "#33ccff";
+          background = "#1e1e28";
+          foreground = "#a6adc8";
+          frame_color = "#6c7086";
           timeout = 4;
         };
 
         urgency_normal = {
-          background = "#1a1a1f";
-          foreground = "#e6e9ef";
-          frame_color = "#00ff99";
+          background = "#1e1e28";
+          foreground = "#cfd6f4";
+          frame_color = "#33ccff";
           timeout = 6;
         };
 
         urgency_critical = {
-          background = "#2b1117";
-          foreground = "#ffd7e2";
-          frame_color = "#ff4d6d";
+          background = "#1e1e28";
+          foreground = "#cfd6f4";
+          frame_color = "#ff6b6b";
           timeout = 0;
         };
       };
