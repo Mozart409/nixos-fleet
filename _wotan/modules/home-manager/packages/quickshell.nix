@@ -33,6 +33,15 @@
     fi
   '';
 
+  # Backs DepsWidget.qml: reports which direct flake inputs have actually moved
+  # upstream. Kept as a real script rather than an inline `sh -c` because it
+  # parses flake.lock and fans out a dozen `git ls-remote` calls in a thread
+  # pool -- 2s instead of 7s, and not something to write twice-escaped inside
+  # QML.
+  flake-drift = pkgs.writeShellScriptBin "flake-drift" ''
+    exec ${pkgs.python3}/bin/python3 ${./quickshell-flake-drift.py} "$@"
+  '';
+
   # Runtime dependencies for shell scripts and widgets. The resource widgets
   # shell out on a timer, so everything they call has to be on the service's
   # PATH -- a missing binary shows up as a permanently blank readout, not an
@@ -43,7 +52,8 @@
     gawk # /proc/stat and free parsing
     gnugrep
     procps # free
-    curl # for weather widget
+    curl # weather widget, and the homelab board's prometheus reads
+    git # flake-drift's ls-remote sweep
     wireplumber # for wpctl audio control
     libnotify # for notify-send
     rofi # for audio device selection menu
@@ -152,6 +162,7 @@ in {
     home.packages = [
       quickshell
       audio-switch # Rofi-based audio output switcher
+      flake-drift # Backs the flake-input drift widget
       pkgs.pwvucontrol # Modern PipeWire volume control GUI (bar: right-click volume)
       pkgs.pulsemixer # TUI audio mixer
     ];

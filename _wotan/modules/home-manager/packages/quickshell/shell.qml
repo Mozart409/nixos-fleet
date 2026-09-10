@@ -16,6 +16,10 @@ ShellRoot {
   // Homelab status board, one per screen, sitting on the wallpaper.
   HomelabWidget {}
 
+  // Flake input drift, bottom-right so it cannot collide with the homelab
+  // board above however tall that grows.
+  DepsWidget {}
+
   // Desktop widgets, off by default -- the bar covers the same ground.
   // SystemMonitorWidget {}
   // WeatherWidget {}
