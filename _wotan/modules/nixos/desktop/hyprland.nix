@@ -46,8 +46,15 @@
       inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww
 
-      # Notifications
-      dunst
+      # Notifications are NOT installed here. dunst ships a systemd user unit
+      # and a D-Bus activation file, and installing it system-wide puts both in
+      # /run/current-system/sw, where they start dunst for every session
+      # regardless of what home-manager decided. That silently defeats
+      # desktop.notifications.backend: dunst would win the race for
+      # org.freedesktop.Notifications, unconfigured (home-manager had removed
+      # its dunstrc), and quickshell's daemon would get nothing.
+      # home-manager's services.dunst installs the package itself when it is
+      # the selected backend -- see modules/home-manager/packages/notifications.nix.
 
       # Hyprland plugins
       # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars

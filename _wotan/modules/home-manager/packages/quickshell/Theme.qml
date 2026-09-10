@@ -58,6 +58,19 @@ QtObject {
   readonly property int deskSmall: 14
   readonly property int deskMeta: 13
 
+  // Notifications run a size up again on the desktop boards. You choose when
+  // to look at a board; a notification has to be legible in the instant it
+  // appears in the corner of your eye, wherever you happen to be looking.
+  //
+  // These also exist to keep parity with the dunst config they replace. dunst
+  // took "Berkeley Mono 13" -- 13 *points*, ~17px at 96 DPI -- so reusing the
+  // desk sizes here silently shrank notifications by a quarter when the
+  // backend switched, on the exact panels that motivated scaling them up.
+  // Sizes in QML are pixels; a pt value copied across is not the same size.
+  readonly property int notifTitle: 18
+  readonly property int notifBody: 16
+  readonly property int notifMeta: 13
+
   // Metrics -----------------------------------------------------------------
   readonly property int barHeight: 34
   readonly property int moduleHeight: 24

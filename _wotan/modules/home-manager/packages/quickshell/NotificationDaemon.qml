@@ -166,8 +166,8 @@ Scope {
             // sending app's icon, which is what every other client does.
             Item {
               Layout.alignment: Qt.AlignTop
-              Layout.preferredWidth: 40
-              Layout.preferredHeight: 40
+              Layout.preferredWidth: 48
+              Layout.preferredHeight: 48
               visible: img.status === Image.Ready || appIcon.status === Image.Ready
 
               Image {
@@ -203,7 +203,7 @@ Scope {
                   text: card.modelData.summary
                   color: Theme.text
                   font.family: Theme.font
-                  font.pixelSize: Theme.deskSmall
+                  font.pixelSize: Theme.notifTitle
                   font.bold: true
                   elide: Text.ElideRight
                 }
@@ -212,7 +212,7 @@ Scope {
                   text: card.modelData.appName
                   color: Theme.muted
                   font.family: Theme.font
-                  font.pixelSize: Theme.deskMeta - 2
+                  font.pixelSize: Theme.notifMeta
                   visible: text !== "" && text !== card.modelData.summary
                 }
               }
@@ -222,7 +222,7 @@ Scope {
                 text: card.modelData.body
                 color: Theme.subtext
                 font.family: Theme.font
-                font.pixelSize: Theme.deskMeta
+                font.pixelSize: Theme.notifBody
                 wrapMode: Text.WordWrap
                 maximumLineCount: 6
                 elide: Text.ElideRight
@@ -247,7 +247,7 @@ Scope {
                     required property var modelData
 
                     implicitWidth: actionLabel.implicitWidth + 20
-                    implicitHeight: 26
+                    implicitHeight: 30
                     radius: 6
                     color: actionArea.containsMouse ? card.accent : Theme.module
 
@@ -263,7 +263,7 @@ Scope {
                       text: actionBtn.modelData.text
                       color: actionArea.containsMouse ? Theme.inverse : Theme.text
                       font.family: Theme.font
-                      font.pixelSize: Theme.deskMeta - 1
+                      font.pixelSize: Theme.notifMeta
                     }
 
                     MouseArea {
@@ -308,7 +308,7 @@ Scope {
       // Overflow count, mirroring dunst's indicate_hidden.
       Rectangle {
         Layout.fillWidth: true
-        implicitHeight: 26
+        implicitHeight: 30
         radius: 8
         color: Theme.surface
         border.width: 1
@@ -320,7 +320,7 @@ Scope {
           text: `${root.overflow} more`
           color: Theme.muted
           font.family: Theme.font
-          font.pixelSize: Theme.deskMeta - 1
+          font.pixelSize: Theme.notifMeta
         }
       }
     }
