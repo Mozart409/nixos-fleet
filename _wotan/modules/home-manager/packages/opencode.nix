@@ -236,7 +236,11 @@
     # service is running), `opencode` auto-attaches to that server instead of
     # spawning a standalone instance. Subcommands (serve, attach, run, etc.)
     # pass through unchanged.
-    programs.zsh.initExtra = ''
+    # initContent, not the deprecated initExtra. The type is types.lines, so
+    # this merges with the block in ../configs/shell.nix rather than clashing,
+    # and order 1000 (initExtra's old position) is already the default -- no
+    # lib.mkOrder wrapper needed.
+    programs.zsh.initContent = ''
       opencode() {
         if [ -n "$OPENCODE_SERVER_URL" ]; then
           case "$1" in
