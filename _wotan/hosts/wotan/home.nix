@@ -75,6 +75,11 @@
   };
   desktop.rofi.enable = true;
   desktop.gtk.enable = true;
+  # quickshell owns notifications; dunst is one word away if the in-shell
+  # daemon ever misbehaves (a QML error takes the whole shell down, and with
+  # it your notifications -- dunst is isolated from that).
+  desktop.notifications.backend = "quickshell";
+
   desktop.quickshell = {
     enable = true;
     # ~/.config/quickshell points at the working tree instead of a store copy,

@@ -328,7 +328,8 @@ in {
     '';
 
     services.dunst = {
-      enable = true;
+      # Only when it owns the bus name -- see desktop.notifications.backend.
+      enable = config.desktop.notifications.backend == "dunst";
       package = pkgs.dunst;
       settings = {
         global = {

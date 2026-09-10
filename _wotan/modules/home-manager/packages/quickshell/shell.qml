@@ -1,4 +1,5 @@
 import Quickshell
+import Generated
 
 // If SystemTrayWidget is ever re-enabled in Bar.qml, `//@ pragma
 // UseQApplication` has to go back as the very first line of this file. Tray
@@ -12,6 +13,15 @@ ShellRoot {
 
   // Floating volume display, follows the focused monitor.
   VolumeOsd {}
+
+  // Notification daemon. Only built when nix selected this backend --
+  // desktop.notifications.backend = "quickshell". With dunst selected, the
+  // component is never instantiated and never touches the bus.
+  LazyLoader {
+    active: Features.notifications
+
+    NotificationDaemon {}
+  }
 
   // Homelab status board, one per screen, sitting on the wallpaper.
   HomelabWidget {}

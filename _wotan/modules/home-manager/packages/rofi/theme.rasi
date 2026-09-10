@@ -71,7 +71,11 @@ prompt {
 
 entry {
   text-color:        @text;
-  placeholder:       "search";
+  /* No placeholder text. This theme is shared with pinentry-rofi, where a
+     passphrase field labelled "search" is simply wrong, and the coloured
+     prompt to the left ("drun", "window", "Passphrase") already says what the
+     field is for. */
+  placeholder:       "";
   placeholder-color: @muted;
   cursor:            text;
   padding:           0;
