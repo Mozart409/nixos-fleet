@@ -231,5 +231,26 @@
     home.file."${config.opencode.referencesDir}/.gitkeep" = {
       text = "";
     };
+
+    # Shell function: when OPENCODE_SERVER_URL is set (opencode-serve systemd
+    # service is running), `opencode` auto-attaches to that server instead of
+    # spawning a standalone instance. Subcommands (serve, attach, run, etc.)
+    # pass through unchanged.
+    programs.zsh.initExtra = ''
+      opencode() {
+        if [ -n "$OPENCODE_SERVER_URL" ]; then
+          case "$1" in
+            serve|attach|run|acp|mcp|debug|providers|agent|upgrade|uninstall|web|models|stats|export|import|github|pr|session|plugin|plug|db|completion|--*|-*)
+              command opencode "$@"
+              ;;
+            *)
+              command opencode attach "$OPENCODE_SERVER_URL" --dir "$PWD" "$@"
+              ;;
+          esac
+        else
+          command opencode "$@"
+        fi
+      }
+    '';
   };
 }

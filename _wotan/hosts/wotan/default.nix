@@ -191,6 +191,18 @@
     ''
   ];
 
+  # opencode headless server — persistent background service so every new
+  # opencode session attaches to the same server instead of spawning a new one.
+  # The home-manager opencode module adds a shell alias (`opencode` → `opencode
+  # attach $OPENCODE_SERVER_URL --dir "$PWD"`) that makes this transparent.
+  services.opencode-serve = {
+    enable = true;
+    hostname = "127.0.0.1";
+    port = 4096;
+    user = username;
+    # password = "";  # Set for auth; empty = no basic-auth.
+  };
+
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
   # Models cached to /var/lib/vllm/huggingface on first run.
   #

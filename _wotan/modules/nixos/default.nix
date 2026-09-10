@@ -10,6 +10,7 @@
   #   hardware.moza.enable            -> moza.nix
   #   services.vllm.enable            -> vllm.nix
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
+  #   services.opencode-serve.enable  -> opencode-serve.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
@@ -19,6 +20,7 @@
     ./razer.nix
     ./moza.nix
     ./vllm.nix
+    ./opencode-serve.nix
     ./desktop/default.nix
     ./desktop/hyprland.nix
     ./desktop/file-managers.nix
