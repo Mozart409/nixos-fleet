@@ -1,0 +1,166 @@
+/* Rofi theme matching the quickshell bar.
+ *
+ * Every colour here is copied from modules/home-manager/packages/quickshell/
+ * Theme.qml -- if you retheme the shell, retheme this too, or the launcher
+ * stops looking like it belongs to the same desktop. Kept as a .rasi file
+ * rather than home-manager's attrset form because that form needs mkLiteral
+ * around every non-string value and cannot express @media or the element
+ * selectors used below.
+ */
+
+* {
+  /* Exactly Theme.bar (#f5111119, ARGB) restated as rasi's RGBA. */
+  bg:        #111119F5;
+  surface:   #1e1e28FF;
+  module:    #ffffff1C;
+  text:      #cfd6f4FF;
+  subtext:   #a6adc8FF;
+  muted:     #6c7086FF;
+  accent:    #33ccffFF;
+  urgent:    #ff6b6bFF;
+  inverse:   #12121aFF;
+  border-c:  #33ccff59;
+
+  background-color: transparent;
+  text-color:       @text;
+  /* Matches Theme.font. Berkeley Mono only -- no fallback list, because a
+     fallback that silently kicks in is how the bar ended up rendering in Noto
+     Sans without anyone noticing. Verify with `fc-match "Berkeley Mono"`. */
+  font: "Berkeley Mono 13";
+}
+
+window {
+  location:         center;
+  anchor:           center;
+  width:            42%;
+  /* No fixed height: the window shrinks to however many results there are, so
+     a two-hit search does not leave eight rows of empty space. */
+  border:           1px;
+  border-radius:    12px;
+  border-color:     @border-c;
+  background-color: @bg;
+  padding:          0;
+}
+
+mainbox {
+  padding:  14px;
+  spacing:  12px;
+  children: [ inputbar, message, listview ];
+}
+
+/* Search row ------------------------------------------------------------- */
+
+inputbar {
+  spacing:          10px;
+  padding:          10px 12px;
+  border-radius:    7px;
+  background-color: @module;
+  children:         [ prompt, entry ];
+}
+
+prompt {
+  text-color: @accent;
+  /* The mode name (drun / run / window / ssh) lands here, so it is worth
+     keeping visible -- it is the only thing distinguishing the modes. */
+  padding:    0;
+}
+
+entry {
+  text-color:        @text;
+  placeholder:       "search";
+  placeholder-color: @muted;
+  cursor:            text;
+  padding:           0;
+}
+
+/* Results ---------------------------------------------------------------- */
+
+listview {
+  columns:      1;
+  lines:        8;
+  spacing:      3px;
+  scrollbar:    false;
+  /* Shrink the list to the number of matches rather than always drawing 8
+     rows. */
+  dynamic:      true;
+  fixed-height: false;
+  cycle:        true;
+}
+
+element {
+  padding:       8px 10px;
+  spacing:       10px;
+  border-radius: 7px;
+  cursor:        pointer;
+}
+
+element normal.normal {
+  background-color: transparent;
+  text-color:       @subtext;
+}
+
+element alternate.normal {
+  background-color: transparent;
+  text-color:       @subtext;
+}
+
+/* Selection is a filled accent bar with inverted text -- the same treatment
+   the active workspace pill gets in the bar. */
+element selected.normal {
+  background-color: @accent;
+  text-color:       @inverse;
+}
+
+element normal.urgent,
+element alternate.urgent {
+  text-color: @urgent;
+}
+
+element selected.urgent {
+  background-color: @urgent;
+  text-color:       @inverse;
+}
+
+element normal.active,
+element alternate.active {
+  text-color: @accent;
+}
+
+element selected.active {
+  background-color: @accent;
+  text-color:       @inverse;
+}
+
+element-icon {
+  size:             22px;
+  cursor:           inherit;
+  background-color: transparent;
+}
+
+element-text {
+  vertical-align:   0.5;
+  cursor:           inherit;
+  background-color: transparent;
+  text-color:       inherit;
+}
+
+/* Errors and mode messages ----------------------------------------------- */
+
+message {
+  padding:          10px 12px;
+  border-radius:    7px;
+  background-color: @surface;
+}
+
+textbox {
+  text-color:       @subtext;
+  background-color: transparent;
+  vertical-align:   0.5;
+}
+
+error-message {
+  padding:          12px;
+  border-radius:    7px;
+  background-color: @surface;
+  text-color:       @urgent;
+}

@@ -34,7 +34,6 @@
 
       # Bar and launcher
       rofi
-      wofi
       wlogout
 
       # Lockscreen and background

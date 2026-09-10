@@ -115,8 +115,11 @@ end)
 local mainMod = "SUPER"
 
 -- Application launcher
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("wofi --show drun"))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("rofi -show drun -run-command 'bash -c \"{cmd}\"'"))
+
+-- Window switcher. Same rofi, different mode -- lists open windows across both
+-- monitors and every workspace, which is the one thing the bar cannot show.
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("rofi -show window"))
 
 -- Terminal
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("kitty"))
