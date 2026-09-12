@@ -90,6 +90,17 @@ in {
       default = [];
       description = "Extra arguments to pass to opencode serve.";
     };
+
+    environmentFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = [];
+      description = ''
+        Extra EnvironmentFile entries for the service (KEY=value format).
+        Use this to inject secrets (e.g. agenix paths) so the server process
+        can expand {env:VAR} placeholders in opencode.json MCP headers —
+        attached clients' shell environments are NOT visible to the server.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -105,7 +116,7 @@ in {
         User = cfg.user;
         Group = "users";
         WorkingDirectory = "/home/${cfg.user}";
-        EnvironmentFile = lib.mkIf (cfg.password != "") envFile;
+        EnvironmentFile = lib.optional (cfg.password != "") envFile ++ cfg.environmentFiles;
       };
     };
 

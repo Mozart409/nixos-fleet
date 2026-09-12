@@ -201,6 +201,11 @@
     port = 4096;
     user = username;
     # password = "";  # Set for auth; empty = no basic-auth.
+    # The server process (not the attaching shell) connects to MCP servers, so
+    # secrets referenced via {env:VAR} in opencode.json must be in the
+    # service's environment. The agenix secret is already in KEY=value format.
+    # NOTE: restart the service after re-encrypting the secret (token rotation).
+    environmentFiles = [config.age.secrets.axon-gateway-env.path];
   };
 
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
