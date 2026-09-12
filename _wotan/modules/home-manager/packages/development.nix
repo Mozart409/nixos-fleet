@@ -7,14 +7,16 @@
   home.packages = with pkgs; [
     # keep-sorted start
     bacon
+    bruno
+    bruno-cli
     btop
     bun
     cargo-binstall
     cocogitto
     d2
     deadbranch
+    deadnix
     devenv
-    dioxus-cli
     dprint
     eza
     gnused
@@ -25,7 +27,7 @@
     mergiraf
     nix-prefetch
     nix-prefetch-github
-    nodejs_22
+    nodejs_26
     otel-cli
     pkg-configUpstream
     pnpm
