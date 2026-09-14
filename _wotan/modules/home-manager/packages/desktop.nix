@@ -11,6 +11,7 @@
     comet-gog
     discord
     haruna
+    jellyfin-mpv-shim
     lutris-unwrapped
     obsidian
     pavucontrol
