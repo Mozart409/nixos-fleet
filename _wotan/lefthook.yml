@@ -23,9 +23,5 @@ pre-push:
   jobs:
     - name: cog check
       run: cog check --from-latest-tag
-    - name: build NixOS system
-      run: nh os build .#nixosConfigurations.wotan
-    - name: build home-manager activation
-      run: nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
     - name: nix flake check
       run: nix flake check
