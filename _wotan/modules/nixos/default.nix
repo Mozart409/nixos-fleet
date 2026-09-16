@@ -20,7 +20,7 @@
     ./razer.nix
     ./moza.nix
     ./vllm.nix
-    # ./opencode-serve.nix
+    ./opencode-serve.nix
     ./desktop/default.nix
     ./desktop/hyprland.nix
     ./desktop/file-managers.nix

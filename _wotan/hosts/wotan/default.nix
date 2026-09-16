@@ -196,7 +196,7 @@
   # The home-manager opencode module adds a shell alias (`opencode` → `opencode
   # attach $OPENCODE_SERVER_URL --dir "$PWD"`) that makes this transparent.
   services.opencode-serve = {
-    enable = true;
+    enable = false;
     hostname = "127.0.0.1";
     port = 4096;
     user = username;
