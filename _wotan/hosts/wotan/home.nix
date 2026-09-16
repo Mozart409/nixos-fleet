@@ -100,7 +100,7 @@
   # };
 
   # Enable opencode custom commands
-  opencode.enable = true;
+  opencode.enable = false;
 
   # Skip building the nixvim option-reference manpage. As of 2026-07-11 nixpkgs
   # (nixos-render-docs) merged the GFM-alert/admonition support that the current
@@ -128,7 +128,7 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-generations +5";
+    options = "--delete-generations +3";
   };
 
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
