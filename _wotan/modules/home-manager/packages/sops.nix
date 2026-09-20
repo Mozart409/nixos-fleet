@@ -6,11 +6,13 @@
 }: let
   cfg = config.sopsEnv;
 
-  # One-shot migration: .env -> .sops.env (encrypted in place, values only),
-  # verified round-trip, plaintext removed, .env kept out of git.
+  # One-shot migration: .env -> .sops.env. The dotenv is first normalized to
+  # the strict KEY=value form sops stores literally (see the .py), encrypted,
+  # verified by decrypting again, then the plaintext is removed and .env kept
+  # out of git.
   env2sops = pkgs.writeShellApplication {
     name = "env2sops";
-    runtimeInputs = with pkgs; [sops coreutils diffutils git];
+    runtimeInputs = with pkgs; [sops coreutils diffutils git python3];
     text = ''
       src="''${1:-.env}"
       dst="$(dirname "$src")/.sops.env"
@@ -18,11 +20,18 @@
       [ -f "$src" ] || { echo "env2sops: $src not found" >&2; exit 1; }
       [ -e "$dst" ] && { echo "env2sops: $dst already exists, refusing to overwrite" >&2; exit 1; }
 
+      # Normalized plaintext lives only in a private tmp file for the
+      # duration of this script.
+      norm="$(mktemp)"
+      trap 'shred -u "$norm" 2>/dev/null || rm -f "$norm"' EXIT
+      python3 ${./env2sops-normalize.py} "$src" "$norm"
+
       # Recipients come from the nearest .sops.yaml (see sopsEnv.rulesDir).
-      cp "$src" "$dst"
+      cp "$norm" "$dst"
       sops --encrypt --in-place "$dst"
 
-      if ! sops --decrypt "$dst" | diff -q - "$src" >/dev/null; then
+      # sops drops blank lines on rewrite, so compare modulo those.
+      if ! diff -q <(grep -v '^[[:space:]]*$' "$norm") <(sops --decrypt "$dst" | grep -v '^[[:space:]]*$') >/dev/null; then
         echo "env2sops: round-trip mismatch, keeping $src and removing $dst" >&2
         rm -f "$dst"
         exit 1

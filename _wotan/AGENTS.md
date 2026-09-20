@@ -252,7 +252,7 @@ Application secrets for projects under `~/code` never live in plaintext. `set do
 
 - **Recipient:** the GPG key (`sopsEnv.pgpFingerprint`, encryption subkey required). Decryption goes through gpg-agent — private key passphrase-encrypted at rest, cache TTLs in `modules/home-manager/configs/base.nix`, pinentry-rofi on a cold cache. Add `sopsEnv.ageRecipients` for servers/CI.
 - **Rules:** one shared `~/code/.sops.yaml` (walks up from cwd; a project's own file wins). The file **must** end in `.env` — sops infers the dotenv format from the extension and `exec-env` has no `--input-type`, so `.env.sops` does *not* work.
-- **Migrate a project:** `cd proj && env2sops` (encrypts in place, verifies round-trip, shreds `.env`, gitignores it). Then in the justfile:
+- **Migrate a project:** `cd proj && env2sops` (normalizes, encrypts, verifies round-trip, shreds `.env`, gitignores it). sops stores dotenv lines *literally* — unlike `dotenv-load` it keeps quotes and inline comments in the value, treats `export KEY` as the key, and rejects multi-line values — so `env2sops-normalize.py` rewrites to strict `KEY=value` first and lists (by key name only) what it changed. Values containing `$VAR` are flagged: dotenv-load expanded them, sops won't. Then in the justfile:
   ```just
   secrets := "sops exec-env .sops.env"      # replaces: set dotenv-load := true
 
