@@ -27,6 +27,7 @@
     ../../modules/home-manager/packages/podman.nix
     ../../modules/home-manager/packages/quickshell.nix
     ../../modules/home-manager/packages/rofi.nix
+    ../../modules/home-manager/packages/sops.nix
     ../../modules/home-manager/packages/system.nix
     ../../modules/home-manager/packages/terminals.nix
     ../../modules/home-manager/packages/tmux.nix
@@ -101,6 +102,13 @@
 
   # Enable opencode custom commands
   opencode.enable = false;
+
+  # Encrypted per-project dotenv files (.sops.env) decrypted via gpg-agent.
+  # Fingerprint = the primary key; gpg picks its encryption subkey.
+  sopsEnv = {
+    enable = true;
+    pgpFingerprint = "10E93C37BCFBC774C08564F99E7E54BA24F1BD10";
+  };
 
   # Skip building the nixvim option-reference manpage. As of 2026-07-11 nixpkgs
   # (nixos-render-docs) merged the GFM-alert/admonition support that the current

@@ -246,6 +246,24 @@ Before committing changes:
 
 12. **opencode reads `.env` via bash, not the read tool:** opencode's `permission.read` rules (default `*.env: ask` in 1.18) only gate the `read` tool; the bash tool matches `permission.bash` globs against the parsed command and never applies read rules to file arguments, so `cat .env`, `sed -n p .env`, `printenv`, `agenix -d …` are plain `allow`. Guardrails live in `modules/home-manager/packages/opencode.nix` (`opencode.guardrails.enable`, on by default, independent of `opencode.enable`): `~/.config/opencode/plugins/secret-guard.js` hard-blocks secret paths / reveal commands in `tool.execute.before` and redacts token-shaped values in `tool.execute.after`, plus baseline deny rules in `~/.config/opencode/config.json` (merged first, so `opencode.json(c)` / project `.opencode/` still override). Test the plugin logic with node before rebuilding; verify live with `opencode run "print .env"` in a dir with a dummy `.env`.
 
+## 🔐 Project Secrets (sops + gpg-agent)
+
+Application secrets for projects under `~/code` never live in plaintext. `set dotenv-load` in justfiles is replaced by an encrypted **`.sops.env`** (sops dotenv store: variable names visible, values `ENC[...]`, safe to commit) that is decrypted into **one child process only** via `sops exec-env` — nothing is written to disk or exported into the shell, so neither `cat` nor `printenv` nor an AI agent's subprocess can see the values. Configured by `modules/home-manager/packages/sops.nix` (`sopsEnv.*` in `hosts/wotan/home.nix`).
+
+- **Recipient:** the GPG key (`sopsEnv.pgpFingerprint`, encryption subkey required). Decryption goes through gpg-agent — private key passphrase-encrypted at rest, cache TTLs in `modules/home-manager/configs/base.nix`, pinentry-rofi on a cold cache. Add `sopsEnv.ageRecipients` for servers/CI.
+- **Rules:** one shared `~/code/.sops.yaml` (walks up from cwd; a project's own file wins). The file **must** end in `.env` — sops infers the dotenv format from the extension and `exec-env` has no `--input-type`, so `.env.sops` does *not* work.
+- **Migrate a project:** `cd proj && env2sops` (encrypts in place, verifies round-trip, shreds `.env`, gitignores it). Then in the justfile:
+  ```just
+  secrets := "sops exec-env .sops.env"      # replaces: set dotenv-load := true
+
+  dev:
+      {{secrets}} 'npm run dev'
+  up:                                       # for --env-file consumers: decrypted into a FIFO, never on disk
+      sops exec-file .sops.env 'podman compose --env-file {} up -d'
+  ```
+- **Edit:** `sops .sops.env` (opens `$EDITOR`, re-encrypts on save). **Add a var:** same. **Rotate recipients:** `sops updatekeys .sops.env`.
+- **Never:** `direnv`'s `dotenv`, `source .env`, or `export`ing secrets — anything in the ambient environment is visible to every child process and no guardrail catches `python -c 'print(os.environ)'`.
+
 ## 🤖 vLLM Inference Server
 
 The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs as a **Podman OCI container** (`vllm/vllm-openai` image, see `services.vllm.image` for the pinned version) managed by `virtualisation.oci-containers`, so the systemd unit is **`podman-vllm.service`**. `autoStart = false` — it does not start at boot; launch it manually. Models are pulled from HuggingFace on first launch, not stored as local files.

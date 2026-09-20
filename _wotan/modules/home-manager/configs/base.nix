@@ -25,6 +25,14 @@
   services.gpg-agent = {
     enable = true;
 
+    # Passphrase cache. sops decrypts project .sops.env files through this
+    # agent (modules/home-manager/packages/sops.nix), so these TTLs are the
+    # trade-off between prompts and how long a warm cache lets any process --
+    # including an AI agent running `just dev` -- decrypt silently. The idle
+    # TTL resets on every use; the max TTL is a hard ceiling from first unlock.
+    defaultCacheTtl = 3600; # 1h idle
+    maxCacheTtl = 28800; # 8h hard cap
+
     # pinentry-rofi renders the passphrase prompt through rofi, so it inherits
     # the theme in ../packages/rofi/theme.rasi and matches the bar, launcher
     # and notifications instead of being a lone GTK dialog. `program` is needed
