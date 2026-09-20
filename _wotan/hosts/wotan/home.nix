@@ -107,7 +107,7 @@
   # Fingerprint = the primary key; gpg picks its encryption subkey.
   sopsEnv = {
     enable = true;
-    pgpFingerprint = "10E93C37BCFBC774C08564F99E7E54BA24F1BD10";
+    pgpFingerprint = "CAE234D7B574DC1D72AB52391DDDB1E94B3B2C1E";
   };
 
   # Skip building the nixvim option-reference manpage. As of 2026-07-11 nixpkgs
