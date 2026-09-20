@@ -42,7 +42,8 @@ const SECRET_PATH = new RegExp(
 );
 
 // Allowed even though they match SECRET_PATH: templates never hold values.
-const SAFE_PATH = /\.env\.(example|sample|template|dist|schema)(?=$|[\s"'/;|&)>])|\.pub(?=$|[\s"'/;|&)>])/i;
+// .sops.env / .sops.yaml: sops dotenv store -- keys visible, values ENC[...].
+const SAFE_PATH = /\.env\.(example|sample|template|dist|schema)(?=$|[\s"'/;|&)>])|\.sops\.(env|ya?ml)(?=$|[\s"'/;|&)>])|\.pub(?=$|[\s"'/;|&)>])/i;
 
 // Bash-only: commands whose *purpose* is to reveal secrets, regardless of
 // which file they touch.
@@ -53,7 +54,11 @@ const SECRET_CMD = new RegExp(
     String.raw`(^|[\s;|&(])(export|declare|typeset)\s+-p(\s|$)`,
     // also catches `nix run github:ryantm/agenix -- -d ...`
     String.raw`\b(agenix|age|sops)\b[^|;&]*\s(-d|--decrypt|exec-env|exec-file)(\s|$)`,
-    String.raw`(^|[\s;|&(])gpg2?\s+(-d|--decrypt|--export-secret-keys?)\b`,
+    // `sops <file>` is edit mode: `EDITOR=cat sops .sops.env` prints plaintext.
+    // Only encrypt / key-management / info invocations are allowed.
+    String.raw`(^|[\s;|&(])(\w+=\S*\s+)*sops(?![^|;&]*\s(-e|--encrypt|-i|--in-place|updatekeys|rotate|filestatus|--version|-h|--help)(\s|$))\s+[^|;&]*\S`,
+    String.raw`(^|[\s;|&(])gpg2?\s+[^|;&]*(-d|--decrypt|--decrypt-files|--export-secret-(sub)?keys?)\b`,
+    String.raw`(^|[\s;|&(])gpg-connect-agent\b|(^|[\s;|&(])gpg-preset-passphrase\b`,
     String.raw`(^|[\s;|&(])pass\s+(show|ls|find|grep)\b`,
     String.raw`(^|[\s;|&(])op\s+(read|item\s+get|document\s+get|inject|run)\b`,
     String.raw`(^|[\s;|&(])gh\s+auth\s+(token|status\s+--show-token)\b`,
