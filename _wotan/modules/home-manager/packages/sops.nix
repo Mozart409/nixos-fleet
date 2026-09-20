@@ -93,6 +93,20 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [pkgs.sops env2sops];
 
+    # The encryption subkey cannot be created declaratively (new private key
+    # material, signed with the passphrase-protected primary key), so warn on
+    # every switch until it exists. Reads the public keyring only -- no agent,
+    # no pinentry. Colon format: field 2 = validity, field 12 = capabilities.
+    home.activation.sopsEnvCheckGpgSubkey = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      _gpg="${pkgs.gnupg}/bin/gpg"
+      _fpr="${cfg.pgpFingerprint}"
+      if ! _keys="$("$_gpg" --batch --quiet --list-keys --with-colons "$_fpr" 2>/dev/null)"; then
+        warnEcho "sopsEnv: GPG key $_fpr not found in the keyring; sops cannot encrypt .sops.env files"
+      elif ! printf '%s\n' "$_keys" | ${pkgs.gawk}/bin/awk -F: '$1 == "sub" && $2 !~ /[rei]/ && $12 ~ /e/ { found = 1 } END { exit !found }'; then
+        warnEcho "sopsEnv: GPG key $_fpr has no usable encryption subkey; run: gpg --quick-add-key $_fpr cv25519 encr 2y"
+      fi
+    '';
+
     home.file."${cfg.rulesDir}/.sops.yaml".text = ''
       # Managed by home-manager (modules/home-manager/packages/sops.nix).
       # Applies to every project below this directory unless it has its own.
