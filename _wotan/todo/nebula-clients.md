@@ -38,7 +38,7 @@ matters for this host:
 | Subnet | 172.16.10.0/24 | 172.16.20.0/24 | `tenants.nix`; the two overlays are separate address spaces, overlap would have been legal |
 | Lighthouses | .1 .2 .3 | .1 .2 .3 | `tenants.nix` |
 | Cert name | `wotan` | `wotan` | hostname; appears as `host: wotan` in peers' logs and rules |
-| Overlay IP | `172.16.10.50/24` | `172.16.20.50/24` | .1-.3 lighthouses, .4-.49 reserved for infra (vm01 etc.), clients from .50 |
+| Overlay IP | `172.16.10.100/24` | `172.16.20.100/24` | Address plan per tenant subnet: `.1-.3` lighthouses, `.4-.99` infra/servers (vm01 = `.10` on amartum), `.100+` clients/workstations. Groups do the access control; the plan only keeps addresses readable. |
 | Groups | `admin,workstations` | `admin,workstations` | admin on both. Servers (vm01 on amartum) allow `group: admin` for SSH/services. `workstations` lets a rule address all laptops/desktops without matching servers that are admin-operated. |
 | Firewall on wotan | outbound any; inbound ICMP | same | a workstation offers nothing on the overlay; widen per port + group when needed |
 | tun device | `nebula-amartum` (14) | `nebula-mz409` (13) | IFNAMSIZ is 15; the upstream default `nebula.mozart409` is 16 and fails eval |
@@ -56,13 +56,13 @@ cd services/nebula/certs
 # amartum-ca.key and mozart409-ca.key: copy back from the password manager
 # for these two commands; each prompts for its passphrase.
 nebula-cert sign -ca-crt amartum-ca.crt -ca-key amartum-ca.key \
-  -name wotan -networks 172.16.10.50/24 -groups admin,workstations \
+  -name wotan -networks 172.16.10.100/24 -groups admin,workstations \
   -duration 17520h -out-crt amartum-wotan.crt -out-key amartum-wotan.key
 nebula-cert sign -ca-crt mozart409-ca.crt -ca-key mozart409-ca.key \
-  -name wotan -networks 172.16.20.50/24 -groups admin,workstations \
+  -name wotan -networks 172.16.20.100/24 -groups admin,workstations \
   -duration 17520h -out-crt mozart409-wotan.crt -out-key mozart409-wotan.key
-nebula-cert print -path amartum-wotan.crt     # name wotan, 172.16.10.50/24, groups admin,workstations
-nebula-cert print -path mozart409-wotan.crt   # name wotan, 172.16.20.50/24, groups admin,workstations
+nebula-cert print -path amartum-wotan.crt     # name wotan, 172.16.10.100/24, groups admin,workstations
+nebula-cert print -path mozart409-wotan.crt   # name wotan, 172.16.20.100/24, groups admin,workstations
 rm amartum-ca.key mozart409-ca.key            # back offline
 ```
 
@@ -179,7 +179,7 @@ Notes:
 ```bash
 just switch   # or whatever this repo's rebuild recipe is -- see justfile
 systemctl status 'nebula@*'
-ip -br addr show nebula-amartum nebula-mz409            # 172.16.10.50/24 and 172.16.20.50/24
+ip -br addr show nebula-amartum nebula-mz409            # 172.16.10.100/24 and 172.16.20.100/24
 for t in amartum mozart409; do journalctl -u nebula@$t -o cat | grep -i handshake; done
 # expect, per tenant, "Handshake message received" for .1 .2 .3, certName=lighthouse-a/b/c
 ```
@@ -189,7 +189,7 @@ Lighthouse side (proves the fleet, not just the client):
 ```bash
 for n in a b c; do ssh amadeus@ventara-lighthouse-$n \
   "hostname; sudo journalctl -u nebula@amartum -u nebula@mozart409 --since -5m -o cat | grep -i handshake"; done
-# expect on each: vpnNetworks=[172.16.10.50/24] and [172.16.20.50/24], certName=wotan
+# expect on each: vpnNetworks=[172.16.10.100/24] and [172.16.20.100/24], certName=wotan
 ```
 
 Each lighthouse is independent; a client reports to every one, so all
@@ -199,8 +199,9 @@ three should show both handshakes.
 
 - Nothing to ping yet: the lighthouses have no tun, so `ping 172.16.10.1`
   will not answer. The first *peer* is when overlay traffic becomes
-  testable -- for amartum that is vm01. Its cert should be signed with a
-  group like `servers` and its nebula firewall should allow
+  testable -- for amartum that is vm01, at `172.16.10.10` per the address
+  plan. Its cert should be signed with a group like `servers` and its
+  nebula firewall should allow
   `{port: 22, proto: tcp, group: admin}` so wotan (admin) can SSH to it
   over the overlay; that is the connection test this todo exists for.
 - Both certs expire 2028-09-20. The ventara Prometheus tracks only the
