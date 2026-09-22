@@ -1,6 +1,7 @@
 # TODO: join wotan to the amartum and mozart409 Nebula overlays, declaratively
 
-Status: planned 2026-09-21. Not started.
+Status: done 2026-09-23. Both overlays up on wotan, verified from the client
+and from all three lighthouses.
 
 ## Context
 
@@ -184,13 +185,23 @@ for t in amartum mozart409; do journalctl -u nebula@$t -o cat | grep -i handshak
 # expect, per tenant, "Handshake message received" for .1 .2 .3, certName=lighthouse-a/b/c
 ```
 
+Result 2026-09-23: 3 sent / 3 received per tenant, certName=lighthouse-{a,b,c},
+`172.16.10.100/24` and `172.16.20.100/24` up with mtu 1300.
+
 Lighthouse side (proves the fleet, not just the client):
 
 ```bash
 for n in a b c; do ssh amadeus@ventara-lighthouse-$n \
   "hostname; sudo journalctl -u nebula@amartum -u nebula@mozart409 --since -5m -o cat | grep -i handshake"; done
-# expect on each: vpnNetworks=[172.16.10.100/24] and [172.16.20.100/24], certName=wotan
+# expect on each: certName=wotan, vpnAddrs=[172.16.10.100] / [172.16.20.100]
 ```
+
+The field is `vpnAddrs` (a bare address), not `vpnNetworks` -- grep for
+`certName=wotan` and read the line. Result 2026-09-23: all three lighthouses
+logged 6 handshakes each (both tenants), with the client's own cert
+fingerprints and CA issuers. wotan reached them over **both** families,
+e.g. `from="[2001:a61:...]:33872"` alongside the v4 source: it does have a v6
+route, so `static_map.network = "ip"` was load-bearing, not just future-proofing.
 
 Each lighthouse is independent; a client reports to every one, so all
 three should show both handshakes.
@@ -204,7 +215,8 @@ three should show both handshakes.
   nebula firewall should allow
   `{port: 22, proto: tcp, group: admin}` so wotan (admin) can SSH to it
   over the overlay; that is the connection test this todo exists for.
-- Both certs expire 2028-09-20. The ventara Prometheus tracks only the
+- Both certs were signed 2026-09-22 and expire **2028-09-21** (amartum
+  23:23:49, mozart409 23:23:59 CEST). The ventara Prometheus tracks only the
   lighthouses' certs; put a reminder somewhere that survives.
 - Revocation is by expiry or by a `pki.blocklist` fingerprint on every
   other host; there is no CRL. Keys live in agenix only.
