@@ -23,4 +23,9 @@ in {
   # wrapping -- read directly by the nix post-build-hook script).
   # Edit with: agenix -e secrets/attic-token.age
   "secrets/attic-token.age".publicKeys = allKeys;
+  # Nebula host private keys for wotan, one per tenant overlay (raw
+  # nebula-cert PEM, as written by `nebula-cert sign -out-key`). The matching
+  # public certs live in hosts/wotan/nebula/. See todo/nebula-clients.md.
+  "secrets/nebula-amartum-wotan.age".publicKeys = allKeys;
+  "secrets/nebula-mozart409-wotan.age".publicKeys = allKeys;
 }

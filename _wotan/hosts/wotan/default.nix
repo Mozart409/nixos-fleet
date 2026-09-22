@@ -22,6 +22,9 @@
 
     # Desktop configuration
     ./desktop-config.nix
+
+    # Nebula overlay client (amartum + mozart409 tenants)
+    ./nebula.nix
   ];
 
   # Host-specific settings
