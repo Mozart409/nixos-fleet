@@ -322,14 +322,6 @@
     # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
   };
 
-  age.secrets.attic-token = {
-    file = ../../secrets/attic-token.age;
-    mode = "440";
-    # Owned by root: only the post-build-hook (run by nix-daemon as root, see
-    # modules/nixos/basics.nix) reads this. Content is the raw attic push
-    # token, no key=value wrapping.
-  };
-
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets

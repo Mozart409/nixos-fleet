@@ -29,7 +29,8 @@ done
 # and `fallback = true` in modules/nixos/basics.nix does not rescue it — that
 # only covers a substitution that fails to *copy*, not one that fails to
 # *answer*. cache.garnix.io served 502s across entire outages and has since been
-# dropped from basics.nix; the homelab cache is a VM and goes away on its own.
+# dropped from basics.nix, as has the homelab attic, but a cachix can go down
+# just as easily.
 #
 # So probe each configured cache and hand nix only the ones that respond. An
 # outage then degrades to "build those paths locally" instead of killing the

@@ -19,10 +19,6 @@ in {
   "secrets/hf-token.age".publicKeys = allKeys;
   # Format AXON_GATEWAY_TOKEN=ABC123
   "secrets/axon-gateway-env.age".publicKeys = allKeys;
-  # Push token for the homelab attic binary cache (raw token, no key=value
-  # wrapping -- read directly by the nix post-build-hook script).
-  # Edit with: agenix -e secrets/attic-token.age
-  "secrets/attic-token.age".publicKeys = allKeys;
   # Nebula host private keys for wotan, one per tenant overlay (raw
   # nebula-cert PEM, as written by `nebula-cert sign -out-key`). The matching
   # public certs live in hosts/wotan/nebula/. See todo/nebula-clients.md.
