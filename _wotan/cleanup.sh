@@ -39,9 +39,20 @@ cleanup_task() {
   ) </dev/null >"/tmp/cleanup_${name}.log" 2>&1
 }
 
-# Rust build artifacts (huge space hogs)
+# Rust build artifacts (huge space hogs) - only purge targets over 5 GiB
 echo 'Cleaning Rust build artifacts...'
-cleanup_task rust find ~/code/rust -type d -name target -prune -exec rm -rf {} + 2>/dev/null || true
+# shellcheck disable=SC2016 # expansion is intentional in the inner shell
+cleanup_task rust bash -c '
+  find ~/code/rust -type d -name target -prune -print0 2>/dev/null |
+    while IFS= read -r -d "" dir; do
+      size_kb=$(du -sk "$dir" 2>/dev/null | cut -f1)
+      [ -n "$size_kb" ] || continue
+      if [ "$size_kb" -gt 5242880 ]; then
+        echo "Removing $dir ($((size_kb / 1024)) MiB)"
+        rm -rf "$dir"
+      fi
+    done
+' 2>/dev/null || true
 
 # Container cleanup
 if command -v podman >/dev/null 2>&1; then
@@ -50,11 +61,6 @@ fi
 
 if command -v docker >/dev/null 2>&1; then
   cleanup_task docker docker system prune -f --volumes 2>/dev/null || true
-fi
-
-# Flatpak cleanup
-if command -v flatpak >/dev/null 2>&1; then
-  cleanup_task flatpak flatpak uninstall --unused -y 2>/dev/null || true
 fi
 
 # Journal cleanup
