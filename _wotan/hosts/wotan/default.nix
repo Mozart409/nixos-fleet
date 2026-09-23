@@ -57,6 +57,10 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 5;
 
+  # /tmp lives on the root partition, so nothing resets it between the daily
+  # systemd-tmpfiles pass (q /tmp ... 10d). Wipe it on boot instead.
+  boot.tmp.cleanOnBoot = true;
+
   # Enable aarch64 emulation for cross-compilation (e.g., building aarch64 ISOs)
   boot.binfmt.emulatedSystems = ["aarch64-linux"];
 
