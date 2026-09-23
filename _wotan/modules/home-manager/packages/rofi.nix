@@ -49,5 +49,32 @@ in {
         ];
       };
     };
+
+    # rofi -password (what pinentry-rofi uses) masks input with literal '*'.
+    # Berkeley Mono's calt ligates a run of exactly three asterisks into a
+    # single glyph one cell wide (advance 600) with a -920 left side bearing,
+    # so it draws backwards over the two preceding cells -- a 3-character
+    # passphrase prefix renders as an overlapping cluster instead of "***".
+    # Four or more asterisks are suppressed by the font's own chain context,
+    # which is why the field looks normal again from the fourth keystroke.
+    # Scoped to rofi by prgname so terminal and editor ligatures are untouched;
+    # ligatures buy nothing in a launcher anyway.
+    xdg.configFile."fontconfig/conf.d/99-rofi-no-ligatures.conf".text = ''
+      <?xml version="1.0"?>
+      <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+      <fontconfig>
+        <match target="font">
+          <test target="pattern" name="prgname" compare="eq">
+            <string>rofi</string>
+          </test>
+          <test name="family" compare="eq">
+            <string>Berkeley Mono</string>
+          </test>
+          <edit name="fontfeatures" mode="append">
+            <string>calt off</string>
+          </edit>
+        </match>
+      </fontconfig>
+    '';
   };
 }
