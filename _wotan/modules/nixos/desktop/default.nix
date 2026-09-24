@@ -204,6 +204,28 @@
         openFirewall = true;
       };
 
+      # Clear a stale PID file before starting avahi, or an unclean exit locks
+      # the service out permanently and takes every later rebuild with it.
+      #
+      # The unit has no RuntimeDirectory=, so /run/avahi-daemon survives a
+      # daemon that dies without cleaning up. avahi cannot recover on its own:
+      # libdaemon's daemon_pid_file_remove() only unlinks a PID file that
+      # contains its *own* pid -- a guard against killing another instance --
+      # so a file holding a dead pid is never removed. The restart logs
+      # "trying to remove PID file", fails to, then dies on "Failed to create
+      # PID file: File exists" with status 255. That makes `nixos-rebuild
+      # switch` fail activation (exit 4) on every run until /run is cleaned by
+      # hand or by a reboot.
+      #
+      # RuntimeDirectory= would be the tidier fix but systemd would then wipe
+      # the directory on stop, taking /run/avahi-daemon/socket -- owned by
+      # avahi-daemon.socket, which this unit Requires= -- with it. ExecStartPre
+      # only ever runs when systemd has already established the unit is not
+      # running, so removing the file here cannot race a live daemon.
+      systemd.services.avahi-daemon.serviceConfig.ExecStartPre = [
+        "-${pkgs.coreutils}/bin/rm -f /run/avahi-daemon/pid"
+      ];
+
       # Systemd service to unblock Bluetooth automatically
       systemd.services.unblock-bluetooth = {
         description = "Unblock Bluetooth device";
