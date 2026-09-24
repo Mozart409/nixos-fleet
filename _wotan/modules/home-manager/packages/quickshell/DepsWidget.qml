@@ -4,14 +4,22 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-// Which of this flake's direct inputs have actually moved upstream.
+// Which of this flake's direct inputs have meaningfully moved upstream.
 //
-// The signal is `locked rev != upstream HEAD`, computed by the flake-drift
-// script. It is deliberately NOT lock age: agenix has sat at upstream HEAD for
-// 219 days and rose-pine-hyprcursor for 474, because those projects are
-// finished or dormant. An age-ranked board would paint both permanently red
-// with nothing to do about it, which is how you train yourself to ignore a
-// widget.
+// The gate is `locked rev != upstream HEAD`, computed by the flake-drift
+// script. It is deliberately NOT lock age on its own: agenix has sat at
+// upstream HEAD for 232 days and rose-pine-hyprcursor for 487, because those
+// projects are finished or dormant. An age-ranked board would paint both
+// permanently red with nothing to do about it, which is how you train yourself
+// to ignore a widget.
+//
+// Raw drift alone fails the same way from the other side. nixpkgs follows
+// nixos-unstable, which lands a channel commit several times a day, so it goes
+// "behind" within hours of every update -- an amber you cannot clear by
+// updating, which reads as broken. So drift is the gate and lock age is the
+// threshold: only inputs that have moved AND whose lock is older than
+// graceDays get a row. Drifted-but-fresh inputs are still counted and named on
+// the quiet line -- nothing that has moved is ever claimed current.
 //
 // Only direct inputs are considered. Transitive nodes (`systems`,
 // `flake-utils`) are pinned by other flakes, are years old by design, and are
@@ -30,7 +38,14 @@ Variants {
     property bool ok: true
     property bool everRan: false
 
-    readonly property var behind: inputs.filter(i => i.behind === true)
+    property real graceDays: 3
+
+    // What the board is about: moved upstream and the lock is old enough that
+    // pulling it in is worth a rebuild.
+    readonly property var stale: inputs.filter(i => i.stale === true)
+    // Moved upstream, but you are already within graceDays of it. Reported,
+    // not escalated.
+    readonly property var drifting: inputs.filter(i => i.behind === true && i.stale !== true)
     readonly property var unknown: inputs.filter(i => i.unreachable === true)
     readonly property int current: inputs.filter(i => i.behind === false).length
 
@@ -69,6 +84,7 @@ Variants {
             const parsed = JSON.parse(raw);
             panel.ok = parsed.ok === true;
             panel.inputs = parsed.inputs ?? [];
+            panel.graceDays = parsed.graceDays ?? panel.graceDays;
           } catch (e) {
             panel.ok = false;
           }
@@ -107,7 +123,7 @@ Variants {
       border.color: {
         if (!panel.ok)
           return Qt.alpha(Theme.muted, 0.5);
-        if (panel.behind.length > 0)
+        if (panel.stale.length > 0)
           return Qt.alpha(Theme.warn, 0.5);
         return Qt.alpha(Theme.good, 0.35);
       }
@@ -155,12 +171,12 @@ Variants {
                 return "checking";
               if (!panel.ok)
                 return "check failed";
-              return panel.behind.length > 0 ? `${panel.behind.length} behind` : "all current";
+              return panel.stale.length > 0 ? `${panel.stale.length} behind` : "all current";
             }
             color: {
               if (!panel.everRan || !panel.ok)
                 return Theme.muted;
-              return panel.behind.length > 0 ? Theme.warn : Theme.good;
+              return panel.stale.length > 0 ? Theme.warn : Theme.good;
             }
             font.family: Theme.font
             font.pixelSize: Theme.deskSmall
@@ -172,7 +188,7 @@ Variants {
           Layout.fillWidth: true
           height: 1
           color: Qt.alpha(Theme.text, 0.1)
-          visible: panel.behind.length > 0 || panel.unknown.length > 0
+          visible: panel.stale.length > 0 || panel.drifting.length > 0 || panel.unknown.length > 0
         }
 
         // Only inputs with something to do get a row. Everything sitting at
@@ -180,10 +196,10 @@ Variants {
         ColumnLayout {
           Layout.fillWidth: true
           spacing: 5
-          visible: panel.behind.length > 0
+          visible: panel.stale.length > 0
 
           Repeater {
-            model: panel.behind
+            model: panel.stale
 
             RowLayout {
               id: behindRow
@@ -220,6 +236,31 @@ Variants {
           }
         }
 
+        // Inputs that moved but whose lock is still inside the grace window.
+        // Named rather than hidden -- the point of the window is to stop this
+        // demanding action, not to pretend it did not happen.
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: 6
+          visible: panel.drifting.length > 0
+
+          Rectangle {
+            width: 7
+            height: 7
+            radius: 3.5
+            color: Qt.alpha(Theme.muted, 0.7)
+          }
+
+          Text {
+            Layout.fillWidth: true
+            text: panel.drifting.map(i => i.name).join(", ") + " moved, lock still fresh"
+            color: Theme.muted
+            font.family: Theme.font
+            font.pixelSize: Theme.deskMeta
+            elide: Text.ElideRight
+          }
+        }
+
         // Inputs we could not reach are called out separately -- reporting them
         // as current would be the one answer that makes this widget lie.
         RowLayout {
@@ -251,11 +292,13 @@ Variants {
               return "checking upstream…";
             if (!panel.ok)
               return "flake-drift failed";
-            if (panel.behind.length === 0)
+            if (panel.stale.length === 0 && panel.drifting.length === 0)
               return `all ${panel.current} inputs at upstream HEAD`;
+            if (panel.stale.length === 0)
+              return `${panel.current} inputs at upstream HEAD · nothing older than ${panel.graceDays}d`;
             return `${panel.current} others current`;
           }
-          color: panel.ok && panel.behind.length === 0 ? Theme.good : Theme.muted
+          color: panel.ok && panel.stale.length === 0 ? Theme.good : Theme.muted
           font.family: Theme.font
           font.pixelSize: Theme.deskMeta
           wrapMode: Text.WordWrap

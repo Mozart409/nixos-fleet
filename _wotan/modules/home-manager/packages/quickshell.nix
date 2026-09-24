@@ -39,7 +39,8 @@
   # pool -- 2s instead of 7s, and not something to write twice-escaped inside
   # QML.
   flake-drift = pkgs.writeShellScriptBin "flake-drift" ''
-    exec ${pkgs.python3}/bin/python3 ${./quickshell-flake-drift.py} "$@"
+    exec ${pkgs.python3}/bin/python3 ${./quickshell-flake-drift.py} \
+      --grace-days ${toString cfg.flakeDriftGraceDays} "$@"
   '';
 
   # Runtime dependencies for shell scripts and widgets. The resource widgets
@@ -167,6 +168,26 @@ in {
       until you rebuild, so leave it off unless you are actively working on
       the widgets
     '';
+
+    flakeDriftGraceDays = lib.mkOption {
+      type = lib.types.number;
+      default = 3;
+      description = ''
+        How stale a drifted input's lock must be before DepsWidget counts it
+        as something to act on.
+
+        Drift alone ("locked rev != upstream HEAD") becomes true of any input
+        tracking a fast-moving branch within hours of every update -- nixpkgs
+        follows nixos-unstable, which lands a channel commit several times a
+        day -- so an ungated drift count sits permanently amber no matter how
+        often you update, which is a board you learn to ignore. Gating on lock
+        age keeps the honest half of the signal (nothing drifted is ever shown
+        as current; it stays listed, just demoted) while letting a machine
+        that updates regularly actually read "all current".
+
+        Raise it if you update less often than every few days.
+      '';
+    };
 
     sourcePath = lib.mkOption {
       type = lib.types.str;
