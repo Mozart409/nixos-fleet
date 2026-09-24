@@ -12,11 +12,13 @@
     discord
     haruna
     jellyfin-mpv-shim
+    kdePackages.okular # fillable PDF forms
     lutris-unwrapped
     obsidian
     pavucontrol
     proton-pass
     signal-desktop
+    xournalpp # annotate flat/scanned PDFs
     # keep-sorted end
   ];
 }
