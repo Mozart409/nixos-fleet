@@ -58,9 +58,12 @@
       # home-manager's services.dunst installs the package itself when it is
       # the selected backend -- see modules/home-manager/packages/notifications.nix.
 
-      # Hyprland plugins
-      # inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprbars
-      # hyprtrails disabled: incompatible with hyprland 0.54.0 (missing IPassElement::type() impl)
+      # Hyprland plugins are NOT installed here, and do not add a plugin flake
+      # input like `hyprland-plugins` (it would be built against the upstream
+      # hyprland flake, not the nixpkgs hyprland we run). They come from
+      # pkgs.hyprlandPlugins and are loaded from the home-manager side -- see
+      # the plugin list in modules/home-manager/packages/hyprland-configs.nix.
+
       # Theming
       qt6.qtwayland
       libsForQt5.qtwayland

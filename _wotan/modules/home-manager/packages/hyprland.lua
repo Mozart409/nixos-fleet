@@ -41,6 +41,21 @@ else
     })
 end
 
+-- plugins.lua is generated the same way: hl.plugin.load calls with the
+-- nix-store paths of the plugins listed (and explained, including how to add
+-- one) in modules/home-manager/packages/hyprland-configs.nix. Their
+-- configuration is in the PLUGINS section at the end of this file.
+local pluginsPath = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/plugins.lua"
+local pluginsChunk, pluginsErr = loadfile(pluginsPath)
+if pluginsChunk then
+    pluginsChunk()
+else
+    hl.notification.create({
+        text = "hyprland.lua: could not load " .. pluginsPath .. " -- plugins are NOT loaded (" .. tostring(pluginsErr) .. ")",
+        time = 15000,
+    })
+end
+
 ---------------
 ---- INPUT ----
 ---------------
@@ -366,3 +381,116 @@ hl.window_rule({
     match = { content = "game" },
     immediate = true,
 })
+
+-----------------
+---- PLUGINS ----
+-----------------
+
+-- The plugins are loaded by plugins.lua (top of this file); which plugins,
+-- and how to add one, is documented in
+-- modules/home-manager/packages/hyprland-configs.nix. In short: take them
+-- from pkgs.hyprlandPlugins, never from the `hyprland-plugins` flake input.
+--
+-- Every block below is guarded with `if hl.plugin.<namespace> then`.
+-- hl.plugin.load only registers a path: Hyprland loads the plugins after this
+-- file has run once and then re-runs it. On that first pass the plugin's
+-- namespace and its `plugin.<name>` config keys do not exist yet, so
+-- unguarded plugin config would error (or, if a plugin failed to build/load,
+-- take the whole config down with it).
+
+-- hyprtasking: workspace overview. SUPER+O opens it on the monitor under the
+-- cursor; left-drag moves windows between workspaces, right-click switches.
+-- The grid is filled with the workspaces bound to that monitor by host.lua
+-- (1-5 / 6-10); 1x5 matches that exactly, so the overview never invents extra
+-- workspaces for empty slots.
+if hl.plugin.hyprtasking then
+    hl.config({
+        plugin = {
+            hyprtasking = {
+                layout = "grid",
+                gap_size = 10,
+                border_size = 2,
+                bg_color = 0xff1a1a1a,
+                gestures = { enabled = false },
+                grid = { rows = 1, cols = 5, layers = 1, loop = false },
+            },
+        },
+    })
+    hl.bind(mainMod .. " + O", function() hl.plugin.hyprtasking.toggle("cursor") end)
+    -- Escape closes the overview; non_consuming so it still reaches the
+    -- focused app when the overview is not open
+    hl.bind("escape", function()
+        if hl.plugin.hyprtasking.is_active() then
+            hl.plugin.hyprtasking.toggle("all")
+        end
+    end, { non_consuming = true })
+end
+
+-- hypr-dynamic-cursors: the cursor tilts with horizontal movement, and
+-- shaking it magnifies it (shake to find) -- both are the plugin defaults.
+if hl.plugin.dynamic_cursors then
+    hl.config({
+        plugin = {
+            dynamic_cursors = {
+                enabled = true,
+                mode = "tilt",
+                shake = { enabled = true },
+            },
+        },
+    })
+end
+
+-- hyprfocus: flashes the newly focused window on keyboard-driven focus
+-- changes (mouse focus stays unanimated so follow_mouse does not flicker).
+if hl.plugin.hyprfocus then
+    hl.config({
+        plugin = {
+            hyprfocus = {
+                keyboard_focus_animation = "flash",
+                mouse_focus_animation = "none",
+            },
+        },
+    })
+end
+
+-- hypr-darkwindow: SUPER+I toggles colour inversion on the active window,
+-- a forced dark mode for apps that only have a light theme. Pressing it again
+-- removes the shader.
+if hl.plugin.darkwindow then
+    hl.config({ plugin = { darkwindow = { load_shaders = "invert" } } })
+    hl.bind(mainMod .. " + I", hl.plugin.darkwindow.dsp_shade({ shader = "invert" }))
+end
+
+-- hyprbars: title bars with a close and a maximize button; double-click the
+-- bar to maximize. Button actions are shell commands, and `hyprctl dispatch`
+-- takes Lua since 0.56, hence the hl.dsp strings.
+if hl.plugin.hyprbars then
+    hl.config({
+        plugin = {
+            hyprbars = {
+                bar_height = 22,
+                bar_color = 0xff1a1a1a,
+                ["col.text"] = 0xffcccccc,
+                bar_text_font = "Berkeley Mono",
+                bar_text_size = 10,
+                bar_part_of_window = true,
+                bar_precedence_over_border = true,
+                on_double_click = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\" })'",
+            },
+        },
+    })
+    hl.plugin.hyprbars.add_button({
+        bg_color = "rgb(ff5f57)",
+        fg_color = "rgb(1a1a1a)",
+        size = 12,
+        icon = "",
+        action = "hyprctl dispatch 'hl.dsp.window.close()'",
+    })
+    hl.plugin.hyprbars.add_button({
+        bg_color = "rgb(febc2e)",
+        fg_color = "rgb(1a1a1a)",
+        size = 12,
+        icon = "",
+        action = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\" })'",
+    })
+end
