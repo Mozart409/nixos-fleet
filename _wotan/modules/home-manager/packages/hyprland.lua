@@ -198,9 +198,32 @@ hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.move({ direction = "left" })
 hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" }))
 hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.move({ direction = "down" }))
 
--- Swap the active workspaces of the two monitors ("+1" wraps, so with two
--- monitors it is always the other one)
-hl.bind(mainMod .. " + SHIFT + up", hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" }))
+-- Swap the windows of the two monitors' active workspaces; the workspace
+-- numbers stay on their monitor. A bare swap_monitors moves the workspace
+-- objects, numbers included, which strands e.g. workspace 1 on the right
+-- monitor: the per-monitor bar and SUPER+<number> then point at a workspace
+-- that is not where they expect it. So swap, then trade the two ids back
+-- (via a temporary id -- change_id refuses an id that is taken). Moving the
+-- workspaces rather than the windows keeps each dwindle layout intact.
+local swapTempId = 9999
+hl.bind(mainMod .. " + SHIFT + up", function()
+    local here = hl.get_active_workspace()
+    local other
+    for _, m in ipairs(hl.get_monitors()) do
+        if not m.focused then
+            other = m.active_workspace
+        end
+    end
+    -- Named/special workspaces have ids <= 0, which change_id cannot touch
+    if not here or not other or here.id <= 0 or other.id <= 0 then
+        return
+    end
+    local a, b = here.id, other.id
+    hl.dispatch(hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" }))
+    hl.dispatch(hl.dsp.workspace.change_id({ workspace = a, id = swapTempId }))
+    hl.dispatch(hl.dsp.workspace.change_id({ workspace = b, id = a }))
+    hl.dispatch(hl.dsp.workspace.change_id({ workspace = swapTempId, id = b }))
+end)
 
 -- Push window to the previous/next monitor unconditionally (works for tiled
 -- and fullscreen windows, e.g. moving a fullscreen video). The Lua
