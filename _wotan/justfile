@@ -25,6 +25,8 @@ build-home:
 # Update flake inputs
 update:
     nix flake update --accept-flake-config
+    git add flake.lock
+    git commit -m "chore(deps): upgrade flake"
 
 # Update specific flake input
 update-input input:
