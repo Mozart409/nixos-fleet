@@ -292,6 +292,14 @@ hl.workspace_rule({
     on_created_empty = "kitty --class dashboard btop & sleep 0.3; kitty --class dashboard nvtop",
 })
 
+-- Red border on scratchpad (any special workspace) windows, so it is obvious
+-- the overlay is up rather than a regular workspace
+hl.window_rule({
+    name = "scratchpad-border",
+    match = { workspace = "s[true]" },
+    border_color = "rgb(ff3333)",
+})
+
 -- Small utility / dialog windows float centered instead of splitting a tile
 hl.window_rule({
     name = "float-utilities",
