@@ -165,8 +165,11 @@ hl.bind(mainMod .. " + down", hl.dsp.focus({ direction = "down" }))
 -- when there is no window in that direction
 hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.move({ direction = "left" }))
 hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" }))
-hl.bind(mainMod .. " + SHIFT + up", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.move({ direction = "down" }))
+
+-- Swap the active workspaces of the two monitors ("+1" wraps, so with two
+-- monitors it is always the other one)
+hl.bind(mainMod .. " + SHIFT + up", hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" }))
 
 -- Push window to the previous/next monitor unconditionally (works for tiled
 -- and fullscreen windows, e.g. moving a fullscreen video). The Lua
