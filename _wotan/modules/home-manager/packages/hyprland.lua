@@ -283,6 +283,15 @@ hl.window_rule({
     no_initial_focus = true,
 })
 
+-- Scratchpad doubles as a system dashboard: the first SUPER+S spawns btop and
+-- nvtop side by side (dwindle splits the wide monitor horizontally); later
+-- toggles just show/hide them. Which side each lands on follows the cursor
+-- (dwindle splits toward it).
+hl.workspace_rule({
+    workspace = "special:scratch",
+    on_created_empty = "kitty --class dashboard btop & sleep 0.3; kitty --class dashboard nvtop",
+})
+
 -- Small utility / dialog windows float centered instead of splitting a tile
 hl.window_rule({
     name = "float-utilities",
