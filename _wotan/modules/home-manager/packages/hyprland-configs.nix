@@ -61,7 +61,7 @@
         hash = "sha256-BQjuQplkQFA30/7evDxmEAvr2ArIG09JffEBQhuzo80=";
       };
     })
-    hyprfocus
+    # hyprfocus
     hypr-darkwindow
     hyprbars
   ];
