@@ -262,7 +262,9 @@ hl.bind(mainMod .. " + SHIFT + G", hl.dsp.window.move({ out_of_group = true }))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("audio-switch"))
 hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd("pwvucontrol"))
 
--- Workspace bindings (number row: code:10-18)
+-- Workspace bindings (number row: code:10-18 = 1-9). Deliberately no bind
+-- for workspace 10: it is not needed. host.lua still binds it to the right
+-- monitor, but the bar leaves it out (showInBar in hosts/wotan/home.nix).
 for i = 0, 8 do
     local ws = i + 1
     hl.bind(mainMod .. " + code:1" .. i, hl.dsp.focus({ workspace = ws }))
