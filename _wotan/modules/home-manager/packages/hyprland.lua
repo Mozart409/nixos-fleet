@@ -325,18 +325,6 @@ hl.window_rule({
     immediate = true,
 })
 
--- No gaps/border/rounding when a workspace has a single tiled window
+-- No gaps when a workspace has a single tiled window (border stays)
 hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
 hl.workspace_rule({ workspace = "f[1]", gaps_out = 0, gaps_in = 0 })
-hl.window_rule({
-    name = "single-tiled-no-border",
-    match = { float = false, workspace = "w[tv1]" },
-    border_size = 0,
-    rounding = 0,
-})
-hl.window_rule({
-    name = "maximized-no-border",
-    match = { float = false, workspace = "f[1]" },
-    border_size = 0,
-    rounding = 0,
-})
