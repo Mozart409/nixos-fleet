@@ -72,6 +72,21 @@ hl.config({
         },
         layout = "dwindle",
         resize_on_border = false,
+        -- Only windows with the `immediate` rule (games, see below) tear
+        allow_tearing = true,
+    },
+
+    dwindle = {
+        preserve_split = true,
+    },
+
+    misc = {
+        disable_hyprland_logo = true,
+        disable_splash_rendering = true,
+        focus_on_activate = true,
+        -- VRR only for fullscreen windows: always-on VRR flickers on NVIDIA
+        -- with a mostly static desktop. 2 = fullscreen (Lua rejects the name)
+        vrr = 2,
     },
 
     decoration = {
@@ -92,6 +107,13 @@ hl.config({
         no_hardware_cursors = 1,
     },
 })
+
+hl.curve("easeOutQuint", { type = "bezier", points = { { 0.23, 1 }, { 0.32, 1 } } })
+hl.curve("snappy", { type = "bezier", points = { { 0.05, 0.9 }, { 0.1, 1.0 } } })
+hl.animation({ leaf = "windows", enabled = true, speed = 4, bezier = "easeOutQuint" })
+hl.animation({ leaf = "fade", enabled = true, speed = 3, bezier = "easeOutQuint" })
+hl.animation({ leaf = "border", enabled = true, speed = 6, bezier = "easeOutQuint" })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "snappy" })
 
 -------------------------------
 ---- ENVIRONMENT VARIABLES ----
@@ -128,9 +150,6 @@ hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("kitty"))
 -- Browser
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd("brave"))
 
--- Text editor
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("neovim"))
-
 -- File manager
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))
 
@@ -142,6 +161,18 @@ hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("previous-wallpaper"))
 hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region --freeze -o ~/Pictures/hyprshot"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("hyprshot -m window -o ~/Pictures/hyprshot"))
 hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output --freeze -o ~/Pictures/hyprshot"))
+-- Region screenshot opened in satty for annotation (save/copy from satty)
+hl.bind("CTRL + Print", hl.dsp.exec_cmd("hyprshot -m region --freeze --raw | satty --filename - --output-filename ~/Pictures/hyprshot/satty-%Y%m%d-%H%M%S.png --copy-command wl-copy"))
+
+-- Color picker (copies hex to clipboard)
+hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
+
+-- Clipboard history (cliphist is fed by the home-manager cliphist service)
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu -display-columns 2 -p clipboard | cliphist decode | wl-copy"))
+
+-- Scratchpad: overlay workspace toggled over whatever is on screen
+hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("scratch"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratch" }))
 
 -- Lockscreen
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
@@ -186,6 +217,12 @@ hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"))
 hl.bind("XF86AudioStop", hl.dsp.exec_cmd("playerctl stop"))
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"))
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"))
+
+-- Volume keys (work on the lock screen, repeat when held; capped at 100%)
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
 
 -- Hyprsunset temperature adjustment (+/- 500K)
 hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("hyprctl hyprsunset temperature +500"))
@@ -244,4 +281,62 @@ hl.window_rule({
     no_anim = true,
     pin = true,
     no_initial_focus = true,
+})
+
+-- Small utility / dialog windows float centered instead of splitting a tile
+hl.window_rule({
+    name = "float-utilities",
+    match = { class = "(?i)(com\\.saivert\\.pwvucontrol|org\\.pulseaudio\\.pavucontrol|blueman-manager|nm-connection-editor|xdg-desktop-portal-gtk|org\\.gnome\\.Calculator)" },
+    float = true,
+    center = true,
+})
+hl.window_rule({
+    name = "float-dialogs",
+    match = { title = "(?i)^(open|save|choose|select).*(file|folder|files).*" },
+    float = true,
+    center = true,
+})
+
+-- Picture-in-Picture video stays on top across workspaces
+hl.window_rule({
+    name = "pip",
+    match = { title = "(?i)^picture[- ]in[- ]picture$" },
+    float = true,
+    pin = true,
+    keep_aspect_ratio = true,
+})
+
+-- Any fullscreen window (games, videos) blocks hypridle's dim/lock/suspend
+hl.window_rule({
+    name = "idle-inhibit-fullscreen",
+    match = { class = ".*" },
+    idle_inhibit = "fullscreen",
+})
+
+-- Games may tear (general.allow_tearing) for lowest input latency
+hl.window_rule({
+    name = "tearing-steam-games",
+    match = { class = "steam_app_.*" },
+    immediate = true,
+})
+hl.window_rule({
+    name = "tearing-game-content",
+    match = { content = "game" },
+    immediate = true,
+})
+
+-- No gaps/border/rounding when a workspace has a single tiled window
+hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
+hl.workspace_rule({ workspace = "f[1]", gaps_out = 0, gaps_in = 0 })
+hl.window_rule({
+    name = "single-tiled-no-border",
+    match = { float = false, workspace = "w[tv1]" },
+    border_size = 0,
+    rounding = 0,
+})
+hl.window_rule({
+    name = "maximized-no-border",
+    match = { float = false, workspace = "f[1]" },
+    border_size = 0,
+    rounding = 0,
 })

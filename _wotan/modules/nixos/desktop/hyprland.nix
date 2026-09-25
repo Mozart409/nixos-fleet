@@ -31,6 +31,8 @@
       wl-clipboard
       cliphist
       playerctl
+      satty
+      hyprpicker
 
       # Bar and launcher
       rofi

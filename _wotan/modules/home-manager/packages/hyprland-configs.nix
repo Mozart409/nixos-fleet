@@ -210,6 +210,10 @@ in {
       Install.WantedBy = ["graphical-session.target"];
     };
 
+    # Clipboard history store (wl-paste --watch cliphist store); picker is the
+    # SUPER+SHIFT+V bind in hyprland.lua.
+    services.cliphist.enable = true;
+
     xdg.configFile."hypr/hypridle.conf".text = ''
       general {
           # Hyprland 0.56 evaluates `hyprctl dispatch` as Lua, so the old
