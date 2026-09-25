@@ -56,6 +56,10 @@
       window_padding_width = 5;
       hide_window_decorations = false;
       confirm_os_window_close = 0;
+      # Otherwise kitty restores the cached "window-state":"maximized" from
+      # ~/.cache/kitty/main.json and sends xdg_toplevel.set_maximized ~0.3s
+      # after mapping, covering every tiled window on the workspace.
+      remember_window_size = "no";
 
       # Scrollback
       scrollback_lines = 10000;
