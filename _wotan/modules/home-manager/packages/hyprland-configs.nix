@@ -47,7 +47,20 @@
   # Every package here installs lib/lib<pname>.so.
   plugins = with pkgs.hyprlandPlugins; [
     hyprtasking
-    hypr-dynamic-cursors
+    # nixpkgs' snapshot (2026-07-21) compiles against 0.56.2 but refuses to
+    # load ("unexpected function signature"): 0.56.2 added a bool parameter to
+    # CPointerManager::renderSoftwareCursorsFor. Pinned to the commit upstream
+    # maps to Hyprland v0.56.2 in its hyprpm.toml commit_pins. Drop the
+    # override once nixpkgs ships a newer snapshot.
+    (hypr-dynamic-cursors.overrideAttrs {
+      version = "0-unstable-2026-08-06";
+      src = pkgs.fetchFromGitHub {
+        owner = "VirtCode";
+        repo = "hypr-dynamic-cursors";
+        rev = "5a224284872208b5324759d535d65061043725de";
+        hash = "sha256-BQjuQplkQFA30/7evDxmEAvr2ArIG09JffEBQhuzo80=";
+      };
+    })
     hyprfocus
     hypr-darkwindow
     hyprbars
