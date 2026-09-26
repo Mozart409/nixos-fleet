@@ -10,6 +10,7 @@
     basalt
     comet-gog
     discord
+    drawio
     haruna
     jellyfin-mpv-shim
     kdePackages.okular # fillable PDF forms
