@@ -186,3 +186,7 @@ Each host can override or extend the shared configuration:
 - Automatic garbage collection is configured weekly
 - Development shell provides helpful commands and tools
 - Git hooks ensure configuration quality
+
+```sh
+hyprctl eval 'hl.config({ input = { kb_layout = "de" } })'
+```
