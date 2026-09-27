@@ -20,7 +20,6 @@
     dprint
     eza
     gnused
-    insomnia
     jq
     keep-sorted
     lefthook

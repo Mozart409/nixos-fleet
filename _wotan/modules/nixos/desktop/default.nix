@@ -176,6 +176,10 @@
         # Location services
         geoclue2.enable = true;
 
+        # Speech synthesis is on by default for graphical desktops; nothing
+        # here uses it and espeak-ng drags in ~650 MiB of mbrola voices.
+        speechd.enable = false;
+
         # Time synchronization
         timesyncd.enable = true;
 

@@ -39,8 +39,8 @@
 
       # XCursor fallback for apps that don't support hyprcursor (GTK, Qt)
       cursorTheme = {
-        name = "Bibata-Modern-Ice";
-        package = pkgs.bibata-cursors;
+        name = "catppuccin-mocha-dark-cursors";
+        package = pkgs.catppuccin-cursors.mochaDark;
         size = 24;
       };
 
@@ -56,7 +56,7 @@
     home.packages = with pkgs; [
       # keep-sorted start
       # XCursor fallback
-      bibata-cursors
+      catppuccin-cursors.mochaDark
       # Active icon theme
       colloid-icon-theme
       # Hyprcursor theme
@@ -72,7 +72,7 @@
       HYPRCURSOR_THEME = "rose-pine-hyprcursor";
       HYPRCURSOR_SIZE = "24";
       # XCursor fallback for GTK/Qt apps
-      XCURSOR_THEME = "Bibata-Modern-Ice";
+      XCURSOR_THEME = "catppuccin-mocha-dark-cursors";
       XCURSOR_SIZE = "24";
     };
   };

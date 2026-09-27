@@ -37,9 +37,6 @@
       papirus-icon-theme
       adwaita-icon-theme
 
-      # Cursor themes
-      bibata-cursors
-
       # GTK themes
       adwaita-qt
     ];

@@ -11,8 +11,6 @@
     allowUnfree = true;
     cudaSupport = true;
     permittedInsecurePackages = [
-      # anytype currently links against EOL Electron; upstream controls bumps.
-      "electron-39.8.10"
       # vLLM 0.16.0 — three CVEs documented in modules/nixos/vllm.nix.
       # Mitigations: loopback-only bind, trusted-repo-only models. Drop when
       # nixpkgs ships vllm >= 0.20.0.
