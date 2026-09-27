@@ -34,8 +34,6 @@
     pwgen
     python3
     python314Packages.huggingface-hub
-    radicle-desktop
-    radicle-tui
     rainfrog
     rustscan
     tpi
