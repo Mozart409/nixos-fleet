@@ -157,12 +157,33 @@
         tmux new-session -A -s "$name"
       }
 
-      # `tk` kills the tmux session for the current directory (run from shell).
+      # `tc` / `to`: like `t`, but window 1 runs claude / opencode, window 2 is
+      # a plain shell and window 3 runs lazygit. Session "<dir>-claude" /
+      # "<dir>-opencode", which the tmux session-created hook skips (no nvim).
+      _tai() {
+        local name="''${''${PWD:t}//[.:]/_}-$2"
+        if ! tmux has-session -t "=$name" 2>/dev/null; then
+          tmux new-session -d -s "$name" -c "$PWD" \; \
+            send-keys -t "=$name:1" "$1" Enter \; \
+            new-window -t "=$name" -c "$PWD" \; \
+            new-window -t "=$name" -c "$PWD" \; \
+            send-keys -t "=$name:3" lazygit Enter \; \
+            select-window -t "=$name:1"
+        fi
+        tmux attach-session -t "=$name"
+      }
+      tc() { _tai claude claude; }
+      to() { _tai opencode opencode; }
+
+      # `tk` kills the current directory's `t`, `tc` and `to` sessions (run from
+      # shell). `=` makes the target an exact match, not a name prefix.
       tk() {
-        local name="''${''${PWD:t}//[.:]/_}"
-        tmux kill-session -t "$name" 2>/dev/null \
-          && echo "killed tmux session: $name" \
-          || echo "no tmux session: $name"
+        local base="''${''${PWD:t}//[.:]/_}" name killed=0
+        for name in "$base" "$base-claude" "$base-opencode"; do
+          tmux kill-session -t "=$name" 2>/dev/null \
+            && echo "killed tmux session: $name" && killed=1
+        done
+        (( killed )) || echo "no tmux session: $base"
       }
     '';
   };
