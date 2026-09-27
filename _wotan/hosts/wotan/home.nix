@@ -101,7 +101,7 @@
   # };
 
   # Enable opencode custom commands
-  opencode.enable = false;
+  opencode.enable = true;
 
   # Encrypted per-project dotenv files (.sops.env) decrypted via gpg-agent.
   # Fingerprint = the primary key; gpg picks its encryption subkey.
