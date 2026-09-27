@@ -132,13 +132,6 @@
     fi
   '';
 
-  # Automatic Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-generations +3";
-  };
-
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
   programs.ssh = {
     enable = true;

@@ -37,13 +37,15 @@
     # build locally instead of aborting when substitution fails outright.
     connect-timeout = 5;
     fallback = true;
+    min-free = 20 * 1024 * 1024 * 1024;
+    max-free = 40 * 1024 * 1024 * 1024;
   };
 
   nix.gc = {
     automatic = true;
-    dates = "weekly";
+    dates = "daily";
     persistent = true;
-    options = "--delete-older-than 7d";
+    options = "--delete-generations +3";
   };
 
   programs.nh = {
