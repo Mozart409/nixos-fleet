@@ -38,7 +38,7 @@
 
     zinc-oxide = {
       url = "github:Mozart409/zinc_oxide";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Neovim (nixvim) configuration, moved out to its own public repo so it
