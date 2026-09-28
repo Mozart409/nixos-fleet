@@ -15,7 +15,11 @@
       lockFile = "${inputs.zinc-oxide}/Cargo.lock";
     };
 
+    buildFeatures = ["nix"];
+
     nativeBuildInputs = with pkgs; [
+      git
+      nix
       pkg-config
     ];
 
