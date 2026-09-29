@@ -39,9 +39,9 @@
       sessionUrl = false;
     };
     language = "english";
-    spinnerTipsEnabled = true;
+    spinnerTipsEnabled = false;
     autoUpdatesChannel = "stable";
-    cleanupPeriodDays = 7;
+    cleanupPeriodDays = 3;
     respectGitignore = true;
     outputStyle = "Concise";
   };

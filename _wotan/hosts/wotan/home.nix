@@ -12,6 +12,7 @@
     ../../modules/home-manager/node-security.nix
     ../../modules/home-manager/packages/browsers.nix
     ../../modules/home-manager/packages/chess.nix
+    ../../modules/home-manager/packages/claude.nix
     ../../modules/home-manager/packages/database.nix
     ../../modules/home-manager/packages/desktop.nix
     ../../modules/home-manager/packages/development.nix
