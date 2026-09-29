@@ -33,6 +33,18 @@
   envFile = pkgs.writeText "opencode-serve.env" ''
     OPENCODE_SERVER_PASSWORD=${cfg.password}
   '';
+
+  # Export raw-value secrets (files holding just the value, not KEY=value)
+  # from systemd credentials, then exec the server.
+  startScript = pkgs.writeShellScript "opencode-serve-start" ''
+    ${lib.concatStrings (lib.mapAttrsToList (name: _: ''
+        export ${name}="$(< "$CREDENTIALS_DIRECTORY/${name}")"
+      '')
+      cfg.credentialEnvironment)}
+    exec ${lib.getExe opencodePkg} ${lib.escapeShellArgs serveArgs}
+  '';
+
+  home = "/home/${cfg.user}";
 in {
   options.services.opencode-serve = {
     enable = lib.mkEnableOption "opencode headless server";
@@ -101,6 +113,43 @@ in {
         attached clients' shell environments are NOT visible to the server.
       '';
     };
+
+    credentialEnvironment = lib.mkOption {
+      type = lib.types.attrsOf lib.types.path;
+      default = {};
+      example = {CONTEXT7_API_KEY = "/run/agenix/context7-api-key";};
+      description = ''
+        Environment variables whose value is the whole content of a file
+        (raw secret, not KEY=value). Loaded via systemd LoadCredential, so the
+        source path can stay inaccessible to the sandboxed service.
+      '';
+    };
+
+    path = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "${home}/.nix-profile/bin"
+        "/etc/profiles/per-user/${cfg.user}/bin"
+        "/run/current-system/sw/bin"
+      ];
+      description = ''
+        PATH for the server and every shell command it runs. /run/wrappers/bin
+        (sudo & other setuid wrappers) is deliberately absent; NoNewPrivileges
+        would make them fail anyway.
+      '';
+    };
+
+    readWritePaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [home];
+      description = "Writable paths; the rest of the filesystem is read-only (ProtectSystem=strict).";
+    };
+
+    inaccessiblePaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Paths hidden from the server and all tools/commands it runs.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -109,14 +158,45 @@ in {
       wantedBy = ["multi-user.target"];
       after = ["network.target"];
 
+      environment = {
+        PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
+        EDITOR = "nvim";
+      };
+
+      # Every opencode tool call (shell, read, edit, MCP) runs inside this
+      # process tree, so the unit sandbox is the OS-level boundary for all of
+      # them — not just bash like Claude Code's sandbox.
       serviceConfig = {
-        ExecStart = "${lib.getExe opencodePkg} ${lib.escapeShellArgs serveArgs}";
+        ExecStart = startScript;
         Restart = "on-failure";
         RestartSec = 5;
         User = cfg.user;
         Group = "users";
-        WorkingDirectory = "/home/${cfg.user}";
+        WorkingDirectory = home;
         EnvironmentFile = lib.optional (cfg.password != "") envFile ++ cfg.environmentFiles;
+        LoadCredential = lib.mapAttrsToList (name: file: "${name}:${file}") cfg.credentialEnvironment;
+
+        # No root: sudo/setuid can't escalate, so nothing can switch the
+        # system (nixos-rebuild/nh os switch need root).
+        NoNewPrivileges = true;
+        RestrictSUIDSGID = true;
+        CapabilityBoundingSet = "";
+
+        ProtectSystem = "strict";
+        ReadWritePaths = cfg.readWritePaths;
+        # "-": don't fail the unit if a path doesn't exist.
+        InaccessiblePaths = map (p: "-${p}") cfg.inaccessiblePaths;
+        PrivateTmp = true;
+
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectKernelLogs = true;
+        ProtectControlGroups = true;
+        ProtectClock = true;
+        ProtectHostname = true;
+        LockPersonality = true;
+        RestrictRealtime = true;
+        # No MemoryDenyWriteExecute: bun's JIT needs W+X pages.
       };
     };
 
