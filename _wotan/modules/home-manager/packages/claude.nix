@@ -67,7 +67,9 @@
         "Read(~/.config/sops/age/**)"
         "Read(~/.config/age/**)"
         "Read(//etc/ssh/ssh_host_*)"
-        "Read(//run/agenix/**)"
+        # /run/agenix is a symlink to /run/agenix.d/<gen>; bwrap can't mount
+        # over a symlink, so deny the real directory.
+        "Read(//run/agenix.d/**)"
         "Read(**/.env*)"
         "Read(**/secrets/**)"
         "Read(**/.age*)"
