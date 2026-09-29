@@ -95,9 +95,7 @@
           alejandra
           shellcheck
           lefthook
-          opencode
           cocogitto
-          claude-code
           agenix.packages.${system}.default
         ];
         shellHook = ''

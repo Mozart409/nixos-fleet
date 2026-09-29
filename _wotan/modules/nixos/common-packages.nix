@@ -11,10 +11,12 @@
   environment.systemPackages = with pkgs; [
     # keep-sorted start
     alejandra
+    claude-code
     curl
     dig
     dust
     git
+    opencode
     pinentry-curses
     pinentry-gnome3
     vim # Essential editor
