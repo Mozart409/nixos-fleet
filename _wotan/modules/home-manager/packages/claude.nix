@@ -2,8 +2,23 @@
   config,
   pkgs,
   lib,
+  osConfig,
   ...
 }: let
+  # Commit signing via the signing-only agent from opencode-serve (see
+  # modules/nixos/opencode-serve.nix): Claude never gets the login keys.
+  signing = osConfig.services.opencode-serve.signing;
+  signingEnv = lib.optionalAttrs (signing.keyFile != null) {
+    SSH_AUTH_SOCK = "/run/opencode-signing/agent.sock";
+    GIT_CONFIG_COUNT = "3";
+    GIT_CONFIG_KEY_0 = "user.signingkey";
+    GIT_CONFIG_VALUE_0 = "key::${signing.publicKey}";
+    GIT_CONFIG_KEY_1 = "gpg.format";
+    GIT_CONFIG_VALUE_1 = "ssh";
+    GIT_CONFIG_KEY_2 = "commit.gpgsign";
+    GIT_CONFIG_VALUE_2 = "true";
+  };
+
   claudeSettings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
@@ -122,7 +137,8 @@
       # the build/eval/search ones. Everything else (just recipes, nix run,
       # ...) stays sandboxed, where sudo cannot escalate (no_new_privs), so
       # nothing can switch the system even if it slips past the deny rules.
-      # git commit needs gpg-agent + ~/.gnupg for signing.
+      # git commit needs the signing agent socket (seccomp blocks unix sockets
+      # inside the sandbox) and runs the lefthook hooks.
       excludedCommands = [
         "nix build *"
         "nix eval *"
@@ -150,12 +166,14 @@
       };
       filesystem.allowWrite = ["~/.cache"];
     };
-    env = {
-      CLAUDE_CODE_ENABLE_TELEMETRY = "0";
-      # Updates come from the flake, not the built-in updater.
-      DISABLE_AUTOUPDATER = "1";
-      EDITOR = "nvim";
-    };
+    env =
+      {
+        CLAUDE_CODE_ENABLE_TELEMETRY = "0";
+        # Updates come from the flake, not the built-in updater.
+        DISABLE_AUTOUPDATER = "1";
+        EDITOR = "nvim";
+      }
+      // signingEnv;
     includeGitInstructions = true;
     attribution = {
       commit = "";
