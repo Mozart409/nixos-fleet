@@ -45,6 +45,24 @@
   '';
 
   home = "/home/${cfg.user}";
+
+  signingEnabled = cfg.signing.keyFile != null;
+  signingSocket = "/run/opencode-signing/agent.sock";
+
+  # Dedicated agent holding ONLY the signing key. It runs outside the opencode
+  # sandbox (which hides ~/.ssh), so opencode can sign commits without ever
+  # reading the key, and without access to the user's login keys.
+  signingAgentScript = pkgs.writeShellScript "opencode-signing-agent" ''
+    rm -f ${signingSocket}
+    ${pkgs.openssh}/bin/ssh-agent -D -a ${signingSocket} &
+    pid=$!
+    for _ in {1..50}; do
+      [ -S ${signingSocket} ] && break
+      ${pkgs.coreutils}/bin/sleep 0.1
+    done
+    SSH_AUTH_SOCK=${signingSocket} ${pkgs.openssh}/bin/ssh-add -q ${lib.escapeShellArg cfg.signing.keyFile}
+    wait "$pid"
+  '';
 in {
   options.services.opencode-serve = {
     enable = lib.mkEnableOption "opencode headless server";
@@ -145,6 +163,24 @@ in {
       description = "Writable paths; the rest of the filesystem is read-only (ProtectSystem=strict).";
     };
 
+    signing = {
+      keyFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Private SSH key (passphrase-less, used ONLY for commit signing, not
+          registered for login anywhere) loaded into a dedicated agent. Keep it
+          under an inaccessiblePaths entry so opencode can't read it.
+        '';
+      };
+      publicKey = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "ssh-ed25519 AAAA... opencode-signing";
+        description = "Public half of signing.keyFile; git signs via the agent with it.";
+      };
+    };
+
     inaccessiblePaths = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
@@ -153,15 +189,49 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = signingEnabled -> cfg.signing.publicKey != null;
+        message = "services.opencode-serve.signing.publicKey must be set with signing.keyFile.";
+      }
+    ];
+
+    systemd.services.opencode-signing-agent = lib.mkIf signingEnabled {
+      description = "ssh-agent holding only the AI-agent (opencode, Claude Code) commit-signing key";
+      serviceConfig = {
+        ExecStart = signingAgentScript;
+        Restart = "on-failure";
+        User = cfg.user;
+        Group = "users";
+        RuntimeDirectory = "opencode-signing";
+        RuntimeDirectoryMode = "0700";
+      };
+    };
+
     systemd.services.opencode-serve = {
       description = "opencode headless server";
       wantedBy = ["multi-user.target"];
-      after = ["network.target"];
+      after = ["network.target"] ++ lib.optional signingEnabled "opencode-signing-agent.service";
+      requires = lib.optional signingEnabled "opencode-signing-agent.service";
 
-      environment = {
-        PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
-        EDITOR = "nvim";
-      };
+      environment =
+        {
+          PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
+          EDITOR = "nvim";
+        }
+        // lib.optionalAttrs signingEnabled {
+          # Only the signing agent: no login keys, so no SSH push either.
+          SSH_AUTH_SOCK = signingSocket;
+          # Env-level git config overrides ~/.config/git/config for every git
+          # run by opencode: sign with the dedicated key through the agent.
+          GIT_CONFIG_COUNT = "3";
+          GIT_CONFIG_KEY_0 = "user.signingkey";
+          GIT_CONFIG_VALUE_0 = "key::${cfg.signing.publicKey}";
+          GIT_CONFIG_KEY_1 = "gpg.format";
+          GIT_CONFIG_VALUE_1 = "ssh";
+          GIT_CONFIG_KEY_2 = "commit.gpgsign";
+          GIT_CONFIG_VALUE_2 = "true";
+        };
 
       # Every opencode tool call (shell, read, edit, MCP) runs inside this
       # process tree, so the unit sandbox is the OS-level boundary for all of
