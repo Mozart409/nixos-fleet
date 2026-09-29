@@ -65,6 +65,7 @@
         "Read(~/.claude/.credentials.json)"
         "Read(~/.local/share/opencode/auth.json)"
         "Read(~/.config/sops/age/**)"
+        "Read(~/.config/age/**)"
         "Read(//etc/ssh/ssh_host_*)"
         "Read(//run/agenix/**)"
         "Read(**/.env*)"
