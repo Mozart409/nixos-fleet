@@ -6,6 +6,7 @@
 }: {
   home.file.".ssh/allowed_signers".text = ''
     amadeus@mozart409.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan
+    amadeus@mozart409.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan
   '';
 
   programs = {

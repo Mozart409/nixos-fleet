@@ -222,6 +222,13 @@
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
     readWritePaths = ["/home/${username}" "/etc/nixos"];
+    # Signing-only key (not a login key anywhere) in its own agent, so opencode
+    # can sign commits but can't authenticate/push. Private key stays hidden
+    # (~/.ssh is in inaccessiblePaths).
+    signing = {
+      keyFile = "/home/${username}/.ssh/id_ed25519_signing";
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan";
+    };
     # systemd (PID 1) reads the secrets above before entering the sandbox, so
     # /run/agenix can be hidden from every tool. ~/.gnupg stays visible but
     # without private keys: signing goes through the (unsandboxed) gpg-agent.
