@@ -200,10 +200,12 @@
 
   # opencode headless server — persistent background service so every new
   # opencode session attaches to the same server instead of spawning a new one.
-  # The home-manager opencode module adds a shell alias (`opencode` → `opencode
-  # attach $OPENCODE_SERVER_URL --dir "$PWD"`) that makes this transparent.
+  # A zsh function in configs/shell.nix (`opencode` → `opencode attach
+  # $OPENCODE_SERVER_URL --dir "$PWD"`) makes this transparent. Commands run
+  # in the server's environment, not the attaching shell's: devshell/direnv
+  # tools are only available via `nix develop -c ...`.
   services.opencode-serve = {
-    enable = false;
+    enable = true;
     hostname = "127.0.0.1";
     port = 4096;
     user = username;
@@ -212,7 +214,26 @@
     # secrets referenced via {env:VAR} in opencode.json must be in the
     # service's environment. The agenix secret is already in KEY=value format.
     # NOTE: restart the service after re-encrypting the secret (token rotation).
-    environmentFiles = [config.age.secrets.axon-gateway-env.path];
+    environmentFiles = [
+      config.age.secrets.axon-gateway-env.path
+      # Basic auth; clients get it via OPENCODE_SERVER_PASSWORD (home.nix).
+      config.age.secrets.opencode-server-password.path
+    ];
+    # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
+    credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
+    readWritePaths = ["/home/${username}" "/etc/nixos"];
+    # systemd (PID 1) reads the secrets above before entering the sandbox, so
+    # /run/agenix can be hidden from every tool. ~/.gnupg stays visible but
+    # without private keys: signing goes through the (unsandboxed) gpg-agent.
+    inaccessiblePaths = [
+      "/run/agenix"
+      "/run/agenix.d"
+      "/home/${username}/.ssh"
+      "/home/${username}/.gnupg/private-keys-v1.d"
+      "/home/${username}/.config/sops/age"
+      "/home/${username}/.config/age"
+      "/home/${username}/.claude/.credentials.json"
+    ];
   };
 
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
@@ -326,11 +347,20 @@
     # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
   };
 
+  age.secrets.opencode-server-password = {
+    file = ../../secrets/opencode-server-password.age;
+    mode = "440";
+    owner = username;
+    group = "users";
+    # Format inside the file: OPENCODE_SERVER_PASSWORD=xxxx
+  };
+
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
     AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-gateway-env.path;
+    OPENCODE_SERVER_PASSWORD_FILE = config.age.secrets.opencode-server-password.path;
 
     # NVIDIA Wayland environment variables for better compatibility
     GBM_BACKEND = "nvidia-drm";

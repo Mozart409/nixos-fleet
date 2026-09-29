@@ -19,6 +19,10 @@ in {
   "secrets/hf-token.age".publicKeys = allKeys;
   # Format AXON_GATEWAY_TOKEN=ABC123
   "secrets/axon-gateway-env.age".publicKeys = allKeys;
+  # Basic-auth password for opencode-serve (server EnvironmentFile + clients).
+  # Format OPENCODE_SERVER_PASSWORD=xxxx
+  # Edit with: agenix -e secrets/opencode-server-password.age
+  "secrets/opencode-server-password.age".publicKeys = allKeys;
   # Nebula host private keys for wotan, one per tenant overlay (raw
   # nebula-cert PEM, as written by `nebula-cert sign -out-key`). The matching
   # public certs live in hosts/wotan/nebula/. See todo/nebula-clients.md.
