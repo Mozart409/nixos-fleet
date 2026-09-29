@@ -8,7 +8,20 @@
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
       allow = [
-        "Bash(nix *)"
+        # Nix: evaluate, build and search only. Anything that activates a
+        # generation is denied below.
+        "Bash(nix build *)"
+        "Bash(nix eval *)"
+        "Bash(nix flake *)"
+        "Bash(nix search *)"
+        "Bash(nix log *)"
+        "Bash(nix path-info *)"
+        "Bash(nix why-depends *)"
+        "Bash(nh search *)"
+        "Bash(nh os build*)"
+        "Bash(nh home build*)"
+        "Bash(nixos-rebuild build*)"
+        "Bash(nixos-rebuild dry-build*)"
         "Bash(just *)"
         "Bash(alejandra *)"
         # git: local, non-destructive subcommands only; everything else asks.
@@ -26,40 +39,118 @@
         "Bash(git stash*)"
         "Bash(git add *)"
         "Bash(git commit *)"
-        # HTTP only against the homelab and loopback; other URLs ask.
+        # HTTP against the homelab and loopback skips the prompt. This only
+        # matches command text; sandbox.network below is the actual boundary.
         "Bash(curl *.homelab.internal*)"
+        "Bash(curl *.homelab.local*)"
         "Bash(curl *localhost*)"
         "Bash(curl *127.0.0.1*)"
         "Bash(wget *.homelab.internal*)"
+        "Bash(wget *.homelab.local*)"
         "Bash(wget *localhost*)"
         "Bash(wget *127.0.0.1*)"
         "WebSearch"
+        # Homelab gateway (managed-mcp.json); pg*_run_query is read-only.
+        "mcp__axon-gateway"
         "Read(~/.config/nixpkgs/config.nix)"
         # agenix recipients file: public keys only.
         "Read(//etc/nixos/secrets.nix)"
       ];
-      ask = [
-        "Bash(sudo *)"
-        "Bash(nixos-rebuild *)"
-      ];
+      # Read(...) denies are also merged into sandbox.filesystem.denyRead, so
+      # with the sandbox on they block `cat` & co. in Bash too, not just the
+      # Read tool.
       deny = [
-        "Read(~/.ssh/*)"
-        "Read(./.env*)"
+        "Read(~/.ssh/**)"
+        "Read(~/.gnupg/**)"
+        "Read(~/.claude/.credentials.json)"
+        "Read(~/.local/share/opencode/auth.json)"
+        "Read(~/.config/sops/age/**)"
+        "Read(//etc/ssh/ssh_host_*)"
+        "Read(//run/agenix/**)"
+        "Read(**/.env*)"
         "Read(**/secrets/**)"
         "Read(**/.age*)"
+        # No root, and nothing that switches the system or home generation.
+        "Bash(sudo *)"
+        "Bash(*nixos-rebuild*switch*)"
+        "Bash(*nixos-rebuild*boot*)"
+        "Bash(*nixos-rebuild*test*)"
+        "Bash(*os switch*)"
+        "Bash(*os boot*)"
+        "Bash(*os test*)"
+        "Bash(*home switch*)"
+        "Bash(*home-manager*switch*)"
+        "Bash(*switch-to-configuration*)"
+        "Bash(*switch.sh*)"
+        "Bash(*cleanup.sh*)"
+        "Bash(just switch*)"
+        "Bash(just test*)"
+        "Bash(nix profile *)"
+        "Bash(nix-env *)"
+        "Bash(nh clean*)"
         # Never push, and never bypass hooks or commit signing.
         "Bash(git push*)"
+        "Bash(just sync-remotes*)"
         "Bash(git *--no-verify*)"
         "Bash(git commit -n*)"
         "Bash(git commit * -n*)"
         "Bash(git *--no-gpg-sign*)"
-        "Bash(git *commit.gpgsign=false*)"
+        "Bash(git *commit.gpgsign*)"
         "Bash(git *core.hooksPath*)"
+        "Bash(*LEFTHOOK*)"
+        "Bash(*GIT_CONFIG_*)"
+        # Destructive working-tree operations.
+        "Bash(git reset *--hard*)"
+        "Bash(git clean*)"
+        "Bash(git checkout -- *)"
+        "Bash(git checkout .*)"
+        "Bash(git restore .*)"
       ];
       defaultMode = "auto";
     };
+    # OS-level isolation (bubblewrap + seccomp) for Bash commands.
+    sandbox = {
+      enabled = true;
+      failIfUnavailable = true;
+      # Ignore dangerouslyDisableSandbox; anything that must run outside goes
+      # through excludedCommands, which still passes the permission rules.
+      allowUnsandboxedCommands = false;
+      # Only commands that need the nix-daemon socket run outside, and only
+      # the build/eval/search ones. Everything else (just recipes, nix run,
+      # ...) stays sandboxed, where sudo cannot escalate (no_new_privs), so
+      # nothing can switch the system even if it slips past the deny rules.
+      # git commit needs gpg-agent + ~/.gnupg for signing.
+      excludedCommands = [
+        "nix build *"
+        "nix eval *"
+        "nix flake *"
+        "nix search *"
+        "nix log *"
+        "nix path-info *"
+        "nix why-depends *"
+        "nh search *"
+        "nh os build*"
+        "nh home build*"
+        "nixos-rebuild build*"
+        "nixos-rebuild dry-build*"
+        "git commit *"
+      ];
+      network = {
+        # Unlisted hosts prompt instead of failing.
+        allowedDomains = [
+          "*.homelab.internal"
+          "*.homelab.local"
+          "localhost"
+          "127.0.0.1"
+        ];
+        allowLocalBinding = true;
+      };
+      filesystem.allowWrite = ["~/.cache"];
+    };
     env = {
       CLAUDE_CODE_ENABLE_TELEMETRY = "0";
+      # Updates come from the flake, not the built-in updater.
+      DISABLE_AUTOUPDATER = "1";
       EDITOR = "nvim";
     };
     includeGitInstructions = true;
@@ -70,7 +161,6 @@
     };
     language = "english";
     spinnerTipsEnabled = false;
-    autoUpdatesChannel = "stable";
     cleanupPeriodDays = 3;
     respectGitignore = true;
     outputStyle = "Concise";
