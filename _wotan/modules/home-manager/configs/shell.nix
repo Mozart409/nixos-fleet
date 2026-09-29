@@ -175,6 +175,17 @@
       tc() { _tai claude claude; }
       to() { _tai opencode opencode; }
 
+      # Interactive `opencode` (no args, or only flags like -c/-s) attaches to
+      # the shared opencode-serve instance for $PWD instead of spawning its own
+      # server. Subcommands (`opencode run`, `opencode models`, ...) pass through.
+      opencode() {
+        if (( $# == 0 )) || [[ $1 == -* ]]; then
+          command opencode attach "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" --dir "$PWD" "$@"
+        else
+          command opencode "$@"
+        fi
+      }
+
       # `tk` kills the current directory's `t`, `tc` and `to` sessions (run from
       # shell). `=` makes the target an exact match, not a name prefix.
       tk() {
