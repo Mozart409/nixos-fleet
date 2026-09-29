@@ -178,9 +178,14 @@
       # Interactive `opencode` (no args, or only flags like -c/-s) attaches to
       # the shared opencode-serve instance for $PWD instead of spawning its own
       # server. Subcommands (`opencode run`, `opencode models`, ...) pass through.
+      # The basic-auth password is read from the agenix file per call and only
+      # given to this one process — never exported, so other shell children
+      # (e.g. sandboxed agents) can't use the server to escape their sandbox.
       opencode() {
         if (( $# == 0 )) || [[ $1 == -* ]]; then
-          command opencode attach "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" --dir "$PWD" "$@"
+          local pwfile="''${OPENCODE_SERVER_PASSWORD_FILE:-/run/agenix/opencode-server-password}"
+          OPENCODE_SERVER_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
+            command opencode attach "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" --dir "$PWD" "$@"
         else
           command opencode "$@"
         fi

@@ -130,11 +130,7 @@
     fi
     if [ -n "$AXON_GATEWAY_TOKEN_FILE" ] && [ -f "$AXON_GATEWAY_TOKEN_FILE" ]; then
       export AXON_GATEWAY_TOKEN=$(cat "$AXON_GATEWAY_TOKEN_FILE" | sed 's/AXON_GATEWAY_TOKEN=//')
-    fi
-    if [ -n "$OPENCODE_SERVER_PASSWORD_FILE" ] && [ -f "$OPENCODE_SERVER_PASSWORD_FILE" ]; then
-      export OPENCODE_SERVER_PASSWORD=$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$OPENCODE_SERVER_PASSWORD_FILE")
-    fi
-  '';
+    fi  '';
 
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access
   programs.ssh = {
