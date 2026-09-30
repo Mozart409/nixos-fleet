@@ -36,23 +36,34 @@ cleanup_task() {
   shift
   (
     "$@"
-  ) </dev/null >"/tmp/cleanup_${name}.log" 2>&1
+  ) </dev/null >"/tmp/cleanup_${name}.log" 2>&1 &
 }
 
-# Rust build artifacts (huge space hogs) - only purge targets over 5 GiB
-echo 'Cleaning Rust build artifacts...'
-# shellcheck disable=SC2016 # expansion is intentional in the inner shell
-cleanup_task rust bash -c '
-  find ~/code/rust -type d -name target -prune -print0 2>/dev/null |
-    while IFS= read -r -d "" dir; do
-      size_kb=$(du -sk "$dir" 2>/dev/null | cut -f1)
-      [ -n "$size_kb" ] || continue
-      if [ "$size_kb" -gt 5242880 ]; then
-        echo "Removing $dir ($((size_kb / 1024)) MiB)"
-        rm -rf "$dir"
+# Refresh the sudo timestamp up front so the backgrounded sudo tasks don't
+# race each other for a password prompt.
+sudo -v
+
+# Remove cargo target/ dirs of every crate or workspace below $1. Only dirs
+# holding cargo's CACHEDIR.TAG are touched, so a plain "target" folder that
+# merely sits next to a Cargo.toml survives.
+# shellcheck disable=SC2329 # invoked indirectly via cleanup_task
+clean_rust_targets() {
+  local root="$1"
+  [ -d "$root" ] || return 0
+  find "$root" \( -name target -o -name node_modules -o -name .git -o -name .direnv \) -prune \
+    -o -type f -name Cargo.toml -print0 2>/dev/null |
+    while IFS= read -r -d '' manifest; do
+      local target="${manifest%/Cargo.toml}/target"
+      if [ -f "$target/CACHEDIR.TAG" ]; then
+        echo "Removing $target ($(du -sh "$target" 2>/dev/null | cut -f1))"
+        rm -rf "$target"
       fi
     done
-' 2>/dev/null || true
+}
+
+# Rust build artifacts
+echo 'Cleaning Rust build artifacts...'
+cleanup_task rust clean_rust_targets "$HOME/code" || true
 
 # Container cleanup
 if command -v podman >/dev/null 2>&1; then
