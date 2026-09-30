@@ -137,6 +137,8 @@
       s = "kitty +kitten ssh";
     };
     initContent = ''
+      export PATH="$HOME/.cargo/bin:$PATH"
+
       # Keep vi keybindings (zsh auto-selects vi mode because $EDITOR=nvim), but
       # make Alt+word combos act on words *while staying in insert mode*. Without
       # these, Alt sends ESC and drops into vi command mode: Alt+b/Alt+w happen to
