@@ -246,19 +246,10 @@
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
   # Models cached to /var/lib/vllm/huggingface on first run. Serves Spacebot
   # (services.spacebot.localVllm below). Prefer official Qwen/ or RedHatAI/
-  # repos over community quants.
+  # repos over community quants. vLLM needs HF-format repos (config.json +
+  # safetensors); GGUF-only repos fail with "Invalid repository ID".
   #
-  # Model: Qwen3.5-35B-A3B, official Qwen GPTQ-Int4. MoE (36B total, 8/256
-  # experts ~3B active), tool use, hybrid Gated-DeltaNet attention (only some
-  # layers keep a KV cache, so long context is cheap). llmfit 2026-10-01:
-  # "Good" fit, ~19 tok/s est. — the best-scoring vLLM model from a trusted
-  # repo for RTX 3060 (12 GB) + 62 GB RAM. Not yet tested here.
-  #
-  # Sizes measured from the safetensors headers (llmfit's 18 GB is low):
-  # text weights 20.3 GiB (routed experts 15.8, attention 2.4, embed/lm_head
-  # 1.9 — attention and shared experts stay bf16), plus vision 0.8 and MTP
-  # 1.6 that vLLM skips here. KV cache: only 10/40 layers are full attention
-  # with 2 KV heads x 256 dim = ~20 KiB/token in bf16, ~1.25 GiB at 64K.
+  # Each known-good setup is a preset; switch with `preset` and rebuild.
   #
   # Alternatives (`llmfit --memory 12G --json fit`, runtime=vLLM):
   #   Qwen/Qwen3-30B-A3B-GPTQ-Int4        # tested 2026-07-06: works, 20 tok/s,
@@ -267,44 +258,20 @@
   #   Qwen/Qwen2.5-Coder-7B-Instruct-AWQ  # dense, fits VRAM, 38 tok/s, coder-only,
   #                                       # 32K ctx, no thinking (drop reasoning flags)
   #   Qwen/Qwen3.5-27B-GPTQ-Int4          # dense 27B offloaded — ~5 tok/s, too slow
-  #   Qwen3.5-9B / Qwen3.8-27B MXFP4      # "Perfect"/"Good" but community quants only
-  services.vllm = {
-    enable = true;
-    # model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
-    model = "HauhauCS/Qwen3.5-4B-Uncensored-HauhauCS-Aggressive";
-    port = 10808;
-    # Loopback only: Spacebot is the only client, and published Podman ports
-    # bypass the host firewall.
-    host = "127.0.0.1";
-    # Spacebot's system prompt + tool schemas are large; 64K leaves room for
-    # conversation history. Model max is 262144 — raise if KV headroom allows
-    # (vLLM logs "Maximum concurrency for N tokens" at startup).
-    maxModelLen = 65536;
-    # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
-    # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
-    gpuMemoryUtilization = 0.80;
-    # 20.3 GiB of text weights vs ~9.3 GiB GPU budget: keep ~5.3 GiB of
-    # weights on the GPU, leaving ~4 GiB for KV cache, the per-sequence
-    # Gated-DeltaNet state and activations. More offload = slower decode
-    # (the 30B MoE did 20 tok/s with 10 GiB offloaded). If startup fails with
-    # "No available memory for the cache blocks", raise this.
-    cpuOffloadGb = 15;
-    huggingfaceTokenFile = config.age.secrets.hf-token.path;
+  services.vllm = let
     # Flags per the official vLLM Qwen3.5 recipe (vllm-project/recipes); all
     # verified to exist in the v0.30.0 source (image CUDA 13.0, needs driver
     # >= 580 — wotan runs 595; sm_86 is in its TORCH_CUDA_ARCH_LIST).
-    # No fp8 KV cache: the KV cache is tiny for this model (see above), and
+    # No fp8 KV cache: the KV cache is tiny for Qwen3.5 (hybrid attention), and
     # fp8 KV with head_dim 256 on Ampere narrows the attention backend choice.
-    extraArgs = [
-      # Text only: skip loading the vision encoder, freeing VRAM for KV cache.
-      "--language-model-only"
+    qwen35Args = [
       # Tool calling (required by Spacebot). Qwen3.5 uses the qwen3_coder
       # format, not hermes.
       "--enable-auto-tool-choice"
       "--tool-call-parser"
       "qwen3_coder"
-      # Thinking off by default: at ~19 tok/s every reasoning block delays the
-      # reply by tens of seconds, and thinking turns can end with empty content.
+      # Thinking off by default: every reasoning block delays the reply by
+      # tens of seconds, and thinking turns can end with empty content.
       "--reasoning-parser"
       "qwen3"
       "--default-chat-template-kwargs"
@@ -314,6 +281,60 @@
       # in eager mode.
       "--enforce-eager"
     ];
+  in {
+    enable = true;
+    preset = "huihui-qwen35-9b";
+    presets = {
+      # Qwen3.5-35B-A3B, official Qwen GPTQ-Int4. MoE (36B total, 8/256
+      # experts ~3B active), tool use, hybrid Gated-DeltaNet attention (only
+      # some layers keep a KV cache, so long context is cheap). llmfit
+      # 2026-10-01: "Good" fit, ~19 tok/s est. — the best-scoring vLLM model
+      # from a trusted repo for RTX 3060 (12 GB) + 62 GB RAM.
+      #
+      # Sizes measured from the safetensors headers (llmfit's 18 GB is low):
+      # text weights 20.3 GiB (routed experts 15.8, attention 2.4, embed/lm_head
+      # 1.9 — attention and shared experts stay bf16), plus vision 0.8 and MTP
+      # 1.6 that vLLM skips here. KV cache: only 10/40 layers are full attention
+      # with 2 KV heads x 256 dim = ~20 KiB/token in bf16, ~1.25 GiB at 64K.
+      qwen35-35b-a3b = {
+        model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+        # Spacebot's system prompt + tool schemas are large; 64K leaves room
+        # for conversation history. Model max is 262144 — raise if KV headroom
+        # allows (vLLM logs "Maximum concurrency for N tokens" at startup).
+        maxModelLen = 65536;
+        # 20.3 GiB of text weights vs ~9.3 GiB GPU budget: keep ~5.3 GiB of
+        # weights on the GPU, leaving ~4 GiB for KV cache, the per-sequence
+        # Gated-DeltaNet state and activations. More offload = slower decode
+        # (the 30B MoE did 20 tok/s with 10 GiB offloaded). If startup fails
+        # with "No available memory for the cache blocks", raise this.
+        cpuOffloadGb = 15;
+        # Text only: skip loading the vision encoder, freeing VRAM for KV cache.
+        extraArgs = ["--language-model-only"] ++ qwen35Args;
+      };
+
+      # Huihui Qwen3.5-9B abliterated (uncensored), community GPTQ 4-bit g64.
+      # Dense, text-only checkpoint (Qwen3_5ForCausalLM), fits VRAM without
+      # offload. llmfit 2026-10-01: "Perfect" fit, ~32 tok/s est. Not yet
+      # tested here.
+      #
+      # Weights 7.8 GB (7.3 GiB) of the ~9.3 GiB GPU budget. KV cache: 8/32
+      # layers are full attention with 4 KV heads x 256 dim = 32 KiB/token in
+      # bf16, so 64K would need 2 GiB — more than is left. 32K = 1 GiB. If
+      # Spacebot needs more, try 65536 with cpuOffloadGb = 2.
+      huihui-qwen35-9b = {
+        model = "groxaxo/Huihui-Qwen3.5-9B-abliterated-GPTQ-Pro-4bit-g64";
+        maxModelLen = 32768;
+        extraArgs = qwen35Args;
+      };
+    };
+    port = 10808;
+    # Loopback only: Spacebot is the only client, and published Podman ports
+    # bypass the host firewall.
+    host = "127.0.0.1";
+    # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
+    # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
+    gpuMemoryUtilization = 0.80;
+    huggingfaceTokenFile = config.age.secrets.hf-token.path;
   };
 
   # Spacebot AI agent (modules/nixos/spacebot.nix), local models only: every

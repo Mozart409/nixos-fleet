@@ -5,6 +5,10 @@
   ...
 }: let
   cfg = config.services.vllm;
+  preset =
+    if cfg.preset == null
+    then null
+    else cfg.presets.${cfg.preset} or null;
 
   # Build the argument list passed to the container image.
   # The vllm-openai image entrypoint already invokes the server,
@@ -24,7 +28,32 @@
       "--cpu-offload-gb"
       (toString cfg.cpuOffloadGb)
     ]
+    ++ lib.optionals (preset != null) preset.extraArgs
     ++ cfg.extraArgs;
+
+  presetType = lib.types.submodule {
+    options = {
+      model = lib.mkOption {
+        type = lib.types.str;
+        description = "HuggingFace model id (HF format, not GGUF).";
+      };
+      maxModelLen = lib.mkOption {
+        type = lib.types.nullOr lib.types.ints.positive;
+        default = null;
+        description = "Max sequence length for this model.";
+      };
+      cpuOffloadGb = lib.mkOption {
+        type = lib.types.nullOr lib.types.ints.positive;
+        default = null;
+        description = "GiB of weights to offload to system RAM for this model.";
+      };
+      extraArgs = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Model-specific flags, placed before services.vllm.extraArgs.";
+      };
+    };
+  };
 in {
   options.services.vllm = {
     enable = lib.mkEnableOption "vLLM OpenAI-compatible inference server";
@@ -33,6 +62,23 @@ in {
       type = lib.types.str;
       default = "docker.io/vllm/vllm-openai:v0.30.0";
       description = "OCI image for vLLM.";
+    };
+
+    presets = lib.mkOption {
+      type = lib.types.attrsOf presetType;
+      default = {};
+      description = ''
+        Named model configurations. Selecting one with `preset` sets `model`,
+        `maxModelLen` and `cpuOffloadGb` (as defaults) and prepends its
+        `extraArgs`, so known-good setups can be kept side by side.
+      '';
+    };
+
+    preset = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "qwen35-35b-a3b";
+      description = "Name of the entry in `presets` to serve.";
     };
 
     model = lib.mkOption {
@@ -95,6 +141,19 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.preset == null || cfg.presets ? ${cfg.preset};
+        message = "services.vllm.preset = \"${toString cfg.preset}\" is not defined in services.vllm.presets";
+      }
+    ];
+
+    services.vllm = lib.mkIf (preset != null) {
+      model = lib.mkDefault preset.model;
+      maxModelLen = lib.mkDefault preset.maxModelLen;
+      cpuOffloadGb = lib.mkDefault preset.cpuOffloadGb;
+    };
+
     virtualisation.oci-containers.containers.vllm = {
       image = cfg.image;
       # Don't start at boot — launch manually with `systemctl start podman-vllm`.
