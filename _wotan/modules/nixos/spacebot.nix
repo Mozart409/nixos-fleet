@@ -157,9 +157,10 @@ in {
         };
         environmentFiles = lib.optional (cfg.environmentFile != null) cfg.environmentFile;
         # Host network: reaches vLLM on 127.0.0.1 and keeps the UI on loopback.
-        # The image ships bubblewrap, but without CAP_SYS_ADMIN it usually
-        # cannot create namespaces inside the container; Spacebot then logs a
-        # warning and runs worker commands unsandboxed (container = boundary).
+        # The image's bubblewrap works without extra caps (verified 2026-10-01:
+        # "sandbox enabled: bubblewrap backend proc_supported=false"), but
+        # cannot mount /proc, so tools that read it (ps, top) fail inside
+        # worker commands.
         extraOptions = ["--network=host"];
       };
 
