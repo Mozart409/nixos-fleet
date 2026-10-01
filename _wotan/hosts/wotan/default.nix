@@ -270,7 +270,8 @@
   #   Qwen3.5-9B / Qwen3.8-27B MXFP4      # "Perfect"/"Good" but community quants only
   services.vllm = {
     enable = true;
-    model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+    # model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+    model = "HauhauCS/Qwen3.5-4B-Uncensored-HauhauCS-Aggressive";
     port = 10808;
     # Loopback only: Spacebot is the only client, and published Podman ports
     # bypass the host firewall.
