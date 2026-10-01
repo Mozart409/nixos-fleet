@@ -26,6 +26,15 @@ ShellRoot {
   // Homelab status board, one per screen, sitting on the wallpaper.
   HomelabWidget {}
 
+  // Home Assistant light toggles, top-left on the primary screen. Gated like
+  // the notification daemon: without desktop.quickshell.homeAssistant the
+  // quickshell-ha script does not exist.
+  LazyLoader {
+    active: Features.homeAssistant
+
+    HomeAssistantWidget {}
+  }
+
   // Flake input drift, bottom-right so it cannot collide with the homelab
   // board above however tall that grows.
   DepsWidget {}

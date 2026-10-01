@@ -23,6 +23,9 @@ in {
   # Format OPENCODE_SERVER_PASSWORD=xxxx
   # Edit with: agenix -e secrets/opencode-server-password.age
   "secrets/opencode-server-password.age".publicKeys = allKeys;
+  # Home Assistant long-lived access token for the quickshell light toggles.
+  # Raw token, no KEY= prefix. Edit with: agenix -e secrets/ha-token.age
+  "secrets/ha-token.age".publicKeys = allKeys;
   # Nebula host private keys for wotan, one per tenant overlay (raw
   # nebula-cert PEM, as written by `nebula-cert sign -out-key`). The matching
   # public certs live in hosts/wotan/nebula/. See todo/nebula-clients.md.

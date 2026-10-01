@@ -362,6 +362,14 @@
     # Format inside the file: OPENCODE_SERVER_PASSWORD=xxxx
   };
 
+  age.secrets.ha-token = {
+    file = ../../secrets/ha-token.age;
+    mode = "400";
+    owner = username;
+    # Raw Home Assistant long-lived access token, no KEY= prefix. Read by
+    # quickshell-ha (desktop.quickshell.homeAssistant in home.nix).
+  };
+
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets

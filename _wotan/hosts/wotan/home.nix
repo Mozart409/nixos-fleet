@@ -90,6 +90,23 @@
     # rebuild. Trade-off: what is on screen is whatever is checked out, which
     # is only the same as the flake once the tree is committed and rebuilt.
     liveReload = true;
+
+    homeAssistant = {
+      enable = true;
+      url = "https://homeassistant.dropbear-butterfly.ts.net";
+      # age.secrets.ha-token in default.nix: raw long-lived token, no KEY=.
+      tokenFile = "/run/agenix/ha-token";
+      # The Büro lights. HA has no Büro area -- they all sit under Living Room.
+      entities = [
+        {
+          id = "switch.tasmota_licht_5_tasmota_licht_5";
+          label = "Licht 5";
+        }
+        {id = "switch.tasmota_licht_ecke_licht_ecke";} # Couch Tisch
+        {id = "switch.tasmota_licht_ecke_licht_ecke_2";} # Arbeitsecke
+        {id = "switch.tasmota_salzlampe_salzlampe";} # Lichterkette
+      ];
+    };
   };
   desktop.easyeffects.enable = true;
 

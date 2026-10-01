@@ -43,6 +43,78 @@
       --grace-days ${toString cfg.flakeDriftGraceDays} "$@"
   '';
 
+  # Backs HomeAssistantWidget.qml, and the only thing in the shell that talks to
+  # HA. The token is read from the agenix file on every call and fed to curl as
+  # a header file through process substitution, so it never lands in an argv
+  # (visible in /proc to every process), the service environment, or QML.
+  # `toggle` only accepts the entity ids declared below, so the panel cannot
+  # be used to call anything else on HA.
+  #
+  #   quickshell-ha states       -> {"entities":[{id,name,state}]} | {"error":".."}
+  #   quickshell-ha toggle <id>  -> <domain>.toggle on that entity
+  haEntities = builtins.toJSON cfg.homeAssistant.entities;
+  quickshell-ha = pkgs.writeShellScriptBin "quickshell-ha" ''
+    set -euo pipefail
+    export PATH=${lib.makeBinPath [pkgs.curl pkgs.jq pkgs.coreutils]}
+
+    url=${lib.escapeShellArg (lib.removeSuffix "/" cfg.homeAssistant.url)}
+    tokenFile=${lib.escapeShellArg cfg.homeAssistant.tokenFile}
+    entities=${lib.escapeShellArg haEntities}
+
+    fail() {
+      jq -cn --arg e "$1" '{error: $e}'
+      exit 1
+    }
+
+    [[ -r $tokenFile ]] || fail "token unreadable: $tokenFile"
+
+    header() {
+      printf 'Authorization: Bearer %s\n' "$(tr -d '[:space:]' <"$tokenFile")"
+    }
+
+    api() {
+      curl -sf --max-time 5 -H @<(header) -H 'Content-Type: application/json' "$@"
+    }
+
+    case "''${1:-}" in
+      states)
+        bodies=()
+        while read -r id; do
+          if body=$(api "$url/api/states/$id"); then
+            bodies+=("$body")
+          fi
+        done < <(jq -r '.[].id' <<<"$entities")
+        # Every request failing is HA (or the tailnet) being down, or the token
+        # being rejected -- worth telling apart, since only one of them is
+        # fixed on this machine. A single missing entity is just left off.
+        if (( ''${#bodies[@]} == 0 )); then
+          code=$(curl -s -o /dev/null --max-time 5 -w '%{http_code}' -H @<(header) "$url/api/" || true)
+          [[ $code == 401 ]] && fail "token rejected (401)"
+          fail "home assistant unreachable"
+        fi
+        printf '%s\n' "''${bodies[@]}" | jq -sc --argjson ents "$entities" '
+          (map({key: .entity_id, value: .}) | from_entries) as $s
+          | {entities: [$ents[] | select($s[.id]) | {
+              id,
+              name: (.label // $s[.id].attributes.friendly_name // .id),
+              state: $s[.id].state
+            }]}'
+        ;;
+      toggle)
+        id=''${2:?usage: quickshell-ha toggle <entity_id>}
+        jq -e --arg id "$id" 'any(.[]; .id == $id)' <<<"$entities" >/dev/null \
+          || fail "not an allowed entity: $id"
+        api -X POST -d "$(jq -cn --arg id "$id" '{entity_id: $id}')" \
+          "$url/api/services/''${id%%.*}/toggle" >/dev/null \
+          || fail "toggle failed: $id"
+        ;;
+      *)
+        echo "usage: quickshell-ha states | toggle <entity_id>" >&2
+        exit 2
+        ;;
+    esac
+  '';
+
   # Runtime dependencies for shell scripts and widgets. The resource widgets
   # shell out on a timer, so everything they call has to be on the service's
   # PATH -- a missing binary shows up as a permanently blank readout, not an
@@ -117,6 +189,11 @@
       // not be instantiated otherwise: org.freedesktop.Notifications has a
       // single owner and dunst is already holding it.
       readonly property bool notifications: ${lib.boolToString (config.desktop.notifications.backend == "quickshell")}
+
+      // desktop.quickshell.homeAssistant.enable -- without it the
+      // quickshell-ha script is not installed and the panel would only ever
+      // show an error.
+      readonly property bool homeAssistant: ${lib.boolToString cfg.homeAssistant.enable}
     }
   '';
 
@@ -189,6 +266,45 @@ in {
       '';
     };
 
+    homeAssistant = {
+      enable = lib.mkEnableOption "the Home Assistant quick-toggle desktop panel";
+
+      url = lib.mkOption {
+        type = lib.types.str;
+        example = "https://homeassistant.example.ts.net";
+        description = "Base URL of the Home Assistant instance.";
+      };
+
+      tokenFile = lib.mkOption {
+        type = lib.types.str;
+        example = "/run/agenix/ha-token";
+        description = ''
+          Runtime path (not a store path) to a file holding a raw HA long-lived
+          access token, no KEY= prefix. Read on every request, so rotating the
+          token needs no restart.
+        '';
+      };
+
+      entities = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
+          options = {
+            id = lib.mkOption {
+              type = lib.types.str;
+              example = "switch.kitchen_light";
+              description = "Entity id; its domain must support the `toggle` service.";
+            };
+            label = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Display name; null uses HA's friendly_name.";
+            };
+          };
+        });
+        default = [];
+        description = "Entities shown, in order. Also the allowlist for toggling.";
+      };
+    };
+
     sourcePath = lib.mkOption {
       type = lib.types.str;
       default = "/etc/nixos/modules/home-manager/packages/quickshell";
@@ -200,13 +316,19 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [
-      quickshell
-      audio-switch # Rofi-based audio output switcher
-      flake-drift # Backs the flake-input drift widget
-      pkgs.pwvucontrol # Modern PipeWire volume control GUI (bar: right-click volume)
-      pkgs.pulsemixer # TUI audio mixer
-    ];
+    home.packages =
+      [
+        quickshell
+        audio-switch # Rofi-based audio output switcher
+        flake-drift # Backs the flake-input drift widget
+      ]
+      ++ lib.optionals cfg.homeAssistant.enable [
+        quickshell-ha # Backs the Home Assistant toggle panel
+      ]
+      ++ [
+        pkgs.pwvucontrol # Modern PipeWire volume control GUI (bar: right-click volume)
+        pkgs.pulsemixer # TUI audio mixer
+      ];
 
     # Set QML import path for proper module resolution
     home.sessionVariables.QML2_IMPORT_PATH = qmlImportPath;
