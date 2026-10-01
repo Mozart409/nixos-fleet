@@ -102,6 +102,18 @@ in {
       '';
     };
 
+    identityFiles = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.attrsOf lib.types.path);
+      default = {};
+      example = lib.literalExpression ''{ eve."SOUL.md" = ./eve/SOUL.md; }'';
+      description = ''
+        Per-agent identity files (SOUL.md, IDENTITY.md, ROLE.md), copied into
+        agents/<id>/ only when missing, so edits made in the web UI survive.
+        Delete the file on disk to re-seed it from Nix. Agents without files
+        get Spacebot's generic main-agent templates.
+      '';
+    };
+
     autoStart = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -155,6 +167,14 @@ in {
       # its own (cloud-provider) config.toml when none exists, so it is skipped.
       systemd.services.podman-spacebot.preStart = lib.mkBefore ''
         ${mergeConfig} ${configFile} ${settingsJson}
+        ${lib.concatStrings (lib.flatten (lib.mapAttrsToList (agent: files:
+          lib.mapAttrsToList (name: src: let
+            dest = "${dataDir}/agents/${agent}/${name}";
+          in ''
+            [ -e ${dest} ] || install -D -m 0644 ${src} ${dest}
+          '')
+          files)
+        cfg.identityFiles))}
       '';
     }
 

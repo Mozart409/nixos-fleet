@@ -302,6 +302,11 @@ HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 Edit with: `nix run github:ryantm/agenix -- -e secrets/hf-token.age`
 
+**Pre-download a model without loading it onto the GPU** (authenticated with the same token; the token is sourced inside the root shell, so it stays out of shell history and process args). The container mounts the cache at `/root/.cache/huggingface`, so files in `hub/` are picked up without a re-download:
+```bash
+sudo sh -c 'set -a; . /run/agenix/hf-token; exec nix run nixpkgs#python3Packages.huggingface-hub -- download Qwen/Qwen3.5-35B-A3B-GPTQ-Int4 --cache-dir /var/lib/vllm/huggingface/hub'
+```
+
 **Configuration:** `modules/nixos/vllm.nix` (module + options, including `cpuOffloadGb`) and `hosts/wotan/default.nix` (host-specific model + flags)
 
 ### Hardware fitting with llmfit

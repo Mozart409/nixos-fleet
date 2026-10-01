@@ -323,6 +323,25 @@
     enable = true;
     autoStart = false;
     localVllm = true;
+    # Agents are owned by Nix: this list replaces [[agents]] in config.toml on
+    # every start, so agents created in the web UI would be dropped — add them
+    # here instead. Adding/removing agents needs a restart (per-agent DBs).
+    settings.agents = [
+      {
+        id = "main";
+        default = true;
+      }
+      {
+        id = "eve";
+        display_name = "Eve";
+        role = "Personal assistant";
+      }
+    ];
+    identityFiles.eve = {
+      "SOUL.md" = ./spacebot/eve/SOUL.md;
+      "IDENTITY.md" = ./spacebot/eve/IDENTITY.md;
+      "ROLE.md" = ./spacebot/eve/ROLE.md;
+    };
   };
 
   # Swap on zram — helps avoid OOM during large builds and LLM inference
