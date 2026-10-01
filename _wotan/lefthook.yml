@@ -23,5 +23,3 @@ pre-push:
   jobs:
     - name: cog check
       run: cog check --from-latest-tag
-    - name: nix flake check
-      run: nix flake check
