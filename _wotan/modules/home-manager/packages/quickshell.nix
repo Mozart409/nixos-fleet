@@ -47,11 +47,15 @@
   # HA. The token is read from the agenix file on every call and fed to curl as
   # a header file through process substitution, so it never lands in an argv
   # (visible in /proc to every process), the service environment, or QML.
-  # `toggle` only accepts the entity ids declared below, so the panel cannot
+  # `set` only accepts the entity ids declared below, so the panel cannot
   # be used to call anything else on HA.
   #
   #   quickshell-ha states       -> {"entities":[{id,name,state}]} | {"error":".."}
-  #   quickshell-ha toggle <id>  -> <domain>.toggle on that entity
+  #   quickshell-ha set <id> on|off  -> <domain>.turn_on / turn_off
+  #
+  # Explicit on/off rather than `toggle`: the panel sends what the user saw
+  # flip, so a click against a not-yet-refreshed state can never invert the
+  # wrong way.
   haEntities = builtins.toJSON cfg.homeAssistant.entities;
   quickshell-ha = pkgs.writeShellScriptBin "quickshell-ha" ''
     set -euo pipefail
@@ -100,16 +104,18 @@
               state: $s[.id].state
             }]}'
         ;;
-      toggle)
-        id=''${2:?usage: quickshell-ha toggle <entity_id>}
+      set)
+        id=''${2:?usage: quickshell-ha set <entity_id> on|off}
+        target=''${3:-}
+        [[ $target == on || $target == off ]] || fail "target must be on or off"
         jq -e --arg id "$id" 'any(.[]; .id == $id)' <<<"$entities" >/dev/null \
           || fail "not an allowed entity: $id"
         api -X POST -d "$(jq -cn --arg id "$id" '{entity_id: $id}')" \
-          "$url/api/services/''${id%%.*}/toggle" >/dev/null \
-          || fail "toggle failed: $id"
+          "$url/api/services/''${id%%.*}/turn_$target" >/dev/null \
+          || fail "turn_$target failed: $id"
         ;;
       *)
-        echo "usage: quickshell-ha states | toggle <entity_id>" >&2
+        echo "usage: quickshell-ha states | set <entity_id> on|off" >&2
         exit 2
         ;;
     esac
@@ -291,7 +297,7 @@ in {
             id = lib.mkOption {
               type = lib.types.str;
               example = "switch.kitchen_light";
-              description = "Entity id; its domain must support the `toggle` service.";
+              description = "Entity id; its domain must support `turn_on`/`turn_off`.";
             };
             label = lib.mkOption {
               type = lib.types.nullOr lib.types.str;

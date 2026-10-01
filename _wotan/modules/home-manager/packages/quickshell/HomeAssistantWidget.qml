@@ -34,9 +34,19 @@ Variants {
     // "" when healthy, otherwise what to show in place of the rows.
     property string error: ""
     property bool everLoaded: false
-    // Entity whose toggle is in flight. Its row shows the target state
-    // immediately and ignores further clicks until HA has answered.
+    // Entity whose switch call is in flight, and the state it was asked for.
+    // Its row shows the target immediately and ignores further clicks until
+    // the call returns.
     property string pending: ""
+    property string pendingState: ""
+    // id -> {state, until}: states we have successfully asked HA for but HA
+    // has not reported yet. A successful service call does not mean the next
+    // read reflects it -- Tasmota switches answer over MQTT a beat later, so
+    // an immediate refresh returned the *old* state and the switch snapped
+    // back, leaving the panel one click behind reality. Until HA confirms (or
+    // `until` passes, so a call that silently did nothing cannot pin a lie on
+    // screen forever) refreshes are read through this map.
+    property var expected: ({})
 
     readonly property int onCount: entities.filter(e => e.state === "on").length
 
@@ -65,9 +75,28 @@ Variants {
     function toggle(entity) {
       if (panel.pending !== "" || entity.state === "unavailable")
         return;
+      // Ask for the opposite of what is on screen, not a blind HA `toggle`:
+      // the user clicked what they saw.
       panel.pending = entity.id;
-      toggleProc.command = ["quickshell-ha", "toggle", entity.id];
+      panel.pendingState = entity.state === "on" ? "off" : "on";
+      toggleProc.command = ["quickshell-ha", "set", panel.pending, panel.pendingState];
       toggleProc.running = true;
+    }
+
+    function applyStates(list) {
+      const now = Date.now();
+      const stillExpected = {};
+      panel.entities = list.map(e => {
+        const want = panel.expected[e.id];
+        if (want && now < want.until && e.state !== want.state) {
+          stillExpected[e.id] = want;
+          return Object.assign({}, e, {
+            state: want.state
+          });
+        }
+        return e;
+      });
+      panel.expected = stillExpected;
     }
 
     Process {
@@ -89,7 +118,7 @@ Variants {
               panel.error = parsed.error;
               return;
             }
-            panel.entities = parsed.entities;
+            panel.applyStates(parsed.entities);
             panel.error = "";
           } catch (e) {
             panel.error = "bad response";
@@ -100,10 +129,28 @@ Variants {
 
     Process {
       id: toggleProc
-      onExited: {
+      onExited: (exitCode, exitStatus) => {
+        if (exitCode === 0) {
+          const next = Object.assign({}, panel.expected);
+          next[panel.pending] = {
+            state: panel.pendingState,
+            until: Date.now() + 8000
+          };
+          panel.expected = next;
+          panel.applyStates(panel.entities);
+        }
         panel.pending = "";
         panel.refresh();
       }
+    }
+
+    // Poll fast while anything is unconfirmed, so the switch settles on HA's
+    // real answer within a second or two instead of at the next 20s tick.
+    Timer {
+      interval: 1500
+      running: Object.keys(panel.expected).length > 0
+      repeat: true
+      onTriggered: panel.refresh()
     }
 
     Timer {
@@ -190,10 +237,10 @@ Variants {
 
               readonly property bool unavailable: modelData.state === "unavailable"
               readonly property bool busy: panel.pending === modelData.id
-              // While a toggle is in flight, show where it is going rather
+              // While the call is in flight, show where it is going rather
               // than where it was: the click should feel instant even though
               // HA takes a beat to report back.
-              readonly property bool on: busy ? modelData.state !== "on" : modelData.state === "on"
+              readonly property bool on: busy ? panel.pendingState === "on" : modelData.state === "on"
 
               Layout.fillWidth: true
               implicitHeight: 30
