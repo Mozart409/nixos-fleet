@@ -244,71 +244,85 @@
   };
 
   # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
-  # Models cached to /var/lib/vllm/huggingface on first run.
+  # Models cached to /var/lib/vllm/huggingface on first run. Serves Spacebot
+  # (services.spacebot.localVllm below). Prefer official Qwen/ or RedHatAI/
+  # repos over community quants.
   #
-  # Model: Qwen2.5-Coder-7B, official Qwen AWQ quant. Dense, fits fully in
-  # VRAM (llmfit "Perfect", ~51% utilization, ~52 tok/s est.), non-thinking —
-  # picked for agentic use in opencode where the 30B MoE's ~20 tok/s and
-  # hybrid thinking (turns can end with empty content, looks like a stall)
-  # were the bottleneck. Prefer official Qwen/ or RedHatAI/ repos over
-  # community quants.
+  # Model: Qwen3.5-35B-A3B, official Qwen GPTQ-Int4. MoE (36B total, 8/256
+  # experts ~3B active), tool use, hybrid Gated-DeltaNet attention (only some
+  # layers keep a KV cache, so long context is cheap). llmfit 2026-10-01:
+  # "Good" fit, ~19 tok/s est. — the best-scoring vLLM model from a trusted
+  # repo for RTX 3060 (12 GB) + 62 GB RAM. Not yet tested here.
   #
-  # Alternatives for RTX 3060 (12GB VRAM) + 62GB RAM, via `llmfit fit`
-  # (runtime=vLLM). Verified 2026-07-06 — re-verify before switching.
+  # Sizes measured from the safetensors headers (llmfit's 18 GB is low):
+  # text weights 20.3 GiB (routed experts 15.8, attention 2.4, embed/lm_head
+  # 1.9 — attention and shared experts stay bf16), plus vision 0.8 and MTP
+  # 1.6 that vLLM skips here. KV cache: only 10/40 layers are full attention
+  # with 2 KV heads x 256 dim = ~20 KiB/token in bf16, ~1.25 GiB at 64K.
   #
-  #   MoE (need cpuOffloadGb = 10, weights > 12 GB):
-  #     Qwen/Qwen3-30B-A3B-GPTQ-Int4               # tested 2026-07-06: works, 20 tok/s
-  #                                                # measured KV headroom 61k tok, smartest
-  #     Qwen/Qwen3-30B-A3B-Instruct-2507           # bf16 ~61GB — too big even offloaded
-  #     Qwen/Qwen3-Coder-30B-A3B-Instruct          # coder-tuned, bf16 — same problem
-  #
-  #   Dense, fit fully in VRAM (no cpuOffloadGb, faster per token):
-  #     Qwen/Qwen2.5-Coder-7B-Instruct-AWQ         # current pick, coder, 32K ctx
-  #     Qwen/Qwen3-8B-AWQ                          # earlier pick, thinking, 41K ctx
-  #     RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16  # 1M model ctx, 49 tok/s
-  #
-  #   Notes:
-  #     - Kimi K2 (16M ctx!) is GGUF/llama.cpp only — not vLLM-compatible.
-  #     - Re-run `llmfit --memory 12G fit` to refresh the shortlist.
+  # Alternatives (`llmfit --memory 12G --json fit`, runtime=vLLM):
+  #   Qwen/Qwen3-30B-A3B-GPTQ-Int4        # tested 2026-07-06: works, 20 tok/s,
+  #                                       # cpuOffloadGb = 10, maxModelLen = 40960,
+  #                                       # --tool-call-parser hermes
+  #   Qwen/Qwen2.5-Coder-7B-Instruct-AWQ  # dense, fits VRAM, 38 tok/s, coder-only,
+  #                                       # 32K ctx, no thinking (drop reasoning flags)
+  #   Qwen/Qwen3.5-27B-GPTQ-Int4          # dense 27B offloaded — ~5 tok/s, too slow
+  #   Qwen3.5-9B / Qwen3.8-27B MXFP4      # "Perfect"/"Good" but community quants only
   services.vllm = {
-    # Disabled — not currently in use. Flip back to true (and re-pull the image
-    # + models) to bring the inference server back. All tuning notes below kept.
-    enable = false;
-    model = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ";
-    # To switch back to the 30B MoE: swap the model lines and re-enable
-    # cpuOffloadGb below. Both models are listed in the opencode provider
-    # config (opencode.nix), so no client change is needed.
-    # model = "Qwen/Qwen3-30B-A3B-GPTQ-Int4";
+    enable = true;
+    model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
     port = 10808;
-    host = "0.0.0.0";
-    maxModelLen = 32768; # Qwen2.5-Coder-7B's native max context.
-    # (30B MoE note: its model max is 40960 and measured KV headroom was
-    # 61,744 tokens at this budget — it could run at the full 40960.)
+    # Loopback only: Spacebot is the only client, and published Podman ports
+    # bypass the host firewall.
+    host = "127.0.0.1";
+    # Spacebot's system prompt + tool schemas are large; 64K leaves room for
+    # conversation history. Model max is 262144 — raise if KV headroom allows
+    # (vLLM logs "Maximum concurrency for N tokens" at startup).
+    maxModelLen = 65536;
     # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
     # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
     gpuMemoryUtilization = 0.80;
-    # cpuOffloadGb is only needed for the 30B MoE (15.6 GB weights vs ~9.3 GiB
-    # GPU budget). The 7B fits fully in VRAM — offload would only slow it down.
-    # cpuOffloadGb = 10;
+    # 20.3 GiB of text weights vs ~9.3 GiB GPU budget: keep ~5.3 GiB of
+    # weights on the GPU, leaving ~4 GiB for KV cache, the per-sequence
+    # Gated-DeltaNet state and activations. More offload = slower decode
+    # (the 30B MoE did 20 tok/s with 10 GiB offloaded). If startup fails with
+    # "No available memory for the cache blocks", raise this.
+    cpuOffloadGb = 15;
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
+    # Flags per the official vLLM Qwen3.5 recipe (vllm-project/recipes); all
+    # verified to exist in the v0.30.0 source (image CUDA 13.0, needs driver
+    # >= 580 — wotan runs 595; sm_86 is in its TORCH_CUDA_ARCH_LIST).
+    # No fp8 KV cache: the KV cache is tiny for this model (see above), and
+    # fp8 KV with head_dim 256 on Ampere narrows the attention backend choice.
     extraArgs = [
-      "--kv-cache-dtype"
-      "fp8" # Quantize KV cache to save VRAM
-      # Tool calling (required by opencode and other agentic clients).
-      # "hermes" is the correct parser for both Qwen3 and Qwen2.5 models.
+      # Text only: skip loading the vision encoder, freeing VRAM for KV cache.
+      "--language-model-only"
+      # Tool calling (required by Spacebot). Qwen3.5 uses the qwen3_coder
+      # format, not hermes.
       "--enable-auto-tool-choice"
       "--tool-call-parser"
-      "hermes"
-      # NOTE: --reasoning-parser qwen3 was removed here. It is NOT harmless for
-      # non-thinking models: Qwen3ReasoningParser aborts at startup if the
-      # tokenizer has no <think>/</think> tokens, which Qwen2.5-Coder lacks
-      # ("could not locate think start/end tokens"). Re-add it only when
-      # switching back to the Qwen3-30B MoE model above.
+      "qwen3_coder"
+      # Thinking off by default: at ~19 tok/s every reasoning block delays the
+      # reply by tens of seconds, and thinking turns can end with empty content.
+      "--reasoning-parser"
+      "qwen3"
+      "--default-chat-template-kwargs"
+      ''{"enable_thinking": false}''
       # Disables torch.compile + CUDA graph capture. Kept because CUDA graphs
       # cost extra VRAM we don't have, and --cpu-offload-gb is best supported
-      # in eager mode. Try removing only after the model swap is proven stable.
+      # in eager mode.
       "--enforce-eager"
     ];
+  };
+
+  # Spacebot AI agent (modules/nixos/spacebot.nix), local models only: every
+  # process routes to the vLLM server above, no cloud provider is configured.
+  # Web UI: http://127.0.0.1:19898. Not started at boot (it pulls vLLM up and
+  # pins ~9 GiB of VRAM) — `sudo systemctl start podman-spacebot` starts both.
+  services.spacebot = {
+    enable = true;
+    autoStart = false;
+    localVllm = true;
   };
 
   # Swap on zram — helps avoid OOM during large builds and LLM inference

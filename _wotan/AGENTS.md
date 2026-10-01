@@ -275,7 +275,9 @@ The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acce
 **Model cache location:** `/var/lib/vllm/huggingface/` on the host, mounted into the container (HF transformers format, NOT GGUF)
 
 **Currently configured model** (see `hosts/wotan/default.nix`):
-- `Qwen/Qwen3-30B-A3B-GPTQ-Int4` — official Qwen MoE (30B total, ~3B active per token), 4-bit GPTQ, 32K context configured (40K model max). Weights (15.6 GB) exceed the RTX 3060's 12 GB VRAM, so `cpuOffloadGb = 10` offloads part of the weights to system RAM (llmfit: "Good" fit, ~19 tok/s est.).
+- `Qwen/Qwen3.5-35B-A3B-GPTQ-Int4` — official Qwen MoE (36B total, ~3B active), hybrid Gated-DeltaNet attention, tool use (`qwen3_coder` parser), thinking off by default, 64K context configured (262K model max). Text weights are 20.3 GiB (measured from safetensors headers; llmfit's 18 GB is low), so `cpuOffloadGb = 15` offloads part of them to system RAM. Vision encoder skipped with `--language-model-only`.
+
+**Spacebot** (`modules/nixos/spacebot.nix`: Podman container `ghcr.io/spacedriveapp/spacebot`, unit **`podman-spacebot.service`**, `/var/lib/spacebot` mounted at `/data`, host network; upstream's Nix flake is unmaintained/broken, don't switch back to it) is the vLLM client: `services.spacebot.localVllm = true` routes every Spacebot process to `vllm/<model>`, sets `context_window = maxModelLen`, and makes `podman-spacebot.service` pull in `podman-vllm.service`. `services.spacebot.settings` is deep-merged into `/var/lib/spacebot/config.toml` on every start (`preStart`) — Nix wins for its keys, web-UI edits (messaging, bindings) survive, but keys deleted from Nix stay in the file. `autoStart = false` on wotan: `sudo systemctl start podman-spacebot` (UI at `http://127.0.0.1:19898`).
 
 **Switching models:**
 Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative candidates are listed in the comment block above the `services.vllm` declaration — re-verify with `llmfit --memory 12G fit` first. Prefer **trusted repos** (`Qwen/`, `RedHatAI/`) over community quants. Dense models that fit fully in VRAM should drop `cpuOffloadGb`.

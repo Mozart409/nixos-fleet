@@ -31,7 +31,7 @@ in {
 
     image = lib.mkOption {
       type = lib.types.str;
-      default = "vllm/vllm-openai:v0.22.1";
+      default = "vllm/vllm-openai:v0.30.0";
       description = "OCI image for vLLM.";
     };
 
