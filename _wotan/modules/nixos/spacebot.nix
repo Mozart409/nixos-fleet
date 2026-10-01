@@ -26,6 +26,12 @@
       import tomllib
 
       import tomli_w
+      import tomli_w._writer
+
+      # tomli_w writes short tables as `agents = [{ ... }]`, but Spacebot's
+      # UI/API edits config.toml with toml_edit and requires `[[agents]]`
+      # ("agents is not an array of tables"). Always emit block form.
+      tomli_w._writer.is_suitable_inline_table = lambda obj, ctx: False
 
       target, managed_path = sys.argv[1], sys.argv[2]
 
