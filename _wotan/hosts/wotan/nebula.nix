@@ -105,4 +105,9 @@
 in {
   age.secrets = lib.mapAttrs' (t: _: lib.nameValuePair "nebula-${t}-wotan" (mkSecret t)) tenants;
   services.nebula.networks = lib.mapAttrs mkNetwork tenants;
+
+  systemd.services."nebula@amartum".serviceConfig.ExecStartPost = [
+    "+${config.systemd.package}/bin/resolvectl dns nebula-amartum 172.16.10.1 172.16.10.2 172.16.10.3"
+    "+${config.systemd.package}/bin/resolvectl domain nebula-amartum ~int.oyabu.cc"
+  ];
 }
