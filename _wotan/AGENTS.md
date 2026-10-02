@@ -36,14 +36,15 @@ nh os test                    # Test without persistence
 sudo nixos-rebuild switch --flake .#wotan    # Apply system changes
 sudo nixos-rebuild test --flake .#wotan      # Test without persistence
 
-# Using just (interactive menu)
-just                          # Show interactive menu
-just switch wotan             # Switch NixOS config (home-manager is integrated)
-just test wotan               # Test NixOS config
-# (switch-all/test-all are aliases for switch/test — no separate home-manager step)
+# Preferred switch: ./switch.sh (the user's normal workflow)
+./switch.sh                   # nh os switch, skipping unreachable substituters, then git push to ALL remotes
+./switch.sh -r                # nh os boot instead (NVIDIA driver bumps, pitfall #8); reboot manually
 
-# Build configurations (dry-run to check)
-just build wotan              # = nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
+# Using just (recipes hardcode wotan — they take no host argument)
+just                          # Show interactive menu
+just switch                   # = sudo nixos-rebuild switch --flake .#wotan
+just test                     # = sudo nixos-rebuild test --flake .#wotan
+just build                    # = nh os build .#wotan (real build, not a dry run)
 just build-home               # = nix build ...home-manager.users.amadeus.home.activationPackage --dry-run
 ```
 
@@ -62,7 +63,7 @@ nix flake check             # Check all outputs
 # Update dependencies (run as YOUR USER, never sudo — sudo breaks flake.lock ownership)
 nix flake update            # Update all inputs
 nix flake update nixpkgs    # Update specific input
-just update                 # Same as nix flake update --accept-flake-config
+just update                 # nix flake update --accept-flake-config, then git add flake.lock
 just update-input nixpkgs   # Update a single input
 
 # Development shell
@@ -224,11 +225,11 @@ Before committing changes:
 
 1. **Format:** `alejandra .`
 2. **Validate:** `nix flake check`
-3. **Build test:** `just build wotan`
+3. **Build test:** `just build`
 4. **Build home test:** `just build-home`
-5. **Test config:** `sudo nixos-rebuild test --flake .#wotan` (if changing system)
+5. **Test config:** `just test` (if changing system)
 6. **Commit:** Changes with descriptive message
-7. **Switch:** `just switch wotan` (or `nh os switch`) to persist
+7. **Switch:** `./switch.sh` to persist — note it also pushes to every git remote
 
 ## 🚨 Common Pitfalls
 
