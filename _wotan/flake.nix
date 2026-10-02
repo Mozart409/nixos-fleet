@@ -15,6 +15,11 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Prebuilt nix-index database + comma integration (c <cmd>)
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprland.url = "github:hyprwm/Hyprland";
     hyprsunset.url = "github:hyprwm/hyprsunset";
 
@@ -57,6 +62,7 @@
     home-manager,
     nixvim,
     agenix,
+    nix-index-database,
     hyprland,
     hyprsunset,
     quickshell,

@@ -71,12 +71,6 @@
   # Common console settings
   console.keyMap = "de";
 
-  # Suggest which nix package provides a missing command
-  programs.nix-index = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   # Periodic TRIM for SSD longevity
   services.fstrim.enable = true;
 

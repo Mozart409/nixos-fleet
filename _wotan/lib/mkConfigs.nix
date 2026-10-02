@@ -62,6 +62,9 @@ in {
               # brought in by inputs.mozart409-nixvim.homeModules.default, which
               # wotan's home.nix imports.
               inputs.agenix.homeManagerModules.default
+              # nix-index with the prebuilt database; provides the
+              # `programs.nix-index-database.comma.enable` option in home configs.
+              inputs.nix-index-database.homeModules.default
             ];
             users.${username} = import ../hosts/${hostname}/home.nix;
           };
