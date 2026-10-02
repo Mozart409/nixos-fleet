@@ -100,14 +100,48 @@
         punch = true;
         respond = true;
       };
+      # Never advertise or accept a Tailscale address (nebula over Tailscale
+      # breaks above its 1280 MTU), nor advertise a container bridge. Same as
+      # ventara's `underlayExclude` / `localExcludeInterfaces`. Within one
+      # map every value must be the same.
+      lighthouse = {
+        local_allow_list =
+          tailscaleRanges
+          // {
+            interfaces = {
+              "docker.*" = false;
+              "podman.*" = false;
+              "tailscale.*" = false;
+              "nebula.*" = false;
+            };
+          };
+        remote_allow_list = tailscaleRanges;
+      };
     };
+  };
+
+  tailscaleRanges = {
+    "100.64.0.0/10" = false;
+    "fd7a:115c:a1e0::/48" = false;
   };
 in {
   age.secrets = lib.mapAttrs' (t: _: lib.nameValuePair "nebula-${t}-wotan" (mkSecret t)) tenants;
   services.nebula.networks = lib.mapAttrs mkNetwork tenants;
 
+  # Split DNS for ~int.oyabu.cc needs resolved. mDNS stays with avahi (the
+  # CUPS printer's .local URI), so resolved must not bind 5353 too.
+  services.resolved = {
+    enable = true;
+    settings.Resolve.MulticastDNS = false;
+  };
+
+  # Keep NetworkManager off the tuns, so it never claims the link and resets
+  # the per-link DNS set below.
+  networking.networkmanager.unmanaged = ["interface-name:nebula-*"];
+
+  # "-" keeps a resolvectl failure from failing nebula@amartum itself.
   systemd.services."nebula@amartum".serviceConfig.ExecStartPost = [
-    "+${config.systemd.package}/bin/resolvectl dns nebula-amartum 172.16.10.1 172.16.10.2 172.16.10.3"
-    "+${config.systemd.package}/bin/resolvectl domain nebula-amartum ~int.oyabu.cc"
+    "-+${config.systemd.package}/bin/resolvectl dns nebula-amartum 172.16.10.1 172.16.10.2 172.16.10.3"
+    "-+${config.systemd.package}/bin/resolvectl domain nebula-amartum ~int.oyabu.cc"
   ];
 }
