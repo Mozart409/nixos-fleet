@@ -283,7 +283,7 @@
     ];
   in {
     enable = true;
-    preset = "huihui-qwen35-9b";
+    preset = "qwen35-35b-a3b";
     presets = {
       # Qwen3.5-35B-A3B, official Qwen GPTQ-Int4. MoE (36B total, 8/256
       # experts ~3B active), tool use, hybrid Gated-DeltaNet attention (only
