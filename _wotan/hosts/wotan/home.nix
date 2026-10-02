@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  osConfig,
   username,
   ...
 }: {
@@ -140,6 +141,14 @@
   age.identityPaths = [
     "${config.home.homeDirectory}/.config/age/keys.txt"
   ];
+  # llmfit's vLLM detection reads two different env vars (llmfit 1.1.16):
+  # the TUI/model-listing VllmProvider probes VLLM_HOST (default
+  # http://localhost:8000), while `bench` endpoint discovery builds the URL
+  # from VLLM_PORT alone (bench.rs vllm_url()). Both point at the server
+  # from modules/nixos/vllm.nix. osConfig reads the NixOS option from this
+  # home-manager module.
+  home.sessionVariables.VLLM_HOST = "http://127.0.0.1:${toString osConfig.services.vllm.port}";
+  home.sessionVariables.VLLM_PORT = toString osConfig.services.vllm.port;
 
   # Load agenix secrets into shell environment variables
   home.sessionVariablesExtra = ''
