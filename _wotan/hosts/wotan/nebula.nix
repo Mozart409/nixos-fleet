@@ -43,23 +43,44 @@
       "${v.overlay}.2" = ["lighthouse-b.oyabu.cc:${toString v.port}"];
       "${v.overlay}.3" = ["lighthouse-c.oyabu.cc:${toString v.port}"];
     };
+
     lighthouses = ["${v.overlay}.1" "${v.overlay}.2" "${v.overlay}.3"];
+    # Accept traffic relayed by the lighthouses (isRelay since ADR 0007) when
+    # hole punching fails, e.g. to vm01 behind vidar-01's MASQUERADE.
+    relays = ["${v.overlay}.1" "${v.overlay}.2" "${v.overlay}.3"];
 
     # Client behind home NAT: dual-stack bind, ephemeral port (module
     # default for non-lighthouses), punch through.
     listen.host = "::";
     tun.device = v.device;
 
-    # A workstation offers nothing on the overlay; widen per port + group
-    # when needed. Nebula's own firewall is the overlay ACL -- do NOT add the
-    # tun devices to networking.firewall.trustedInterfaces.
+    # ICMP, TCP and DNS only -- NO general UDP. Tailscale advertises every
+    # local address as a WireGuard endpoint, so two hosts on both overlays
+    # route Tailscale THROUGH nebula; its packets exceed nebula's 1300 MTU and
+    # SSH over the tailnet stalls silently. Same rule as ventara's
+    # `ventara.nebula.defaultOutbound` (its AGENTS.md §5). Widen once
+    # Tailscale is gone.
     firewall.outbound = [
       {
         port = "any";
-        proto = "any";
+        proto = "icmp";
+        host = "any";
+      }
+      {
+        port = "any";
+        proto = "tcp";
+        host = "any";
+      }
+      {
+        port = 53;
+        proto = "udp";
         host = "any";
       }
     ];
+
+    # A workstation offers nothing on the overlay; widen per port + group
+    # when needed. Nebula's own firewall is the overlay ACL -- do NOT add the
+    # tun devices to networking.firewall.trustedInterfaces.
     firewall.inbound = [
       {
         port = "any";
