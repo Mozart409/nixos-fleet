@@ -83,7 +83,10 @@ Item {
         }
         // HyprlandWorkspace has no `windows` count; the toplevel model is the
         // supported way to ask whether anything lives here.
-        readonly property bool occupied: (ws?.toplevels?.values?.length ?? 0) > 0
+        // A fullscreen window also counts, in case the toplevel model lags the
+        // fullscreen event.
+        readonly property bool fullscreen: ws?.hasFullscreen ?? false
+        readonly property bool occupied: fullscreen || (ws?.toplevels?.values?.length ?? 0) > 0
         readonly property bool urgent: ws?.urgent ?? false
         readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
 
@@ -155,10 +158,11 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           anchors.bottom: parent.bottom
           anchors.bottomMargin: 3
-          width: 4
-          height: 2
-          radius: 1
-          color: Theme.accent
+          // Fullscreen (video, game) gets a larger peach bar.
+          width: wsButton.fullscreen ? 10 : 4
+          height: wsButton.fullscreen ? 3 : 2
+          radius: height / 2
+          color: wsButton.fullscreen ? Theme.peach : Theme.accent
           visible: wsButton.occupied && !wsButton.isActive
         }
 
