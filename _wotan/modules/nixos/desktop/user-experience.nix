@@ -5,12 +5,6 @@
   ...
 }: {
   config = lib.mkIf config.desktop.enable {
-    # User experience configuration
-    programs = {
-      # Auto-start applications
-      kdeconnect.enable = true;
-    };
-
     # System services for user experience
     services = {
       # Power management

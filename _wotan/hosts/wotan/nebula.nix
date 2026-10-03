@@ -129,10 +129,15 @@ in {
   services.nebula.networks = lib.mapAttrs mkNetwork tenants;
 
   # Split DNS for ~int.oyabu.cc needs resolved. mDNS stays with avahi (the
-  # CUPS printer's .local URI), so resolved must not bind 5353 too.
+  # CUPS printer's .local URI), so resolved must not bind 5353 too. LLMNR is
+  # off as well: nothing here resolves bare names over it, and it listened on
+  # 0.0.0.0:5355.
   services.resolved = {
     enable = true;
-    settings.Resolve.MulticastDNS = false;
+    settings.Resolve = {
+      MulticastDNS = false;
+      LLMNR = false;
+    };
   };
 
   # Keep NetworkManager off the tuns, so it never claims the link and resets
