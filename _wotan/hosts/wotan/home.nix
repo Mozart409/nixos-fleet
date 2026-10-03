@@ -22,6 +22,7 @@
     ../../modules/home-manager/packages/git-sync.nix
     ../../modules/home-manager/packages/gtk.nix
     ../../modules/home-manager/packages/halloy.nix
+    ../../modules/home-manager/packages/hofvarpnir-tui.nix
     ../../modules/home-manager/packages/hyprland-configs.nix
     ../../modules/home-manager/packages/kubernetes.nix
     ../../modules/home-manager/packages/onlyoffice.nix

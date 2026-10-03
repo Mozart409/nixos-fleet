@@ -46,6 +46,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hofvarpnir = {
+      url = "github:Mozart409/hofvarpnir";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Neovim (nixvim) configuration, moved out to its own public repo so it
     # can be reused at work with plain Nix + Home Manager. Its nixvim/nixpkgs
     # follow ours so we don't pull in a second copy.
@@ -70,6 +75,7 @@
     awww,
     rose-pine-hyprcursor,
     zinc-oxide,
+    hofvarpnir,
     mozart409-nixvim,
   } @ inputs: let
     lib = nixpkgs.lib;
