@@ -19,6 +19,22 @@
     GIT_CONFIG_VALUE_2 = "true";
   };
 
+  # `git commit *` in sandbox.excludedCommands only matches a bare command.
+  # Compound forms (`git add … && git commit …`, `… | tail`, `nix develop -c
+  # git commit`) run sandboxed, where seccomp blocks the signing-agent socket
+  # ("Couldn't get agent socket?"). Linux can't allowlist one socket path, so
+  # reject those forms and tell Claude to rerun the commit on its own.
+  gitCommitGuard = pkgs.writeShellScript "claude-git-commit-guard" ''
+    cmd=$(${lib.getExe pkgs.jq} -r '.tool_input.command // ""')
+    cmd=''${cmd//$'\n'/;}
+    detect='(^|[;&|(])[[:space:]]*((env|command|exec)[[:space:]]+|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+|nix[[:space:]]+develop([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(-c|--command)[[:space:]]+)*git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+commit([[:space:]]|$)'
+    bare='^[[:space:]]*git[[:space:]]+commit([[:space:]]+[^;&|<>`]*)?$'
+    [[ $cmd =~ $detect ]] || exit 0
+    [[ $cmd =~ $bare && $cmd != *'$('* ]] && exit 0
+    echo 'Blocked: git commit must be its own Bash call (exactly `git commit -m "type(scope): summary"`): no cd/&&/;/pipes/redirects/$(...)/nix develop wrapper. Only that bare form runs outside the sandbox and can reach the commit-signing agent. Stage files in a separate call first.' >&2
+    exit 2
+  '';
+
   claudeSettings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
@@ -174,6 +190,17 @@
         EDITOR = "nvim";
       }
       // signingEnv;
+    hooks.PreToolUse = [
+      {
+        matcher = "Bash";
+        hooks = [
+          {
+            type = "command";
+            command = "${gitCommitGuard}";
+          }
+        ];
+      }
+    ];
     includeGitInstructions = true;
     attribution = {
       commit = "";
@@ -238,9 +265,13 @@
 
     ## Workflow
 
-    1. Stage only the files relevant to the change (`git add <paths>`), not `-A`.
-    2. Run the commit with the sandbox disabled — the commit-msg / signing hooks
-       need askpass, which fails inside the sandbox.
+    1. Stage only the files relevant to the change (`git add <paths>`), not `-A`,
+       in its own Bash call.
+    2. Commit in a separate Bash call that is exactly
+       `git commit -m "type(scope): summary"` — no `cd`, `&&`, pipes, redirects,
+       `$(...)` or `nix develop -c` wrapper. Only that bare form runs outside the
+       sandbox, where it can reach the commit-signing agent; anything else fails
+       with "Couldn't get agent socket?" (a PreToolUse hook rejects it up front).
     3. Never add AI or co-author attribution (already disabled in settings.json).
     4. Do not push unless explicitly asked.
     5. If the pre-commit hook reformats a staged file, re-stage it and retry.
