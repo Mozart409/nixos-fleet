@@ -85,9 +85,9 @@
 
     # (Both vhosts above carried a `handle /uptime-forge*` -> localhost:3000
     # until 2026-09-12, when uptime-forge and its TimescaleDB were retired as
-    # unused. hosts/containers/uptime-forge/ is kept on disk, imported nowhere
-    # -- same convention as ./futo-notes and hosts/cache/. The podman volume
-    # `uptime_forge_db` and /var/lib/uptime-forge stay on the host untouched.)
+    # unused. hosts/containers/uptime-forge/ was deleted 2026-10-04 (see git
+    # history). The podman volume `uptime_forge_db` and /var/lib/uptime-forge
+    # stay on the host untouched.)
 
     # (The AlbyHub vhost lived here until 2026-10-04, when the service was
     # removed. Its wallet state in /var/lib/albyhub stays on the host untouched.)
