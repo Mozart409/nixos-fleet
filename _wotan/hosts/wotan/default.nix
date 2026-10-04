@@ -431,6 +431,15 @@
     # quickshell-ha (desktop.quickshell.homeAssistant in home.nix).
   };
 
+  age.secrets.hofvarpnir-tui = {
+    file = ../../secrets/hofvarpnir-tui.age;
+    mode = "400";
+    owner = username;
+    # Raw hofvarpnir API key (hof_sk_...), no KEY= prefix. Read by the TUI via
+    # token_file in the generated ~/.config/hofvarpnir/tui.toml
+    # (modules/home-manager/packages/hofvarpnir-tui.nix).
+  };
+
   # Environment variables
   environment.sessionVariables = {
     # Agenix secrets

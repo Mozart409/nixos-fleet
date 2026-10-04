@@ -26,6 +26,9 @@ in {
   # Home Assistant long-lived access token for the quickshell light toggles.
   # Raw token, no KEY= prefix. Edit with: agenix -e secrets/ha-token.age
   "secrets/ha-token.age".publicKeys = allKeys;
+  # hofvarpnir API key for the TUI. Raw hof_sk_... token, no KEY= prefix.
+  # Edit with: agenix -e secrets/hofvarpnir-tui.age
+  "secrets/hofvarpnir-tui.age".publicKeys = allKeys;
   # Nebula host private keys for wotan, one per tenant overlay (raw
   # nebula-cert PEM, as written by `nebula-cert sign -out-key`). The matching
   # public certs live in hosts/wotan/nebula/. See todo/nebula-clients.md.
