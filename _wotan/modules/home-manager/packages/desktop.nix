@@ -7,6 +7,8 @@
   home.packages = with pkgs; [
     # keep-sorted start
     basalt
+    bitwarden-cli
+    bitwarden-desktop
     comet-gog
     discord
     drawio
