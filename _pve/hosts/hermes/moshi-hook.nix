@@ -50,6 +50,13 @@
     set -u
     moshi=${pkgs.moshi-hook}/bin/moshi-hook
 
+    # Defensive: never let a version bump run `install` against a host where
+    # the hermes CLI is not actually present.
+    if [ ! -x ${lib.escapeShellArg (lib.getExe' hermesCfg.package "hermes")} ]; then
+      echo "hermes-moshi-profiles: hermes CLI not installed, skipping" >&2
+      exit 0
+    fi
+
     for home in ${lib.escapeShellArgs profileHomes}; do
       stamp="$home/.moshi-hook-installed-${pkgs.moshi-hook.version}"
       if [ -e "$stamp" ]; then
@@ -64,7 +71,9 @@
       # Hermes home from: the CLI documents $HERMES_HOME, but the target it
       # actually rewrote on the previous host was $HOME/.hermes/config.yaml.
       # Pointing both at the same directory makes either resolution correct.
-      if HOME="$home" HERMES_HOME="$home" "$moshi" install; then
+      # --target hermes: with HOME pointed at a profile, a bare `install` would
+      # also drop Claude Code / opencode hook files into every profile home.
+      if HOME="$home" HERMES_HOME="$home" "$moshi" install --target hermes; then
         touch "$stamp"
         echo "hermes-moshi-profiles: registered moshi-hooks in $home"
       else

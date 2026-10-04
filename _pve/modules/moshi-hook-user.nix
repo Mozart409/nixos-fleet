@@ -84,10 +84,33 @@
   # unit's ExecStart changes with the store path, so switch restarts it.
   # `install` touches only files under $HOME and needs neither the socket nor
   # a running daemon.
+  #
+  # Scoped with --target to the agent CLIs actually installed for this login.
+  # A bare `install` defaults to all ~20 supported agents, so it scatters config
+  # for tools that are not here, and a target whose CLI is missing is not
+  # something an upgrade should be able to break. Probed on the system profile,
+  # the per-user profile and ~/.local/bin, since a system unit gets a minimal
+  # PATH. `hermes` is deliberately NOT a target here: its config.yaml lives per
+  # profile and is registered by hosts/hermes/moshi-hook.nix.
   moshiInstall = pkgs.writeShellScript "moshi-install" ''
     set -eu
+    export PATH="/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"
+
+    targets=""
+    for agent in claude opencode; do
+      if command -v "$agent" >/dev/null 2>&1; then
+        targets="''${targets:+$targets,}$agent"
+      else
+        echo "moshi-install: $agent not installed for $USER, skipping its hooks"
+      fi
+    done
+    if [ -z "$targets" ]; then
+      echo "moshi-install: no supported agent CLI installed for $USER, nothing to do"
+      exit 0
+    fi
+
     mkdir -p "$HOME/.claude"
-    ${pkgs.moshi-hook}/bin/moshi-hook install
+    ${pkgs.moshi-hook}/bin/moshi-hook install --target "$targets"
   '';
 in {
   imports = [./moshi-hook.nix ./agent-user.nix];
