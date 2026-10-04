@@ -155,6 +155,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # Polkit authentication agent: without one, privileged actions (Thunar
+    # mounting internal drives, admin:// in gvfs, pkexec) fail silently.
+    services.hyprpolkitagent.enable = true;
+
     # Hyprland 0.56 introduced a Lua-first config model and looks for
     # hyprland.lua in ~/.config/hypr/ first. This is our real, hand-migrated
     # config, and the only one -- the old hyprlang programs.hyprland.settings

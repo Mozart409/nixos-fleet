@@ -20,6 +20,9 @@
     };
 
     environment.systemPackages = with pkgs; [
+      exo # exo-open, used by Thunar's "Open Terminal Here"
+      unrar # RAR5 extraction for file-roller
+
       # Thumbnail/preview generators for tumbler
       ffmpegthumbnailer # video thumbnails
       poppler-utils # PDF thumbnails (pdftoppm)
@@ -37,6 +40,16 @@
       gst_all_1.gst-plugins-ugly
       gst_all_1.gst-libav
     ];
+
+    # Archive backend for thunar-archive-plugin ("Extract Here" / "Create Archive")
+    programs.file-roller.enable = true;
+
+    # Thunar's default "Open Terminal Here" action runs
+    # `exo-open --launch TerminalEmulator`; exo resolves that via helpers.rc
+    # (read from XDG_CONFIG_DIRS, so /etc/xdg works system-wide).
+    environment.etc."xdg/xfce4/helpers.rc".text = ''
+      TerminalEmulator=kitty
+    '';
 
     services.tumbler.enable = true;
   };
