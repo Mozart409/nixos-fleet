@@ -21,6 +21,7 @@
 
     environment.systemPackages = with pkgs; [
       exo # exo-open, used by Thunar's "Open Terminal Here"
+      file-roller # archive backend for thunar-archive-plugin ("Extract Here" / "Create Archive")
       unrar # RAR5 extraction for file-roller
 
       # Thumbnail/preview generators for tumbler
@@ -40,9 +41,6 @@
       gst_all_1.gst-plugins-ugly
       gst_all_1.gst-libav
     ];
-
-    # Archive backend for thunar-archive-plugin ("Extract Here" / "Create Archive")
-    programs.file-roller.enable = true;
 
     # Thunar's default "Open Terminal Here" action runs
     # `exo-open --launch TerminalEmulator`; exo resolves that via helpers.rc
