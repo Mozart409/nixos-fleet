@@ -16,6 +16,22 @@
     printf 'DB_PASSWD=%s\n' "$DB_PASSWORD" > /run/romm/db.env
     chmod 600 /run/romm/db.env
   '';
+
+  # RomM >= 5.3 refuses to start until the library layout is declared in
+  # config.yml (the removed roms_folder/firmware_folder keys are fatal too).
+  # The file stays writable because RomM saves UI settings into it, so only
+  # these keys are asserted on every start; everything else is left alone.
+  # Library is "structure A": library/roms/<platform>/...
+  ensureRommConfig = pkgs.writeShellScript "ensure-romm-config" ''
+    cfg=${dataDir}/config/config.yml
+    [ -s "$cfg" ] || echo '{}' > "$cfg"
+    ${pkgs.yq-go}/bin/yq -i '
+      .filesystem.structure.default = "roms/{platform}/{game}" |
+      .filesystem.structure.firmware = "bios/{platform}" |
+      del(.filesystem.roms_folder) |
+      del(.filesystem.firmware_folder)
+    ' "$cfg"
+  '';
 in {
   # Persistent host paths for the game library, uploaded saves/states and config.
   # resources (IGDB covers/screenshots) and the internal redis cache use named
@@ -47,7 +63,7 @@ in {
   # Binds 127.0.0.1:8095 -> 8080; Caddy (see ../configuration.nix) is the only
   # thing that proxies to it, terminating step-ca TLS at romm.homelab.local.
   virtualisation.oci-containers.containers.romm = {
-    image = "ghcr.io/rommapp/romm:5.0";
+    image = "ghcr.io/rommapp/romm:5.3";
     autoStart = true;
     ports = ["127.0.0.1:8095:8080"];
     volumes = [
@@ -84,6 +100,8 @@ in {
       OIDC_REDIRECT_URI = "https://romm.homelab.local/api/oauth/openid";
       OIDC_SERVER_APPLICATION_URL = "https://pocketid.dropbear-butterfly.ts.net";
       ROMM_BASE_URL = "https://romm.homelab.local";
+      # Served only over HTTPS via Caddy.
+      ROMM_SESSION_SECURE_COOKIE = "true";
     };
     # db.env (DB_PASSWD, generated at runtime) + romm-env.age (app/OIDC secrets).
     environmentFiles = [
@@ -92,8 +110,9 @@ in {
     ];
   };
 
-  # Generate /run/romm/db.env from the agenix secret before the container starts.
-  systemd.services.podman-romm.serviceConfig.ExecStartPre = ["${generateDbEnv}"];
+  # Generate /run/romm/db.env from the agenix secret and assert the config.yml
+  # filesystem keys before the container starts.
+  systemd.services.podman-romm.serviceConfig.ExecStartPre = ["${generateDbEnv}" "${ensureRommConfig}"];
   # ExecStartPre only runs on (re)start, and a re-encrypted secret at the same
   # /run/agenix path changes nothing in this unit, so without this a rotated
   # romm-db-password would leave the container on the old DB_PASSWD until
