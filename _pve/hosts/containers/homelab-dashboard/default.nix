@@ -16,7 +16,7 @@
     openFirewall = false;
     settings = {
       listen_address = "127.0.0.1";
-      port = 8084; # 8080 is taken by AlbyHub on this host
+      port = 8084;
       search = {
         type = "searxng";
         url = "https://searxng.homelab.local";

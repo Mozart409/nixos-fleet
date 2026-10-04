@@ -112,8 +112,6 @@
           # homelab.internal mirror of every homelab.local A record (parallel
           # zone for Apple clients — see the local-zone note). keep-sorted
           # interleaves these with the .local entries on commit.
-          ''"albyhub.homelab.internal. A 192.168.2.149"''
-          ''"albyhub.homelab.local. A 192.168.2.149"''
           ''"alertmanager.homelab.internal. A 192.168.2.135"''
           ''"alertmanager.homelab.local. A 192.168.2.135"''
           ''"axon.homelab.internal. A 192.168.2.152"''
@@ -203,7 +201,6 @@
           ''"192.168.2.135 tempo.homelab.local"''
           ''"192.168.2.142 unifi.homelab.local"''
           ''"192.168.2.145 dns.homelab.local"''
-          ''"192.168.2.149 albyhub.homelab.local"''
           ''"192.168.2.149 containers.homelab.local"''
           ''"192.168.2.149 dashboard.homelab.local"''
           ''"192.168.2.149 romm.homelab.local"''

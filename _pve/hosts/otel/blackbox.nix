@@ -68,8 +68,6 @@
     homelab-containers = [
       "containers.homelab.local"
       "containers.homelab.internal"
-      "albyhub.homelab.local"
-      "albyhub.homelab.internal"
       "dashboard.homelab.local"
       "dashboard.homelab.internal"
       "romm.homelab.local"

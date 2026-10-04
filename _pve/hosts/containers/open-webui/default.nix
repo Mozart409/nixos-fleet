@@ -31,7 +31,6 @@
   # Open WebUI - LLM chat interface (external APIs only)
   # Served behind Caddy at the host root (see ../configuration.nix); the SPA's
   # build-time base path is "/", so it cannot live under a subpath.
-  # Port 8088 because AlbyHub occupies 8080.
   services.open-webui = {
     enable = true;
     port = 8088;

@@ -13,7 +13,6 @@
     ../../modules/fluent-bit.nix
     ../../modules/podman.nix
     ../../modules/caddy-http3.nix
-    ./albyhub
     ./open-webui
     ./searxng
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
@@ -90,16 +89,8 @@
     # -- same convention as ./futo-notes and hosts/cache/. The podman volume
     # `uptime_forge_db` and /var/lib/uptime-forge stay on the host untouched.)
 
-    # AlbyHub on its own hostname (SPA expects to be served at root)
-    virtualHosts."albyhub.homelab.local albyhub.homelab.internal" = {
-      extraConfig = ''
-        tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
-        }
-
-        reverse_proxy 127.0.0.1:8080
-      '';
-    };
+    # (The AlbyHub vhost lived here until 2026-10-04, when the service was
+    # removed. Its wallet state in /var/lib/albyhub stays on the host untouched.)
 
     # SearXNG on its own hostname so off-host clients (e.g. hermes-agent's
     # web_search backend) can reach it. SearXNG binds 127.0.0.1:8089, so Caddy
