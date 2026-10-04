@@ -252,11 +252,11 @@
         "nixpkgs-darwin": "nixpkgs-darwin"
       },
       "locked": {
-        "lastModified": 1791067103,
-        "narHash": "sha256-UpV7LFBKHU3MOKbOrD5zvVbcsDXRLrfR0SO6bzsJD2Q=",
+        "lastModified": 1791100264,
+        "narHash": "sha256-N/tOTPadhrDPpnuVMtXyT49tZiFjtaLy1biSixBf0zo=",
         "owner": "Mozart409",
         "repo": "hofvarpnir",
-        "rev": "07252b38692fe6240feddcf5661a15beb52abde6",
+        "rev": "b2fcbd477480da1426b8f62d48b0b0fbc00321ba",
         "type": "github"
       },
       "original": {
