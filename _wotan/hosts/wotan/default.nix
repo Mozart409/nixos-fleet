@@ -49,7 +49,13 @@
     interface = "enp38s0";
   };
 
-  nix.settings.download-buffer-size = 4 * 1024 * 1024 * 1024;
+  nix.settings = {
+    download-buffer-size = 4 * 1024 * 1024 * 1024;
+    substituters = lib.mkAfter ["https://cache.int.oyabu.cc/ventara"];
+    trusted-public-keys = lib.mkAfter [
+      "ventara:aswnRAo2zbP13gGnUTCINX78X/lURQgPAfrgNpHpQpY="
+    ];
+  };
 
   # Bootloader configuration
   boot.loader.systemd-boot.enable = true;
