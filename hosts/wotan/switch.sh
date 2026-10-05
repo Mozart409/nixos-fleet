@@ -18,11 +18,11 @@ echo ''
 mode=switch
 while (($#)); do
   case "$1" in
-    -r) mode=boot ;;
-    *)
-      echo "usage: $0 [-r]" >&2
-      exit 2
-      ;;
+  -r) mode=boot ;;
+  *)
+    echo "usage: $0 [-r]" >&2
+    exit 2
+    ;;
   esac
   shift
 done
@@ -44,13 +44,13 @@ healthy=()
 unhealthy=()
 for url in $(nix config show substituters); do
   case "$url" in
-    http://* | https://*) ;;
-    # Non-HTTP substituters (local dirs, ssh://) have no narinfo endpoint to
-    # probe; assume they are fine and let nix deal with them.
-    *)
-      healthy+=("$url")
-      continue
-      ;;
+  http://* | https://*) ;;
+  # Non-HTTP substituters (local dirs, ssh://) have no narinfo endpoint to
+  # probe; assume they are fine and let nix deal with them.
+  *)
+    healthy+=("$url")
+    continue
+    ;;
   esac
   if curl -sf -o /dev/null --connect-timeout 3 --max-time 6 "${url%/}/nix-cache-info"; then
     healthy+=("$url")
@@ -96,3 +96,15 @@ for remote in $(git remote); do
     echo "     ✗ failed to push to $remote (continuing)" >&2
   fi
 done
+
+echo ''
+echo 'Pushing system closure to ventara-attic cache'
+if command -v attic &>/dev/null; then
+  if attic push ventara /nix/var/nix/profiles/system; then
+    echo "  ✓ ventara-attic push succeeded"
+  else
+    echo "  ✗ warning: attic push failed (continuing)" >&2
+  fi
+else
+  echo "  ! attic not found or not logged in (skipping)" >&2
+fi
