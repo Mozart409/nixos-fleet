@@ -43,9 +43,10 @@ What keeps that safe is **who deploys**, not who edits:
   push touching its files, and `hosts/wotan/default.nix` asserts that sshd,
   TCP 22 and Tailscale SSH stay off. Never weaken those assertions to make a
   change evaluate; that change is wrong.
-- **A switch publishes.** `switch.sh` pushes to every remote on wotan,
-  including the public GitHub mirror, so a bot commit becomes public on the
-  user's next switch. Nothing private in `infra/`.
+- **A switch publishes.** `switch.sh` pushes to Forgejo and then runs
+  `just export-github`, which publishes the `exports.toml` prefixes (`infra/`
+  and the public Rust projects) to GitHub, so a bot commit there becomes
+  public on the user's next switch. Nothing private in `infra/`.
 - **NVIDIA driver bumps need `just switch-wotan -r`** (boot mode, pitfall #8).
   If a bot change moves the driver (usually via `flake.lock`), say so in the
   hand-off.
@@ -249,7 +250,7 @@ Before committing changes:
 4. **Build home test:** `just build-home-wotan`
 5. **Test config:** `just test-wotan` (if changing system)
 6. **Commit:** single-line conventional commit (`fix(wotan): …`)
-7. **Switch:** `just switch-wotan` to persist — the user runs it; note it also pushes to every git remote, including the public GitHub mirror
+7. **Switch:** `just switch-wotan` to persist — the user runs it; note it also pushes to Forgejo and exports the public prefixes to GitHub
 
 ## 🚨 Common Pitfalls
 
