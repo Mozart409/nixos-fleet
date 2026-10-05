@@ -117,7 +117,13 @@
         "Bash(*home switch*)"
         "Bash(*home-manager*switch*)"
         "Bash(*switch-to-configuration*)"
-        "Bash(*switch.sh*)"
+        # Running switch.sh only. A bare *switch.sh* also matched git add,
+        # cat and sed on it, so it could not be edited or staged.
+        "Bash(infra/hosts/wotan/switch.sh*)"
+        "Bash(./infra/hosts/wotan/switch.sh*)"
+        "Bash(./switch.sh*)"
+        "Bash(bash *switch.sh*)"
+        "Bash(sh *switch.sh*)"
         "Bash(*cleanup.sh*)"
         "Bash(just switch*)"
         "Bash(just test*)"
@@ -127,6 +133,12 @@
         # Never push, and never bypass hooks or commit signing.
         "Bash(git push*)"
         "Bash(just sync-remotes*)"
+        # Publishes to GitHub (git push inside the script).
+        "Bash(just export-github*)"
+        "Bash(*export-github.sh*)"
+        # No GitHub CLI: Forgejo is the forge, GitHub is only a mirror.
+        "Bash(gh)"
+        "Bash(gh *)"
         "Bash(git *--no-verify*)"
         "Bash(git commit -n*)"
         "Bash(git commit * -n*)"
