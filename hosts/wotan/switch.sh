@@ -97,6 +97,15 @@ for remote in $(git remote); do
   fi
 done
 
+# Publishes the exports.toml prefixes (infra/ and the public Rust projects) to
+# their GitHub repos. The monorepo itself has no GitHub remote: adding one
+# would push the vault through the loop above.
+echo ''
+echo 'Exporting public subtrees to GitHub'
+if ! infra/scripts/export-github.sh; then
+  echo "  ✗ warning: GitHub export failed (continuing)" >&2
+fi
+
 echo ''
 echo 'Pushing system closure to ventara-attic cache'
 if command -v attic &>/dev/null; then
