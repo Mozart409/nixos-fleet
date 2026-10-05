@@ -47,6 +47,8 @@ let
   users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostZeroclaw hostDevelopment hostWoodpecker hostHermes];
   # keep-sorted end
 in {
+  # Desktop-only secrets are the `[amadeus hostWotan]` rules (amadeus is
+  # amadeus@wotan); they never reach a fleet host.
   # keep-sorted start
 
   "attic-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase]; # raw password; same value inside attic-db-url.age
@@ -54,6 +56,7 @@ in {
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
   "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostDevelopment hostOtel hostZeroclaw hostHermes hostWotan];
+  "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
   "dashboard-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "development-forgejo-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment];
   "development-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment];
@@ -68,6 +71,7 @@ in {
   "grafana-admin-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel]; # break-glass local admin; the UI is OIDC-only
   "grafana-oidc-secret.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel];
   "grafana-secret-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel];
+  "ha-token.age".publicKeys = [amadeus hostWotan]; # raw HA long-lived token, quickshell light toggles
   "harbor-admin-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHarbor];
   "harbor-core-secret.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHarbor];
   "harbor-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHarbor];
@@ -92,12 +96,17 @@ in {
   "hermes-kb-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHermes];
   "hermes-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHermes];
   "hermes-research-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHermes];
+  "hf-token.age".publicKeys = [amadeus hostWotan]; # env-file: HF_TOKEN=hf_... (vLLM gated models)
   "hofvarpnir-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostJellyfin];
   "hofvarpnir-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostJellyfin];
+  "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI
   "homeassistant-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "k3s-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # add hostK3sCntrl1 + `just reencrypt` once k3s-cntrl-1 is installed and its real host key is known
   "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment hostZeroclaw hostHermes]; # plain auth token
+  "nebula-amartum-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
+  "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
+  "opencode-server-password.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_SERVER_PASSWORD=...
   "otel-push-token.age".publicKeys = users; # bare token; every host's fluent-bit pushes to loki with it (write-only side)
   "otel-query-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel hostMcp]; # bare token; read side of the otel vhosts (prom/loki/tempo/alertmanager MCP servers)
   "pbs-mcp-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
