@@ -21,6 +21,35 @@ wotan is one host in the `yggdrasil` monorepo (`~/code/yggdrasil`, Forgejo canon
 
 **User:** `amadeus`
 
+## 🤖 Bots May Change wotan's Config (decided 2026-10-05)
+
+The coding agents (`developmentbot` on `development`, `hermes`, and later the
+Agent Platform bots) have **full write access to wotan's configuration**, the
+same trust they have for the homelab. A bot commit to `infra/hosts/wotan/`,
+`infra/modules/{wotan,desktop,home}/` or `infra/lib/` is normal work, not
+something to avoid.
+
+What keeps that safe is **who deploys**, not who edits:
+
+- **Nothing reaches wotan until the user runs `just switch-wotan` on wotan
+  itself.** There is no colmena node, no inbound SSH and no deploy key for
+  wotan anywhere. A bot never deploys wotan and never asks to; it commits,
+  pushes to Forgejo and says what the user should switch and check.
+- **The user reviews at switch time.** `just build-wotan` (or the switch itself)
+  prints the `nh` diff against the running system. Say in the commit or the
+  hand-off what that diff should contain, so an unexpected package or service
+  stands out.
+- **Evaluation guards still apply.** The pre-push gate evaluates wotan for any
+  push touching its files, and `hosts/wotan/default.nix` asserts that sshd,
+  TCP 22 and Tailscale SSH stay off. Never weaken those assertions to make a
+  change evaluate; that change is wrong.
+- **A switch publishes.** `switch.sh` pushes to every remote on wotan,
+  including the public GitHub mirror, so a bot commit becomes public on the
+  user's next switch. Nothing private in `infra/`.
+- **NVIDIA driver bumps need `just switch-wotan -r`** (boot mode, pitfall #8).
+  If a bot change moves the driver (usually via `flake.lock`), say so in the
+  hand-off.
+
 ## ⚡ Build/Test/Lint Commands
 
 ### Building and Switching Configurations
