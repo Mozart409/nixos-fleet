@@ -1,0 +1,48 @@
+import Quickshell
+import Generated
+
+// If SystemTrayWidget is ever re-enabled in Bar.qml, `//@ pragma
+// UseQApplication` has to go back as the very first line of this file. Tray
+// menus are Qt platform menus and need QApplication mode; without it every
+// tray click fails with "Cannot display PlatformMenuEntry", logged to the
+// service journal and invisible on screen. It is left off here because
+// QApplication mode pulls in QtWidgets for no other benefit.
+ShellRoot {
+  // Top status bar, one per screen.
+  Bar {}
+
+  // Floating volume display, follows the focused monitor.
+  VolumeOsd {}
+
+  // Notification daemon. Only built when nix selected this backend --
+  // desktop.notifications.backend = "quickshell". With dunst selected, the
+  // component is never instantiated and never touches the bus.
+  LazyLoader {
+    active: Features.notifications
+
+    NotificationDaemon {}
+  }
+
+  // Homelab status board, one per screen, sitting on the wallpaper.
+  HomelabWidget {}
+
+  // Home Assistant light toggles, top-left on the primary screen. Gated like
+  // the notification daemon: without desktop.quickshell.homeAssistant the
+  // quickshell-ha script does not exist.
+  LazyLoader {
+    active: Features.homeAssistant
+
+    HomeAssistantWidget {}
+  }
+
+  // Flake input drift, bottom-right so it cannot collide with the homelab
+  // board above however tall that grows.
+  DepsWidget {}
+
+  // Desktop widgets, off by default -- the bar covers the same ground.
+  // SystemMonitorWidget {}
+  // WeatherWidget {}
+
+  // App dock (bottom centre).
+  // DockWidget {}
+}

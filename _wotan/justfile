@@ -1,0 +1,74 @@
+# https://just.systems
+
+set unstable
+set dotenv-load
+
+default:
+    just --choose
+
+# Switch NixOS configuration (persists)
+switch:
+    sudo nixos-rebuild switch --flake .#wotan
+
+# Test NixOS configuration (doesn't persist after reboot)
+test:
+    sudo nixos-rebuild test --flake .#wotan
+
+# Build NixOS configuration (dry run to check)
+build:
+    nh os build .#wotan
+
+# Build home-manager activation package (dry run to check)
+build-home:
+    nix build .#nixosConfigurations.wotan.config.home-manager.users.amadeus.home.activationPackage --dry-run
+
+# Update flake inputs
+update:
+    nix flake update --accept-flake-config
+    git add flake.lock
+    git commit -m "chore(deps): upgrade flake"
+
+# Update specific flake input
+update-input input:
+    nix flake update {{ input }} --accept-flake-config
+
+# Pull from and push to every configured git remote
+sync-remotes:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    remotes=$(git remote)
+    for remote in $remotes; do
+        if git ls-remote --exit-code --heads "$remote" "$branch" >/dev/null 2>&1; then
+            echo "==> pulling $branch from $remote"
+            git pull --rebase "$remote" "$branch"
+        else
+            echo "==> skipping pull from $remote (no branch $branch)"
+        fi
+    done
+    for remote in $remotes; do
+        echo "==> pushing $branch to $remote"
+        git push "$remote" "$branch"
+    done
+
+# Format all Nix files with Alejandra
+fmt:
+    alejandra .
+
+# Check flake configuration
+check:
+    nix flake check
+
+# Enter development shell
+dev:
+    nix develop
+
+# Clear terminal
+clear:
+    clear
+
+d2-w: clear
+    d2 -w docs/config.d2 docs/config.svg
+
+d2: clear
+    d2 --stdout-format ascii docs/config.d2 docs/config.svg

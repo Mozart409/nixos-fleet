@@ -1,0 +1,60 @@
+# NixOS Configuration Architecture
+
+direction: down
+
+flake: flake.nix {
+  shape: rectangle
+  style.fill: "#1a202c"
+  style.font-color: "#fff"
+}
+
+inputs: Inputs {
+  style.fill: "#2d3748"
+  style.font-color: "#fff"
+
+  nixpkgs
+  home-manager
+  nixvim
+  hyprland
+  disko
+  agenix
+}
+
+wotan: Host: wotan {
+  style.fill: "#2b6cb0"
+  style.font-color: "#fff"
+  style.font-size: 20
+}
+
+nixos: NixOS Modules {
+  style.fill: "#276749"
+  style.font-color: "#fff"
+
+  basics
+  desktop
+  ai-services
+}
+
+home: Home Manager {
+  style.fill: "#744210"
+  style.font-color: "#fff"
+
+  shell
+  packages
+  hyprland
+}
+
+nvim: Nixvim {
+  style.fill: "#553c9a"
+  style.font-color: "#fff"
+
+  lsp
+  treesitter
+  plugins
+}
+
+flake -> inputs
+inputs -> wotan: provides
+wotan -> nixos: system config
+wotan -> home: user config
+home -> nvim: editor
