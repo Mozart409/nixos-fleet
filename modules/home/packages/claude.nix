@@ -90,70 +90,31 @@
       # Read(...) denies are also merged into sandbox.filesystem.denyRead, so
       # with the sandbox on they block `cat` & co. in Bash too, not just the
       # Read tool.
-      deny = [
-        "Read(~/.ssh/**)"
-        "Read(~/.gnupg/**)"
-        "Read(~/.claude/.credentials.json)"
-        "Read(~/.local/share/opencode/auth.json)"
-        "Read(~/.config/sops/age/**)"
-        "Read(~/.config/age/**)"
-        "Read(//etc/ssh/ssh_host_*)"
-        # /run/agenix is a symlink to /run/agenix.d/<gen>; bwrap can't mount
-        # over a symlink, so deny the real directory.
-        "Read(//run/agenix.d/**)"
-        "Read(**/.env*)"
-        # agenix ciphertext anywhere, not whole secrets/ dirs: deny beats allow,
-        # so a dir-wide deny would also hide the recipients file allowed above.
-        "Read(**/*.age)"
-        "Read(**/.age*)"
-        # No root, and nothing that switches the system or home generation.
-        "Bash(sudo *)"
-        "Bash(*nixos-rebuild*switch*)"
-        "Bash(*nixos-rebuild*boot*)"
-        "Bash(*nixos-rebuild*test*)"
-        "Bash(*os switch*)"
-        "Bash(*os boot*)"
-        "Bash(*os test*)"
-        "Bash(*home switch*)"
-        "Bash(*home-manager*switch*)"
-        "Bash(*switch-to-configuration*)"
-        # Running switch.sh only. A bare *switch.sh* also matched git add,
-        # cat and sed on it, so it could not be edited or staged.
-        "Bash(infra/hosts/wotan/switch.sh*)"
-        "Bash(./infra/hosts/wotan/switch.sh*)"
-        "Bash(./switch.sh*)"
-        "Bash(bash *switch.sh*)"
-        "Bash(sh *switch.sh*)"
-        "Bash(*cleanup.sh*)"
-        "Bash(just switch*)"
-        "Bash(just test*)"
-        "Bash(nix profile *)"
-        "Bash(nix-env *)"
-        "Bash(nh clean*)"
-        # Never push, and never bypass hooks or commit signing.
-        "Bash(git push*)"
-        "Bash(just sync-remotes*)"
-        # Publishes to GitHub (git push inside the script).
-        "Bash(just export-github*)"
-        "Bash(*export-github.sh*)"
-        # No GitHub CLI: Forgejo is the forge, GitHub is only a mirror.
-        "Bash(gh)"
-        "Bash(gh *)"
-        "Bash(git *--no-verify*)"
-        "Bash(git commit -n*)"
-        "Bash(git commit * -n*)"
-        "Bash(git *--no-gpg-sign*)"
-        "Bash(git *commit.gpgsign*)"
-        "Bash(git *core.hooksPath*)"
-        "Bash(*LEFTHOOK*)"
-        "Bash(*GIT_CONFIG_*)"
-        # Destructive working-tree operations.
-        "Bash(git reset *--hard*)"
-        "Bash(git clean*)"
-        "Bash(git checkout -- *)"
-        "Bash(git checkout .*)"
-        "Bash(git restore .*)"
-      ];
+      # The shared floor (credentials, deploys, GitHub, hook bypass,
+      # destructive git) is modules/claude-deny-core.nix, also used by the
+      # fleet; below are wotan's own additions.
+      deny =
+        import ../../claude-deny-core.nix {home = "~";}
+        ++ [
+          "Read(**/.env*)"
+          # agenix ciphertext anywhere, not whole secrets/ dirs: deny beats
+          # allow, so a dir-wide deny would also hide the recipients file
+          # allowed above.
+          "Read(**/.age*)"
+          # No root.
+          "Bash(sudo *)"
+          # Running switch.sh only. A bare *switch.sh* also matched git add,
+          # cat and sed on it, so it could not be edited or staged.
+          "Bash(infra/hosts/wotan/switch.sh*)"
+          "Bash(./infra/hosts/wotan/switch.sh*)"
+          "Bash(./switch.sh*)"
+          "Bash(bash *switch.sh*)"
+          "Bash(sh *switch.sh*)"
+          "Bash(*cleanup.sh*)"
+          "Bash(just test*)"
+          # Never push: wotan's pushes go through the user's switch.
+          "Bash(git push*)"
+        ];
       defaultMode = "auto";
     };
     # OS-level isolation (bubblewrap + seccomp) for Bash commands.

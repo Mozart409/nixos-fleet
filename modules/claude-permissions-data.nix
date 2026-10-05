@@ -69,7 +69,6 @@
     "Bash(git tag:*)"
 
     # Forges, task runners, toolchains.
-    "Bash(gh:*)"
     "Bash(nix:*)"
     "Bash(just:*)"
     "Bash(lefthook:*)"
@@ -244,128 +243,97 @@
   ];
 
   # Grouped by what they protect, not sorted — the grouping is the documentation.
-  deny = [
-    # Credentials. Read-denied rather than merely ask-gated: an agent has no
-    # legitimate reason to read a private key, and a prompt is a decision the
-    # user would have to get right every single time.
-    "Read(/${home}/.ssh/**)"
-    "Read(/${home}/.claude/.credentials.json)"
-    "Read(/${home}/.aws/**)"
-    "Read(/${home}/.config/gh/**)"
-    "Edit(/${home}/.ssh/**)"
+  # The shared floor (credentials, deploys, GitHub incl. `gh`, hook bypass,
+  # destructive git, host lifecycle) is ./claude-deny-core.nix, also used by
+  # wotan's home-manager claude.nix; below are the fleet's own additions.
+  deny =
+    import ./claude-deny-core.nix {home = "/${home}";}
+    ++ [
+      # More credentials (the core has ~/.ssh, ~/.gnupg, age keys). Read-denied
+      # rather than merely ask-gated: an agent has no legitimate reason to read
+      # a private key, and a prompt is a decision the user would have to get
+      # right every single time.
+      "Read(/${home}/.aws/**)"
+      "Read(/${home}/.config/gh/**)"
+      "Edit(/${home}/.ssh/**)"
 
-    # Secret files inside the workspace. The allow list grants broad
-    # Read/Edit on ~/code, so the secret patterns must be carved back out
-    # explicitly. This binds shell commands too: the Bash engine checks file
-    # paths in a command against Read and Edit rules, which is how
-    # `cp .env.example .env` is refused without refusing `cp` itself. Write
-    # path rules are omitted because Claude Code never consults them — Edit
-    # rules govern every file-editing tool (Write/NotebookEdit included).
-    #
-    # .env.* variants are denied individually (not a blanket .env.*) so that
-    # .env.example — a template with no secrets — remains readable.
-    "Read(/${home}/code/**/.env)"
-    "Read(/${home}/code/**/.env.local)"
-    "Read(/${home}/code/**/.env.local.*)"
-    "Read(/${home}/code/**/.env.production)"
-    "Read(/${home}/code/**/.env.production.*)"
-    "Read(/${home}/code/**/.env.staging)"
-    "Read(/${home}/code/**/.env.staging.*)"
-    "Read(/${home}/code/**/.env.development)"
-    "Read(/${home}/code/**/.env.development.*)"
-    "Read(/${home}/code/**/.env.test)"
-    "Read(/${home}/code/**/.env.test.*)"
-    "Read(/${home}/code/**/.env.secret)"
-    "Read(/${home}/code/**/.env.secret.*)"
-    "Read(/${home}/code/**/*.env)"
-    "Read(/${home}/code/**/.secrets/**)"
-    "Read(/${home}/code/**/*.pem)"
-    "Read(/${home}/code/**/*.key)"
-    "Read(/${home}/code/**/id_rsa*)"
-    "Read(/${home}/code/**/id_ed25519*)"
-    "Read(/${home}/code/**/credentials*)"
-    "Edit(/${home}/code/**/.env)"
-    "Edit(/${home}/code/**/.env.local)"
-    "Edit(/${home}/code/**/.env.local.*)"
-    "Edit(/${home}/code/**/.env.production)"
-    "Edit(/${home}/code/**/.env.production.*)"
-    "Edit(/${home}/code/**/.env.staging)"
-    "Edit(/${home}/code/**/.env.staging.*)"
-    "Edit(/${home}/code/**/.env.development)"
-    "Edit(/${home}/code/**/.env.development.*)"
-    "Edit(/${home}/code/**/.env.test)"
-    "Edit(/${home}/code/**/.env.test.*)"
-    "Edit(/${home}/code/**/.env.secret)"
-    "Edit(/${home}/code/**/.env.secret.*)"
-    "Edit(/${home}/code/**/*.env)"
-    "Edit(/${home}/code/**/.secrets/**)"
-    "Edit(/${home}/code/**/*.pem)"
-    "Edit(/${home}/code/**/*.key)"
-    "Edit(/${home}/code/**/id_rsa*)"
-    "Edit(/${home}/code/**/id_ed25519*)"
-    "Edit(/${home}/code/**/credentials*)"
+      # Secret files inside the workspace. The allow list grants broad
+      # Read/Edit on ~/code, so the secret patterns must be carved back out
+      # explicitly. This binds shell commands too: the Bash engine checks file
+      # paths in a command against Read and Edit rules, which is how
+      # `cp .env.example .env` is refused without refusing `cp` itself. Write
+      # path rules are omitted because Claude Code never consults them — Edit
+      # rules govern every file-editing tool (Write/NotebookEdit included).
+      #
+      # .env.* variants are denied individually (not a blanket .env.*) so that
+      # .env.example — a template with no secrets — remains readable.
+      "Read(/${home}/code/**/.env)"
+      "Read(/${home}/code/**/.env.local)"
+      "Read(/${home}/code/**/.env.local.*)"
+      "Read(/${home}/code/**/.env.production)"
+      "Read(/${home}/code/**/.env.production.*)"
+      "Read(/${home}/code/**/.env.staging)"
+      "Read(/${home}/code/**/.env.staging.*)"
+      "Read(/${home}/code/**/.env.development)"
+      "Read(/${home}/code/**/.env.development.*)"
+      "Read(/${home}/code/**/.env.test)"
+      "Read(/${home}/code/**/.env.test.*)"
+      "Read(/${home}/code/**/.env.secret)"
+      "Read(/${home}/code/**/.env.secret.*)"
+      "Read(/${home}/code/**/*.env)"
+      "Read(/${home}/code/**/.secrets/**)"
+      "Read(/${home}/code/**/*.pem)"
+      "Read(/${home}/code/**/*.key)"
+      "Read(/${home}/code/**/id_rsa*)"
+      "Read(/${home}/code/**/id_ed25519*)"
+      "Read(/${home}/code/**/credentials*)"
+      "Edit(/${home}/code/**/.env)"
+      "Edit(/${home}/code/**/.env.local)"
+      "Edit(/${home}/code/**/.env.local.*)"
+      "Edit(/${home}/code/**/.env.production)"
+      "Edit(/${home}/code/**/.env.production.*)"
+      "Edit(/${home}/code/**/.env.staging)"
+      "Edit(/${home}/code/**/.env.staging.*)"
+      "Edit(/${home}/code/**/.env.development)"
+      "Edit(/${home}/code/**/.env.development.*)"
+      "Edit(/${home}/code/**/.env.test)"
+      "Edit(/${home}/code/**/.env.test.*)"
+      "Edit(/${home}/code/**/.env.secret)"
+      "Edit(/${home}/code/**/.env.secret.*)"
+      "Edit(/${home}/code/**/*.env)"
+      "Edit(/${home}/code/**/.secrets/**)"
+      "Edit(/${home}/code/**/*.pem)"
+      "Edit(/${home}/code/**/*.key)"
+      "Edit(/${home}/code/**/id_rsa*)"
+      "Edit(/${home}/code/**/id_ed25519*)"
+      "Edit(/${home}/code/**/credentials*)"
 
-    # Destructive filesystem operations.
-    "Bash(sudo rm *)"
-    "Bash(rm -rf /*)"
-    "Bash(rm -rf ~*)"
-    "Bash(mkfs*)"
-    "Bash(dd if=* of=/dev/*)"
-    "Bash(sudo dd*)"
+      # Destructive filesystem operations beyond the core's.
+      "Bash(sudo dd*)"
 
-    # Host lifecycle. This is a VM other agents' sessions share; a reboot from
-    # one session kills all of them.
-    "Bash(shutdown*)"
-    "Bash(reboot*)"
-    "Bash(poweroff*)"
-    "Bash(halt*)"
-    "Bash(systemctl reboot*)"
-    "Bash(systemctl poweroff*)"
+      # Journal integrity. `Bash(journalctl:*)` is allowed for the post-deploy
+      # checklist; these are its only non-read-only flags, and deleting logs would
+      # destroy the evidence another session is mid-debug on.
+      "Bash(journalctl --vacuum*)"
+      "Bash(journalctl --rotate*)"
+      "Bash(sudo journalctl --vacuum*)"
+      "Bash(sudo journalctl --rotate*)"
 
-    # Journal integrity. `Bash(journalctl:*)` is allowed for the post-deploy
-    # checklist; these are its only non-read-only flags, and deleting logs would
-    # destroy the evidence another session is mid-debug on.
-    "Bash(journalctl --vacuum*)"
-    "Bash(journalctl --rotate*)"
-    "Bash(sudo journalctl --vacuum*)"
-    "Bash(sudo journalctl --rotate*)"
-
-    # Nix store integrity. GC while another session is mid-build breaks it.
-    "Bash(nix-collect-garbage*)"
-    "Bash(nix store delete*)"
-    "Bash(nix-store --delete*)"
-
-    # Deploys. Agents write configuration in this repo; applying it is a human
-    # decision, and nixos-rebuild from inside a session can cut its own network.
-    "Bash(nixos-rebuild*)"
-    "Bash(sudo nixos-rebuild*)"
-    "Bash(nixos-install*)"
-    "Bash(sudo nixos-install*)"
-    "Bash(nh os*)"
-    "Bash(sudo nh*)"
-    "Bash(nh home*)"
-    "Bash(home-manager switch*)"
-    "Bash(colmena apply*)"
-    "Bash(deploy *)"
-    "Bash(nixops *)"
-
-    # The same deploys reached through the task runner. `Bash(just:*)` in the
-    # allow list is matched against the literal command line, not against what
-    # the recipe expands to, so `just ca` walks straight past the
-    # `Bash(colmena apply*)` deny above. Every wrapper needs its own entry.
-    # Builds stay allowed — `just cb` / `just colmena-build` touch nothing.
-    "Bash(just ca*)"
-    "Bash(just colmena-apply*)"
-    "Bash(just colmena-reboot*)"
-    "Bash(just deploy*)"
-
-    # Irreversible git/forge actions. Narrows the Bash(git push:*) allow above:
-    # a force-push can destroy history that exists nowhere else, and merging is
-    # the one step in the PR flow that should stay human.
-    "Bash(git push --force*)"
-    "Bash(git push -f*)"
-    "Bash(gh pr merge*)"
-  ];
+      # Deploys, broader than the core: on the fleet even `nixos-rebuild build`
+      # and `nh os build` are refused (a session has no business building a
+      # host's system here), and nixos-rebuild from inside a session can cut its
+      # own network. The task-runner wrappers (`just ca*`, `just deploy*`, ...)
+      # are in the core.
+      "Bash(nixos-rebuild*)"
+      "Bash(sudo nixos-rebuild*)"
+      "Bash(sudo nixos-install*)"
+      "Bash(nh os*)"
+      "Bash(sudo nh*)"
+      "Bash(nh home*)"
+      "Bash(home-manager switch*)"
+      "Bash(deploy *)"
+      "Bash(nixops *)"
+    ];
 
   # Auto mode still honors the deny list and uses a safety classifier for
   # unlisted actions, but prompts rather than silently denying. Chosen while

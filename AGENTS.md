@@ -998,6 +998,15 @@ directory, imported by exactly two consumers so the lists cannot drift:
 
 Both are imported by `hosts/development/configuration.nix`.
 
+The deny list starts with **`modules/claude-deny-core.nix`**, the floor every
+Claude Code install in the repo shares (wotan's home-manager
+`modules/home/packages/claude.nix` appends it too): credentials and agenix
+files, generation switches and deploys including their `just` wrappers,
+publishing to GitHub and the `gh` CLI, force-push and hook/signing bypass,
+destructive git, store GC and host lifecycle. Each side adds its own rules on
+top. Only ever add to the core; a rule one side must not have goes in that
+side's list.
+
 **Editing `~amadeus/.claude/settings.json` by hand does not stick.** The merge is
 right-biased and wholesale for `permissions.{allow,deny,defaultMode}` and for
 the `PreToolUse` hook group with `matcher == "WebSearch"` — the next boot
@@ -1067,7 +1076,7 @@ cycle. For a genuinely headless run (cron, `claude -p`), switch that session to
   granted while `Bash(git push --force*)` stays blocked. Deny rules apply in
   every mode, `bypassPermissions` included.
 - The deny list still names `nixos-rebuild`, `nh os`, `colmena apply`,
-  `just deploy*`, `gh pr merge` and force-push so an agent does not even try.
+  `just deploy*`, `gh` and force-push so an agent does not even try.
   Since the `agent` account was removed that list is the only gate: the
   sessions run as `amadeus`, who has sudo and the deploy key.
 - **Subagents need narrow `Bash(<cmd>:*)` rules, not a broad `Bash`.** Delegated
