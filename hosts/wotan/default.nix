@@ -58,7 +58,7 @@
     download-buffer-size = 4 * 1024 * 1024 * 1024;
     substituters = lib.mkAfter ["https://cache.int.oyabu.cc/ventara"];
     trusted-public-keys = lib.mkAfter [
-      "ventara:aswnRAo2zbP13gGnUTCINX78X/lURQgPAfrgNpHpQpY="
+      "ventara:GbJNF0XM+B6Ow4Bq4Y7P0t8opAr28zNIyUjRBtbDwDw="
     ];
   };
 
