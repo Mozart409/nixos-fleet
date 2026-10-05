@@ -352,7 +352,7 @@ imported by every host that joins:
     owner = "nebula-homelab"; group = "nebula-homelab"; mode = "0440";
   };
   age.secrets.nebula-crt = {
-    file = ../secrets/nebula-dns-crt.age; # per-host, see secrets.nix wiring below
+    file = ../secrets/nebula-dns-crt.age; # per-host, see agenix-rules.nix wiring below
     owner = "nebula-homelab"; group = "nebula-homelab"; mode = "0440";
   };
   age.secrets.nebula-key = {
@@ -390,7 +390,7 @@ imported by every host that joins:
 > implementation — the cert's `-name`, the agenix filename, and the nix must
 > line up.
 
-**Per-host wiring in `secrets/secrets.nix`** — one cert + one key secret per
+**Per-host wiring in `secrets/agenix-rules.nix`** — one cert + one key secret per
 host, encrypted only to that host + admins; `ca.crt` to all members:
 
 ```nix
@@ -412,7 +412,7 @@ agenix -e nebula-dns-crt.age    # paste dns.crt
 agenix -e nebula-dns-key.age    # paste dns.key
 agenix -e nebula-ca-crt.age     # paste ca.crt (once, shared)
 
-# 3. add the entries to secrets/secrets.nix (shown above), then
+# 3. add the entries to secrets/agenix-rules.nix (shown above), then
 just reencrypt                  # only needed when recipients change
 
 # 4. import modules/nebula.nix in the host, then
@@ -496,7 +496,7 @@ Common failure modes:
 ### Adding a host later
 
 Sign cert → encrypt crt/key via agenix (recipients: that host + admins) →
-register in `secrets/secrets.nix` → import `modules/nebula.nix` →
+register in `secrets/agenix-rules.nix` → import `modules/nebula.nix` →
 `just colmena-apply-host <host>`. No lighthouse restart needed; lighthouses
 learn about new hosts dynamically. If you run lighthouse **DNS** or unbound
 `local-data` records for mesh names, add the A/PTR record in
@@ -540,7 +540,7 @@ Following AGENTS.md §5, per host that joins the mesh:
 
 1. `hosts/<hostname>/configuration.nix` imports `modules/nebula.nix` (lighthouse
    host imports `modules/nebula-lighthouse.nix` instead).
-2. `secrets/secrets.nix`: host key already present as a recipient (it is, for
+2. `secrets/agenix-rules.nix`: host key already present as a recipient (it is, for
    every colmena host) + the three new `.age` entries; `just reencrypt`.
 3. agenix files created **from inside `secrets/`** (`cd secrets && agenix -e …`).
 4. DNS (optional): mesh-name A/PTR records in `hosts/dns/configuration.nix`.

@@ -163,10 +163,11 @@ Set `DEPLOY_NET=tailscale` to deploy over Tailscale hostnames instead of local I
 
 ### Secrets (agenix)
 
-Secrets live in `secrets/*.age`, with recipients declared in `secrets/secrets.nix`.
+Secrets live in `secrets/*.age`, with recipients declared in `secrets/agenix-rules.nix`.
 
-- Edit a secret: `cd infra/secrets && agenix -e <name>.age` — agenix **must** run from
-  inside the secrets dir, and the name is the bare filename.
+- Edit a secret: `agenix -e <name>.age` from anywhere in the dev shell (it
+  exports `AGENIX_RULES`); always the bare filename. Without the dev shell,
+  `cd infra/secrets` first.
 - Reencrypt after changing recipients: `just reencrypt`
 - Fetch a new host key after a reinstall: `just get-host-key <ip>`
 
@@ -196,7 +197,7 @@ NixOS config (`harbor`, for instance, boots Debian on .166 but runs on .174).
   `herdr`, `moshi-hook`); `modules/{wotan,desktop,home}/` are the desktop's
 - `lib/mkConfigs.nix` – `mkDesktop` for wotan
 - `pkgs/` – third-party packaging
-- `secrets/` – agenix-encrypted secrets + `secrets.nix` recipient map (fleet and wotan)
+- `secrets/` – agenix-encrypted secrets + `agenix-rules.nix` recipient map (fleet and wotan)
 - `iac/` – Proxmox VM definitions (OpenTofu)
 - `k8s/timoni/` – Timoni modules
 - `tests/` – nixosTest VM tests

@@ -239,6 +239,7 @@
     # The deny list below denies specific .env.* variants (not a blanket .env.*)
     # so .env.example remains readable.
     "Read(/${home}/code/**/secrets.nix)"
+    "Read(/${home}/code/**/agenix-rules.nix)"
     "Read(/${home}/code/**/.env.example)"
   ];
 

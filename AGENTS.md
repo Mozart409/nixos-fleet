@@ -319,27 +319,25 @@ When adding a new host to the homelab, ensure the following are updated:
 
 ## 6. Common Pitfalls
 
-### agenix Must Be Run From Inside `secrets/`
+### agenix: Bare Secret Names, Rules in `secrets/agenix-rules.nix`
 
-`agenix` resolves its rules file as `./secrets.nix` relative to the current
-directory, and secret names are the bare filename (no `secrets/` prefix). Running
-it from the repo root fails:
+The rules file is `secrets/agenix-rules.nix` (renamed from `secrets.nix` on
+2026-10-06; agenix 0.15 deprecates that name). The root dev shell exports
+`AGENIX_RULES` pointing at it, and agenix changes into the rules directory
+before touching a secret, so with direnv loaded it works **from any
+directory**, always with the **bare filename**:
 
-```
-error: path '/home/amadeus/code/yggdrasil/secrets.nix' does not exist
-```
+- **WRONG**: `agenix -e infra/secrets/axon-gateway-env.age` (the path is taken
+  relative to `infra/secrets/`, so it looks for `infra/secrets/infra/secrets/…`)
+- **CORRECT**: `agenix -e axon-gateway-env.age`
 
-- **WRONG** (from repo root): `agenix -e infra/secrets/axon-gateway-env.age`
-- **CORRECT**:
-  ```bash
-  cd infra/secrets
-  agenix -e axon-gateway-env.age
-  ```
+Without the dev shell, `cd infra/secrets` first: agenix also finds
+`agenix-rules.nix` in the current or any parent directory.
 
 The secrets are shared by the fleet **and** wotan: wotan's rules are
-`[amadeus hostWotan]` in the same `secrets.nix`.
+`[amadeus hostWotan]` in the same `agenix-rules.nix`.
 
-The matching entry in `secrets/secrets.nix` is keyed with the bare filename too
+The matching entry in `secrets/agenix-rules.nix` is keyed with the bare filename too
 (e.g. `"axon-gateway-env.age".publicKeys = [...]`).
 
 ### Caddy Path Handling
@@ -682,7 +680,7 @@ age: error: no identity matched any of the recipients
 Activation script snippet 'agenixInstall' failed (1)
 ```
 
-**Fix:** add the new host key to `secrets/secrets.nix` and re-key:
+**Fix:** add the new host key to `secrets/agenix-rules.nix` and re-key:
 ```bash
 just get-host-key <ip>          # or: ssh-keyscan -t ed25519 <ip>
 # add `hostX = "ssh-ed25519 ...";` and include it in the relevant publicKeys
@@ -703,7 +701,7 @@ neither is required for `multi-user.target` (comin.service is only
 
 **agenix secrets fail softly in these tests, by design.** A nixosTest VM
 generates fresh, ephemeral SSH host keys, which never match any recipient in
-`secrets/secrets.nix` -- so every real secret fails to decrypt, exactly like
+`secrets/agenix-rules.nix` -- so every real secret fails to decrypt, exactly like
 the "no identity matched any of the recipients" incident above, and boot
 still succeeds (agenix's activation script decrypts each secret independently
 inside one shared `agenixInstall` snippet; a failure only records status, it

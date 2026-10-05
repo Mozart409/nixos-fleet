@@ -41,7 +41,7 @@ let
   # identity instead, via a passphrase-stripped copy on tmpfs so age (which
   # cannot talk to ssh-agent) does not prompt once per file:
   #   cp ~/.ssh/id_ed25519 /run/user/1000/rekey && ssh-keygen -p -N '' -f /run/user/1000/rekey
-  #   cd secrets && agenix -r -i /run/user/1000/rekey && shred -u /run/user/1000/rekey
+  #   cd infra/secrets && agenix -r -i /run/user/1000/rekey && shred -u /run/user/1000/rekey
   # Verify with sha256sum before/after: age uses a fresh ephemeral key per
   # encryption, so an UNCHANGED ciphertext means nothing happened.
   users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostZeroclaw hostDevelopment hostWoodpecker hostHermes];

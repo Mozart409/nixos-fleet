@@ -28,7 +28,7 @@ infra/
 │   ├── desktop/                 # Hyprland, file managers, user experience
 │   └── home/                    # home-manager: configs/, packages/, services/
 ├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA, vLLM, glaze pin)
-├── secrets/                     # agenix secrets, shared with the fleet (secrets.nix)
+├── secrets/                     # agenix secrets, shared with the fleet (agenix-rules.nix)
 └── docs/wotan/                  # config.d2 diagram, easyeffects tuning, keymaps
 ```
 

@@ -502,7 +502,7 @@ in {
     mode = "0400";
   };
   # eve and heimdall reuse the kb/infra files they replaced (same recipients,
-  # so a rename would only churn secrets.nix). hermes-coding-env and
+  # so a rename would only churn agenix-rules.nix). hermes-coding-env and
   # hermes-research-env are no longer consumed.
   age.secrets.hermes-kb-env = {
     file = ../../secrets/hermes-kb-env.age;

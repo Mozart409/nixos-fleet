@@ -2,7 +2,7 @@
 
 `test-age-identity.txt` is a disposable age keypair used ONLY inside
 nixosTest VMs (see `../lib.nix`'s `useTestAgeIdentity`). It has no
-relationship to any real host key or entry in `secrets/secrets.nix`, and is
+relationship to any real host key or entry in `secrets/agenix-rules.nix`, and is
 committed deliberately -- it exists purely so agenix's real decrypt pipeline
 can succeed for real inside a test VM for the small number of secrets whose
 consuming PRIMARY service a test asserts on (currently: otel's

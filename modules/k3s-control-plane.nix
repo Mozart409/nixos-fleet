@@ -4,7 +4,7 @@
   ...
 }: {
   # Shared token every server/agent node in the cluster authenticates with.
-  # `just get-host-key <ip>` + add to secrets/secrets.nix + `just reencrypt`
+  # `just get-host-key <ip>` + add to secrets/agenix-rules.nix + `just reencrypt`
   # once a node is actually installed and its real SSH host key is known --
   # see the "Reprovisioned Host" pitfall in AGENTS.md.
   age.secrets.k3s-server-token = {

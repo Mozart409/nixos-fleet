@@ -85,7 +85,7 @@
         "mcp__axon-gateway"
         "Read(~/.config/nixpkgs/config.nix)"
         # agenix recipients file: public keys only.
-        "Read(~/code/yggdrasil/infra/secrets/secrets.nix)"
+        "Read(~/code/yggdrasil/infra/secrets/agenix-rules.nix)"
       ];
       # Read(...) denies are also merged into sandbox.filesystem.denyRead, so
       # with the sandbox on they block `cat` & co. in Bash too, not just the

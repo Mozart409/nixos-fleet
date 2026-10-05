@@ -297,7 +297,7 @@ in {
 
   # NOTE: otel must be a recipient of this secret. It currently is not -- only
   # the containers and development hosts consume it. Add otel's host key to the
-  # "axon-gateway-env.age" entry in secrets/secrets.nix and run `just reencrypt`,
+  # "axon-gateway-env.age" entry in secrets/agenix-rules.nix and run `just reencrypt`,
   # or activation fails with "no identity matched any of the recipients".
   age.secrets.axon-gateway-env = {
     file = ../../secrets/axon-gateway-env.age;
