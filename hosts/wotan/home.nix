@@ -12,7 +12,6 @@
     ../../modules/home/common-packages.nix
     ../../modules/home/node-security.nix
     ../../modules/home/packages/browsers.nix
-    ../../modules/home/packages/chess.nix
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/database.nix
     ../../modules/home/packages/desktop.nix
