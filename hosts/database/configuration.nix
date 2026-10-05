@@ -161,12 +161,6 @@ in {
     group = "postgres";
   };
 
-  # pgAdmin initial (internal fallback) admin password and Pocket-ID OAuth2 client
-  # secret. Both are consumed by the pgAdmin service below via systemd credentials
-  # (root-owned 0400 by default is fine: systemd reads them during unit setup).
-  age.secrets.pgadmin-pwd.file = ../../secrets/pgadmin-pwd.age;
-  age.secrets.pgadmin-oauth2-secret.file = ../../secrets/pgadmin-oauth2-secret.age;
-
   # Password for the read-only `mcp` role consumed by the pgmcp MCP servers on
   # the mcp host. The same password is embedded in each pg-mcp-<db>-url.age
   # secret over there — rotating it means re-encrypting all of them.
@@ -176,9 +170,9 @@ in {
     group = "postgres";
   };
 
-  # postgres superuser password so TCP clients (pgAdmin, etc.) can authenticate
+  # postgres superuser password so TCP clients can authenticate
   # over scram-sha-256 as a full DBA. The passwordless `peer` rule only covers the
-  # postgres OS user on the local unix socket, which pgAdmin cannot use.
+  # postgres OS user on the local unix socket, which TCP clients cannot use.
   age.secrets.postgres-superuser-password = {
     file = ../../secrets/postgres-superuser-password.age;
     owner = "postgres";
@@ -207,8 +201,8 @@ in {
       timezone = config.time.timeZone;
       log_timezone = config.time.timeZone;
 
-      # Logging. This host's pool is 2 HDDs at ~78 IOPS cluster-wide (see the
-      # pgadmin TimeoutStartSec note below), and journald fsyncs, so log volume
+      # Logging. This host's pool is 2 HDDs at ~78 IOPS cluster-wide (~10k-file
+      # closures took ~48s just to load), and journald fsyncs, so log volume
       # is a direct tax on the same spindles every query needs. `log_statement =
       # "all"` + `log_duration = true` wrote TWO journal lines for EVERY
       # statement -- including the prometheus exporter's pg_stat_* polling every
@@ -249,8 +243,8 @@ in {
       # a session that is IDLE inside a transaction -- a session actually
       # running a statement is never touched, so migrations and pg_dump are
       # unaffected by construction. 2min is far longer than any client here
-      # legitimately idles mid-transaction (pgAdmin's query tool is the usual
-      # producer).
+      # legitimately idles mid-transaction (an interactive SQL session is the
+      # usual producer).
       idle_in_transaction_session_timeout = "2min";
 
       # Reap backends whose client is gone. Postgres inherits the kernel's ~2h
@@ -264,8 +258,8 @@ in {
       tcp_keepalives_count = 6;
 
       # The remaining bounds are set cluster-wide as GENEROUS defaults, so that
-      # anything nobody thought about -- a human in pgAdmin's query tool, an
-      # ad-hoc psql, a service added later that nobody tuned -- is bounded by
+      # anything nobody thought about -- a human in an ad-hoc
+      # psql session, a service added later that nobody tuned -- is bounded by
       # default rather than able to pin this pool indefinitely.
       #
       # They are deliberately far looser than the per-role values, because a
@@ -326,7 +320,7 @@ in {
     # stale `sslmode=disable` URL fails loudly instead of sending its password
     # in the clear. Every remote client -- RomM, hofvarpnir, the five pgmcp
     # instances, the OpenTofu `pg` backend -- carries `sslmode=verify-full`
-    # since the 2026-09-17 rotation. Loopback stays `host` for pgadmin,
+    # since the 2026-09-17 rotation. Loopback stays `host` for
     # pgbouncer and the exporter on this box.
     authentication = pkgs.lib.mkOverride 10 ''
       # TYPE  DATABASE        USER            ADDRESS                 METHOD
@@ -606,85 +600,6 @@ in {
     ];
   };
 
-  # pgAdmin 4 - native NixOS service (no container). Binds 127.0.0.1:5050; Caddy
-  # (below) terminates step-ca TLS at pgadmin.homelab.local and reverse-proxies to
-  # it. Auth is Pocket-ID OIDC (same provider as forgejo/romm/harbor) with an
-  # internal fallback admin account (initialEmail + pgadmin-pwd).
-  services.pgadmin = {
-    enable = true;
-    port = 5050;
-    openFirewall = false;
-    initialEmail = "claude@mozart409.com";
-    initialPasswordFile = config.age.secrets.pgadmin-pwd.path;
-    minimumPasswordLength = 8;
-    settings = {
-      # Loopback only; Caddy is the sole ingress.
-      DEFAULT_SERVER = "127.0.0.1";
-      # Trust Caddy's X-Forwarded-* headers so pgAdmin builds OAuth redirect URIs
-      # as https://pgadmin.homelab.local/... not http://127.0.0.1:5050/...
-      PROXY_X_FOR_COUNT = 1;
-      PROXY_X_PROTO_COUNT = 1;
-      PROXY_X_HOST_COUNT = 1;
-      PROXY_X_PORT_COUNT = 1;
-      PROXY_X_PREFIX_COUNT = 1;
-      # OAuth2 (Pocket-ID) plus the internal admin account as a fallback.
-      AUTHENTICATION_SOURCES = ["oauth2" "internal"];
-      OAUTH2_AUTO_CREATE_USER = true;
-    };
-  };
-
-  # Inject the Pocket-ID OAuth2 client secret WITHOUT leaking it into the
-  # world-readable Nix store. This mirrors the pgadmin module's own
-  # email-password mechanism: systemd LoadCredential exposes the agenix secret
-  # under $CREDENTIALS_DIRECTORY, and the Python appended below (config_system.py
-  # is a types.lines option, so definitions concatenate) reads it at import time.
-  # OAUTH2_CONFIG lives here rather than in services.pgadmin.settings precisely so
-  # the secret never passes through a store path.
-  systemd.services.pgadmin.serviceConfig.LoadCredential = [
-    "oauth2_client_secret:${config.age.secrets.pgadmin-oauth2-secret.path}"
-  ];
-
-  # pgadmin's ExecStartPre (`pgadmin4-cli setup-db`) needs far longer than
-  # systemd's default 90s TimeoutStartSec on this host, so the unit failed on
-  # essentially every deploy — always killed at exactly 90s, always in start-pre.
-  #
-  # It is not waiting on anything: pgAdmin's own config database is internal
-  # SQLite, so setup-db never contacts PostgreSQL. It is simply IO-bound. Merely
-  # loading the CLI (`pgadmin4-cli --help`, which does no database work at all)
-  # takes ~48s here — 1.7s of it user CPU, the rest waiting on the ~10k files of
-  # the pgadmin closure coming off the 2-HDD zfs_pool (~78 IOPS cluster-wide).
-  # Add any concurrent IO — a colmena apply, an attic push — and 90s is gone.
-  #
-  # Raising the timeout is the honest fix: the work genuinely takes this long,
-  # and it only runs at startup. It is not masking a hang.
-  systemd.services.pgadmin.serviceConfig.TimeoutStartSec = "10min";
-
-  environment.etc."pgadmin/config_system.py".text = ''
-    import os
-    with open(os.path.join(os.environ['CREDENTIALS_DIRECTORY'], 'oauth2_client_secret')) as _f:
-        _pgadmin_oauth2_secret = _f.read().strip()
-
-    OAUTH2_CONFIG = [
-        {
-            'OAUTH2_NAME': 'pocket-id',
-            'OAUTH2_DISPLAY_NAME': 'Pocket ID',
-            # Public OAuth client identifier (not a secret) for the pgAdmin
-            # client registered in Pocket-ID.
-            'OAUTH2_CLIENT_ID': '4c1fd86d-dd3d-4920-82a8-ce53db286579',
-            'OAUTH2_CLIENT_SECRET': _pgadmin_oauth2_secret,
-            'OAUTH2_AUTHORIZATION_URL': 'https://pocketid.dropbear-butterfly.ts.net/authorize',
-            'OAUTH2_TOKEN_URL': 'https://pocketid.dropbear-butterfly.ts.net/api/oidc/token',
-            'OAUTH2_API_BASE_URL': 'https://pocketid.dropbear-butterfly.ts.net/',
-            'OAUTH2_USERINFO_ENDPOINT': 'https://pocketid.dropbear-butterfly.ts.net/api/oidc/userinfo',
-            'OAUTH2_SERVER_METADATA_URL': 'https://pocketid.dropbear-butterfly.ts.net/.well-known/openid-configuration',
-            'OAUTH2_SCOPE': 'openid email profile',
-            'OAUTH2_USERNAME_CLAIM': 'email',
-            'OAUTH2_ICON': 'fa-key',
-            'OAUTH2_BUTTON_COLOR': '#3253a8',
-        },
-    ]
-  '';
-
   # Caddy reverse proxy with Tailscale TLS
   services.caddy = {
     enable = true;
@@ -726,17 +641,6 @@ in {
         handle {
           redir https://{host}{uri} permanent
         }
-      '';
-    };
-
-    # pgAdmin 4 (native service on 127.0.0.1:5050) served with a step-ca cert.
-    virtualHosts."pgadmin.homelab.local pgadmin.homelab.internal" = {
-      extraConfig = ''
-        tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
-        }
-
-        reverse_proxy localhost:5050
       '';
     };
   };

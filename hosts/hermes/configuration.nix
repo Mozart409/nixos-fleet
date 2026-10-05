@@ -82,7 +82,7 @@
   #
   # The issuer stays the tailnet name even though pocketid.homelab.{local,internal}
   # now resolve: the issuer URL is part of token identity and every other
-  # consumer (forgejo, harbor, pgadmin, open-webui, romm, grafana) is pinned to
+  # consumer (forgejo, harbor, open-webui, romm, grafana) is pinned to
   # the ts.net one. Changing it is a fleet-wide migration, not a hermes decision.
   pocketIdIssuer = "https://pocketid.dropbear-butterfly.ts.net";
   dashboardClientId = "92fac046-8ab4-4081-bdef-e0795bac8c2c";

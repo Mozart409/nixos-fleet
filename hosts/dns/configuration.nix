@@ -155,9 +155,7 @@
           ''"mcp.homelab.local. A 192.168.2.152"''
           ''"otel.homelab.internal. A 192.168.2.135"''
           ''"otel.homelab.local. A 192.168.2.135"''
-          ''"pgadmin.homelab.internal. A 192.168.2.134"''
-          ''"pgadmin.homelab.local. A 192.168.2.134"''
-          # Pocket-ID (OIDC provider for forgejo, harbor, pgadmin, open-webui,
+          # Pocket-ID (OIDC provider for forgejo, harbor, open-webui,
           # romm, grafana). An LXC on pve-gigabyte, not a NixOS guest in this
           # repo. The tailnet name pocketid.dropbear-butterfly.ts.net stays the
           # issuer every consumer is configured with -- the issuer URL is part
@@ -193,7 +191,6 @@
           # keep-sorted start
           ''"192.168.2.102 pocketid.homelab.local"''
           ''"192.168.2.134 database.homelab.local"''
-          ''"192.168.2.134 pgadmin.homelab.local"''
           ''"192.168.2.135 alertmanager.homelab.local"''
           ''"192.168.2.135 loki.homelab.local"''
           ''"192.168.2.135 otel.homelab.local"''

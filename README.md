@@ -19,7 +19,7 @@ set. IPs are the static addresses configured in each host's NixOS config.
 
 | Host | IP | Colmena tags | Role |
 |------|------|------|------|
-| `database` | 192.168.2.134 | `database` | PostgreSQL 18 + pgbouncer + pgAdmin, multi-tenant (tofu state, forgejo, harbor, romm, hofvarpnir); `postgresqlBackup` |
+| `database` | 192.168.2.134 | `database` | PostgreSQL 18 + pgbouncer, multi-tenant (tofu state, forgejo, harbor, romm, hofvarpnir); `postgresqlBackup` |
 | `otel` | 192.168.2.135 | `monitoring` | Observability stack: Prometheus, Grafana, Loki, Tempo |
 | `unifi` | 192.168.2.142 | `unifi` | UniFi Network Controller |
 | `dns` | 192.168.2.145 | `dns` | Unbound recursive DNS + authoritative `homelab.local` zone (A + PTR) |

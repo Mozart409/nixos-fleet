@@ -78,7 +78,6 @@
     homelab-database = [
       "database.homelab.local"
       "database.homelab.internal"
-      "pgadmin.homelab.internal"
     ];
     homelab-dns = [
       "dns.homelab.local"

@@ -716,8 +716,7 @@ two secrets at dummy values encrypted to its public key
 (`tests/fixtures/secrets/*.age`). This makes agenix's real decrypt pipeline
 succeed for real inside the VM -- not a bypass, the legitimate mechanism.
 Everything else (tailscale-auth-key, axon-gateway-env,
-woodpecker-metrics-token, every database-host role password, pgadmin's
-secrets, osquery's fleet-enroll-secret) is left to fail softly and is never
+woodpecker-metrics-token, every database-host role password, osquery's fleet-enroll-secret) is left to fail softly and is never
 asserted on. See `tests/fixtures/README.md` to regenerate.
 
 **Static IPs never take effect.** `hosts/dns`, `hosts/otel`, `hosts/database`

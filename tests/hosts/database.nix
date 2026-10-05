@@ -29,7 +29,7 @@ harness.mkHostTest {
     # NOT asserted on, intentionally: the mkRolePasswordUnit oneshots
     # (systemd.services.postgresql-*-password) fail without their real
     # agenix secrets -- expected and harmless, per AGENTS.md's documented
-    # agenix incident. Same for pgadmin (its own unfixtured secrets) and
+    # agenix incident. Same for
     # services.loki-logs shipping to the unreachable loki.homelab.local.
   '';
 }
