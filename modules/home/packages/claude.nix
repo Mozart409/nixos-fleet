@@ -102,7 +102,9 @@
         # over a symlink, so deny the real directory.
         "Read(//run/agenix.d/**)"
         "Read(**/.env*)"
-        "Read(**/secrets/**)"
+        # agenix ciphertext anywhere, not whole secrets/ dirs: deny beats allow,
+        # so a dir-wide deny would also hide the recipients file allowed above.
+        "Read(**/*.age)"
         "Read(**/.age*)"
         # No root, and nothing that switches the system or home generation.
         "Bash(sudo *)"
