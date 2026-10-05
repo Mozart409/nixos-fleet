@@ -2,10 +2,11 @@
   config,
   lib,
   pkgs,
-  homelab-mcp,
+  self,
   ...
 }: let
-  mcpPackages = homelab-mcp.packages.${pkgs.stdenv.hostPlatform.system};
+  # Built in-repo from rust/homelab-mcp-servers (root flake `packages`).
+  mcpPackages = self.packages.${pkgs.stdenv.hostPlatform.system};
 
   # Restart nonce for the secret-consuming MCP servers.
   #
