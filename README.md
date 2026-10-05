@@ -1,8 +1,10 @@
-# pve-nixos-homelab
+# infra
 
-[![CI status](https://ci.homelab.internal/api/badges/4/status.svg)](https://ci.homelab.internal/repos/4)
-
-NixOS flakes, Colmena, and OpenTofu definitions for a Proxmox homelab.
+NixOS flakes, Colmena, and OpenTofu definitions for a Proxmox homelab, plus my
+desktop `wotan`. Part of the `yggdrasil` monorepo (formerly the
+`pve-nixos-homelab` and `nixos-wotan` repos). The flake, `justfile` and dev
+shell are at the repo root; run commands from there. Paths below are relative
+to `infra/`.
 
 VMs are provisioned on Proxmox with OpenTofu (`iac/`), installed with
 nixos-anywhere + disko, and thereafter updated with Colmena. Secrets are
@@ -74,6 +76,12 @@ Sizing (4 GB RAM / 256 GB disk) is deliberate and documented in `iac/main.tf`:
 opencode alone peaked at ~570 MB RSS on the hand-built reference box and `/nix`
 took 21 GB there, before Claude Code and the bun-hosted plugins.
 
+### Desktop (not in the Colmena hive)
+
+| Host | Role |
+|------|------|
+| `wotan` | My workstation: Hyprland, NVIDIA/CUDA, local vLLM. Deploys only itself (`just switch-wotan`), no inbound SSH. See `hosts/wotan/README.md` |
+
 ### Provisioned by IaC, not in the Colmena hive
 
 | Host | IP | Status |
@@ -110,11 +118,11 @@ Provides:
 - **Containers**: `podman`, `podman-compose`, `podman-tui`, `dive`, `lazydocker`
 - **Kubernetes**: `timoni`
 - **Rust**: `cargo`, `cargo-workspaces`, `rustc`, `rust-analyzer`, `bacon`, `rainfrog`
-- **AI**: `opencode`, `claude-code`
-- **Utilities**: `just`, `dprint`, `kics`, `keep-sorted`, `lefthook`, `cocogitto`
+- **Utilities**: `just`, `dprint`, `kics`, `keep-sorted`, `lefthook`, `cocogitto`, `shellcheck`, `pwgen`
 
 `lefthook install` runs from the shell hook, wiring the pre-commit
-`alejandra`/`keep-sorted` hooks and the `cog verify` commit-msg hook.
+`alejandra`/`keep-sorted`/`just --fmt`/`shellcheck` hooks and the `cog verify`
+commit-msg hook.
 
 ### Nix workflows
 
@@ -157,8 +165,8 @@ Set `DEPLOY_NET=tailscale` to deploy over Tailscale hostnames instead of local I
 
 Secrets live in `secrets/*.age`, with recipients declared in `secrets/secrets.nix`.
 
-- Edit a secret: `cd secrets && agenix -e <name>.age` — agenix **must** run from
-  inside `secrets/`, and the name is the bare filename.
+- Edit a secret: `cd infra/secrets && agenix -e <name>.age` — agenix **must** run from
+  inside the secrets dir, and the name is the bare filename.
 - Reencrypt after changing recipients: `just reencrypt`
 - Fetch a new host key after a reinstall: `just get-host-key <ip>`
 
@@ -181,16 +189,19 @@ NixOS config (`harbor`, for instance, boots Debian on .166 but runs on .174).
 
 ## Layout
 
-- `flake.nix` – inputs, `hostAddrs`, `nixosConfigurations`, `colmenaHive`
-- `hosts/` – per-host configurations
-- `modules/` – shared NixOS modules (`common`, `disko-config`, `disko-jellyfin`,
+- `../flake.nix` (repo root) – inputs, `hostAddrs`, `nixosConfigurations`, `colmenaHive`
+- `hosts/` – per-host configurations (fleet + `wotan`)
+- `modules/` – shared fleet modules (`common`, `disko-config`, `disko-jellyfin`,
   `tailscale`, `step-ca-trust`, `osquery`, `podman`, `nix-gc`, `coding-harness`,
-  `herdr`, `moshi-hook`)
-- `secrets/` – agenix-encrypted secrets + `secrets.nix` recipient map
+  `herdr`, `moshi-hook`); `modules/{wotan,desktop,home}/` are the desktop's
+- `lib/mkConfigs.nix` – `mkDesktop` for wotan
+- `pkgs/` – third-party packaging
+- `secrets/` – agenix-encrypted secrets + `secrets.nix` recipient map (fleet and wotan)
 - `iac/` – Proxmox VM definitions (OpenTofu)
 - `k8s/timoni/` – Timoni modules
+- `tests/` – nixosTest VM tests
 - `docs/`, `todo/` – design plans and open work items
-- `justfile` – task runner commands
+- `../justfile` (repo root) – task runner commands
 - `AGENTS.md` – conventions, deploy checklists, and a long list of debugged
   pitfalls; read it before changing host configs
 

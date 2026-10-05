@@ -1,6 +1,20 @@
-# Agent Guidelines for pve-nixos-homelab
+# Agent Guidelines for `infra/` (the homelab fleet)
 
-This repository contains the NixOS configurations and Infrastructure as Code (OpenTofu) for a Proxmox-based homelab. It currently manages the `database` and `otel` hosts using Nix Flakes, Colmena, and Disko.
+`infra/` is the machine half of the `yggdrasil` monorepo: the NixOS
+configurations and OpenTofu for the Proxmox homelab (~20 VMs and Pis, deployed
+with Colmena, installed with nixos-anywhere + disko), plus the desktop `wotan`.
+It was `pve-nixos-homelab` (fleet) and `nixos-wotan` (desktop) until
+2026-10-05; both histories were imported, so `git log --follow` reaches back
+into them.
+
+**Paths and commands.** The flake, `justfile`, `lefthook.yml` and the dev shell
+are at the **repo root**, and every `just`/`nix`/`colmena` command runs from
+there. Paths in this file (`hosts/…`, `modules/…`, `secrets/…`, `iac/…`) are
+relative to `infra/`.
+
+**wotan is not part of the fleet.** It is not a `colmenaHive` node, has no
+inbound SSH, deploys only itself (`just switch-wotan`), and must never import
+`modules/common.nix`. Desktop details: `hosts/wotan/AGENTS.md`.
 
 **Everything is declarative — that is the entire point of NixOS here.** Any
 config that should persist (agent skills/commands, dotfiles, keybindings,
@@ -23,15 +37,13 @@ The project uses `just` as a command runner. Always prefer `just` commands over 
   - Ensure all Nix files are formatted before committing.
 
 ### Building
-- **Build All Hosts**: `just nixos-build-all`
-- **Build otel**: `just nixos-build-otel`
 - **Colmena Build**: `just colmena-build` or `just colmena-build-host <host>`
   - Builds configurations using Colmena (useful for deployment checks).
 
 ### Testing & Verification
 - **Dry Run**: `just nixos-test <host>`
   - Performs a dry-run build for a specific host.
-  - Example: `just nixos-test ferron`
+  - Example: `just nixos-test dns`
 - **VM Integration Test**: `just nixos-test-vm <host>`
   - Boots a real QEMU VM from the host's actual `hosts/<host>/configuration.nix`
     and asserts it reaches `multi-user.target` and its primary services
@@ -46,36 +58,40 @@ The project uses `just` as a command runner. Always prefer `just` commands over 
   - Not part of `just check` / `just nixos-check` / any bare `nix flake
     check` -- these build real QEMU VMs, which is much heavier than the
     dry-run eval those already do, and is exactly the class of cost this
-    repo has already worked around (see `.woodpecker/nix.yml`). Run it
+    repo has already worked around (see the archived
+    `docs/archive/woodpecker/pve/nix.yml` at the repo root). Run it
     explicitly, and not on every push.
 - **Preview a build without deploying**: `just colmena-build-host <host>`
   - There is no drift/diff recipe; compare `readlink /run/current-system` on the
     host against the path this prints if you need to check what is deployed.
 
-- **Initial Install**: `just deploy-<host> <ip>`
-  - Uses `nixos-anywhere` to install NixOS on a fresh machine.
-  - Example: `just deploy-otel 192.168.2.134`
+- **Initial Install**: `just deploy <host> <ip>` (or `just deploy-minimal <ip>`)
+  - Uses `nixos-anywhere` to install NixOS on a fresh machine. **Destructive**:
+    disko wipes every disk. Guarded by a type-the-host-name prompt.
+  - Example: `just deploy otel 192.168.2.135`
 - **Update/Apply**: `just colmena-apply` or `just colmena-apply-host <host>`
   - Uses `colmena` to push updates to running hosts.
 
 ### Infrastructure as Code (OpenTofu)
 The `iac/` directory contains OpenTofu configurations for provisioning Proxmox VMs.
-- **Initialize**: `tofu init` (inside `iac/` directory)
-- **Plan**: `tofu plan`
-- **Apply**: `tofu apply`
-- **Format**: `tofu fmt` (run via `nix develop -c tofu fmt` to ensure the tool is available)
+The `just iac-*` recipes run inside `infra/iac` for you.
+- **Initialize**: `just iac-init`
+- **Plan**: `just iac-plan` (runs `tofu fmt` first)
+- **Apply**: `just iac-apply` (runs `tofu validate` first)
+- **Format**: `just iac-fmt`
 
 ## 2. Code Style & Conventions
 
 ### Nix / NixOS
 - **Formatting**: Strict adherence to `alejandra`. Run `just fmt` to ensure compliance.
 - **Structure**:
-  - `flake.nix`: Entry point. Defines inputs, outputs, and host configurations.
-  - `hosts/<hostname>/`: Contains host-specific configurations (`configuration.nix`).
-  - `modules/`: Shared NixOS modules (if any).
+  - `flake.nix` (repo root): Entry point. Defines inputs, `hostAddrs`, `nixosConfigurations` (fleet via `mkHost`, wotan via `mkDesktop`) and `colmenaHive`.
+  - `hosts/<hostname>/`: Contains host-specific configurations (`configuration.nix`; wotan uses `default.nix`).
+  - `modules/`: Shared fleet modules at the top level; `modules/wotan/`, `modules/desktop/` and `modules/home/` are the desktop's.
+  - `lib/mkConfigs.nix`: `mkDesktop` and the wotan-only nixpkgs config (CUDA). Never reuse it for servers.
 - **Naming**:
   - Use `camelCase` for variable names and attributes.
-  - Hostnames are lowercase (e.g., `ferron`, `caddy`).
+  - Hostnames are lowercase (e.g., `dns`, `otel`).
 - **Imports**:
   - Use relative paths for local imports (e.g., `./hardware-configuration.nix`).
   - Prefer importing modules from `inputs` where applicable.
@@ -106,7 +122,7 @@ The `iac/` directory contains OpenTofu configurations for provisioning Proxmox V
 
 ### General Development
 - **Dev Environment**:
-  - This repo uses **direnv** (`.envrc` = `use flake`). With the direnv shell
+  - This repo uses **direnv** (the root `.envrc` = `use flake`). With the direnv shell
     active (the default in this checkout), all dev tools are already on PATH —
     run `just`, `alejandra`, `nix`, `tofu`, `cog`, `colmena`, … **directly,
     without `nix develop -c` wrapping**. Only reach for `nix develop` on a
@@ -120,8 +136,8 @@ The `iac/` directory contains OpenTofu configurations for provisioning Proxmox V
 ## 3. Workflow for Agents
 
 1.  **Exploration**:
-    -   Read `flake.nix` to understand the current inputs and host definitions.
-    -   Read `justfile` to understand available task runners.
+    -   Read the root `flake.nix` to understand the current inputs and host definitions.
+    -   Read the root `justfile` to understand available task runners.
     -   Check `hosts/` for existing host configurations.
     -   If `context7` or `grep` MCP servers are available, use them for documentation and code search.
 
@@ -206,90 +222,19 @@ The `iac/` directory contains OpenTofu configurations for provisioning Proxmox V
         (redirect to login) and `406` (MCP endpoints needing an `Accept` header)
         are also healthy — `000` means down or a TLS-trust failure.
 
-6.  **Git Remotes: GitHub Is a Manual Mirror — Check It and Say So**
+6.  **Git Remotes: Forgejo Only — Agents Never Push to GitHub**
 
-    There are two remotes, and they are **not** kept in sync automatically.
-    Server-side push mirroring is deliberately **not** configured.
-
-    -   `origin` → Forgejo (`forgejo.homelab.local:2222`). **Canonical.** All
-        agent commits, branches and PRs go here, and only here.
-    -   `github` → `https://github.com/Mozart409/pve-nixos-homelab.git`.
-        A mirror that only ever advances when a human pushes to it, so it
-        silently falls behind.
-
-    **At the end of any task that produced commits, check the gap and tell the
-    user.** Agents push to Forgejo only — never push to `github` yourself.
-
-    ```bash
-    git status --short                       # working tree clean? anything unstaged?
-    git fetch github                         # refresh the mirror's ref
-    git rev-list --count github/main..main   # SHAs on main that GitHub lacks
-    git rev-list --count main..github/main   # SHAs on GitHub that main lacks
-    ```
-
-    **Check BOTH directions, and do not report the first number as "commits
-    GitHub is missing".** It counts commits whose *SHAs* are absent, which is
-    only the same thing as missing work when the two histories share a tip. If
-    the second number is also non-zero the histories have **diverged**, and the
-    first number is inflated by every commit that exists on both sides with a
-    different SHA — which is what any history rewrite (a rebase, a filter, an
-    author or signature change) produces for every descendant commit.
-
-    When both are non-zero, compare by **content**, not SHA:
-
-    ```bash
-    git log --format='%s' github/main..main | sort > /tmp/a
-    git log --format='%s' main..github/main | sort > /tmp/b
-    comm -12 /tmp/a /tmp/b | wc -l    # same subject both sides => rewritten, not missing
-    comm -23 /tmp/a /tmp/b | wc -l    # genuinely absent from GitHub  <- report THIS
-    comm -13 /tmp/a /tmp/b | wc -l    # genuinely absent from main
-    ```
-
-    Confirm a suspected rewrite by diffing GitHub's tip against its twin on
-    `main` (find the twin by subject); an **empty** diff proves the content is
-    identical and only the SHAs differ:
-
-    ```bash
-    git diff --stat github/main <twin-sha>
-    ```
-
-    Then nudge with the honest number, e.g. *"GitHub is 3 commits behind
-    Forgejo — run `just sync-remotes` to sync it."* Report the count and let the
-    user run it.
-
-    **This cost a wrong report on 2026-09-09.** `github/main..main` said **819**
-    and was reported as "819 commits behind". The real gap was **45**: the
-    histories had diverged at `febfeb3` (2026-03-19), 774 subjects were
-    identical on both sides, **0** existed only on GitHub, and GitHub's tip
-    (`211f596`) was byte-identical to `580cf156` on `main`. The user was right
-    to disbelieve the number.
-
-    **A diverged mirror cannot be fixed by `just sync-remotes`.** That script
-    merges commits that exist only on `github`, so under a rewrite-divergence it
-    grafts hundreds of duplicate-content commits into `main` as a merge, and a
-    plain `git push github main` is rejected as non-fast-forward. When the
-    content check shows GitHub holds **nothing** `main` lacks, the repair is for
-    the user to overwrite the mirror:
-
-    ```bash
-    git push --force-with-lease github main
-    ```
-
-    Only after verifying `comm -13` is 0 — that check is what makes discarding
-    GitHub's history safe. This is a **user** action: force-push is in the deny
-    list (§8) and agents never push to `github`.
-
-    For syncing by hand, `just sync-remotes` (`scripts/sync-remotes.sh`) is the
-    supported path: it fetches both remotes, fast-forwards `main` onto whatever
-    is newest (merging in any commits that exist only on `github`, e.g. pushed
-    from another machine), then pushes `origin` first and `github` second —
-    sequential pushes, never a multi-URL remote. It aborts instead of guessing
-    on diverged history with `origin`, merge conflicts, or a dirty tree. This
-    is for the user; agents still push to Forgejo only.
-
-    Note it guards divergence against `origin`, **not** against `github` — a
-    rewrite-divergence on the mirror is exactly the case it will happily merge
-    and should not. See the content check above before reaching for it.
+    -   `origin` → Forgejo (`amadeus/yggdrasil`). **Canonical.** All agent
+        commits, branches and PRs go here, and only here. Bot clones have no
+        other remote.
+    -   GitHub is a **public mirror**, pushed only from wotan's clone:
+        `switch.sh` pushes to every remote it has (planned: splitsh-lite
+        exports of `infra/` and the public Rust projects, per `exports.toml`).
+        A bot commit therefore reaches GitHub on wotan's next switch. Nothing
+        to check or report from a bot clone. Server-side push mirroring is
+        deliberately **not** configured.
+    -   `infra/` is published. Anything that must not be public does not belong
+        under `infra/`.
 
     **Never add GitHub as a second push URL on `origin`.** It looks like free
     mirroring and instead produces split-brain, because git does not push to
@@ -309,6 +254,13 @@ The `iac/` directory contains OpenTofu configurations for provisioning Proxmox V
     access by group`), which vanished from the working tree while still existing
     on GitHub and in the reflog. Recover such a commit with
     `git reflog` + `git cherry-pick <sha>`.
+
+    **Comparing a mirror by SHA lies after any history rewrite.**
+    `git rev-list --count github/main..main` counts absent *SHAs*; after a
+    rebase/filter both sides hold the same work under different SHAs. On
+    2026-09-09 it said 819 when the real gap was 45. Compare commit subjects
+    (`comm` over `git log --format=%s` in both directions) before reporting a
+    gap.
 
 ## 4. Key Technologies
 -   **NixOS**: Operating System.
@@ -365,15 +317,18 @@ directory, and secret names are the bare filename (no `secrets/` prefix). Runnin
 it from the repo root fails:
 
 ```
-error: path '/home/amadeus/code/pve-nixos-homelab/secrets.nix' does not exist
+error: path '/home/amadeus/code/yggdrasil/secrets.nix' does not exist
 ```
 
-- **WRONG** (from repo root): `agenix -e secrets/axon-gateway-env.age`
+- **WRONG** (from repo root): `agenix -e infra/secrets/axon-gateway-env.age`
 - **CORRECT**:
   ```bash
-  cd secrets
+  cd infra/secrets
   agenix -e axon-gateway-env.age
   ```
+
+The secrets are shared by the fleet **and** wotan: wotan's rules are
+`[amadeus hostWotan]` in the same `secrets.nix`.
 
 The matching entry in `secrets/secrets.nix` is keyed with the bare filename too
 (e.g. `"axon-gateway-env.age".publicKeys = [...]`).
@@ -799,7 +754,10 @@ More Jellyfin OIDC notes:
 
 ### Woodpecker CI Needs Two Things Nix Cannot Declare
 
-Woodpecker runs on its **own** host (`hosts/woodpecker/`, 192.168.2.182), served
+> **Decommissioned.** Woodpecker no longer runs; the pipelines and CI image are
+> archived in `docs/archive/woodpecker/` at the repo root. Kept for a revival.
+
+Woodpecker ran on its **own** host (`hosts/woodpecker/`, 192.168.2.182), served
 at `https://ci.homelab.local`. Server and agent share that VM deliberately, so
 gRPC stays on loopback — it is authenticated by the shared agent secret but
 **not encrypted** (`WOODPECKER_GRPC_SECURE` defaults to false), so splitting them

@@ -1,191 +1,59 @@
-# NixOS Multi-Host Configuration
+# wotan
 
-This is a multi-host NixOS configuration with shared modules and host-specific settings currently used in my nixos desktop.
+My desktop workstation: Hyprland on NVIDIA (CUDA), Quickshell bar, Podman,
+local vLLM. Part of the `yggdrasil` monorepo; the flake is at the repo root
+(`~/code/yggdrasil`), not in `/etc/nixos`.
 
-## 📁 Directory Structure
+wotan only ever deploys **itself**. It is not a `colmenaHive` node, has no
+inbound SSH, and nothing in the fleet tooling reaches it.
+
+## Layout
+
+Paths are relative to the repo root.
 
 ```
-/etc/nixos/
-├── flake.nix                 # Main flake configuration
-├── README.md                 # This file
-├── AGENTS.md                 # AI coding agent guide
-├── justfile                  # Just command runner recipes
-├── lefthook.yml              # Git hooks configuration
-├── modules/                  # Shared modules
-│   ├── nixos/                # NixOS system modules
-│   │   ├── basics.nix
-│   │   ├── common-packages.nix
-│   │   └── desktop/          # Desktop environment modules
-│   └── home-manager/         # Home-manager user modules
-│       ├── common-packages.nix
-│       ├── configs/          # Program configurations
-│       └── packages/         # Package category modules
-├── hosts/                    # Host-specific configurations
-│   └── wotan/                # Main workstation
-│       ├── default.nix       # Host-specific system config
-│       ├── home.nix          # Host-specific user config
-│       ├── hardware-configuration.nix
-│       ├── disko-config.nix  # Disk partitioning
-│       └── desktop-config.nix
-├── secrets/                  # Agenix encrypted secrets
-└── kickstart.nixvim/         # Neovim configuration
+infra/
+├── hosts/wotan/
+│   ├── default.nix              # system config; imports infra/modules/wotan
+│   ├── home.nix                 # home-manager config for amadeus
+│   ├── desktop-config.nix       # desktop.environment = "hyprland", file managers
+│   ├── disko-config.nix, hardware-configuration.nix
+│   ├── nebula.nix, nebula/      # nebula overlay certs
+│   ├── spacebot/                # Spacebot agent identity files
+│   ├── switch.sh                # the normal way to deploy (see below)
+│   └── AGENTS.md                # desktop details for coding agents
+├── modules/
+│   ├── wotan/                   # wotan-only NixOS modules (default.nix aggregates them,
+│   │                            #   plus ../desktop): basics, packages, vLLM, spacebot, …
+│   ├── desktop/                 # Hyprland, file managers, user experience
+│   └── home/                    # home-manager: configs/, packages/, services/
+├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA, vLLM, glaze pin)
+├── secrets/                     # agenix secrets, shared with the fleet (secrets.nix)
+└── docs/wotan/                  # config.d2 diagram, easyeffects tuning, keymaps
 ```
 
-## 🚀 Usage
+The root `flake.nix` builds it as `nixosConfigurations.wotan = desktop.mkDesktop
+"wotan" system "amadeus"`. CUDA, the vLLM insecure allow and the glaze overlay
+live only in `mkDesktop`; the fleet's `mkHost` never sees them.
 
-### System Configuration
+## Usage
+
+From the repo root:
 
 ```bash
-# Rebuild NixOS configuration for wotan
-sudo nixos-rebuild switch --flake .#wotan
-
-# Test configuration without applying
-sudo nixos-rebuild test --flake .#wotan
-
-# Build configuration (dry run)
-nix build .#nixosConfigurations.wotan.config.system.build.toplevel --dry-run
+just switch-wotan        # infra/hosts/wotan/switch.sh: probe substituters, nh os switch, push to every remote
+just switch-wotan -r     # nh os boot instead (NVIDIA driver bumps); reboot yourself
+just build-wotan         # nh os build .#wotan, no activation
+just build-home-wotan    # dry-run build of the home-manager activation package
+just test-wotan          # nixos-rebuild test: active until reboot
+just update              # nix flake update (moves wotan AND the fleet: one lock)
 ```
 
-### Home-Manager Configuration
+`programs.nh.flake` points at `~/code/yggdrasil`, so a bare `nh os switch`
+works from anywhere.
 
-```bash
-# Apply home-manager configuration for amadeus@wotan
-home-manager switch --flake .#amadeus@wotan
-
-# Build configuration (dry run)
-nix build .#homeConfigurations.amadeus@wotan.activationPackage --dry-run
-```
-
-### Development
-
-```bash
-# Enter development shell
-nix develop
-
-# Check configuration
-nix flake check
-
-# Update dependencies
-nix flake update
-```
-
-## ➕ Adding a New Host
-
-1. Create host directory:
-
-   ```bash
-   mkdir -p hosts/newhost
-   ```
-
-2. Create host configuration:
-
-   ```nix
-   # hosts/newhost/default.nix
-   { config, pkgs, inputs, lib, ... }:
-   {
-     imports = [
-       ./hardware-configuration.nix
-       ../../modules/nixos/common-packages.nix
-     ];
-
-     networking.hostName = "newhost";
-     # Add host-specific configuration here
-   }
-   ```
-
-3. Create home-manager configuration:
-
-   ```nix
-   # hosts/newhost/home.nix
-   { config, pkgs, inputs, lib, ... }:
-   {
-     imports = [
-       ../../modules/home-manager/common-packages.nix
-       # Add host-specific home-manager modules here
-     ];
-   }
-   ```
-
-4. Update `flake.nix`:
-
-   ```nix
-   nixosConfigurations = {
-     wotan = mkHost "wotan" system;
-     newhost = mkHost "newhost" system;  # Add this line
-   };
-
-   homeConfigurations = {
-     "amadeus@wotan" = mkHome "wotan" system;
-     "amadeus@newhost" = mkHome "newhost" system;  # Add this line
-   };
-   ```
-
-## 📦 Shared Modules
-
-### NixOS Common Packages (`modules/nixos/common-packages.nix`)
-
-- Essential system packages (vim, curl, git, etc.)
-- Common programs (zsh, etc.)
-- Common services (pcscd, etc.)
-- Nix settings and garbage collection
-- User configuration
-- Networking, locale, and time settings
-
-### Home-Manager Common Packages (`modules/home-manager/common-packages.nix`)
-
-- Development tools (fabric-ai, opencode, etc.)
-- Kubernetes and cloud tools
-- Database tools
-- System utilities
-- Desktop applications
-- Shell configuration (zsh, aliases)
-- Program configurations (git, lazygit, etc.)
-
-## 🖥️ Host-Specific Configuration
-
-Each host can override or extend the shared configuration:
-
-### System-level overrides (in `hosts/{hostname}/default.nix`)
-
-- Hardware configuration
-- Host-specific packages
-- Host-specific services
-- Desktop environment settings
-
-### User-level overrides (in `hosts/{hostname}/home.nix`)
-
-- Host-specific user packages
-- Host-specific program settings
-- Custom configurations per host
-
-## 🔧 Configuration Details
-
-### Current Host: wotan
-
-- **Desktop**: Hyprland (Wayland compositor)
-- **Graphics**: NVIDIA (stable drivers, CUDA enabled)
-- **Sound**: PipeWire with PulseAudio compatibility
-- **Special Features**: Steam, Podman, Tailscale
-- **Bar**: Quickshell
-- **Terminal**: Kitty
-- **Local LLM**: vLLM (OpenAI-compatible, CUDA, served on `127.0.0.1:10808`)
-
-### Shared Features
-
-- **Shell**: Zsh with Oh My Zsh
-- **Editor**: Neovim with Kickstart NixVim configuration
-- **Terminals**: Kitty, Alacritty, Ghostty
-- **Version Control**: Git with signing
-- **Package Management**: Nix
-- **Privacy**: Tor browser and services
-
-## 📝 Notes
-
-- All configurations use the same user "amadeus" for consistency
-- Unfree packages are enabled on all hosts
-- Automatic garbage collection is configured weekly
-- Development shell provides helpful commands and tools
-- Git hooks ensure configuration quality
+One lock for everything: a flake update moves wotan and every server together.
+Build wotan (`just build-wotan`) before rolling an update out to the fleet.
 
 ```sh
 hyprctl eval 'hl.config({ input = { kb_layout = "de" } })'
