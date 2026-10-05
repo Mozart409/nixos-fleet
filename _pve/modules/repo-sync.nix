@@ -1,16 +1,10 @@
 # Periodic git sync of every checkout under a user's ~/code.
 #
-# Two instances on the development host since the agent/human split
-# (2026-09-14, see modules/agent-user.nix):
-#   agent   -- fetch, fast-forward pull, AND push, with the agent's Forgejo key
-#              (agenix `agent-forgejo-ssh`). This is how agent commits reach
-#              Forgejo without a human step.
-#   amadeus -- fetch + fast-forward pull ONLY. That clone is where the human
-#              runs `just self-deploy`; it follows main and never publishes
-#              whatever half-finished state a person left in it.
-# The old single instance ran as amadeus with push, using ~amadeus/.ssh's
-# unencrypted key -- which, with the agents running as amadeus, meant every
-# agent commit went out under the human's identity with nothing in between.
+# One instance per user, each optionally pushing. On development, amadeus's
+# instance is fetch + fast-forward pull ONLY: that clone is where the human
+# runs `just self-deploy`, so it follows main and never publishes whatever
+# half-finished state was left in it. (The push-enabled `agent` instance went
+# with the `agent` account on 2026-10-05.)
 {
   config,
   lib,

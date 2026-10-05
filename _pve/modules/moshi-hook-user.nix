@@ -6,15 +6,12 @@
 }: let
   inherit (config.homelab.codingHarness) user;
 
-  # Both logins that drive coding agents on this host: the unattended `agent`
-  # service account and the interactive human. Each gets its OWN daemon,
-  # pairing and hook wiring -- Moshi keys a device registration to the daemon,
-  # so the two appear as two hosts in the app and a notification is routed back
-  # to the session that raised it. Scoping this to `agent` alone was the reason
-  # notifications from Claude Code run as amadeus went nowhere: the hooks were
-  # installed in ~/.claude/settings.json but no daemon ever bound a socket for
-  # uid 1000.
-  hookUsers = [user "amadeus"];
+  # Every login that drives coding agents on this host: the harness user and
+  # the interactive human (the same account everywhere but hermes). Each gets
+  # its OWN daemon, pairing and hook wiring -- Moshi keys a device
+  # registration to the daemon, so two logins appear as two hosts in the app
+  # and a notification is routed back to the session that raised it.
+  inherit (config.homelab.moshiHook) hookUsers;
 
   # systemd.user units are installed once, into /etc/systemd/user, and loaded by
   # EVERY user manager on the host -- so each unit has to gate itself on who is
@@ -34,6 +31,18 @@
   # below hands the hooks the same path from any environment.
   socketUnit = "%t/moshi-hook.sock";
   socketShell = ''/run/user/$(${pkgs.coreutils}/bin/id -u)/moshi-hook.sock'';
+
+  # The local HTTP gateway (Chat View, Diff, Workspaces, usage) defaults to a
+  # FIXED 127.0.0.1:24543 regardless of user, so the second daemon on a host
+  # died with `bind: address already in use` and crash-looped forever -- on
+  # development (then agent + amadeus) that was amadeus's, losing its inbox,
+  # alerts and Chat View while `moshi doctor` only said "daemon not running". Each login gets its
+  # own port, pinned in ~/.config/moshi/config.toml rather than in the unit's
+  # environment: every moshi-hook process of that user (daemon, hooks, the
+  # CLI, and the app's SSH-exec'd calls, which never see interactive-shell
+  # exports) reads that file. The first user keeps upstream's default, so the
+  # daemon that already held 24543 is unaffected.
+  gatewayPorts = lib.listToAttrs (lib.imap0 (i: u: lib.nameValuePair u (24543 + i)) hookUsers);
 
   # `install` wires every $HOME-scoped agent target: Claude Code
   # (~/.claude/settings.json) AND opencode
@@ -92,8 +101,17 @@
   # the per-user profile and ~/.local/bin, since a system unit gets a minimal
   # PATH. `hermes` is deliberately NOT a target here: its config.yaml lives per
   # profile and is registered by hosts/hermes/moshi-hook.nix.
+  #
+  # Also writes the gateway pin (see gatewayPorts), taking the port as $1. The
+  # file is wholly Nix-owned and rewritten on every start.
   moshiInstall = pkgs.writeShellScript "moshi-install" ''
     set -eu
+    port="$1"
+    ${pkgs.coreutils}/bin/install -d -m 0700 "$HOME/.config/moshi"
+    printf '[gateway]\nlisten = "127.0.0.1:%s"\n' "$port" > "$HOME/.config/moshi/config.toml.tmp"
+    ${pkgs.coreutils}/bin/chmod 0600 "$HOME/.config/moshi/config.toml.tmp"
+    ${pkgs.coreutils}/bin/mv -f "$HOME/.config/moshi/config.toml.tmp" "$HOME/.config/moshi/config.toml"
+
     export PATH="/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"
 
     targets=""
@@ -113,70 +131,81 @@
     ${pkgs.moshi-hook}/bin/moshi-hook install --target "$targets"
   '';
 in {
-  imports = [./moshi-hook.nix ./agent-user.nix];
+  imports = [./moshi-hook.nix ./coding-harness-user.nix];
 
-  # Start the user managers at boot so the daemons run without a login session.
-  users.users = lib.genAttrs hookUsers (_: {linger = true;});
-
-  systemd.user.services.moshi-hook-setup = {
-    description = "Pair this host with Moshi";
-    wantedBy = ["default.target"];
-    unitConfig.ConditionUser = conditionUsers;
-    # Fail loudly and retry rather than exiting 0 on a bad/missing token: an
-    # unpaired daemon that reports success is the failure mode that hid the
-    # broken hook wiring before. The retry also covers the ordering race -- user
-    # units are started by logind (post-multi-user), so /run/agenix should be
-    # populated, but a slow activation just means a few retries instead of a
-    # permanently unpaired host. Pairing persists in
-    # ~/.local/state/moshi/secrets.json, so this is a first-boot cost only.
-    startLimitBurst = 5;
-    startLimitIntervalSec = 300;
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = moshiPair;
-      Environment = ["MOSHI_SOCKET_PATH=${socketUnit}"];
-      Restart = "on-failure";
-      RestartSec = 15;
-    };
+  options.homelab.moshiHook.hookUsers = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = lib.unique [user "amadeus"];
+    description = "Logins that each get their own moshi-hook pairing, daemon and hook wiring.";
   };
 
-  # One per login, see moshiInstall. Restarted by switch whenever the
-  # moshi-hook store path changes; also re-run at boot.
-  systemd.services = lib.listToAttrs (map (u:
-    lib.nameValuePair "moshi-hook-install-${u}" {
-      description = "Install Moshi agent hooks for ${u}";
-      wantedBy = ["multi-user.target"];
-      # home-manager may create ~/.claude; land after it when it exists.
-      after = ["home-manager-${u}.service"];
+  config = {
+    # Start the user managers at boot so the daemons run without a login session.
+    users.users = lib.genAttrs hookUsers (_: {linger = true;});
+
+    systemd.user.services.moshi-hook-setup = {
+      description = "Pair this host with Moshi";
+      wantedBy = ["default.target"];
+      unitConfig.ConditionUser = conditionUsers;
+      # Fail loudly and retry rather than exiting 0 on a bad/missing token: an
+      # unpaired daemon that reports success is the failure mode that hid the
+      # broken hook wiring before. The retry also covers the ordering race -- user
+      # units are started by logind (post-multi-user), so /run/agenix should be
+      # populated, but a slow activation just means a few retries instead of a
+      # permanently unpaired host. Pairing persists in
+      # ~/.local/state/moshi/secrets.json, so this is a first-boot cost only.
+      startLimitBurst = 5;
+      startLimitIntervalSec = 300;
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        User = u;
-        ExecStart = moshiInstall;
+        ExecStart = moshiPair;
+        Environment = ["MOSHI_SOCKET_PATH=${socketUnit}"];
+        Restart = "on-failure";
+        RestartSec = 15;
       };
-    })
-  hookUsers);
-
-  systemd.user.services.moshi-hook = {
-    description = "Moshi agent hook daemon";
-    unitConfig.ConditionUser = conditionUsers;
-    after = ["moshi-hook-setup.service"];
-    requires = ["moshi-hook-setup.service"];
-    wantedBy = ["default.target"];
-    serviceConfig = {
-      ExecStart = "${pkgs.moshi-hook}/bin/moshi-hook serve";
-      Environment = ["MOSHI_SOCKET_PATH=${socketUnit}"];
-      Restart = "on-failure";
-      RestartSec = 5;
     };
-  };
 
-  # The other half of the socket pin: hook processes are spawned by Claude Code
-  # and opencode, which inherit the environment of the interactive shell they
-  # were started from. Without this they resolve the socket themselves and land
-  # on the /tmp fallback described above.
-  environment.interactiveShellInit = ''
-    export MOSHI_SOCKET_PATH="${socketShell}"
-  '';
+    # One per login, see moshiInstall. Restarted by switch whenever the
+    # moshi-hook store path changes; also re-run at boot.
+    systemd.services = lib.listToAttrs (map (u:
+      lib.nameValuePair "moshi-hook-install-${u}" {
+        description = "Install Moshi agent hooks for ${u}";
+        wantedBy = ["multi-user.target"];
+        # home-manager may create ~/.claude; land after it when it exists.
+        after = ["home-manager-${u}.service"];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          User = u;
+          ExecStart = "${moshiInstall} ${toString gatewayPorts.${u}}";
+        };
+      })
+    hookUsers);
+
+    systemd.user.services.moshi-hook = {
+      description = "Moshi agent hook daemon";
+      unitConfig.ConditionUser = conditionUsers;
+      after = ["moshi-hook-setup.service"];
+      requires = ["moshi-hook-setup.service"];
+      wantedBy = ["default.target"];
+      serviceConfig = {
+        ExecStart = "${pkgs.moshi-hook}/bin/moshi-hook serve";
+        Environment = ["MOSHI_SOCKET_PATH=${socketUnit}"];
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      # A system unit, so no ordering edge to moshi-hook-install-<user> is
+      # possible; on a fresh host the daemon may lose the race once, fail to
+      # bind, and pick the pinned port up on its next restart.
+    };
+
+    # The other half of the socket pin: hook processes are spawned by Claude Code
+    # and opencode, which inherit the environment of the interactive shell they
+    # were started from. Without this they resolve the socket themselves and land
+    # on the /tmp fallback described above.
+    environment.interactiveShellInit = ''
+      export MOSHI_SOCKET_PATH="${socketShell}"
+    '';
+  };
 }

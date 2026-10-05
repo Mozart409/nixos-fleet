@@ -282,10 +282,8 @@ in {
     # The same set `development` imports. They render Claude Code's and
     # opencode's config, this repo's skills and slash-commands, and the Moshi
     # hook wiring, into whichever account homelab.codingHarness names — here,
-    # `hermes` itself. agent-user.nix is imported for its OPTIONS only;
-    # homelab.agent.enable stays false, because on this host the whole machine
-    # is the agent and the account is simply `hermes`.
-    ../../modules/agent-user.nix
+    # `hermes` itself, the only account on this host.
+    ../../modules/coding-harness-user.nix
     ../../modules/coding-harness.nix
     ../../modules/claude-permissions.nix
     ../../modules/claude-settings-verify.nix
@@ -366,8 +364,7 @@ in {
     }
   ];
 
-  # Which account the harness modules configure. homelab.agent is NOT enabled —
-  # there is no second account to create here.
+  # Which account the harness modules configure (default: amadeus).
   homelab.codingHarness = {
     user = "hermes";
     home = humanHome;

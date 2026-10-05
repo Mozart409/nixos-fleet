@@ -1,12 +1,13 @@
-# Canonical Claude Code permission rules for the agent user.
+# Canonical Claude Code permission rules for the coding-harness user.
 #
 # Plain data, imported by BOTH modules/claude-permissions.nix (which applies it)
 # and modules/claude-settings-verify.nix (which checks it survived). Keeping one
 # copy is the whole point: this repo already fights drift in ~/.claude/settings.json,
 # and two hand-maintained deny lists would be a new source of it.
 #
-# A function of the agent's home (modules/agent-user.nix) because the path
-# rules below are absolute; both importers pass `config.homelab.agent.home`.
+# A function of the harness user's home (modules/coding-harness-user.nix)
+# because the path rules below are absolute; both importers pass
+# `config.homelab.codingHarness.home`.
 #
 # Rule syntax is Claude Code's own: `Tool(pattern)`, where a trailing `*` is a
 # prefix match and `Sub(cmd:*)` matches a subcommand and everything after it.
@@ -17,9 +18,10 @@
 # WHAT THIS LIST IS AND IS NOT (audit 2026-09-14). It is enforced by the Claude
 # Code client, in the agent's own process, against a settings file the agent's
 # user can write. It shapes what an agent *reaches for*; it is not a security
-# boundary. The boundary is the account it runs as: a user with no sudo
-# (modules/agent-user.nix), so nothing on this list can escalate to root no
-# matter how it is phrased. That is also why `bash`, `sh`, `env`, `xargs`,
+# boundary. From 2026-09-14 the boundary was the no-sudo `agent` account;
+# since that was removed on 2026-10-05 the agents run as amadeus (wheel,
+# NOPASSWD), so nothing but this list stands between a session and root.
+# That is also why `bash`, `sh`, `env`, `xargs`,
 # `timeout` are no longer allowed bare below -- each of them takes a whole
 # command line as an argument and so re-granted everything the deny list
 # names (`bash -c 'colmena apply'`). `nix`, `python3`, `node` stay: they are
@@ -365,8 +367,8 @@
   ];
 
   # Auto mode still honors the deny list and uses a safety classifier for
-  # unlisted actions, but prompts rather than silently denying. Acceptable
-  # only because the account boundary (modules/agent-user.nix), not this
-  # list, is what bounds the agent -- see the header comment.
+  # unlisted actions, but prompts rather than silently denying. Chosen while
+  # a no-sudo account bounded the agent; that account is gone (see the header
+  # comment), so the classifier is now the main gate on unlisted actions.
   defaultMode = "auto";
 }

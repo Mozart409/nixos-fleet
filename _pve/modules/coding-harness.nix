@@ -5,9 +5,8 @@
   ...
 }: let
   # Whose ~/.claude and ~/.config/opencode this renders into
-  # (modules/agent-user.nix declares the option). Defaults to
-  # homelab.agent.user, i.e. `agent` on development; hermes points it at the
-  # `hermes` login, which is that host's only account.
+  # (modules/coding-harness-user.nix declares the option). Defaults to
+  # amadeus; hermes points it at the `hermes` login, that host's only account.
   inherit (config.homelab.codingHarness) user home;
 
   # Central, single-source-of-truth MCP server list shared by every "coding
@@ -376,7 +375,7 @@
     ${applyOpencodeAuth}
   '';
 in {
-  imports = [./agent-user.nix];
+  imports = [./coding-harness-user.nix];
 
   systemd.services.coding-harness-config = {
     description = "Central MCP/plugin config for Claude Code + opencode (${user})";

@@ -966,13 +966,9 @@ Forgejo web UI, nothing in this repo.
 `/home/hermes` with this repo's skills, slash-commands and MCP servers, for
 use from herdr over mosh. No Hermes profile shells out to them.
 
-Those modules read **`config.homelab.codingHarness.{user,home}`**, which
-defaults to `homelab.agent.{user,home}`. On `development` the two coincide
-(`agent`). On `hermes` there is no second account to split off — the whole
-machine is the agent — so `homelab.agent.enable` stays **false** and
-`homelab.codingHarness.user` is pointed at `hermes`. Do not "simplify" this back
-to setting `homelab.agent.user`: that option names the account
-`modules/agent-user.nix` *creates*, and on this host it creates nothing.
+Those modules read **`config.homelab.codingHarness.{user,home}`**
+(`modules/coding-harness-user.nix`), which defaults to `amadeus`. On `hermes`
+it is pointed at `hermes`, the only account on that host.
 
 ### Validation, from the agent's side
 
@@ -1008,27 +1004,19 @@ Pocket ID client is restricted to a single user.
 
 ## 8. Claude Code Permissions on `development`
 
-**The account is the guardrail; the permission lists are ergonomics.** Since
-2026-09-14 every coding agent on this host (Claude Code, opencode, crush, herdr,
-moshi) runs as the dedicated user **`agent`** (`modules/agent-user.nix`): no
-wheel, an explicit `!ALL` sudoers rule, no access to `~amadeus/.ssh` (where the
-colmena deploy key and your Forgejo key live). It commits and pushes to
-Forgejo — including `main`, on purpose — with the agenix key
-`agent-forgejo-ssh`, and that is the end of what it can do to the fleet.
-Deploys happen as `amadeus` (wheel, NOPASSWD) from **your** clone under
-`/home/amadeus/code`, which `repo-sync-amadeus` keeps fast-forwarded to
-`main`; the agent's checkouts under `/home/agent/code` are never deployed
-directly. Reach the agent with `ssh agent@development` (your keys are in its
-`authorized_keys`) or `sudo -u agent -i`.
-
-Before the split the agents ran as `amadeus`, and the deny list below was the
-only thing between an agent and `colmena apply` — a list that `bash -c`,
-`env`, `xargs` and friends walked straight around, and that lives in a file
-the same user can edit. Read the rest of this section with that in mind: it
-shapes what an agent reaches for, it does not bound what it can do.
+**There is no account boundary any more; the permission lists are all there
+is.** From 2026-09-14 the coding agents on this host ran as a dedicated no-sudo
+`agent` user. That account was removed on 2026-10-05 as unused, so Claude
+Code, opencode, crush, herdr and moshi run as **`amadeus`** again — wheel,
+NOPASSWD sudo, and read access to `~/.ssh/id_colmena_deploy` and your Forgejo
+key. The deny list below is the only thing between an agent session and
+`colmena apply`, and `bash -c`, `env`, `xargs` and friends can walk around it,
+from a file the same user can edit. It shapes what an agent reaches for; it
+does not bound what the agent can do. Some passages below were written while
+the `agent` account existed; read "the agent user" there as `amadeus`.
 
 The permission config is still applied unattended, so treat it as a guardrail,
-not a prompt. Do not go looking for it in `~agent/.claude/settings.json` —
+not a prompt. Do not go looking for it in `~/.claude/settings.json` —
 that file is mutable and partly machine-written.
 
 ### Source of truth
@@ -1039,12 +1027,12 @@ directory, imported by exactly two consumers so the lists cannot drift:
 
 | Module | Role |
 | --- | --- |
-| `modules/claude-permissions.nix` | **Writer.** `claude-permissions-apply` jq-merges the three keys and the WebSearch restriction hook into `~agent/.claude/settings.json` at boot (`claude-permissions.service`, a user unit gated by `ConditionUser` to the agent). |
+| `modules/claude-permissions.nix` | **Writer.** `claude-permissions-apply` jq-merges the three keys and the WebSearch restriction hook into `~amadeus/.claude/settings.json` at boot (`claude-permissions.service`, a user unit gated by `ConditionUser` to the harness user). |
 | `modules/claude-settings-verify.nix` | **Checker.** Re-reads the same data and confirms it survived; notifies `notify.iphone_von_amadeus` via the axon gateway on drift. Runs after every boot plus a daily timer. |
 
 Both are imported by `hosts/development/configuration.nix`.
 
-**Editing `~agent/.claude/settings.json` by hand does not stick.** The merge is
+**Editing `~amadeus/.claude/settings.json` by hand does not stick.** The merge is
 right-biased and wholesale for `permissions.{allow,deny,defaultMode}` and for
 the `PreToolUse` hook group with `matcher == "WebSearch"` — the next boot
 overwrites them, and the daily verify sends a push notification in the
@@ -1113,9 +1101,9 @@ cycle. For a genuinely headless run (cron, `claude -p`), switch that session to
   granted while `Bash(git push --force*)` stays blocked. Deny rules apply in
   every mode, `bypassPermissions` included.
 - The deny list still names `nixos-rebuild`, `nh os`, `colmena apply`,
-  `just deploy*`, `gh pr merge` and force-push so an agent does not even try;
-  what actually makes deploys human-gated is that the agent user has no sudo
-  and no deploy key.
+  `just deploy*`, `gh pr merge` and force-push so an agent does not even try.
+  Since the `agent` account was removed that list is the only gate: the
+  sessions run as `amadeus`, who has sudo and the deploy key.
 - **Subagents need narrow `Bash(<cmd>:*)` rules, not a broad `Bash`.** Delegated
   agents (Explore/Plan/General-purpose) check their tool calls against the same
   allow list, but only narrow rules flow to them: a bare `Bash` / `Bash(*)`

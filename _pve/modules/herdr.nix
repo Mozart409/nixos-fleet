@@ -150,7 +150,7 @@
     ${herdrPkg}/bin/herdr integration install claude
   '';
 in {
-  imports = [./agent-user.nix];
+  imports = [./coding-harness-user.nix];
 
   environment.systemPackages =
     [

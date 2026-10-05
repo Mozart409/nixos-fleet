@@ -48,8 +48,6 @@ let
 in {
   # keep-sorted start
 
-  # The agent user's Forgejo key on development (modules/agent-user.nix): your own collaborator key, pasted in.
-  "agent-forgejo-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment];
   "attic-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase]; # raw password; same value inside attic-db-url.age
   "attic-db-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache]; # env-file: ATTIC_SERVER_DATABASE_URL=postgresql://...
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];

@@ -169,14 +169,14 @@
     '';
   };
 in {
-  imports = [./agent-user.nix];
+  imports = [./coding-harness-user.nix];
 
   users.users.${user}.linger = true;
 
   systemd.user.services.claude-permissions = {
     description = "Apply Claude Code permission guardrails for ${user}";
     wantedBy = ["default.target"];
-    # Instantiated in every user's manager; only meaningful in the agent's.
+    # Instantiated in every user's manager; only meaningful in the harness user's.
     unitConfig.ConditionUser = user;
 
     # After both writers, so this is the last word on the file each boot. After=

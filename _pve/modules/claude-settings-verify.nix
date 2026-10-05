@@ -153,7 +153,7 @@
     '';
   };
 in {
-  imports = [./agent-user.nix];
+  imports = [./coding-harness-user.nix];
 
   systemd.user.services.claude-settings-verify = {
     description = "Verify ~/.claude/settings.json guardrails for ${user}";
