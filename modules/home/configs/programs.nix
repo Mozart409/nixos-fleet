@@ -4,6 +4,10 @@
   lib,
   ...
 }: {
+  # Shared git base (defaultBranch, rebase, autoSetupRemote, ssh timeout,
+  # ignores), the same module the fleet's home-manager layer imports.
+  imports = [../../git.nix];
+
   home.file.".ssh/allowed_signers".text = ''
     amadeus@mozart409.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan
     amadeus@mozart409.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan
@@ -26,7 +30,6 @@
       enableZshIntegration = true;
     };
     git = {
-      enable = true;
       signing = {
         format = "ssh";
         signByDefault = true;
@@ -41,19 +44,11 @@
           s = "status";
           f = "fetch";
         };
-        init.defaultBranch = "main";
-        pull.rebase = "true";
-        push.autoSetupRemote = "true";
-        core.sshCommand = "ssh -o ConnectTimeout=5";
         credential = {
           helper = "oauth";
           cache = "--timeout 21600";
         };
       };
-      ignores = [
-        "*~"
-        "*.swp"
-      ];
     };
     jujutsu = {
       enable = true;

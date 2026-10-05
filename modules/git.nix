@@ -1,4 +1,6 @@
-{lib, ...}: {
+{...}: {
+  # Git base for every home-manager user: the fleet (flake.nix homeManagerNixvim)
+  # and wotan (modules/home/configs/programs.nix, which adds identity/signing).
   programs.git = {
     enable = true;
     settings = {
