@@ -14,7 +14,16 @@ relative to `infra/`.
 
 **wotan is not part of the fleet.** It is not a `colmenaHive` node, has no
 inbound SSH, deploys only itself (`just switch-wotan`), and must never import
-`modules/common.nix`. Desktop details: `hosts/wotan/AGENTS.md`.
+`modules/common.nix` or `modules/server.nix` (an assertion in
+`hosts/wotan/default.nix` fails evaluation if sshd turns on). Desktop details:
+`hosts/wotan/AGENTS.md`.
+
+**`common.nix` = `base.nix` + `server.nix`.** Every fleet host imports
+`common.nix`. `base.nix` holds only what wotan shares with the fleet
+(timezone, locale, keymap, flakes, trusted-users, the `amadeus` account via
+`homelab.users`) and is the one shared module wotan imports. Anything that
+opens a port, starts a daemon, authorizes an SSH key or loosens sudo goes in
+`server.nix`, never in `base.nix`.
 
 **Everything is declarative — that is the entire point of NixOS here.** Any
 config that should persist (agent skills/commands, dotfiles, keybindings,

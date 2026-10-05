@@ -15,7 +15,7 @@ wotan is one host in the `yggdrasil` monorepo (`~/code/yggdrasil`, Forgejo canon
 - `lib/mkConfigs.nix` - `mkDesktop` helper and the wotan-only nixpkgs config (CUDA, vLLM insecure allow, glaze pin)
 - `secrets/` + `secrets/secrets.nix` - agenix secrets, **shared with the fleet**; wotan's rules are `[amadeus hostWotan]`
 
-**wotan deploys only itself.** It is not a `colmenaHive` node, has no inbound SSH (the firewall has no open TCP ports), and must never import the fleet's `modules/common.nix`, which turns sshd on. Nothing in the fleet tooling reaches it.
+**wotan deploys only itself.** It is not a `colmenaHive` node, has no inbound SSH (the firewall has no open TCP ports), and must never import the fleet's `modules/common.nix` or `modules/server.nix`, which turn sshd on. It imports `modules/base.nix` (timezone, locale, keymap, flakes, trusted-users, the `amadeus` account) and nothing else from the fleet; an assertion in `hosts/wotan/default.nix` fails evaluation if sshd, TCP 22 or Tailscale SSH ever gets enabled. Nothing in the fleet tooling reaches it.
 
 **Neovim:** The nixvim configuration lives in its own repo, consumed as the flake input `mozart409-nixvim` (`github:Mozart409/mozart409-nixvim`). Neovim changes happen there, then `nix flake update mozart409-nixvim` here.
 

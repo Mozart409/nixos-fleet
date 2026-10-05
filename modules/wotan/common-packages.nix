@@ -35,16 +35,10 @@
     };
   };
 
-  # Common user configuration
-  users.users.${username} = {
-    isNormalUser = true;
-    description = username;
-    extraGroups = ["networkmanager" "wheel" "scanner"];
-    shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
-    ];
-  };
+  # The account itself (normal user, zsh, wheel + networkmanager) comes from
+  # modules/base.nix; wotan only adds its desktop groups. No SSH keys: wotan
+  # runs no sshd, so there is nothing for authorized_keys to authorize.
+  homelab.users.${username}.extraGroups = ["scanner"];
 
   # Common networking settings
   networking.networkmanager.enable = true;

@@ -1,14 +1,12 @@
-{username, ...}: {
+# Timezone, locale, console keymap, flakes, trusted-users and the amadeus
+# account come from modules/base.nix (shared with the fleet); only wotan's own
+# nix/desktop settings are here.
+{...}: {
   # Common Nix settings
   nix.settings = {
     auto-optimise-store = true;
     max-jobs = "auto";
     cores = 0;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-    trusted-users = ["root" username];
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
@@ -52,24 +50,6 @@
     enable = true;
     flake = "/home/amadeus/code/yggdrasil";
   };
-
-  # Common time and locale settings
-  time.timeZone = "Europe/Berlin";
-  i18n.defaultLocale = "en_US.UTF-8";
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "de_DE.UTF-8";
-    LC_IDENTIFICATION = "de_DE.UTF-8";
-    LC_MEASUREMENT = "de_DE.UTF-8";
-    LC_MONETARY = "de_DE.UTF-8";
-    LC_NAME = "de_DE.UTF-8";
-    LC_NUMERIC = "de_DE.UTF-8";
-    LC_PAPER = "de_DE.UTF-8";
-    LC_TELEPHONE = "de_DE.UTF-8";
-    LC_TIME = "de_DE.UTF-8";
-  };
-
-  # Common console settings
-  console.keyMap = "de";
 
   # Periodic TRIM for SSD longevity
   services.fstrim.enable = true;

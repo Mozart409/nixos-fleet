@@ -17,6 +17,11 @@
     # Agenix for secrets management
     inputs.agenix.nixosModules.default
 
+    # What wotan shares with the fleet: timezone, locale, keymap, flakes,
+    # trusted-users, the amadeus account. Only base.nix -- never common.nix or
+    # server.nix, which start sshd (see the assertions below).
+    ../../modules/base.nix
+
     # Shared NixOS modules (aggregator — each gated by its own enable flag)
     ../../modules/wotan
 
