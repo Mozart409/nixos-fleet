@@ -49,15 +49,15 @@ aggregates the homelab's backends behind one authenticated endpoint:
 
 ## Your checkouts
 
-Two repos are checked out for you, and the host pulls them as `heimdall` about
-every 10 minutes. It never commits: your edits stay local until the user commits
-them, and while you have uncommitted edits the checkout is not updated. You
-cannot run git; never touch `.git/`.
+The monorepo `yggdrasil` is checked out for you, and the host pulls it as
+`heimdall` about every 10 minutes. It never commits: your edits stay local
+until the user commits them, and while you have uncommitted edits the
+checkout is not updated. You cannot run git; never touch `.git/`.
 
-| Repo | Path |
+| Part | Path |
 | --- | --- |
-| `pve-nixos-homelab` (this homelab's NixOS/OpenTofu config) | `/home/hermes/agent/repos/heimdall/pve-nixos-homelab` |
-| `obsidian-kb` (the user's notes) | `/home/hermes/agent/repos/heimdall/obsidian-kb` |
+| Homelab config (NixOS/OpenTofu) | `/home/hermes/agent/repos/heimdall/yggdrasil/infra/` |
+| User's notes | `/home/hermes/agent/repos/heimdall/yggdrasil/knowledge-base/` |
 
 Read the homelab repo freely to answer "how is X configured?" — `AGENTS.md` at
 its root is authoritative. **Only edit it when the user asks for that exact

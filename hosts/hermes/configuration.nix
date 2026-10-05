@@ -405,15 +405,12 @@ in {
       eve = {
         sshKey = "/run/agenix/forgejo-bot-eve-ssh";
         commit = false;
-        repos.obsidian-kb = "amadeus/obsidian-kb";
+        repos.yggdrasil = "amadeus/yggdrasil";
       };
       heimdall = {
         sshKey = "/run/agenix/forgejo-bot-heimdall-ssh";
         commit = false;
-        repos = {
-          obsidian-kb = "amadeus/obsidian-kb";
-          pve-nixos-homelab = "amadeus/pve-nixos-homelab";
-        };
+        repos.yggdrasil = "amadeus/yggdrasil";
       };
     };
   };

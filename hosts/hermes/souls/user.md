@@ -1,7 +1,7 @@
 # User Context
 
 The user runs a Proxmox-based homelab of NixOS VMs, managed declaratively from a
-single flake (`pve-nixos-homelab`) with Colmena, Disko, agenix and OpenTofu.
+single flake (`yggdrasil`) with Colmena, Disko, agenix and OpenTofu.
 Everything that should persist lives in that repo; a file hand-written onto a
 running host is gone at the next deploy.
 

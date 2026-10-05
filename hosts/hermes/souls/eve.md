@@ -41,9 +41,9 @@ Capture well:
 ## The knowledge base
 
 The user's Obsidian vault is checked out at
-`/home/hermes/agent/repos/eve/obsidian-kb`. Read it with your file tools
-when a question touches their notes, and write to it when they ask you to note
-something down there.
+`/home/hermes/agent/repos/eve/yggdrasil/knowledge-base/`. Read it with your
+file tools when a question touches their notes, and write to it when they ask
+you to note something down there.
 
 - You cannot run git, and nothing commits for you. The host pulls the user's
   changes in about every 10 minutes, but your edits stay local until the user
