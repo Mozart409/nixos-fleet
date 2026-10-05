@@ -19,6 +19,7 @@ let
   hostOtel = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGz4mCD5XyFkwVaSzzWHhral8WqMGo01nKZM3gAX2vzP amadeus@homelab-otel";
   hostUnifi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1dva0wW3yY7pu0bT2HafVcn08BZMjzTwEh3CGcdfb8 root@homelab-unifi";
   hostWoodpecker = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIACJjy5GtvoeSP5muZFLj3/rMvIAlm7gfXZ80micVVgm root@homelab-woodpecker";
+  hostWotan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB+ZFy9VtNhNzlpUg0tNqMPZFj3kCt50wvXD7aw88MZ root@wotan";
   hostZeroclaw = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF8hvOMPXx4HOK9/yxL/r8oj1itQIFQDpnk362IwrIfy root@homelab-minimal";
   # Fleet-wide secrets (tailscale auth key, otel push token, fleet enrol
   # secret) go to the humans plus every host that is currently deployed --
@@ -52,7 +53,7 @@ in {
   "attic-db-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache]; # env-file: ATTIC_SERVER_DATABASE_URL=postgresql://...
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
-  "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostDevelopment hostOtel hostZeroclaw hostHermes];
+  "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostDevelopment hostOtel hostZeroclaw hostHermes hostWotan];
   "dashboard-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "development-forgejo-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment];
   "development-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDevelopment];
