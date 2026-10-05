@@ -237,8 +237,10 @@ The `just iac-*` recipes run inside `infra/iac` for you.
         commits, branches and PRs go here, and only here. Bot clones have no
         other remote.
     -   GitHub is a **public mirror**, pushed only from wotan's clone:
-        `switch.sh` pushes to every remote it has (planned: splitsh-lite
-        exports of `infra/` and the public Rust projects, per `exports.toml`).
+        `switch.sh` runs `just export-github`, which splits each prefix in
+        the root `exports.toml` (`infra/` and the public Rust projects) into
+        its own history and pushes it to its GitHub repo. The monorepo itself
+        never goes to GitHub.
         A bot commit therefore reaches GitHub on wotan's next switch. Nothing
         to check or report from a bot clone. Server-side push mirroring is
         deliberately **not** configured.
