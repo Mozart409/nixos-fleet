@@ -116,7 +116,7 @@
         }
         {
           on = ["g" "n"];
-          run = "cd /etc/nixos";
+          run = "cd ~/code/yggdrasil";
           desc = "Go to NixOS config";
         }
 

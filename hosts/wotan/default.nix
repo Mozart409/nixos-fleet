@@ -18,7 +18,7 @@
     inputs.agenix.nixosModules.default
 
     # Shared NixOS modules (aggregator — each gated by its own enable flag)
-    ../../modules/nixos
+    ../../modules/wotan
 
     # Desktop configuration
     ./desktop-config.nix
@@ -227,7 +227,7 @@
     ];
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
-    readWritePaths = ["/home/${username}" "/etc/nixos"];
+    readWritePaths = ["/home/${username}"];
     # Signing-only key (not a login key anywhere) in its own agent, so opencode
     # can sign commits but can't authenticate/push. Private key stays hidden
     # (~/.ssh is in inaccessiblePaths).

@@ -64,7 +64,7 @@ def head_of(url, ref):
 
 def parse_args():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("flake", nargs="?", default="/etc/nixos",
+    ap.add_argument("flake", nargs="?", default="/home/amadeus/code/yggdrasil",
                     help="path to the flake whose lock is inspected")
     ap.add_argument(
         "--grace-days", type=float,

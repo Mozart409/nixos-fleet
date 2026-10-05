@@ -25,7 +25,7 @@ in {
   # `nixos-rebuild switch` activates both system and user config.
   # `username` is threaded through specialArgs (system) and extraSpecialArgs
   # (home) so shared modules stay reusable across hosts/users.
-  mkHost = hostname: system: username:
+  mkDesktop = hostname: system: username:
     lib.nixosSystem {
       specialArgs = {inherit inputs username;};
       modules = [

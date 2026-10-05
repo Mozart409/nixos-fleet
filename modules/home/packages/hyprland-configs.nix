@@ -40,7 +40,7 @@
   #   3. Test-build it first -- nixpkgs lags Hyprland's internal API, and a
   #      plugin can be in nixpkgs yet fail to compile (hyprsplit, hyprspace,
   #      imgborders and hyprgrass all failed against 0.56.2):
-  #        nix build --impure --expr '(builtins.getFlake "/etc/nixos").inputs.nixpkgs.legacyPackages.x86_64-linux.hyprlandPlugins.<name>'
+  #        nix build --impure --expr '(builtins.getFlake "/home/amadeus/code/yggdrasil").inputs.nixpkgs.legacyPackages.x86_64-linux.hyprlandPlugins.<name>'
   #   4. Add it to the list below, then configure it in hyprland.lua inside an
   #      `if hl.plugin.<namespace> then ... end` guard (see the PLUGINS section
   #      there for why the guard is required).

@@ -1,6 +1,6 @@
 {...}: {
   # Aggregator for all shared NixOS modules. Hosts import this single directory
-  # (`../../modules/nixos`) instead of listing each module. Every optional
+  # (`../../modules/wotan`) instead of listing each module. Every optional
   # module is gated by its own `enable` flag (default off), so importing the
   # whole set here is safe — a host only activates what it opts into:
   #
@@ -23,9 +23,9 @@
     ./vllm.nix
     ./spacebot.nix
     ./opencode-serve.nix
-    ./desktop/default.nix
-    ./desktop/hyprland.nix
-    ./desktop/file-managers.nix
-    ./desktop/user-experience.nix
+    ../desktop/default.nix
+    ../desktop/hyprland.nix
+    ../desktop/file-managers.nix
+    ../desktop/user-experience.nix
   ];
 }

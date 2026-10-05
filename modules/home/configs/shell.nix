@@ -129,7 +129,7 @@
       sys = "systemctl status";
       syr = "systemctl restart";
       k = "kubectl";
-      flk = "cd /etc/nixos";
+      flk = "cd ~/code/yggdrasil";
       pup = "podman-compose up -d";
       pwn = "podman-compose down";
       n = "nvim .";

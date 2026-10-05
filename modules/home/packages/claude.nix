@@ -85,7 +85,7 @@
         "mcp__axon-gateway"
         "Read(~/.config/nixpkgs/config.nix)"
         # agenix recipients file: public keys only.
-        "Read(//etc/nixos/secrets.nix)"
+        "Read(~/code/yggdrasil/infra/secrets/secrets.nix)"
       ];
       # Read(...) denies are also merged into sandbox.filesystem.denyRead, so
       # with the sandbox on they block `cat` & co. in Bash too, not just the
@@ -234,7 +234,7 @@
 
   # Personal skill teaching Claude this repo's commit conventions. Lives under
   # ~/.claude/skills, so it is available to every Claude Code session for this
-  # user across all projects (not scoped to /etc/nixos).
+  # user across all projects (not scoped to one repo).
   commitSkill = ''
     ---
     name: commits

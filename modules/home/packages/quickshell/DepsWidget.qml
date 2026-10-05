@@ -32,7 +32,7 @@ Variants {
     required property var modelData
     screen: modelData
 
-    property string flakePath: "/etc/nixos"
+    property string flakePath: "/home/amadeus/code/yggdrasil"
 
     property var inputs: []
     property bool ok: true

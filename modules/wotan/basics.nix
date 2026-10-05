@@ -50,7 +50,7 @@
 
   programs.nh = {
     enable = true;
-    flake = "/etc/nixos";
+    flake = "/home/amadeus/code/yggdrasil";
   };
 
   # Common time and locale settings

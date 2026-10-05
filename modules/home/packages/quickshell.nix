@@ -313,7 +313,7 @@ in {
 
     sourcePath = lib.mkOption {
       type = lib.types.str;
-      default = "/etc/nixos/modules/home-manager/packages/quickshell";
+      default = "/home/amadeus/code/yggdrasil/infra/modules/home/packages/quickshell";
       description = ''
         Absolute path to the QML sources, used only when liveReload is on.
         Must be a real path on the running system, not a store path.

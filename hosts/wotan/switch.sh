@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# The flake lives at the yggdrasil root, two levels above infra/hosts/wotan.
+cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+
 clear
 
 chara say -t round -r switching ...
@@ -26,7 +29,7 @@ done
 
 # A substituter that is down hard-fails the whole build rather than being
 # skipped: nix treats a 5xx on a narinfo query as a transport error and aborts,
-# and `fallback = true` in modules/nixos/basics.nix does not rescue it — that
+# and `fallback = true` in infra/modules/wotan/basics.nix does not rescue it — that
 # only covers a substitution that fails to *copy*, not one that fails to
 # *answer*. cache.garnix.io served 502s across entire outages and has since been
 # dropped from basics.nix, as has the homelab attic, but a cachix can go down

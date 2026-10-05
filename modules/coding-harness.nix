@@ -47,7 +47,7 @@
   opencodePlugins = [];
 
   # Agent skills shipped from this repo's .opencode/skills/ (this module lives
-  # in modules/, so ../.opencode/skills). Each skill is a <name>/SKILL.md folder
+  # in infra/modules/, so ../../.opencode/skills). Each skill is a <name>/SKILL.md folder
   # in the Agent Skills format. They are symlinked into ~/.claude/skills/ on
   # every activation, which is read by BOTH Claude Code and opencode (opencode
   # scans ~/.claude/skills as a Claude-compatible external-skill source). The
@@ -68,16 +68,16 @@
   # scripts, tests) were dropped since nothing here can run npx/node, and
   # subagent-driven-development was skipped since this repo already ships its
   # own opencode-tailored version of that skill under the same name.
-  repoSkillsDir = ../.opencode/skills;
+  repoSkillsDir = ../../.opencode/skills;
 
   # Agent slash-commands shipped from this repo's .opencode/command/ (this
-  # module lives in modules/, so ../.opencode/command). Each <name>.md file
+  # module lives in infra/modules/, so ../../.opencode/command). Each <name>.md file
   # becomes a /<name> command in BOTH harnesses: symlinked into
   # ~/.config/opencode/command/ (opencode) and ~/.claude/commands/ (Claude
   # Code). The $ARGUMENTS placeholder and `description` frontmatter key are
   # understood by both tools; opencode-only keys like `agent:` are silently
   # ignored by Claude Code, so one markdown file serves both.
-  repoCommandsDir = ../.opencode/command;
+  repoCommandsDir = ../../.opencode/command;
 
   # Claude Code's MCP config uses `${VAR}` expansion syntax.
   claudeMcpServers =

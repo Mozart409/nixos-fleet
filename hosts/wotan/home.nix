@@ -9,33 +9,33 @@
 }: {
   imports = [
     # keep-sorted start
-    ../../modules/home-manager/common-packages.nix
-    ../../modules/home-manager/node-security.nix
-    ../../modules/home-manager/packages/browsers.nix
-    ../../modules/home-manager/packages/chess.nix
-    ../../modules/home-manager/packages/claude.nix
-    ../../modules/home-manager/packages/database.nix
-    ../../modules/home-manager/packages/desktop.nix
-    ../../modules/home-manager/packages/development.nix
-    ../../modules/home-manager/packages/easyeffects.nix
-    ../../modules/home-manager/packages/fun.nix
-    ../../modules/home-manager/packages/git-sync.nix
-    ../../modules/home-manager/packages/gtk.nix
-    ../../modules/home-manager/packages/halloy.nix
-    ../../modules/home-manager/packages/hofvarpnir-tui.nix
-    ../../modules/home-manager/packages/hyprland-configs.nix
-    ../../modules/home-manager/packages/kubernetes.nix
-    ../../modules/home-manager/packages/onlyoffice.nix
-    ../../modules/home-manager/packages/opencode.nix
-    ../../modules/home-manager/packages/podman.nix
-    ../../modules/home-manager/packages/quickshell.nix
-    ../../modules/home-manager/packages/rofi.nix
-    ../../modules/home-manager/packages/sops.nix
-    ../../modules/home-manager/packages/system.nix
-    ../../modules/home-manager/packages/terminals.nix
-    ../../modules/home-manager/packages/tmux.nix
-    ../../modules/home-manager/packages/yazi.nix
-    ../../modules/home-manager/packages/zinc-oxide.nix
+    ../../modules/home/common-packages.nix
+    ../../modules/home/node-security.nix
+    ../../modules/home/packages/browsers.nix
+    ../../modules/home/packages/chess.nix
+    ../../modules/home/packages/claude.nix
+    ../../modules/home/packages/database.nix
+    ../../modules/home/packages/desktop.nix
+    ../../modules/home/packages/development.nix
+    ../../modules/home/packages/easyeffects.nix
+    ../../modules/home/packages/fun.nix
+    ../../modules/home/packages/git-sync.nix
+    ../../modules/home/packages/gtk.nix
+    ../../modules/home/packages/halloy.nix
+    ../../modules/home/packages/hofvarpnir-tui.nix
+    ../../modules/home/packages/hyprland-configs.nix
+    ../../modules/home/packages/kubernetes.nix
+    ../../modules/home/packages/onlyoffice.nix
+    ../../modules/home/packages/opencode.nix
+    ../../modules/home/packages/podman.nix
+    ../../modules/home/packages/quickshell.nix
+    ../../modules/home/packages/rofi.nix
+    ../../modules/home/packages/sops.nix
+    ../../modules/home/packages/system.nix
+    ../../modules/home/packages/terminals.nix
+    ../../modules/home/packages/tmux.nix
+    ../../modules/home/packages/yazi.nix
+    ../../modules/home/packages/zinc-oxide.nix
     inputs.mozart409-nixvim.homeModules.default
     # keep-sorted end
   ];
