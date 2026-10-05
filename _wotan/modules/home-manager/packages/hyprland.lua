@@ -214,13 +214,15 @@ hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" 
 hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.move({ direction = "down" }))
 
 -- Swap the windows of the two monitors' active workspaces; the workspace
--- numbers stay on their monitor. A bare swap_monitors moves the workspace
--- objects, numbers included, which strands e.g. workspace 1 on the right
--- monitor: the per-monitor bar and SUPER+<number> then point at a workspace
--- that is not where they expect it. So swap, then trade the two ids back
--- (via a temporary id -- change_id refuses an id that is taken). Moving the
--- workspaces rather than the windows keeps each dwindle layout intact.
-local swapTempId = 9999
+-- numbers stay on their monitor. Every window is moved individually, so
+-- each move emits movewindowv2, which the quickshell bar tracks by
+-- workspace name. The previous implementation swapped the workspace
+-- objects (swap_monitors) and traded their ids back with change_id, which
+-- re-labels ids and names compositor-side: quickshell has no
+-- changeworkspaceid handler and freezes each workspace's address/id/name
+-- at creation, so the bar kept counting windows on their pre-swap buttons
+-- (the workspace that received them read as empty) until it was restarted.
+-- The trade-off: dwindle re-flows each half of the swap.
 hl.bind(mainMod .. " + SHIFT + up", function()
     local here = hl.get_active_workspace()
     local other
@@ -229,15 +231,23 @@ hl.bind(mainMod .. " + SHIFT + up", function()
             other = m.active_workspace
         end
     end
-    -- Named/special workspaces have ids <= 0, which change_id cannot touch
+    -- Named/special workspaces have ids <= 0; swapping scratchpad content
+    -- with a regular workspace is never what you want, so skip.
     if not here or not other or here.id <= 0 or other.id <= 0 then
         return
     end
-    local a, b = here.id, other.id
-    hl.dispatch(hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" }))
-    hl.dispatch(hl.dsp.workspace.change_id({ workspace = a, id = swapTempId }))
-    hl.dispatch(hl.dsp.workspace.change_id({ workspace = b, id = a }))
-    hl.dispatch(hl.dsp.workspace.change_id({ workspace = swapTempId, id = b }))
+    -- Snapshot both sides before moving anything: the second batch would
+    -- otherwise include the first batch's arrivals and move them straight
+    -- back. follow = false keeps focus from bouncing between the monitors
+    -- while the batches move (silent moves still emit movewindowv2).
+    local hereWins = hl.get_windows({ workspace = here })
+    local otherWins = hl.get_windows({ workspace = other })
+    for _, w in ipairs(hereWins) do
+        hl.dispatch(hl.dsp.window.move({ window = w, workspace = other, follow = false }))
+    end
+    for _, w in ipairs(otherWins) do
+        hl.dispatch(hl.dsp.window.move({ window = w, workspace = here, follow = false }))
+    end
 end)
 
 -- Push window to the previous/next monitor unconditionally (works for tiled
