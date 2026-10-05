@@ -80,6 +80,28 @@
     audit.enable = false; # Enable for security auditing (generates logs)
   };
 
+  # wotan has no inbound SSH: it deploys only itself and is not a colmena node.
+  # Bots may edit this config, and fleet modules (modules/common.nix) turn sshd
+  # on, so fail evaluation -- the pre-push gate and switch.sh both evaluate
+  # wotan -- rather than trust that nobody re-enables it. security.hardening.ssh
+  # only hardens sshd's settings; it does not start it.
+  assertions = let
+    sshFlag = lib.any (lib.hasPrefix "--ssh");
+  in [
+    {
+      assertion = !config.services.openssh.enable;
+      message = "wotan must not run sshd (services.openssh.enable): it has no inbound SSH by design. Was modules/common.nix imported?";
+    }
+    {
+      assertion = !(lib.elem 22 config.networking.firewall.allowedTCPPorts);
+      message = "wotan must not open TCP 22 in networking.firewall.allowedTCPPorts.";
+    }
+    {
+      assertion = !(sshFlag config.services.tailscale.extraUpFlags || sshFlag config.services.tailscale.extraSetFlags);
+      message = "wotan must not enable Tailscale SSH (--ssh in services.tailscale.extra{Up,Set}Flags).";
+    }
+  ];
+
   # k3s pod/overlay networking must bypass the host firewall
   networking.firewall.trustedInterfaces = ["cni0" "flannel.1"];
 
