@@ -11,6 +11,7 @@
   environment.systemPackages = with pkgs; [
     # keep-sorted start
     alejandra
+    attic-client # switch.sh pushes the system closure to ventara-attic
     claude-code
     curl
     dig
