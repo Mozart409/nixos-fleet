@@ -1,7 +1,7 @@
 # EasyEffects Tuning Guide
 
 System-wide loudness normalization for `wotan`, configured declaratively in
-[`modules/home-manager/packages/easyeffects.nix`](../modules/home-manager/packages/easyeffects.nix)
+[`modules/home/packages/easyeffects.nix`](../../modules/home/packages/easyeffects.nix)
 and enabled with `desktop.easyeffects.enable = true;`.
 
 EasyEffects inserts itself as a virtual PipeWire output sink (`easyeffects_sink`),
@@ -25,7 +25,7 @@ mistyped key triggers a "wrong format" error on load. Edit the JSON inside the
 
 ## Applying changes
 
-1. Edit `loudness.json` in `modules/home-manager/packages/easyeffects.nix`.
+1. Edit `loudness.json` in `modules/home/packages/easyeffects.nix`.
 2. Rebuild: `./switch.sh` (or `nh os switch .#nixosConfigurations.wotan`).
 3. Change **one** value at a time and listen for a day before the next tweak.
 
@@ -77,5 +77,5 @@ for gentle dynamic-range control. All other compressor keys are the verbatim
 
 ## Related
 
-- Module: [`modules/home-manager/packages/easyeffects.nix`](../modules/home-manager/packages/easyeffects.nix)
+- Module: [`modules/home/packages/easyeffects.nix`](../../modules/home/packages/easyeffects.nix)
 - The Breeze Dark GUI theme is runtime state, not part of the flake.

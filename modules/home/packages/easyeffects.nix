@@ -17,7 +17,7 @@
     # and catches peaks with a limiter.
     #
     # Requires system-level `programs.dconf.enable = true`
-    # (set in modules/nixos/desktop/default.nix).
+    # (set in modules/desktop/default.nix).
     services.easyeffects = {
       enable = true;
       # Auto-load the preset below when the daemon starts.

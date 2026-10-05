@@ -6,7 +6,7 @@
   ...
 }: let
   # Commit signing via the signing-only agent from opencode-serve (see
-  # modules/nixos/opencode-serve.nix): Claude never gets the login keys.
+  # modules/wotan/opencode-serve.nix): Claude never gets the login keys.
   signing = osConfig.services.opencode-serve.signing;
   signingEnv = lib.optionalAttrs (signing.keyFile != null) {
     SSH_AUTH_SOCK = "/run/opencode-signing/agent.sock";
@@ -280,7 +280,7 @@
   '';
 in {
   # The claude-code package itself is installed system-wide
-  # (modules/nixos/common-packages.nix).
+  # (modules/wotan/common-packages.nix).
   home.file.".claude/settings.json" = {
     text = lib.generators.toJSON {} claudeSettings;
     force = true;

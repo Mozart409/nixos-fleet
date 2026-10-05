@@ -137,7 +137,7 @@ in {
         Type = "oneshot";
         # Reuse the desktop session's gpg-agent SSH support for git auth
         # instead of a dedicated key (see programs.gpg-agent.enableSSHSupport
-        # in modules/nixos/common-packages.nix).
+        # in modules/wotan/common-packages.nix).
         Environment = "SSH_AUTH_SOCK=%t/gnupg/S.gpg-agent.ssh";
         ExecStart = "${git-sync}/bin/git-sync";
       };

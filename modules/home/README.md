@@ -20,10 +20,10 @@ In your host's `home.nix`, import the base configuration and add desired package
 ```nix
 {
   imports = [
-    ../../modules/home-manager/common-packages.nix
-    ../../modules/home-manager/packages/development.nix
-    ../../modules/home-manager/packages/kubernetes.nix
-    ../../modules/home-manager/packages/desktop.nix
+    ../../modules/home/common-packages.nix
+    ../../modules/home/packages/development.nix
+    ../../modules/home/packages/kubernetes.nix
+    ../../modules/home/packages/desktop.nix
   ];
 }
 ```
@@ -33,9 +33,9 @@ Or selectively import individual configs:
 ```nix
 {
   imports = [
-    ../../modules/home-manager/configs/base.nix
-    ../../modules/home-manager/configs/shell.nix
-    ../../modules/home-manager/packages/development.nix
+    ../../modules/home/configs/base.nix
+    ../../modules/home/configs/shell.nix
+    ../../modules/home/packages/development.nix
   ];
 }
 ```

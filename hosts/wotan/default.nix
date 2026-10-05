@@ -343,7 +343,7 @@
     huggingfaceTokenFile = config.age.secrets.hf-token.path;
   };
 
-  # Spacebot AI agent (modules/nixos/spacebot.nix), local models only: every
+  # Spacebot AI agent (modules/wotan/spacebot.nix), local models only: every
   # process routes to the vLLM server above, no cloud provider is configured.
   # Web UI: http://127.0.0.1:19898. Not started at boot (it pulls vLLM up and
   # pins ~9 GiB of VRAM) — `sudo systemctl start podman-spacebot` starts both.
@@ -437,7 +437,7 @@
     owner = username;
     # Raw hofvarpnir API key (hof_sk_...), no KEY= prefix. Read by the TUI via
     # token_file in the generated ~/.config/hofvarpnir/tui.toml
-    # (modules/home-manager/packages/hofvarpnir-tui.nix).
+    # (modules/home/packages/hofvarpnir-tui.nix).
   };
 
   # Environment variables

@@ -1,6 +1,6 @@
 // opencode plugin: hard guardrail against reading / leaking secrets.
 //
-// Deployed by modules/home-manager/packages/opencode.nix to
+// Deployed by modules/home/packages/opencode.nix to
 // ~/.config/opencode/plugins/secret-guard.js.
 //
 // Why a plugin and not just `permission` rules in opencode.json:

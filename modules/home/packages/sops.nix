@@ -117,7 +117,7 @@ in {
     '';
 
     home.file."${cfg.rulesDir}/.sops.yaml".text = ''
-      # Managed by home-manager (modules/home-manager/packages/sops.nix).
+      # Managed by home-manager (modules/home/packages/sops.nix).
       # Applies to every project below this directory unless it has its own.
       creation_rules:
         - path_regex: \.sops\.env$

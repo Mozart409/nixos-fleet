@@ -11,7 +11,7 @@
     allowUnfree = true;
     cudaSupport = true;
     permittedInsecurePackages = [
-      # vLLM 0.16.0 — three CVEs documented in modules/nixos/vllm.nix.
+      # vLLM 0.16.0 — three CVEs documented in modules/wotan/vllm.nix.
       # Mitigations: loopback-only bind, trusted-repo-only models. Drop when
       # nixpkgs ships vllm >= 0.20.0.
       "python3.13-vllm-0.16.0"

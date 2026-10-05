@@ -1,6 +1,6 @@
 /* Rofi theme matching the quickshell bar.
  *
- * Every colour here is copied from modules/home-manager/packages/quickshell/
+ * Every colour here is copied from modules/home/packages/quickshell/
  * Theme.qml -- if you retheme the shell, retheme this too, or the launcher
  * stops looking like it belongs to the same desktop. Kept as a .rasi file
  * rather than home-manager's attrset form because that form needs mkLiteral

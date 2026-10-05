@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: {
-  # tmux config mirroring nixos-wotan (modules/home-manager/packages/tmux.nix)
+  # tmux config mirroring wotan's home module (modules/home/packages/tmux.nix)
   # but with the tokyo-night theme swapped for catppuccin (frappe flavor).
   # Shell helpers that pair with it live in modules/common.nix:
   #   t <name>  attach-or-create a tmux session named <name>
@@ -46,7 +46,7 @@
       # Fast "I'm done here": prefix + X kills the whole session (with confirm).
       bind X confirm-before -p "kill session '#S'? (y/n)" kill-session
 
-      # Catppuccin theme (frappe flavor), distinct from nixos-wotan's tokyo-night.
+      # Catppuccin theme (frappe flavor), distinct from wotan's tokyo-night.
       set -g @catppuccin_flavour 'frappe'
       set -g @catppuccin_window_status_style 'rounded'
 

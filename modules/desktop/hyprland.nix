@@ -56,13 +56,13 @@
       # org.freedesktop.Notifications, unconfigured (home-manager had removed
       # its dunstrc), and quickshell's daemon would get nothing.
       # home-manager's services.dunst installs the package itself when it is
-      # the selected backend -- see modules/home-manager/packages/notifications.nix.
+      # the selected backend -- see modules/home/packages/notifications.nix.
 
       # Hyprland plugins are NOT installed here, and do not add a plugin flake
       # input like `hyprland-plugins` (it would be built against the upstream
       # hyprland flake, not the nixpkgs hyprland we run). They come from
       # pkgs.hyprlandPlugins and are loaded from the home-manager side -- see
-      # the plugin list in modules/home-manager/packages/hyprland-configs.nix.
+      # the plugin list in modules/home/packages/hyprland-configs.nix.
 
       # Theming
       qt6.qtwayland

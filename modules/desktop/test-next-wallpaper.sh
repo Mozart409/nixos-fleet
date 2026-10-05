@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Integration test script for next-wallpaper functionality
-# Run with: bash modules/nixos/desktop/test-next-wallpaper.sh
+# Run with: bash modules/desktop/test-next-wallpaper.sh
 
 set -euo pipefail
 

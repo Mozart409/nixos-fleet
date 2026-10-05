@@ -43,7 +43,7 @@
   # Two 1440p/144Hz panels side by side: DP-3 left, DP-2 right. Workspaces 1-5
   # live on the left one, 6-10 on the right one. This is the only Hyprland
   # config that is genuinely wotan-specific; it is rendered into
-  # ~/.config/hypr/host.lua by modules/home-manager/packages/hyprland-configs.nix.
+  # ~/.config/hypr/host.lua by modules/home/packages/hyprland-configs.nix.
   desktop.hyprland-configs = {
     enable = true;
 
@@ -88,7 +88,7 @@
     enable = true;
     # ~/.config/quickshell points at the working tree instead of a store copy,
     # so editing (or adding) a widget under
-    # modules/home-manager/packages/quickshell/ shows up immediately -- no
+    # modules/home/packages/quickshell/ shows up immediately -- no
     # rebuild. Trade-off: what is on screen is whatever is checked out, which
     # is only the same as the flake once the tree is committed and rebuilt.
     liveReload = true;
@@ -115,7 +115,7 @@
 
   # Disabled: every 4 hours, fast-forward-only pull/push every git repo under
   # ~/code (skips dirty trees, never commits, never force-pushes or creates
-  # new remote branches). See modules/home-manager/packages/git-sync.nix.
+  # new remote branches). See modules/home/packages/git-sync.nix.
   # gitSync = {
   #   enable = true;
   #   interval = "0/4:00:00";
@@ -146,7 +146,7 @@
   # the TUI/model-listing VllmProvider probes VLLM_HOST (default
   # http://localhost:8000), while `bench` endpoint discovery builds the URL
   # from VLLM_PORT alone (bench.rs vllm_url()). Both point at the server
-  # from modules/nixos/vllm.nix. osConfig reads the NixOS option from this
+  # from modules/wotan/vllm.nix. osConfig reads the NixOS option from this
   # home-manager module.
   home.sessionVariables.VLLM_HOST = "http://127.0.0.1:${toString osConfig.services.vllm.port}";
   home.sessionVariables.VLLM_PORT = toString osConfig.services.vllm.port;
