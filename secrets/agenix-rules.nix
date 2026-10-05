@@ -53,7 +53,7 @@ in {
 
   "attic-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase]; # raw password; same value inside attic-db-url.age
   "attic-db-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache]; # env-file: ATTIC_SERVER_DATABASE_URL=postgresql://...
-  "attic-push-token-wotan.age".publicKeys = [amadeus hostWotan]; # raw API token for `attic push` to ventara-attic; env-file: ATTIC_TOKEN=...
+  "attic-push-token-wotan.age".publicKeys = [amadeus hostWotan]; # raw attic token (no KEY=), read via token-file by wotan's ventara-attic push
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
   "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostDevelopment hostOtel hostZeroclaw hostHermes hostWotan];

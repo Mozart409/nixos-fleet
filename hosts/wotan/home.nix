@@ -148,6 +148,18 @@
   # from VLLM_PORT alone (bench.rs vllm_url()). Both point at the server
   # from modules/wotan/vllm.nix. osConfig reads the NixOS option from this
   # home-manager module.
+  # attic login for switch.sh's push to ventara-attic. token-file keeps the
+  # token in agenix (default.nix) and out of the store.
+  xdg.configFile."attic/config.toml" = lib.mkIf (osConfig.age.secrets ? attic-push-token-wotan) {
+    text = ''
+      default-server = "ventara"
+
+      [servers.ventara]
+      endpoint = "https://cache.int.oyabu.cc/"
+      token-file = "${osConfig.age.secrets.attic-push-token-wotan.path}"
+    '';
+  };
+
   home.sessionVariables.VLLM_HOST = "http://127.0.0.1:${toString osConfig.services.vllm.port}";
   home.sessionVariables.VLLM_PORT = toString osConfig.services.vllm.port;
 

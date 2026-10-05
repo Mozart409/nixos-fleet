@@ -434,6 +434,15 @@
     # Format inside the file: HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
   };
 
+  # Raw attic token for switch.sh's `attic push`; home.nix points
+  # ~/.config/attic/config.toml at it via token-file. Gated until the .age file
+  # exists (`agenix -e attic-push-token-wotan.age`), so eval never breaks.
+  age.secrets.attic-push-token-wotan = lib.mkIf (builtins.pathExists ../../secrets/attic-push-token-wotan.age) {
+    file = ../../secrets/attic-push-token-wotan.age;
+    mode = "400";
+    owner = username;
+  };
+
   age.secrets.axon-gateway-env = {
     file = ../../secrets/axon-gateway-env.age;
     mode = "440";
