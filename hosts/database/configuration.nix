@@ -190,7 +190,7 @@ in {
   # PostgreSQL configuration
   services.postgresql = {
     enable = true;
-    package = pkgs.postgresql_18.withPackages (ps: [ps.pgvector]);
+    package = pkgs.postgresql_18.withPackages (ps: [ps.pg_bigm ps.pgvector]);
 
     settings = {
       # Performance tuning (adjust based on available RAM)
@@ -483,12 +483,14 @@ in {
     timeouts = migrationRoleTimeouts;
   };
 
-  # pgvector for Multica. The backend runs its own migrations on startup, but
-  # the `vector` extension is untrusted and needs a superuser to create, which
-  # the multica role is not. Create it here, before the backend (on the
-  # containers host) connects.
+  # pgvector and pg_bigm for Multica. The backend runs its own migrations on
+  # startup, but both extensions are untrusted and need a superuser to create,
+  # which the multica role is not. Create them here, before the backend (on
+  # the containers host) connects. pg_bigm must exist before the FIRST
+  # migration run: the runner permanently records its bigram-index migrations
+  # as skipped when gin_bigm_ops is missing (cmd/migrate/README.md upstream).
   systemd.services.postgresql-multica-extension = {
-    description = "Create pgvector extension for Multica";
+    description = "Create pgvector and pg_bigm extensions for Multica";
     after = ["postgresql-setup.service"];
     requires = ["postgresql-setup.service"];
     wantedBy = ["multi-user.target"];
@@ -499,7 +501,9 @@ in {
       Group = "postgres";
     };
     script = ''
-      ${psql} -d multica -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS "vector";'
+      ${psql} -d multica -v ON_ERROR_STOP=1 \
+        -c 'CREATE EXTENSION IF NOT EXISTS "vector";' \
+        -c 'CREATE EXTENSION IF NOT EXISTS "pg_bigm";'
     '';
   };
 
