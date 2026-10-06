@@ -170,19 +170,20 @@ in {
       ];
     };
 
-    # Caddy vhost. /api/* and /ws* go to the backend (the daemon and the web UI
-    # both use the /ws WebSocket), everything else to the web SPA. The ACME URL
-    # stays on ca.homelab.local: step-ca's cert has no .internal SAN.
+    # Caddy vhost. Backend paths go to the backend, everything else to the web
+    # SPA. The list mirrors the rewrites in upstream apps/web/next.config.ts
+    # (v0.6.1): /api, /v1, /ws, /health, /uploads and /auth. /auth is split:
+    # only the backend's endpoints go there, because /auth/callback is a web
+    # page (Next.js serves its own pages before applying those rewrites). The
+    # ACME URL stays on ca.homelab.local: step-ca's cert has no .internal SAN.
     services.caddy.virtualHosts.${cfg.domain} = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
         }
 
-        handle /api/* {
-          reverse_proxy localhost:${toString cfg.backendPort}
-        }
-        handle /ws* {
+        @backend path /api/* /v1/* /ws /ws/* /health /uploads/* /auth/send-code /auth/verify-code /auth/google /auth/logout
+        handle @backend {
           reverse_proxy localhost:${toString cfg.backendPort}
         }
         handle {
