@@ -71,6 +71,18 @@
       TERMINAL = lib.mkIf (config.desktop.environment == "niri") "kitty";
     };
 
+    # Brave enterprise policies (https://support.brave.app/hc/en-us/articles/360039248271).
+    # Chromium policy names; Brave reads /etc/brave/policies/managed/*.json.
+    # Verify after switch: brave://policy
+    environment.etc."brave/policies/managed/default.json".text = builtins.toJSON {
+      # No password-save prompts; keep address autofill; no card autofill.
+      PasswordManagerEnabled = false;
+      AutofillAddressEnabled = true;
+      AutofillCreditCardEnabled = false;
+      # Startup: New Tab Page only (not "continue where you left off").
+      RestoreOnStartup = 5;
+    };
+
     # Auto-start applications configuration
     environment.etc."xdg/autostart".source = pkgs.runCommand "autostart" {} ''
       mkdir -p $out

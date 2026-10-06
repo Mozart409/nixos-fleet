@@ -16,12 +16,19 @@
       "/"
     ];
   };
+  # Suppress unclean-exit "Restore pages?" bubble (no Chromium policy for this).
+  braveWithFlags = pkgs.brave.override {
+    commandLineArgs = "--hide-crash-restore-bubble";
+  };
 in {
-  home.packages = with pkgs; [
-    # keep-sorted start
-    brave
-    chromium
-    tor-browser
-    # keep-sorted end
-  ];
+  home.packages =
+    [
+      braveWithFlags
+    ]
+    ++ (with pkgs; [
+      # keep-sorted start
+      chromium
+      tor-browser
+      # keep-sorted end
+    ]);
 }

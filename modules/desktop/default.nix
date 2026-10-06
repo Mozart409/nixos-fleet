@@ -93,7 +93,19 @@
           defaultFonts = {
             serif = ["Noto Serif"];
             sansSerif = ["Noto Sans"];
-            monospace = ["JetBrains Mono" "Symbols Nerd Font"];
+            # Family must match the installed face: nerd-fonts.jetbrains-mono
+            # registers as "JetBrainsMono Nerd Font", not "JetBrains Mono".
+            # The old name failed to match, so monospace fell through to
+            # "Symbols Nerd Font" (icons only) — ugly/broken form controls and
+            # <pre>/code on the web. Berkeley Mono is the terminal face
+            # (~/.local/share/fonts, licensed, not in this repo); prefer it when
+            # present. Do not list bare Symbols Nerd Font here — it is not a
+            # text face; the Nerd variant already carries the glyphs.
+            monospace = [
+              "Berkeley Mono"
+              "JetBrainsMono Nerd Font"
+              "Noto Sans Mono"
+            ];
             emoji = ["Noto Color Emoji"];
           };
         };
