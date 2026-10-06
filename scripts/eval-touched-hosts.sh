@@ -12,9 +12,15 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 # Representative fleet hosts for changes to shared fleet code: dns is a plain
-# mkHost node (common.nix + the home-manager/nixvim layer), development carries
-# the coding harness (claude/opencode/herdr modules, .opencode skills).
-fleet=(dns development)
+# mkHost node (common.nix + the home-manager/nixvim layer).
+#
+# The second slot used to be `development`, then `zeroclaw` -- both carried the
+# coding harness (claude/opencode modules, .opencode skills). All three harness
+# hosts (development, hermes, zeroclaw) were decommissioned on 2026-10-06, so
+# nothing live imports coding-harness.nix any more and there is no second
+# representative. Add the agentic-platform VM here once it exists, or module
+# changes to the harness will not be eval-gated.
+fleet=(dns)
 
 declare -A hosts=()
 add() { for h in "$@"; do hosts[$h]=1; done; }
@@ -36,8 +42,10 @@ else
       # Desktop-only code: no fleet host imports these.
       infra/modules/wotan/* | infra/modules/desktop/* | infra/modules/home/* | infra/lib/*) add wotan ;;
       infra/modules/* | infra/pkgs/*) add "${fleet[@]}" ;;
-      # Read at eval time by modules/coding-harness.nix.
-      .opencode/*) add development ;;
+      # Read at eval time by modules/coding-harness.nix, which no live host
+      # imports (see the fleet note above) -- dns is the catch-all so the push
+      # is not silently ungated.
+      .opencode/*) add "${fleet[@]}" ;;
       flake.nix | flake.lock) add wotan "${fleet[@]}" ;;
     esac
   done

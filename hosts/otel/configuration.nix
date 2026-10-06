@@ -146,8 +146,8 @@
   # Tempo for distributed tracing
   #
   # tempo.service's journal was shipped to the central Loki from 2026-09-08
-  # while the unit sat in `failed` (otel is unreachable by SSH from the
-  # development host, so the log had to come out through Loki). That
+  # while the unit sat in `failed` (otel was unreachable by SSH from the
+  # then-agent host, so the log had to come out through Loki). That
   # diagnostic did its job -- the read-only /var/tempo path below was found and
   # fixed -- and was retired 2026-09-13: a healthy Tempo logs ~2,300 lines/h
   # of block-cut / compaction / scheduler-poll chatter, and on this
@@ -504,18 +504,6 @@
           }
         ];
       }
-      # Development host exporters
-      {
-        job_name = "development-node";
-        static_configs = [
-          {
-            targets = ["development.homelab.local:9100"];
-            labels = {
-              instance = "homelab-development";
-            };
-          }
-        ];
-      }
       # The zeroclaw-node job was removed on 2026-08-15 for the same reason as the
       # k3s jobs above: the host is shut down, last successful scrape was
       # 21.5 days earlier. Host config, flake entry and DNS record are untouched.
@@ -532,21 +520,13 @@
           }
         ];
       }
-      # hermes-node came BACK with the 2026-09 rebuild of that host
-      # (docs/plans/hermes-rebuild.md). Node exporter on 9100 is one of the
-      # three ports its firewall opens; the api_server and its blackbox probes
-      # are gone for good, so do not re-add those to ./blackbox.nix.
-      {
-        job_name = "hermes-node";
-        static_configs = [
-          {
-            targets = ["hermes.homelab.local:9100"];
-            labels = {
-              instance = "homelab-hermes";
-            };
-          }
-        ];
-      }
+      # Removed on 2026-10-06, when development and hermes were decommissioned:
+      # both node jobs (development-node, hermes-node) are gone for the same
+      # reason as the 2026-09-10 removals below -- the machines are not expected
+      # to answer, so scraping them only produced a permanent TargetDown. Their
+      # DNS records, hostAddrs entries and agenix host keys went in the same
+      # pass, and their VMs are gone from infra/iac. Re-add the jobs here (and
+      # any probe in ./blackbox.nix) if a host comes back as a fleet node.
       # Removed on 2026-09-10, for the same reason as the 2026-08-15 note above:
       # homelab-harbor, homelab-woodpecker, homelab-fleet and
       # homelab-k3s-cntrl-1 are all deliberately shut down and are not expected

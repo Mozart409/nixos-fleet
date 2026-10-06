@@ -25,21 +25,23 @@ set. IPs are the static addresses configured in each host's NixOS config.
 | `dns` | 192.168.2.145 | `dns` | Unbound recursive DNS + authoritative `homelab.local` zone (A + PTR) |
 | `containers` | 192.168.2.149 | `containers` | Podman host: Open WebUI, axon-gateway, SearXNG, RomM, homelab-dashboard |
 | `mcp` | 192.168.2.152 | `mcp` | MCP servers from the `homelab-mcp-servers` monorepo (pbs, pg, prom, loki, ha) as hardened systemd units |
-| `hermes` | 192.168.2.155 | `ai`, `hermes` | Hermes AI agent (Open WebUI backend, code agent with repo access) |
 | `ca` | 192.168.2.160 | `security`, `ca` | step-ca internal Certificate Authority (ACME for `*.homelab.local`) |
 | `fleet` | 192.168.2.164 | `security`, `fleet` | Fleet osquery management server (MySQL + Redis) |
 | `harbor` | 192.168.2.174 | `registry`, `harbor` | Harbor container registry (OIDC, Postgres on `database`) |
 | `forgejo` | 192.168.2.178 | `forgejo`, `git` | Forgejo git forge (Postgres on `database`, SSH on :2222) |
 | `jellyfin` | 192.168.2.180 | `media`, `jellyfin` | Jellyfin + SSO-Auth plugin, ZFS `mediapool`, hofvarpnir container |
-| `zeroclaw` | 192.168.2.183 | `zeroclaw`, `ai` | ZeroClaw AI agent container + fluent-bit — **VM is `started = false` in `iac/main.tf` (powered off)** |
-| `development` | 192.168.2.184 | `development`, `experiment` | Isolated dev/test VM for LLM coding agents (Claude Code, opencode, herdr, podman) |
 
-`hermes` is the one node whose Colmena `targetHost` is hardcoded rather than
-read from `hostAddrs`, so `DEPLOY_NET=tailscale` does not affect it.
+#### `development` — the retired agent workstation (gone 2026-10-06)
 
-#### `development` — the agent workstation
+`development`, `hermes` and `zeroclaw` were all decommissioned on 2026-10-06,
+so no live host imports `modules/coding-harness.nix` any more. A replacement VM
+for the agentic platform is planned; until it lands, changes to
+`coding-harness.nix`, `claude-permissions*.nix` and `herdr.nix` are not covered
+by any eval gate (`infra/scripts/eval-touched-hosts.sh` falls back to `dns`).
 
-Unlike every other active node, `development` serves nothing: no Caddy vhost, no
+Retained for reference, describing what the host was:
+
+`development` served nothing: no Caddy vhost, no
 `homelab.local` service, only the node exporter on :9100 and SSH. It is a
 headless box for driving LLM coding agents by hand over SSH/tmux, and it is the
 only host that imports `modules/coding-harness.nix` + `modules/herdr.nix`

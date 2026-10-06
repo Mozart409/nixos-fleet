@@ -186,10 +186,6 @@ The `just iac-*` recipes run inside `infra/iac` for you.
         re-run; already-done hosts are no-ops.
     -   **Restart services `colmena apply` does NOT bounce** (config written but
         not reloaded):
-        -   `hermes` — `sudo systemctl restart hermes-agent` after any axon
-            outage (it parks the axon-gateway MCP and won't auto-recover).
-            SOUL.md / skill / `config.yaml` / secret changes restart it on
-            deploy by themselves (see `configHash` below).
         -   `containers` — axon-gateway backend/config edits used to need a
             manual `sudo systemctl restart podman-axon-gateway` (the container's
             generated unit doesn't change when only the mounted config.toml's
@@ -763,11 +759,20 @@ More Jellyfin OIDC notes:
 
 ## 7. Hermes: Eve and Heimdall on One Account
 
-`hermes` (192.168.2.155) is a NixOS VM that exists to run agents. It was rebuilt
-from scratch in September 2026 — XFS root on `ssd_pool`, `hermes-agent`
+> **The host is retired (2026-10-06).** `hermes` was decommissioned with
+> `development` and `zeroclaw`: the VM is gone from `infra/iac/main.tf`, and its
+> `hostAddrs`, `nixosConfigurations`, `colmenaHive`, DNS, agenix and Prometheus
+> entries are all removed or commented out. Nothing below describes a running
+> machine. It is kept because `infra/hosts/hermes/` and
+> `infra/modules/hermes-profiles.nix` are still on disk and are the obvious
+> reference for the agentic-platform VM planned to replace it — every trap
+> below was paid for in production. `docs/plans/hermes-rebuild.md` is the
+> design doc for the host as it was.
+
+`hermes` (192.168.2.155) was a NixOS VM that existed to run agents. It was
+rebuilt from scratch in September 2026 — XFS root on `ssd_pool`, `hermes-agent`
 unpinned to `v2026.9.21`, no api_server, no Obsidian vault, no feature-branch
-protocol. `docs/plans/hermes-rebuild.md` is the design; this section is what an
-agent working on the repo needs to know.
+protocol.
 
 **The previous shape of this section is obsolete in every particular.** There is
 no `~/workspace/pve-nixos-homelab` checkout, no `homelab-config-repo` skill, no
@@ -915,6 +920,15 @@ Pocket ID client is restricted to a single user.
 
 ## 8. Claude Code Permissions on `development`
 
+> **The host is retired (2026-10-06).** `development` no longer exists — see the
+> note at the top of §7. `modules/claude-permissions-data.nix` and its two
+> consumers are still on disk but imported by nothing, so no
+> `claude-permissions.service` runs anywhere and the drift notification does not
+> fire. Kept as the reference for the agentic-platform VM: the list shape, the
+> `//`-vs-`if == null` trap and the MCP allow-rule rules are all still correct,
+> and re-deriving them is how the `jq '.x // "unset"'` false-alarm bug happened
+> in the first place.
+
 **There is no account boundary any more; the permission lists are all there
 is.** From 2026-09-14 the coding agents on this host ran as a dedicated no-sudo
 `agent` user. That account was removed on 2026-10-05 as unused, so Claude
@@ -941,7 +955,9 @@ directory, imported by exactly two consumers so the lists cannot drift:
 | `modules/claude-permissions.nix` | **Writer.** `claude-permissions-apply` jq-merges the three keys and the WebSearch restriction hook into `~amadeus/.claude/settings.json` at boot (`claude-permissions.service`, a user unit gated by `ConditionUser` to the harness user). |
 | `modules/claude-settings-verify.nix` | **Checker.** Re-reads the same data and confirms it survived; notifies `notify.iphone_von_amadeus` via the axon gateway on drift. Runs after every boot plus a daily timer. |
 
-Both are imported by `hosts/development/configuration.nix`.
+Both were imported by `hosts/development/configuration.nix` (and by
+`hosts/hermes`, which pointed `codingHarness.user` at the `hermes` login). Both
+hosts are retired, so nothing imports them today.
 
 The deny list starts with **`modules/claude-deny-core.nix`**, the floor every
 Claude Code install in the repo shares (wotan's home-manager

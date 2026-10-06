@@ -163,8 +163,8 @@
             alert = "SustainedHighCPU";
             expr = "sum by (instance) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",instance!~\"homelab-database|pve-gigabyte\"}[15m])) / on(instance) count by (instance) (node_cpu_seconds_total{mode=\"idle\"}) > 0.35";
             # Long on purpose: this is a slow burn, not an outage. Nothing
-            # breaks in the first hour, and 6h keeps nix builds on
-            # `development` and the nightly backup window from paging.
+            # breaks in the first hour, and 6h keeps nix builds and the nightly
+            # backup window from paging.
             for = "6h";
             labels.severity = "warning";
             annotations = {
@@ -296,7 +296,7 @@ in {
   };
 
   # NOTE: otel must be a recipient of this secret. It currently is not -- only
-  # the containers and development hosts consume it. Add otel's host key to the
+  # the containers host consumes it. Add otel's host key to the
   # "axon-gateway-env.age" entry in secrets/agenix-rules.nix and run `just reencrypt`,
   # or activation fails with "no identity matched any of the recipients".
   age.secrets.axon-gateway-env = {

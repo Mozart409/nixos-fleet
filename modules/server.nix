@@ -14,10 +14,12 @@
     # (iac/main.tf). It was imported here to spare hosts that evaluate the flake
     # locally from GitHub's 429 rate-limit on unauthenticated tarball downloads
     # — but comin, which made every host evaluate locally, is gone (6a387b2),
-    # and colmena builds on the deploy host and pushes closures over SSH. Only
-    # `development` and `hermes` still evaluate locally; if they start hitting
-    # 429s, a GitHub token in `nix.settings.access-tokens` is the direct fix,
-    # not a VM. modules/attic-cache.nix is kept on disk, imported nowhere.
+    # and colmena builds on the deploy host and pushes closures over SSH. Nothing
+    # in the fleet evaluates the flake locally any more (the human-facing hosts
+    # that did -- development, hermes, zeroclaw -- were all decommissioned on
+    # 2026-10-06); if a host ever hits 429s, a GitHub token in
+    # `nix.settings.access-tokens` is the direct fix, not a VM.
+    # modules/attic-cache.nix is kept on disk, imported nowhere.
     # The journald -> Loki shipper. Imported here because every fleet host has
     # this module (through common.nix), so the shipper does not hang off an
     # unrelated module the way it hung off comin.nix (and briefly attic-push).

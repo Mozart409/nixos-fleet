@@ -57,9 +57,11 @@
   #   *-mcp.homelab.internal       (moot since 2026-09-14: those vhosts are gone,
   #                                see the homelab-mcp entry below)
   #
-  # Hosts deliberately absent: fleet, harbor, hermes and woodpecker (VMs shut
-  # off, 2026-08-31..09-07), zeroclaw and wotan (down since 2026-08-15, see the
-  # removed scrape jobs in ./configuration.nix), k3s-cntrl-1 (DNS record gone).
+  # Hosts deliberately absent: fleet, harbor and woodpecker (VMs shut off,
+  # 2026-08-31..09-07), zeroclaw and wotan (down since 2026-08-15, see the
+  # removed scrape jobs in ./configuration.nix), k3s-cntrl-1 (DNS record gone),
+  # and zeroclaw, development and hermes (decommissioned on 2026-10-06, along
+  # with their node scrape jobs and their VMs in ../../iac/main.tf).
   #
   # Keyed by the node-exporter `instance` of the host serving the vhost, so a
   # whole-host outage still collapses into one TargetDown rather than N
