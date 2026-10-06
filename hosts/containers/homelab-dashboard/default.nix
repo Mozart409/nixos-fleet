@@ -1,13 +1,11 @@
 {
   config,
-  homelab-dashboard,
+  self,
   ...
 }: {
-  imports = [homelab-dashboard.nixosModules.default];
-
-  # The systemd service runs the `homelab-dashboard` package from the flake's
-  # overlay, so the overlay must be active on this host's pkgs.
-  nixpkgs.overlays = [homelab-dashboard.overlays.default];
+  # rust/homelab-dashboard; the module brings the overlay that defines
+  # pkgs.homelab-dashboard.
+  imports = [self.nixosModules.homelab-dashboard];
 
   services.homelab-dashboard = {
     enable = true;
