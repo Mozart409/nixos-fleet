@@ -17,7 +17,6 @@ let
   hostOtel = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGz4mCD5XyFkwVaSzzWHhral8WqMGo01nKZM3gAX2vzP amadeus@homelab-otel";
   hostUnifi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1dva0wW3yY7pu0bT2HafVcn08BZMjzTwEh3CGcdfb8 root@homelab-unifi";
   hostWotan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB+ZFy9VtNhNzlpUg0tNqMPZFj3kCt50wvXD7aw88MZ root@wotan";
-  hostZeroclaw = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF8hvOMPXx4HOK9/yxL/r8oj1itQIFQDpnk362IwrIfy root@homelab-minimal";
   # Fleet-wide secrets (tailscale auth key, otel push token, fleet enrol
   # secret) go to the humans plus every host that is currently deployed --
   # and only those. A decommissioned VM's host key lives on in its PBS
@@ -28,11 +27,11 @@ let
   # here (and to the shared secrets it needs, e.g. axon-gateway-env),
   # `just reencrypt`.
   #
-  # development, hermes and zeroclaw were all decommissioned on 2026-10-06
-  # (VMs dropped from infra/iac/main.tf), so hostDevelopment and hostHermes
-  # were removed from every list here in the same pass. Their per-host secrets
-  # keep the human recipients, so the files stay readable and the host keys
-  # come back with the host if it is ever rebuilt.
+  # zeroclaw, development and hermes were all decommissioned on 2026-10-06
+  # (VMs dropped from infra/iac/main.tf), so hostZeroclaw, hostDevelopment and
+  # hostHermes were removed from every list here in the same pass. Their
+  # per-host secrets keep the human recipients, so the files stay readable and
+  # the host keys come back with the host if it is ever rebuilt.
   #
   # `just reencrypt` is NOT the command for this -- it hardcodes
   # `-i ~/.config/age/keys.txt`, which does not exist on wotan. Use the ssh
@@ -42,7 +41,7 @@ let
   #   cd infra/secrets && agenix -r -i /run/user/1000/rekey && shred -u /run/user/1000/rekey
   # Verify with sha256sum before/after: age uses a fresh ephemeral key per
   # encryption, so an UNCHANGED ciphertext means nothing happened.
-  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostZeroclaw];
+  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin];
   # keep-sorted end
 in {
   # Desktop-only secrets are the `[amadeus hostWotan]` rules (amadeus is
@@ -54,7 +53,7 @@ in {
   "attic-push-token-wotan.age".publicKeys = [amadeus hostWotan]; # raw attic token (no KEY=), read via token-file by wotan's ventara-attic push
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
-  "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostOtel hostZeroclaw hostWotan];
+  "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostOtel hostWotan];
   "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
   "dashboard-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "development-forgejo-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
@@ -101,7 +100,7 @@ in {
   "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI
   "homeassistant-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "k3s-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # add hostK3sCntrl1 + `just reencrypt` once k3s-cntrl-1 is installed and its real host key is known
-  "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostZeroclaw]; # plain auth token
+  "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # plain auth token
   "nebula-amartum-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];

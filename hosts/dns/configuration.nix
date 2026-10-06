@@ -172,8 +172,6 @@
           ''"unifi.homelab.local. A 192.168.2.142"''
           ''"wotan.homelab.internal. A 192.168.2.71"''
           ''"wotan.homelab.local. A 192.168.2.71"''
-          ''"zeroclaw.homelab.internal. A 192.168.2.183"''
-          ''"zeroclaw.homelab.local. A 192.168.2.183"''
           # keep-sorted end
         ];
         local-data-ptr = [
@@ -199,7 +197,6 @@
           ''"192.168.2.178 forgejo.homelab.local"''
           ''"192.168.2.180 hofvarpnir.homelab.local"''
           ''"192.168.2.180 jellyfin.homelab.local"''
-          ''"192.168.2.183 zeroclaw.homelab.local"''
           ''"192.168.2.185 scratchpad.homelab.local"''
           ''"192.168.2.186 k3s-cntrl-1.homelab.local"''
           ''"192.168.2.208 homeassistant.local"''
