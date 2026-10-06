@@ -591,117 +591,6 @@ resource "proxmox_virtual_environment_vm" "mcp_vm" {
   }
 }
 
-# Hermes Agent VM
-resource "proxmox_virtual_environment_vm" "hermes_vm" {
-  name        = "hermes"
-  description = "Hermes AI Agent - NixOS with hermes-agent for homelab automation"
-  tags        = ["terraform", "nixos", "nixos-target", "ai", "hermes"]
-
-  node_name = "pve-gigabyte"
-  vm_id     = 4334
-
-  bios = "seabios"
-
-  keyboard_layout = "de"
-
-  # 4 cores / 8 GB is sized for the HARNESS, not the agent. A bare Hermes would
-  # be fine at 2/6144. What pushes it up is that the `coding` profile shells out
-  # to nested opencode/claude runs, `nix develop` realises devShells, and
-  # several repo clones live under ~/code -- `development` is the precedent for
-  # how much that actually costs. This node is already oversubscribed
-  # (todo/pve-gigabyte-memory-oversubscription.md); if 8 GB cannot be spared,
-  # 6144 works and devShell realisation is the thing that will hurt.
-  cpu {
-    cores = 4
-    type  = "host"
-  }
-
-  # Pinned: floating == dedicated, i.e. no ballooning. An agent that is idle for
-  # an hour and then realises a devShell is exactly the workload the balloon
-  # driver reclaims from and then cannot hand memory back to fast enough.
-  memory {
-    dedicated = 8192
-    floating  = 8192
-  }
-
-  # ssd_pool + XFS, same reasoning as dns_vm/ca_vm (modules/disko-xfs.nix).
-  # BLANK disk, NO file_id: importing a cloud image onto this zfspool fails with
-  # "no zvol device link ... after 10 sec". The installer comes from the CD-ROM
-  # below instead.
-  #
-  # Dropping file_id and changing datastore_id is a REPLACEMENT, not the
-  # in-place move the woodpecker block documents (that one kept its file_id).
-  # That is the intent -- this is a from-scratch rebuild and the old 256 GB
-  # zvol on zfs_pool is meant to die here. Confirm with `tofu plan` that it
-  # shows the disk replaced and every other guest untouched before applying.
-  # `discard = "on"` is what makes modules/disko-xfs.nix's weekly fstrim
-  # actually return blocks to the pool.
-  disk {
-    datastore_id = "ssd_pool"
-    interface    = "scsi0"
-    size         = 64
-    discard      = "on"
-    file_format  = "raw"
-  }
-
-  # The repo's own installer ISO (`just iso-build`), same as dns and ca. The
-  # name carries the nixpkgs revision, so it changes on every ISO rebuild --
-  # re-upload to the `local` datastore and update all three occurrences, or the
-  # next apply fails on a missing volume.
-  #
-  # A plan for this block shows `+ enabled = false`. That is vestigial state,
-  # NOT a disabled drive -- bpg 0.91.0 deprecates `enabled` ("no longer used")
-  # and `file_id` alone attaches it. Do not "fix" it by adding `enabled = true`.
-  # See ca_vm's cdrom block for the long version.
-  cdrom {
-    file_id   = "local:iso/nixos-homelab-26.11.20260907.dc5d91f-x86_64-linux.iso"
-    interface = "ide0"
-  }
-
-  # Disk FIRST, CD second. A freshly created zvol is all zeroes with no MBR
-  # signature, so SeaBIOS skips it and falls through to the ISO -- but once
-  # nixos-anywhere has installed, the disk boots and the still-attached ISO is
-  # ignored. Nothing needs detaching afterwards.
-  boot_order = ["scsi0", "ide0"]
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  operating_system {
-    type = "l26"
-  }
-
-  initialization {
-    datastore_id = "local-lvm"
-
-    ip_config {
-      ipv4 {
-        address = "dhcp"
-      }
-    }
-
-    user_account {
-      username = "amadeus"
-      keys     = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"]
-    }
-  }
-
-  serial_device {}
-
-  # Enable QEMU Guest Agent
-  agent {
-    enabled = true
-    timeout = "60s"
-  }
-
-  # Starts itself onto the installer ISO; the host is then deployed with
-  # `just deploy hermes <dhcp-ip> --phases disko,install,reboot`.
-  started = true
-
-  on_boot = true
-}
-
 # Fleet (osquery management) VM
 resource "proxmox_virtual_environment_vm" "fleet_vm" {
   name        = "fleet"
@@ -1014,90 +903,6 @@ resource "proxmox_virtual_environment_vm" "jellyfin_vm" {
 
   started = true
 
-  startup {
-    order    = 2
-    up_delay = 15
-  }
-}
-
-# Agent Development VM
-resource "proxmox_virtual_environment_vm" "development_vm" {
-  name        = "development"
-  description = "Agent Development - Debian base for NixOS installation via nixos-anywhere - experimental VM for LLM agent use"
-  tags        = ["terraform", "debian", "nixos-target", "development", "experiment"]
-
-  node_name = "pve-gigabyte"
-  vm_id     = 4345
-
-  bios = "seabios"
-
-  keyboard_layout = "de"
-
-  # Several agent sessions routinely realise a flake devShell at the same time.
-  # Nix evaluation is single-threaded per eval, so concurrent cold devShells
-  # queue on cores rather than sharing them: 4 parallel evals on 2 vCPU drove
-  # load to 12.9. Sized for ~4-6 concurrent sessions with room for the agents.
-  cpu {
-    cores = 6
-    type  = "host"
-  }
-
-  # Sized against the hand-built reference host running the same harness:
-  # opencode peaked at 570 MB RSS with Claude Code not yet running, and /nix
-  # alone consumed 21 GB. Claude Code (node) plus the bun-hosted opencode
-  # plugins land here too, hence the headroom over that box's 2 GB.
-  #
-  # Raised from 4096 after concurrent devShell realisation pushed the working
-  # set to ~6.7 GB and exhausted all 4 GB of swap. Swap here is the btrfs
-  # swapfile from modules/disko-config.nix, backed by the 2-HDD zfs_pool, so
-  # swapping costs ~78 IOPS shared with every other VM - this host must have
-  # enough RAM to never reach for it. floating lets it balloon back down to
-  # 4 GB when the sessions are idle.
-  memory {
-    dedicated = 8192
-    floating  = 8192
-  }
-
-  disk {
-    datastore_id = "zfs_pool"
-    file_id      = proxmox_virtual_environment_download_file.debian_cloud_image.id
-    interface    = "scsi0"
-    size         = 256
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  operating_system {
-    type = "l26"
-  }
-
-  initialization {
-    datastore_id = "local-lvm"
-
-    ip_config {
-      ipv4 {
-        address = "192.168.2.184/24"
-        gateway = "192.168.2.1"
-      }
-    }
-
-    user_account {
-      username = "amadeus"
-      keys     = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"]
-    }
-  }
-
-  serial_device {}
-
-  # Enable QEMU Guest Agent
-  agent {
-    enabled = true
-    timeout = "60s"
-  }
-
-  started = true
   startup {
     order    = 2
     up_delay = 15
@@ -1470,12 +1275,10 @@ output "vm_ipv4_addresses" {
     unifi       = proxmox_virtual_environment_vm.unifi_vm.ipv4_addresses
     container   = proxmox_virtual_environment_vm.containers_vm.ipv4_addresses
     mcp         = proxmox_virtual_environment_vm.mcp_vm.ipv4_addresses
-    hermes      = proxmox_virtual_environment_vm.hermes_vm.ipv4_addresses
     ca          = proxmox_virtual_environment_vm.ca_vm.ipv4_addresses
     fleet       = proxmox_virtual_environment_vm.fleet_vm.ipv4_addresses
     harbor      = proxmox_virtual_environment_vm.harbor_vm.ipv4_addresses
     forgejo     = proxmox_virtual_environment_vm.forgejo_vm.ipv4_addresses
-    development = proxmox_virtual_environment_vm.development_vm.ipv4_addresses
     jellyfin    = proxmox_virtual_environment_vm.jellyfin_vm.ipv4_addresses
     zeroclaw    = proxmox_virtual_environment_vm.zeroclaw_vm.ipv4_addresses
     scratchpad  = proxmox_virtual_environment_vm.scratchpad_vm.ipv4_addresses
