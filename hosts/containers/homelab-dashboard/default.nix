@@ -89,11 +89,6 @@
           url = "https://192.168.2.142:8443";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ubiquiti-unifi.svg";
         }
-        {
-          name = "Woodpecker CI";
-          url = "https://ci.homelab.internal";
-          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/woodpecker-ci.svg";
-        }
       ];
       health_checks = [
         {

@@ -116,12 +116,6 @@
     enabled = true
 
     [[backends]]
-    name = "woodpecker"
-    url = "http://127.0.0.1:8091/mcp"
-    transport = "http"
-    enabled = true
-
-    [[backends]]
     name = "alertmanager"
     url = "http://127.0.0.1:8086/mcp"
     transport = "http"

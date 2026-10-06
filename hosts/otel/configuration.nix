@@ -555,9 +555,10 @@
       # http_2xx probes in ./blackbox.nix were scraped anyway, which left
       # TargetDown and ProbeFailed firing permanently -- nine standing alerts,
       # and a board that is always red is a board you stop reading. Host configs,
-      # flake entries, DNS records and the woodpecker-metrics-token secret are
-      # untouched; re-add the jobs here and the probes there if any of these
-      # hosts is redeployed.
+      # flake entries and DNS records were left in place; re-add the jobs here and
+      # the probes there if any of these hosts is redeployed. Woodpecker itself
+      # was removed from the repo on 2026-10-06 (config kept under
+      # docs/archive/woodpecker/).
 
       # The vllm job on wotan was removed on 2026-08-15 along with the k3s and
       # zeroclaw jobs above -- that host is down too. Re-add it here when wotan
@@ -616,20 +617,6 @@
         ];
       }
     ];
-  };
-
-  # Bare token, no KEY=value wrapper -- prometheus reads the whole file as the
-  # bearer credential (trailing whitespace trimmed). Must be byte-identical to
-  # WOODPECKER_PROMETHEUS_AUTH_TOKEN in woodpecker-server-env.age.
-  #
-  # Nothing reads this since the woodpecker job was removed on 2026-09-10, and
-  # it is kept deliberately: the token is the fiddly half of that job (it has
-  # to match on both hosts, and without it the endpoint 404s rather than 401s),
-  # so re-adding the scrape config should not also mean re-deriving this.
-  age.secrets.woodpecker-metrics-token = {
-    file = ../../secrets/woodpecker-metrics-token.age;
-    owner = "prometheus";
-    group = "prometheus";
   };
 
   age.secrets.grafana-secret-key = {

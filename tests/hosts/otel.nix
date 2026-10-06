@@ -42,9 +42,8 @@ harness.mkHostTest {
     machine.wait_for_open_port(9093)
 
     # NOT asserted on, intentionally: axon-gateway-env (the
-    # alertmanager-axon-bridge's EnvironmentFile) and woodpecker-metrics-token
-    # (one scrape job's credentials_file) are not fixtured -- their failures
-    # are peripheral and don't gate prometheus/grafana/loki/otel-collector
-    # availability.
+    # alertmanager-axon-bridge's EnvironmentFile) is not fixtured -- its
+    # failure is peripheral and doesn't gate prometheus/grafana/loki/
+    # otel-collector availability.
   '';
 }

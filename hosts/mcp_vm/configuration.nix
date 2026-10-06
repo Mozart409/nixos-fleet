@@ -83,7 +83,6 @@
       "prommcp-server"
       "lokimcp-server"
       "hamcp-server"
-      "wpmcp-server"
       "alertmanagermcp-server"
       "tempomcp-server"
     ]
@@ -136,9 +135,6 @@ in {
       };
       pbs-mcp-token = {
         file = ../../secrets/pbs-mcp-token.age;
-      };
-      woodpecker-mcp-token = {
-        file = ../../secrets/woodpecker-mcp-token.age;
       };
       # Read-side bearer for the prometheus/loki/alertmanager/tempo vhosts on otel
       # (see hosts/otel/configuration.nix). Bare token; each server exports it
@@ -201,18 +197,6 @@ in {
         allowedHosts = loopbackOnly;
       };
 
-      # Woodpecker CI, which runs on its own host. `ci.homelab.local` is baked
-      # into Woodpecker's OAuth redirect and every webhook it registers, so it
-      # is permanent — see AGENTS.md §6.
-      wpmcp-server = {
-        enable = true;
-        package = mcpPackages.wpmcp-server;
-        host = "https://ci.homelab.local";
-        tokenFile = config.age.secrets.woodpecker-mcp-token.path;
-        bind = "127.0.0.1:8091";
-        allowedHosts = loopbackOnly;
-      };
-
       alertmanagermcp-server = {
         enable = true;
         package = mcpPackages.alertmanagermcp-server;
@@ -262,7 +246,7 @@ in {
 
   systemd.services =
     # Secret-consuming servers must wait for agenix to place the credentials.
-    lib.genAttrs ["pbsmcp-server" "hamcp-server" "wpmcp-server" "prommcp-server" "lokimcp-server" "alertmanagermcp-server" "tempomcp-server"] (_: {
+    lib.genAttrs ["pbsmcp-server" "hamcp-server" "prommcp-server" "lokimcp-server" "alertmanagermcp-server" "tempomcp-server"] (_: {
       wants = ["agenix.target"];
       after = ["agenix.target"];
       # See secretNonce above: forces a restart when a secret is re-encrypted.
