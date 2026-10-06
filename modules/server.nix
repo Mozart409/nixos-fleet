@@ -50,7 +50,6 @@
       sys = "systemctl status";
       syr = "systemctl restart";
       k = "kubectl";
-      flk = "cd /etc/nixos";
       # Container aliases are podman-only; modules/podman.nix sets
       # dockerCompat = false, so there is no `docker` binary to fall back on.
       # The d* names are kept for muscle memory but run podman-compose.
