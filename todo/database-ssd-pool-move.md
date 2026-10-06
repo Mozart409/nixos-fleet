@@ -155,5 +155,4 @@ true;` to `hosts/database/configuration.nix` or mount with `discard=async` —
 ## Related
 
 - [`ssd-tier-for-vm-storage.md`](./ssd-tier-for-vm-storage.md) — parent plan.
-- [`hofvarpnir-migration.md`](./hofvarpnir-migration.md)
 - [`postgres-backup-pgbackrest.md`](./postgres-backup-pgbackrest.md)
