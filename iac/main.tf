@@ -774,6 +774,103 @@ resource "proxmox_virtual_environment_vm" "jellyfin_vm" {
 
 
 
+# Agents VM: the agent platform (knowledge-base/projects/agent-platform).
+# Multica daemons per trust zone, each zone a microVM inside this guest.
+resource "proxmox_virtual_environment_vm" "agents_vm" {
+  name        = "agents"
+  description = "Agent platform - NixOS host for the Multica daemons and their microVM zones"
+  tags        = ["terraform", "nixos", "nixos-target", "ai", "agents"]
+
+  node_name = "pve-gigabyte"
+  vm_id     = 4350
+
+  bios = "seabios"
+
+  keyboard_layout = "de"
+
+  # `host` is required, not a tuning choice: the zones are microVMs, and nested
+  # KVM only works when the guest sees the real CPU (kvm_amd nested=1 on the
+  # PVE host, checked 2026-10-05). 6 cores for two zones that each realise
+  # devShells and run agent CLIs; `development` (4 cores) hit load 12.9 with
+  # four concurrent cold evals.
+  cpu {
+    cores = 6
+    type  = "host"
+  }
+
+  # Pinned, no ballooning (same reasoning as the hermes VM this replaces): the
+  # microVMs reserve their RAM up front, and a balloon reclaiming it would
+  # starve them. 16 GB = coding zone ~8 + assistant ~3 + host and its Nix
+  # store. Fits in the ~20 GB that retiring development (12) and hermes (8)
+  # freed on this oversubscribed node (todo/pve-gigabyte-memory-oversubscription.md).
+  memory {
+    dedicated = 16384
+    floating  = 16384
+  }
+
+  # ssd_pool + XFS (modules/disko-xfs.nix), blank disk + raw, like dns/ca: a
+  # cloud-image import onto a zfspool cannot work (see dns_vm). 128 GB holds
+  # the Nix store, the microVM volumes and the per-task git worktrees under
+  # /srv/work. `discard = "on"` lets disko-xfs's weekly fstrim return blocks.
+  disk {
+    datastore_id = "ssd_pool"
+    interface    = "scsi0"
+    size         = 128
+    discard      = "on"
+    file_format  = "raw"
+  }
+
+  # Same installer ISO as dns_vm and ca_vm -- rebuild it and every file_id
+  # string changes. Do NOT add `enabled` (see ca_vm).
+  cdrom {
+    file_id   = "local:iso/nixos-homelab-26.11.20260907.dc5d91f-x86_64-linux.iso"
+    interface = "ide0"
+  }
+
+  # Disk first, CD second -- see dns_vm.
+  boot_order = ["scsi0", "ide0"]
+
+  network_device {
+    bridge = "vmbr0"
+  }
+
+  operating_system {
+    type = "l26"
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    # Same address as hosts/agents/configuration.nix pins, so the installer
+    # comes up where nixos-anywhere expects it.
+    ip_config {
+      ipv4 {
+        address = "192.168.2.190/24"
+        gateway = "192.168.2.1"
+      }
+    }
+
+    user_account {
+      username = "amadeus"
+      keys     = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"]
+    }
+  }
+
+  serial_device {}
+
+  agent {
+    enabled = true
+    timeout = "60s"
+  }
+
+  # Boots onto the installer ISO; nixos-anywhere then installs over SSH
+  # (the `deploy` recipe, with agents and 192.168.2.190).
+  started = true
+
+  on_boot = true
+}
+
+
 output "vm_ipv4_addresses" {
   description = "Primary IPv4 addresses per VM"
   value = {
@@ -786,6 +883,7 @@ output "vm_ipv4_addresses" {
     ca        = proxmox_virtual_environment_vm.ca_vm.ipv4_addresses
     forgejo   = proxmox_virtual_environment_vm.forgejo_vm.ipv4_addresses
     jellyfin  = proxmox_virtual_environment_vm.jellyfin_vm.ipv4_addresses
+    agents    = proxmox_virtual_environment_vm.agents_vm.ipv4_addresses
   }
 }
 

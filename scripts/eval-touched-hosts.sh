@@ -12,15 +12,13 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 # Representative fleet hosts for changes to shared fleet code: dns is a plain
-# mkHost node (common.nix + the home-manager/nixvim layer).
+# mkHost node (common.nix + the home-manager/nixvim layer), agents is the agent
+# platform host (multica-daemon, and the coding harness once its zones land).
 #
-# The second slot used to be `development`, then `zeroclaw` -- both carried the
-# coding harness (claude/opencode modules, .opencode skills). All three harness
-# hosts (development, hermes, zeroclaw) were decommissioned on 2026-10-06, so
-# nothing live imports coding-harness.nix any more and there is no second
-# representative. Add the agentic-platform VM here once it exists, or module
-# changes to the harness will not be eval-gated.
-fleet=(dns)
+# The second slot used to be `development`, then `zeroclaw`; all three harness
+# hosts (development, hermes, zeroclaw) were decommissioned on 2026-10-06 and
+# `agents` (2026-10-07) took the slot.
+fleet=(dns agents)
 
 declare -A hosts=()
 add() { for h in "$@"; do hosts[$h]=1; done; }

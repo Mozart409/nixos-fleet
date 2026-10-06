@@ -504,6 +504,20 @@
           }
         ];
       }
+      # Agent platform host (2026-10-07), the successor to hermes/development.
+      # Deploy otel only after `agents` is installed, or this job fires
+      # TargetDown until the host answers.
+      {
+        job_name = "agents-node";
+        static_configs = [
+          {
+            targets = ["agents.homelab.internal:9100"];
+            labels = {
+              instance = "homelab-agents";
+            };
+          }
+        ];
+      }
       # The zeroclaw-node job was removed on 2026-08-15 for the same reason as the
       # k3s jobs above: the host is shut down, last successful scrape was
       # 21.5 days earlier. Host config, flake entry and DNS record are untouched.

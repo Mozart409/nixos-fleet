@@ -112,6 +112,7 @@
           # homelab.internal mirror of every homelab.local A record (parallel
           # zone for Apple clients — see the local-zone note). keep-sorted
           # interleaves these with the .local entries on commit.
+          ''"agents.homelab.internal. A 192.168.2.190"''
           ''"alertmanager.homelab.internal. A 192.168.2.135"''
           ''"alertmanager.homelab.local. A 192.168.2.135"''
           ''"axon.homelab.internal. A 192.168.2.152"''
@@ -200,6 +201,7 @@
           ''"192.168.2.180 jellyfin.homelab.local"''
           ''"192.168.2.185 scratchpad.homelab.local"''
           ''"192.168.2.186 k3s-cntrl-1.homelab.local"''
+          ''"192.168.2.190 agents.homelab.internal"''
           ''"192.168.2.208 homeassistant.local"''
           ''"192.168.2.46 pve-gigabyte.homelab.local"''
           ''"192.168.2.46 pve-gigabyte.local"''
