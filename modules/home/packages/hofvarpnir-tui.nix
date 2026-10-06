@@ -4,7 +4,7 @@
   ...
 }: {
   home.packages = [
-    inputs.hofvarpnir.packages.${pkgs.system}.hofvarpnir-tui
+    inputs.hofvarpnir.packages.${pkgs.stdenv.hostPlatform.system}.hofvarpnir-tui
   ];
   home.shellAliases.hf-tui = "hofvarpnir-tui";
 

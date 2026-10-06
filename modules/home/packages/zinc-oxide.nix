@@ -4,6 +4,6 @@
   ...
 }: {
   home.packages = [
-    inputs.zinc-oxide.packages.${pkgs.system}.default
+    inputs.zinc-oxide.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
