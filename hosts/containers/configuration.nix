@@ -13,6 +13,7 @@
     ../../modules/fluent-bit.nix
     ../../modules/podman.nix
     ../../modules/caddy-http3.nix
+    ../../modules/multica-server.nix
     ./open-webui
     ./searxng
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
@@ -21,6 +22,8 @@
     ./romm
     # Harbor moved to dedicated VM (hosts/harbor)
   ];
+
+  homelab.multica.server.enable = true;
 
   networking.hostName = "homelab-containers";
 

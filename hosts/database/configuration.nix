@@ -161,6 +161,15 @@ in {
     group = "postgres";
   };
 
+  # Multica database password. The same value is embedded in multica-env.age
+  # (the DATABASE_URL the backend reads on the containers host); rotating it
+  # means re-encrypting both.
+  age.secrets.multica-db-password = {
+    file = ../../secrets/multica-db-password.age;
+    owner = "postgres";
+    group = "postgres";
+  };
+
   # Password for the read-only `mcp` role consumed by the pgmcp MCP servers on
   # the mcp host. The same password is embedded in each pg-mcp-<db>-url.age
   # secret over there — rotating it means re-encrypting all of them.
@@ -182,7 +191,7 @@ in {
   # PostgreSQL configuration
   services.postgresql = {
     enable = true;
-    package = pkgs.postgresql_18;
+    package = pkgs.postgresql_18.withPackages (ps: [ps.pgvector]);
 
     settings = {
       # Performance tuning (adjust based on available RAM)
@@ -340,7 +349,7 @@ in {
     # `attic` removed 2026-09-09 with the cache VM (iac/main.tf). Dropping it
     # here also drops its nightly dump, because services.postgresqlBackup below
     # derives its database list from this one.
-    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir"];
+    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica"];
 
     # Initial users
     ensureUsers = [
@@ -358,6 +367,10 @@ in {
       }
       {
         name = "hofvarpnir";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "multica";
         ensureDBOwnership = true;
       }
       # Read-only role for the pgmcp MCP servers. No ensureDBOwnership: it owns
@@ -462,6 +475,33 @@ in {
     description = "Set hofvarpnir PostgreSQL user password";
     secret = config.age.secrets.hofvarpnir-db-password;
     timeouts = migrationRoleTimeouts;
+  };
+
+  systemd.services.postgresql-multica-password = mkRolePasswordUnit {
+    role = "multica";
+    description = "Set Multica PostgreSQL user password";
+    secret = config.age.secrets.multica-db-password;
+    timeouts = migrationRoleTimeouts;
+  };
+
+  # pgvector for Multica. The backend runs its own migrations on startup, but
+  # the `vector` extension is untrusted and needs a superuser to create, which
+  # the multica role is not. Create it here, before the backend (on the
+  # containers host) connects.
+  systemd.services.postgresql-multica-extension = {
+    description = "Create pgvector extension for Multica";
+    after = ["postgresql-setup.service"];
+    requires = ["postgresql-setup.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "postgres";
+      Group = "postgres";
+    };
+    script = ''
+      ${psql} -d multica -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS "vector";'
+    '';
   };
 
   # Set the postgres superuser password from agenix. The `postgres` role is

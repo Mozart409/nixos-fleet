@@ -144,6 +144,8 @@
           ''"loki.homelab.local. A 192.168.2.135"''
           ''"mcp.homelab.internal. A 192.168.2.152"''
           ''"mcp.homelab.local. A 192.168.2.152"''
+          ''"multica.homelab.internal. A 192.168.2.149"''
+          ''"multica.homelab.local. A 192.168.2.149"''
           ''"otel.homelab.internal. A 192.168.2.135"''
           ''"otel.homelab.local. A 192.168.2.135"''
           # Pocket-ID (OIDC provider for forgejo, harbor, open-webui,
@@ -187,6 +189,7 @@
           ''"192.168.2.145 dns.homelab.local"''
           ''"192.168.2.149 containers.homelab.local"''
           ''"192.168.2.149 dashboard.homelab.local"''
+          ''"192.168.2.149 multica.homelab.local"''
           ''"192.168.2.149 romm.homelab.local"''
           ''"192.168.2.149 searxng.homelab.local"''
           ''"192.168.2.152 axon.homelab.local"''
