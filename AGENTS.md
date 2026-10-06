@@ -139,7 +139,8 @@ The `just iac-*` recipes run inside `infra/iac` for you.
   - The shell provides: `just`, `kics`, `tofu-ls`, `opentofu`, `rust-analyzer`, etc.
 - **Secrets**:
   - **NEVER** commit secrets to the repository.
-  - Use `terraform.tfvars` (ignored by git) for IaC secrets.
+  - IaC secrets live sops-encrypted in `iac/secrets.sops.env` (`just iac-secrets`
+    to edit); the `iac-*` recipes inject them with `sops exec-env`.
   - Use `sops-nix` or similar (if configured) for NixOS secrets (not currently seen, but standard practice).
 
 ## 3. Workflow for Agents

@@ -208,7 +208,7 @@ NixOS config (`harbor`, for instance, boots Debian on .166 but runs on .174).
 
 ## Notes
 
-- Keep plaintext secrets out of the repo: `terraform.tfvars` for IaC
+- Keep plaintext secrets out of the repo: `iac/secrets.sops.env` (sops, `just iac-secrets`) for IaC
   credentials, agenix for everything else.
 - Commits are single-line conventional commits, verified by `cog verify`; run
   `just fmt` before committing Nix changes (lefthook also enforces it).
