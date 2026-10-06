@@ -4,6 +4,7 @@ let
   amadeusMacbook = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH/HCRJuzlIbgcWk68ehApZl6kN+7PnKIgYSLRZ5IjzQ amadeus@Amadeuss-MacBook-Pro.local";
   amadeusMacbookAge = "age1uslcewyhmagupmfg4nf9tc6alj8edapzexnjvuhrkkmwd3wmy4nqpmel7t"; # ~/.config/age/keys.txt on the MacBook
   amadeusWotanAge = "age108er4kc0200y2at2fauw08t77u506nah2qxqlkxn8hq5c58e037qx226tw"; # private key no longer on wotan (~/.config/age is empty, 2026-10-06); wotan decrypts with `amadeus`
+  hostAgents = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRz7i5ADChaFhn7i9W06sNnJ3yaPBVERJof/dR17Jum root@homelab-agents"; # installed 2026-10-07
   hostCa = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF8i5IfaebQeFqqmZnIKrFNFNfnEvCIsnRamVnO/YyWx root@homelab-ca";
   hostCache = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK3zPdNuF7/Xwxxhs6isTeG1K3fodO+lbQdWcfZUid4k root@homelab-cache";
   hostContainers = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKHmDtkEG9WNd6bvbEM3+HhdfnSu29o5bYskujiM6VdF root@homelab-containers";
@@ -41,7 +42,7 @@ let
   #   cd infra/secrets && agenix -r -i /run/user/1000/rekey && shred -u /run/user/1000/rekey
   # Verify with sha256sum before/after: age uses a fresh ephemeral key per
   # encryption, so an UNCHANGED ciphertext means nothing happened.
-  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin];
+  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostAgents];
   # keep-sorted end
 in {
   # Desktop-only secrets are the `[amadeus hostWotan]` rules (amadeus is
