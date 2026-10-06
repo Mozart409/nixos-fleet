@@ -161,9 +161,8 @@ in {
     group = "postgres";
   };
 
-  # Multica database password. The same value is embedded in multica-env.age
-  # (the DATABASE_URL the backend reads on the containers host); rotating it
-  # means re-encrypting both.
+  # Multica database password. Shared with the containers host, which builds
+  # the backend's DATABASE_URL from the same file at start.
   age.secrets.multica-db-password = {
     file = ../../secrets/multica-db-password.age;
     owner = "postgres";

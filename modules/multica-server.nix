@@ -5,6 +5,17 @@
   ...
 }: let
   cfg = config.homelab.multica.server;
+
+  # DATABASE_URL is built at runtime from multica-db-password.age, the same
+  # secret the database host sets the role password from, so the password has
+  # one source. URL-encoded, because a generated password may contain URL
+  # metacharacters.
+  generateDbEnv = pkgs.writeShellScript "generate-multica-db-env" ''
+    mkdir -p /run/multica
+    umask 077
+    pw=$(${pkgs.jq}/bin/jq -Rr @uri < ${config.age.secrets.multica-db-password.path})
+    printf 'DATABASE_URL=postgres://multica:%s@${cfg.databaseHost}:5432/multica?sslmode=verify-full&sslrootcert=/etc/ssl/certs/ca-certificates.crt\n' "$pw" > /run/multica/db.env
+  '';
 in {
   options.homelab.multica.server = {
     enable = lib.mkEnableOption "Multica server (backend + web as OCI containers)";
@@ -21,10 +32,10 @@ in {
       description = "Canonical public origin (FRONTEND_ORIGIN / MULTICA_APP_URL).";
     };
 
-    extraDomain = lib.mkOption {
+    databaseHost = lib.mkOption {
       type = lib.types.str;
-      default = "multica.homelab.local";
-      description = "Legacy .local alias served alongside the canonical domain.";
+      default = "database.homelab.internal";
+      description = "PostgreSQL host; must match a SAN of its step-ca cert (sslmode=verify-full).";
     };
 
     backendPort = lib.mkOption {
@@ -41,8 +52,12 @@ in {
 
     allowedEmails = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = ["amadeus@mozart409.com"];
-      description = "Exact email addresses allowed to sign up without an invitation.";
+      default = [];
+      description = ''
+        Exact email addresses allowed to sign up without an invitation. Empty
+        leaves ALLOWED_EMAILS to multica-env.age, which keeps the address out of
+        this public repo.
+      '';
     };
 
     allowSignup = lib.mkOption {
@@ -63,14 +78,17 @@ in {
       "d ${cfg.uploadsDir} 0755 root root -"
     ];
 
-    # App secrets, read by systemd as root before the backend container starts.
-    # multica-env.age holds the auth signing key, the VCS signing key, and the
-    # database connection string (DATABASE_URL, with sslmode=verify-full and
-    # sslrootcert=/etc/ssl/certs/ca-certificates.crt). The database credential
-    # is duplicated in multica-db-password.age, which the database host uses to
-    # set the matching role; keep the two in sync.
+    # App secrets, read by systemd as root before the backend container starts:
+    # JWT_SECRET, MULTICA_VCS_SECRET_KEY and ALLOWED_EMAILS.
     age.secrets.multica-env = {
       file = ../secrets/multica-env.age;
+      mode = "0400";
+    };
+
+    # DB password (shared with the database host). Root reads it in
+    # ExecStartPre to generate /run/multica/db.env.
+    age.secrets.multica-db-password = {
+      file = ../secrets/multica-db-password.age;
       mode = "0400";
     };
 
@@ -87,28 +105,33 @@ in {
         # verify the postgres leaf; the image ships no trust store entry for it.
         "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
       ];
-      environment = {
-        APP_ENV = "production";
-        PORT = "8080";
-        FRONTEND_ORIGIN = "https://${cfg.domain}";
-        MULTICA_APP_URL = "https://${cfg.domain}";
-        # Both origins are reachable in a browser (tailnet split-DNS serves
-        # .local, the LAN serves .internal), so both must be allowed for CORS
-        # and WebSocket connections.
-        CORS_ALLOWED_ORIGINS = "https://${cfg.domain},https://${cfg.extraDomain}";
-        # Self-hosted Git provider integration (Forgejo). The signing key is in
-        # multica-env.age.
-        MULTICA_VCS_INTEGRATION_ENABLED = "true";
-        # Local-only: no anonymous telemetry to telemetry.multica.ai.
-        DO_NOT_TRACK = "true";
-        ALLOW_SIGNUP =
-          if cfg.allowSignup
-          then "true"
-          else "false";
-        ALLOWED_EMAILS = lib.concatStringsSep "," cfg.allowedEmails;
-      };
-      # multica-env.age supplies DATABASE_URL plus the signing keys.
-      environmentFiles = [config.age.secrets.multica-env.path];
+      environment =
+        {
+          APP_ENV = "production";
+          PORT = "8080";
+          FRONTEND_ORIGIN = "https://${cfg.domain}";
+          MULTICA_APP_URL = "https://${cfg.domain}";
+          CORS_ALLOWED_ORIGINS = "https://${cfg.domain}";
+          # Self-hosted Git provider integration (Forgejo). The signing key is in
+          # multica-env.age.
+          MULTICA_VCS_INTEGRATION_ENABLED = "true";
+          # Local-only: no anonymous telemetry to telemetry.multica.ai.
+          DO_NOT_TRACK = "true";
+          ALLOW_SIGNUP =
+            if cfg.allowSignup
+            then "true"
+            else "false";
+        }
+        // lib.optionalAttrs (cfg.allowedEmails != []) {
+          ALLOWED_EMAILS = lib.concatStringsSep "," cfg.allowedEmails;
+        };
+      # multica-env.age (signing keys, ALLOWED_EMAILS) + db.env (DATABASE_URL,
+      # generated at runtime). db.env is last so it wins over a stale
+      # DATABASE_URL left in the agenix file.
+      environmentFiles = [
+        config.age.secrets.multica-env.path
+        "/run/multica/db.env"
+      ];
     };
 
     # Web (Next.js). Binds 127.0.0.1:8391 -> 3000. Caddy routes /api/* and /ws*
@@ -123,15 +146,30 @@ in {
       };
     };
 
-    # A re-encrypted secret at the same /run/agenix path changes nothing in the
-    # generated unit, so without this a rotated secret would leave the container
-    # on the old values until something else restarted it. The .file is the
-    # store path of the .age file.
-    systemd.services.podman-multica-backend.restartTriggers = [config.age.secrets.multica-env.file];
+    systemd.services.podman-multica-backend = {
+      serviceConfig = {
+        ExecStartPre = ["${generateDbEnv}"];
+        # The backend runs its migrations on start, and the first one needs the
+        # `vector` extension that the database host creates in its own oneshot
+        # (postgresql-multica-extension). Nothing orders units across hosts, so
+        # if the backend wins that race it exits and retries. 10s keeps the
+        # retries under systemd's default start limit (5 in 10s).
+        RestartSec = "10s";
+      };
+      # A re-encrypted secret at the same /run/agenix path changes nothing in
+      # the generated unit, so without this a rotated secret would leave the
+      # container on the old values until something else restarted it. The
+      # .file is the store path of the .age file.
+      restartTriggers = [
+        config.age.secrets.multica-env.file
+        config.age.secrets.multica-db-password.file
+      ];
+    };
 
     # Caddy vhost. /api/* and /ws* go to the backend (the daemon and the web UI
-    # both use the /ws WebSocket), everything else to the web SPA.
-    services.caddy.virtualHosts."${cfg.extraDomain} ${cfg.domain}" = {
+    # both use the /ws WebSocket), everything else to the web SPA. The ACME URL
+    # stays on ca.homelab.local: step-ca's cert has no .internal SAN.
+    services.caddy.virtualHosts.${cfg.domain} = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
