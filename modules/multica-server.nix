@@ -62,8 +62,12 @@ in {
 
     allowSignup = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Whether new accounts may self-register. Flip to false after the first login.";
+      default = false;
+      description = ''
+        Whether anyone may self-register. Off by default: ALLOWED_EMAILS is
+        checked first and lets its addresses sign up regardless, so the first
+        login works without opening signup.
+      '';
     };
 
     uploadsDir = lib.mkOption {
