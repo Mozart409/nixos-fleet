@@ -9,9 +9,8 @@
   # matters lives elsewhere -- Multica on `containers`/`database`, code on
   # Forgejo -- so rebuilding this host loses nothing but task worktrees.
   #
-  # Zones (homelab.multica.daemon.zones / microVMs) come in a second pass: their
-  # token secrets need this host's SSH key as an agenix recipient, which only
-  # exists after the first install.
+  # Zones: one microVM per trust zone, each with its own Multica daemon
+  # (./zones.nix).
   imports = [
     ../../modules/common.nix
     # XFS root on ssd_pool (iac/main.tf, agents_vm), same as dns/ca/hermes.
@@ -19,7 +18,7 @@
     ../../modules/tailscale.nix
     ../../modules/step-ca-trust.nix
     ../../modules/osquery.nix
-    ../../modules/multica-daemon.nix
+    ./zones.nix
   ];
 
   networking.hostName = "homelab-agents";
