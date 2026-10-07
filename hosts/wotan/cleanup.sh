@@ -2,10 +2,12 @@
 
 set -euo pipefail
 
+# shellcheck source=infra/hosts/wotan/banner.sh
+source "$(dirname "${BASH_SOURCE[0]}")/banner.sh"
+
 clear
 
-chara say -t round -r cleaning up ...
-echo ''
+banner 'cleaning up ...'
 
 echo '=== Disk usage before cleanup ==='
 df -h /

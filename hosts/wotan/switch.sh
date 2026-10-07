@@ -2,13 +2,16 @@
 
 set -euo pipefail
 
+# Before the cd below, which would break a relative $0.
+# shellcheck source=infra/hosts/wotan/banner.sh
+source "$(dirname "${BASH_SOURCE[0]}")/banner.sh"
+
 # The flake lives at the yggdrasil root, two levels above infra/hosts/wotan.
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 
 clear
 
-chara say -t round -r switching ...
-echo ''
+banner 'switching ...'
 
 # -r stages the new configuration as the boot default instead of switching the
 # live system. Needed after flake updates that bump the NVIDIA driver: a live
