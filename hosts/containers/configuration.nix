@@ -20,6 +20,7 @@
     # MCP servers it fronts could go loopback-only.
     ./homelab-dashboard
     ./romm
+    ./mailpit
     # Harbor moved to dedicated VM (hosts/harbor)
   ];
 

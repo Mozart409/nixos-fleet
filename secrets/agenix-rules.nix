@@ -101,6 +101,7 @@ in {
   "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI
   "homeassistant-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "k3s-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # add hostK3sCntrl1 + `just reencrypt` once k3s-cntrl-1 is installed and its real host key is known
+  "mailpit-ui-auth.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # htpasswd line for the Mailpit UI: amadeus:$2y$... (htpasswd -nB amadeus)
   "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # plain auth token
   "multica-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase]; # raw password; containers builds DATABASE_URL from it
   "multica-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # env-file: JWT_SECRET, MULTICA_VCS_SECRET_KEY, ALLOWED_EMAILS

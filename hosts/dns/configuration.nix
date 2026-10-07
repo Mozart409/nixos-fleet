@@ -143,6 +143,7 @@
           ''"k3s-cntrl-1.homelab.local. A 192.168.2.186"''
           ''"loki.homelab.internal. A 192.168.2.135"''
           ''"loki.homelab.local. A 192.168.2.135"''
+          ''"mailpit.homelab.internal. A 192.168.2.149"''
           ''"mcp.homelab.internal. A 192.168.2.152"''
           ''"mcp.homelab.local. A 192.168.2.152"''
           ''"multica.homelab.internal. A 192.168.2.149"''

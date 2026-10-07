@@ -70,6 +70,31 @@ in {
       '';
     };
 
+    smtp = {
+      host = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "host.containers.internal";
+        description = ''
+          SMTP relay for login codes and invitations, as the backend container
+          sees it. Null leaves email off: the backend then prints login codes
+          to its log.
+        '';
+      };
+
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 25;
+        description = "SMTP port. No TLS unless the relay advertises STARTTLS.";
+      };
+
+      from = lib.mkOption {
+        type = lib.types.str;
+        default = "multica@${cfg.domain}";
+        description = "Sender address (SMTP_FROM_EMAIL).";
+      };
+    };
+
     uploadsDir = lib.mkOption {
       type = lib.types.str;
       default = "/var/lib/multica/uploads";
@@ -128,6 +153,12 @@ in {
         }
         // lib.optionalAttrs (cfg.allowedEmails != []) {
           ALLOWED_EMAILS = lib.concatStringsSep "," cfg.allowedEmails;
+        }
+        # Unauthenticated relay: no SMTP_USERNAME/PASSWORD, so nothing secret.
+        // lib.optionalAttrs (cfg.smtp.host != null) {
+          SMTP_HOST = cfg.smtp.host;
+          SMTP_PORT = toString cfg.smtp.port;
+          SMTP_FROM_EMAIL = cfg.smtp.from;
         };
       # multica-env.age (signing keys, ALLOWED_EMAILS) + db.env (DATABASE_URL,
       # generated at runtime). db.env is last so it wins over a stale
