@@ -8,6 +8,43 @@
   cfg = config.desktop.hyprland-configs;
   hyprsunsetPkg = inputs.hyprsunset.packages.${pkgs.stdenv.hostPlatform.system}.hyprsunset;
 
+  # The UI half of the polkit agent. cmd-polkit-agent spawns this once per
+  # authentication request and talks JSON lines over stdin/stdout: it sends
+  # "request password", we answer "authenticate" or "cancel". A wrong password
+  # arrives as {"action":"authorization response","authorized":false} followed
+  # by a fresh "request password"; success or cancel closes stdin, which ends
+  # the loop. The rofi flags mirror pinentry-rofi's so both prompts look alike.
+  rofiPolkitPrompt = pkgs.writeShellApplication {
+    name = "rofi-polkit-prompt";
+    runtimeInputs = [pkgs.jq config.programs.rofi.finalPackage];
+    text = ''
+      failed=0
+      while IFS= read -r line; do
+        case "$(jq -r '.action' <<<"$line")" in
+          "authorization response")
+            failed=1
+            ;;
+          "request password")
+            prompt=$(jq -r '.prompt | rtrimstr(": ") | rtrimstr(":")' <<<"$line")
+            # -mesg is Pango markup, and the message embeds unit names.
+            mesg=$(jq -r '.message | @html' <<<"$line")
+            if [ "$failed" = 1 ]; then
+              mesg="Wrong password, try again."$'\n'"$mesg"
+            fi
+            if password=$(rofi -dmenu -disable-history -no-fixed-num-lines -l 0 \
+              -password -input /dev/null -p "$prompt" -mesg "$mesg") &&
+              [ -n "$password" ]; then
+              # Through stdin, not --arg, so the password never shows in ps.
+              printf '%s' "$password" | jq -Rsc '{action: "authenticate", password: .}'
+            else
+              echo '{"action":"cancel"}'
+            fi
+            ;;
+        esac
+      done
+    '';
+  };
+
   # hl.monitor / hl.workspace_rule calls rendered from the options below.
   # `scale` is emitted bare because Lua wants a number there; everything else
   # is a quoted string, and `default` is only emitted when it is actually set.
@@ -156,8 +193,27 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Polkit authentication agent: without one, privileged actions (Thunar
-    # mounting internal drives, admin:// in gvfs, pkexec) fail silently.
-    services.hyprpolkitagent.enable = true;
+    # mounting internal drives, admin:// in gvfs, pkexec, systemctl on system
+    # units) fail silently. cmd-polkit-agent registers with polkit and hands
+    # each prompt to rofi (rofiPolkitPrompt above), so it inherits the rofi
+    # theme like pinentry-rofi does. -s queues concurrent requests instead of
+    # stacking rofi windows.
+    #
+    # BACKUP -- to go back to the Qt dialog, delete this unit and set
+    # services.hyprpolkitagent.enable = true. Only one agent may register per
+    # session, so never enable both.
+    systemd.user.services.rofi-polkit-agent = {
+      Unit = {
+        Description = "Polkit authentication agent (rofi)";
+        PartOf = [config.wayland.systemd.target];
+        After = [config.wayland.systemd.target];
+      };
+      Install.WantedBy = [config.wayland.systemd.target];
+      Service = {
+        ExecStart = "${lib.getExe pkgs.cmd-polkit} -s -c ${lib.getExe rofiPolkitPrompt}";
+        Restart = "on-failure";
+      };
+    };
 
     # Hyprland 0.56 introduced a Lua-first config model and looks for
     # hyprland.lua in ~/.config/hypr/ first. This is our real, hand-migrated
