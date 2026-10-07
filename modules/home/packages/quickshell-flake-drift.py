@@ -52,14 +52,18 @@ def head_of(url, ref):
     target = ref if ref else "HEAD"
     try:
         out = subprocess.run(
-            ["git", "ls-remote", url, target],
+            ["git", "ls-remote", url, target, f"{target}^{{}}"],
             capture_output=True, text=True, timeout=20,
         )
     except subprocess.TimeoutExpired:
         return None
     if out.returncode != 0 or not out.stdout.strip():
         return None
-    return out.stdout.split()[0]
+    refs = [line.split() for line in out.stdout.splitlines() if line.strip()]
+    # An annotated tag lists the tag object first; the lock holds the commit,
+    # which is the peeled `^{}` line.
+    peeled = [sha for sha, name in refs if name.endswith("^{}")]
+    return peeled[0] if peeled else refs[0][0]
 
 
 def parse_args():
@@ -108,7 +112,9 @@ def main():
         if not url or not rev:
             return result
 
-        head = head_of(url, locked.get("ref"))
+        # github/gitlab locks drop the ref; only `original` remembers the pin.
+        ref = node.get("original", {}).get("ref") or locked.get("ref")
+        head = head_of(url, ref)
         if head is None:
             # Offline or a private remote: report unknown rather than guessing.
             # Claiming "up to date" when we could not check is the one answer
