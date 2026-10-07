@@ -23,6 +23,7 @@
       storeSize = 24576;
       packages = [pkgs.opencode];
       environment = {};
+      hermes = null;
     };
     assistant = {
       index = 3;
@@ -34,6 +35,19 @@
       # Hermes memory is the assistant's long-term memory; Multica's GC would
       # delete it after 90 days untouched.
       environment.MULTICA_GC_HERMES_MEMORY_TTL = "0";
+      # ~/.hermes/config.yaml. Multica runs Hermes against the daemon user's
+      # own home (or a per-task overlay derived from it), and Hermes has no
+      # env fallback for the model. The key is OPENCODE_ZEN_API_KEY from the
+      # zone env, which the daemon passes down to every agent.
+      hermes = {
+        model = {
+          default = "space-bunny-free";
+          provider = "opencode-zen";
+        };
+        timezone = "Europe/Berlin";
+        # Nix-pinned; the "N commits behind" check diffs against upstream main.
+        updates.check = false;
+      };
     };
   };
 
@@ -184,6 +198,22 @@
         (umask 077; mv "$tmp" "$authfile")
       '';
       environment.HOME = "/var/lib/multica-${name}";
+    };
+
+    # Rewritten on every boot, so Nix stays the source of truth even if a
+    # `hermes model` run in the zone edited it.
+    systemd.services."hermes-config-${name}" = lib.mkIf (zone.hermes != null) {
+      description = "Write the ${name} zone's Hermes config.yaml";
+      wantedBy = ["multica-daemon-${name}.service"];
+      before = ["multica-daemon-${name}.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "multica-${name}";
+      };
+      script = ''
+        install -D -m 0600 ${(pkgs.formats.yaml {}).generate "hermes-${name}-config.yaml" zone.hermes} \
+          /var/lib/multica-${name}/.hermes/config.yaml
+      '';
     };
   };
 in {
