@@ -26,16 +26,15 @@
     # The Ventara deployment's own axon-gateway instance (nixos-ventara-ai
     # repo, services/axon-gateway) -- a SEPARATE gateway from the one above,
     # aggregating that repo's own backends (Prometheus/Loki MCP servers,
-    # internal-dashboard's built-in MCP endpoint). Reached over the shared
-    # Tailscale tailnet, not the homelab LAN, hence the .ts.net URL rather
-    # than a *.homelab.local one.
+    # internal-dashboard's built-in MCP endpoint). Not on the homelab LAN,
+    # hence the axon.int.oyabu.cc URL rather than a *.homelab.internal one.
     #
     # "axon-gateway-env" was already taken by the entry above, so this one's
     # token lives in its own secret (ventara-gateway-env, see
     # hasVentaraGatewayKey below) under its own env var name -- the two
     # tokens are unrelated and must not collide in the shell environment.
     ventara-gateway = {
-      url = "https://ventara-vm01.dropbear-butterfly.ts.net:8093/mcp";
+      url = "https://axon.int.oyabu.cc/mcp";
       tokenEnvVar = "VENTARA_GATEWAY_TOKEN";
     };
   };

@@ -231,7 +231,7 @@
             };
             ventara-gateway = {
               type = "remote";
-              url = "https://ventara-vm01.dropbear-butterfly.ts.net:8093/mcp";
+              url = "https://axon.int.oyabu.cc/mcp";
               transport = "http";
               oauth = false;
               headers.Authorization = "Bearer {env:VENTARA_GATEWAY_TOKEN}";
