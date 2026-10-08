@@ -392,6 +392,20 @@ hl.window_rule({
     immediate = true,
 })
 
+-- Fyrox sets no Wayland app ID, so match on the title. The editor's title
+-- grows the scene name, hence initial_title; the game's title is fixed.
+-- Both open on the first empty workspace.
+hl.window_rule({
+    name = "fyrox-game",
+    match = { initial_title = "^(Fyrox Game)$" },
+    workspace = "empty",
+})
+hl.window_rule({
+    name = "fyrox-editor",
+    match = { initial_title = "^(FyroxEd)" },
+    workspace = "empty",
+})
+
 -----------------
 ---- PLUGINS ----
 -----------------
