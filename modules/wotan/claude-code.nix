@@ -27,6 +27,13 @@
           url = "https://axon.homelab.local/mcp";
           headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
         };
+        # nixos-ventara-ai's own axon-gateway, over the tailnet; token from
+        # age.secrets.ventara-gateway-env (VENTARA_GATEWAY_TOKEN).
+        ventara-gateway = {
+          type = "http";
+          url = "https://ventara-vm01.dropbear-butterfly.ts.net:8093/mcp";
+          headers.Authorization = "Bearer \${VENTARA_GATEWAY_TOKEN}";
+        };
       };
     };
   };

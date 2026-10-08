@@ -169,6 +169,9 @@
     fi
     if [ -n "$AXON_GATEWAY_TOKEN_FILE" ] && [ -f "$AXON_GATEWAY_TOKEN_FILE" ]; then
       export AXON_GATEWAY_TOKEN=$(cat "$AXON_GATEWAY_TOKEN_FILE" | sed 's/AXON_GATEWAY_TOKEN=//')
+    fi
+    if [ -n "$VENTARA_GATEWAY_TOKEN_FILE" ] && [ -f "$VENTARA_GATEWAY_TOKEN_FILE" ]; then
+      export VENTARA_GATEWAY_TOKEN=$(sed 's/VENTARA_GATEWAY_TOKEN=//' "$VENTARA_GATEWAY_TOKEN_FILE")
     fi  '';
 
   # SSH configuration - agent key for internal hosts, ed25519 for privileged access

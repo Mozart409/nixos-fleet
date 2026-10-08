@@ -129,6 +129,6 @@ in {
   "tailscale-auth-key.age".publicKeys = users;
   "terraform-state-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
   "uptime-forge-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
-  "ventara-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
+  "ventara-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostWotan];
   # keep-sorted end
 }

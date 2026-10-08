@@ -83,6 +83,7 @@
         "WebSearch"
         # Homelab gateway (managed-mcp.json); pg*_run_query is read-only.
         "mcp__axon-gateway"
+        "mcp__ventara-gateway"
         "Read(~/.config/nixpkgs/config.nix)"
         # agenix recipients file: public keys only.
         "Read(~/code/yggdrasil/infra/secrets/agenix-rules.nix)"

@@ -249,6 +249,7 @@
     # NOTE: restart the service after re-encrypting the secret (token rotation).
     environmentFiles = [
       config.age.secrets.axon-gateway-env.path
+      config.age.secrets.ventara-gateway-env.path
       # Basic auth; clients get it via OPENCODE_SERVER_PASSWORD (home.nix).
       config.age.secrets.opencode-server-password.path
     ];
@@ -451,6 +452,16 @@
     # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
   };
 
+  # Bearer token for ventara-gateway, the nixos-ventara-ai deployment's own
+  # axon-gateway (a separate instance from the homelab one above).
+  age.secrets.ventara-gateway-env = {
+    file = ../../secrets/ventara-gateway-env.age;
+    mode = "440";
+    owner = username;
+    group = "users";
+    # Format inside the file: VENTARA_GATEWAY_TOKEN=ABC123
+  };
+
   age.secrets.opencode-server-password = {
     file = ../../secrets/opencode-server-password.age;
     mode = "440";
@@ -481,6 +492,7 @@
     # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
     AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-gateway-env.path;
+    VENTARA_GATEWAY_TOKEN_FILE = config.age.secrets.ventara-gateway-env.path;
     OPENCODE_SERVER_PASSWORD_FILE = config.age.secrets.opencode-server-password.path;
 
     # NVIDIA Wayland environment variables for better compatibility

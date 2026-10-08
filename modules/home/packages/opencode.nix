@@ -229,6 +229,14 @@
               headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
               enabled = true;
             };
+            ventara-gateway = {
+              type = "remote";
+              url = "https://ventara-vm01.dropbear-butterfly.ts.net:8093/mcp";
+              transport = "http";
+              oauth = false;
+              headers.Authorization = "Bearer {env:VENTARA_GATEWAY_TOKEN}";
+              enabled = true;
+            };
             homeassistant = {
               type = "remote";
               url = "https://mcp.homelab.local/mcp";
