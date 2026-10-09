@@ -16,6 +16,7 @@
     nvtopPackages.full
     rclone
     steam-devices-udev-rules
+    trash-cli
     vulnix
     xclip
     # keep-sorted end
