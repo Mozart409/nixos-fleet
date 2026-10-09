@@ -37,7 +37,7 @@
 
       maxConcurrentTasks = lib.mkOption {
         type = lib.types.ints.positive;
-        default = 1;
+        default = 3;
         description = "MULTICA_DAEMON_MAX_CONCURRENT_TASKS (upstream default: 20).";
       };
 
@@ -81,7 +81,7 @@
         type = lib.types.attrsOf lib.types.str;
         default = {};
         example = {MULTICA_GC_HERMES_MEMORY_TTL = "0";};
-        description = "Extra MULTICA_* settings, e.g. GC TTLs or watchdogs.";
+        description = "Extra MULTICA_* settings, e.g. GC TTLs or watchdogs. Overrides the module's defaults.";
       };
     };
   };
@@ -169,6 +169,19 @@ in {
             # restart-on-binary-change (a deploy restarts the unit anyway).
             MULTICA_DAEMON_AUTO_UPDATE = "false";
             MULTICA_DAEMON_AUTO_RELOAD = "false";
+            # Upstream defaults (server/internal/daemon/config.go, v0.6.1) suit
+            # a laptop with 20 slots; these suit a VM with a few. Days are
+            # written as hours so plain time.ParseDuration accepts them too.
+            # Absolute per-run cap (upstream 0 = none): a hung run otherwise
+            # holds its slot indefinitely.
+            MULTICA_AGENT_TIMEOUT = "2h";
+            # Silent backend + empty queue for this long ends the run (upstream 2h).
+            MULTICA_AGENT_IDLE_WATCHDOG = "30m";
+            # Self-host default is 0, so finished task worktrees were never
+            # removed and only filled the work volume.
+            MULTICA_GC_COMPLETED_TASK_TTL = "168h";
+            # Upstream prunes only JS build output; add Rust target/ and .direnv.
+            MULTICA_GC_ARTIFACT_PATTERNS = "node_modules,.next,.turbo,target,.direnv";
           }
           // zone.environment;
         inherit (zone) restartTriggers;

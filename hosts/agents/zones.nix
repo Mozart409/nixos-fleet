@@ -66,6 +66,9 @@
   mac = zone: "02:00:00:42:00:${lib.fixedWidthString 2 "0" (lib.toHexString zone.index)}";
   stateDir = name: "${config.microvm.stateDir}/${name}";
   hostStateVersion = config.system.stateVersion;
+  # Guests import neither modules/base.nix nor common.nix, so they would run
+  # on UTC (agent timestamps, cron-ish prompts, git commit dates).
+  hostTimeZone = config.time.timeZone;
 
   # systemd system credentials inside the guest (qemu fw_cfg, see
   # microvm.credentialFiles). PID 1 reads them as root, which is all
@@ -79,6 +82,7 @@
     ];
 
     system.stateVersion = hostStateVersion;
+    time.timeZone = hostTimeZone;
 
     microvm = {
       hypervisor = "qemu";
@@ -105,6 +109,13 @@
         }
       ];
       writableStoreOverlay = "/nix/.rw-store";
+      # O_PATH fds instead of re-opening inodes by file handle (upstream
+      # default "prefer"). With prefer the assistant guest started getting
+      # ESTALE from the store after ~20 h (first nsncd error 2026-10-08 03:00
+      # UTC), and on 2026-10-09 ~02:00 UTC /etc/resolv.conf and Hermes went
+      # with it: the daemon failed every request for 15 h until a reboot.
+      # virtiofsd already runs with a 1M fd limit.
+      virtiofsd.inodeFileHandles = "never";
       preStart = ''
         rm -f ${stateDir name}/nix-store-overlay.img
       '';
@@ -152,8 +163,15 @@
           GatewayOnLink = true;
         }
       ];
-      networkConfig.DNS = ["192.168.2.145" "192.168.2.1"];
     };
+    # A plain /etc/resolv.conf (written by resolvconf, outside the store)
+    # instead of the resolved stub reached through /etc/static. multica is a
+    # static (CGO_ENABLED=0) Go binary: its resolver reads resolv.conf itself
+    # and, when that fails, falls back to localhost:53 ("lookup … on [::1]:53:
+    # connection refused" when the store share went stale, see virtiofsd
+    # above). resolved also came up on its 1.1.1.1 fallback at every boot.
+    services.resolved.enable = false;
+    networking.nameservers = ["192.168.2.145" "192.168.2.1"];
 
     # Debug access from the agents host only (10.42.0.0/24 is not routed
     # anywhere else): `ssh -J agents.homelab.internal root@10.42.0.<index>`.
@@ -181,6 +199,38 @@
       enabledCollectors = ["systemd" "processes"];
       openFirewall = true;
       firewallFilter = "-p tcp -s ${hostAddr} -m tcp --dport 9100";
+    };
+
+    # Self-heal if the store share goes stale again: only a fresh mount (a
+    # reboot; qemu runs -no-reboot and microvm@ restarts it) clears ESTALE.
+    # Other errors exit 0, so a missing file never reboot-loops the VM; if the
+    # store is too broken to even exec this script, the unit fails and that
+    # reboots too.
+    systemd.services.store-watchdog = {
+      description = "Reboot when the /nix/store share returns ESTALE";
+      serviceConfig = {
+        Type = "oneshot";
+        FailureAction = "reboot";
+      };
+      script = ''
+        err=$({
+          ls -L /run/current-system/sw/bin
+          cat /etc/static/nsswitch.conf /etc/group
+        } 2>&1 >/dev/null) || true
+        case "$err" in
+          *"Stale file handle"*)
+            echo "store share is stale: $err" >&2
+            exit 1
+            ;;
+        esac
+      '';
+    };
+    systemd.timers.store-watchdog = {
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnBootSec = "15min";
+        OnUnitActiveSec = "5min";
+      };
     };
 
     homelab.multica.daemon.zones.${name} = {
