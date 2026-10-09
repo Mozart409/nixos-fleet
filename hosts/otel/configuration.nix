@@ -518,6 +518,27 @@
           }
         ];
       }
+      # The agents host's microVM zones; ports are 9100 + zone index
+      # (hosts/agents/zones.nix), forwarded to each guest's node exporter.
+      {
+        job_name = "agents-zones";
+        static_configs = [
+          {
+            targets = ["agents.homelab.internal:9102"];
+            labels = {
+              instance = "homelab-agents-coding";
+              zone = "coding";
+            };
+          }
+          {
+            targets = ["agents.homelab.internal:9103"];
+            labels = {
+              instance = "homelab-agents-assistant";
+              zone = "assistant";
+            };
+          }
+        ];
+      }
       # The zeroclaw-node job was removed on 2026-08-15 for the same reason as the
       # k3s jobs above: the host is shut down, last successful scrape was
       # 21.5 days earlier. Host config, flake entry and DNS record are untouched.

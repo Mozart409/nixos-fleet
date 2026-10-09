@@ -60,6 +60,8 @@
 
   hostAddr = "10.42.0.1";
   guestAddr = zone: "10.42.0.${toString zone.index}";
+  # Host port that forwards to the zone's node exporter (otel's agents-zones job).
+  metricsPort = zone: 9100 + zone.index;
   tap = name: "vm-${name}";
   mac = zone: "02:00:00:42:00:${lib.fixedWidthString 2 "0" (lib.toHexString zone.index)}";
   stateDir = name: "${config.microvm.stateDir}/${name}";
@@ -171,6 +173,16 @@
 
     nix.settings.experimental-features = ["nix-command" "flakes"];
 
+    # Guest metrics for otel, reachable from the agents host only; the host
+    # forwards metricsPort to it. Same collectors as modules/server.nix.
+    services.prometheus.exporters.node = {
+      enable = true;
+      listenAddress = guestAddr zone;
+      enabledCollectors = ["systemd" "processes"];
+      openFirewall = true;
+      firewallFilter = "-p tcp -s ${hostAddr} -m tcp --dport 9100";
+    };
+
     homelab.multica.daemon.zones.${name} = {
       tokenFile = credential "multica-token";
       environmentFile = credential "zone-env";
@@ -274,8 +286,30 @@ in {
           ip route replace ${guestAddr zone}/32 dev ${tap name}
         '';
       };
+
+      # 10.42.0.0/24 is not routed beyond this host, so otel scrapes the
+      # guest's node exporter through here.
+      "metrics-proxy-${name}" = {
+        description = "Forward the ${name} zone's node exporter to :${toString (metricsPort zone)}";
+        requires = ["metrics-proxy-${name}.socket"];
+        after = ["metrics-proxy-${name}.socket"];
+        serviceConfig = {
+          ExecStart = "${config.systemd.package}/lib/systemd/systemd-socket-proxyd ${guestAddr zone}:9100";
+          DynamicUser = true;
+          PrivateTmp = true;
+        };
+      };
     })
     zones);
+
+  systemd.sockets = lib.mapAttrs' (name: zone:
+    lib.nameValuePair "metrics-proxy-${name}" {
+      wantedBy = ["sockets.target"];
+      listenStreams = [(toString (metricsPort zone))];
+    })
+  zones;
+
+  networking.firewall.allowedTCPPorts = lib.mapAttrsToList (_: metricsPort) zones;
 
   # Zones reach the LAN and the internet through NAT on ens18. Per-zone egress
   # allowlists (Sandboxing.md, "Network egress per zone") are not in place yet;
