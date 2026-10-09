@@ -57,8 +57,8 @@
   #   *-mcp.homelab.internal       (moot since 2026-09-14: those vhosts are gone,
   #                                see the homelab-mcp entry below)
   #
-  # Hosts deliberately absent: fleet, harbor and woodpecker (VMs shut off,
-  # 2026-08-31..09-07), wotan (down since 2026-08-15, see the removed scrape
+  # Hosts deliberately absent: harbor and woodpecker (VMs shut off,
+  # 2026-08-31..09-07), fleet (decommissioned 2026-10-09), wotan (down since 2026-08-15, see the removed scrape
   # jobs in ./configuration.nix), k3s-cntrl-1 (DNS record gone), and zeroclaw,
   # development and hermes (decommissioned on 2026-10-06, along with their node
   # scrape jobs and their VMs in ../../iac/main.tf).

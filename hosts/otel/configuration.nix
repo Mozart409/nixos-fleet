@@ -572,7 +572,9 @@
       # flake entries and DNS records were left in place; re-add the jobs here and
       # the probes there if any of these hosts is redeployed. Woodpecker itself
       # was removed from the repo on 2026-10-06 (config kept under
-      # docs/archive/woodpecker/).
+      # docs/archive/woodpecker/), and fleet was decommissioned on 2026-10-09
+      # (config, flake entries and DNS records gone, host kept under
+      # docs/archive/fleet/).
 
       # The vllm job on wotan was removed on 2026-08-15 along with the k3s and
       # zeroclaw jobs above -- that host is down too. Re-add it here when wotan
