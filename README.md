@@ -26,7 +26,6 @@ set. IPs are the static addresses configured in each host's NixOS config.
 | `containers` | 192.168.2.149 | `containers` | Podman host: Open WebUI, axon-gateway, SearXNG, RomM, homelab-dashboard, Multica (backend + web) |
 | `mcp` | 192.168.2.152 | `mcp` | MCP servers from the `homelab-mcp-servers` monorepo (pbs, pg, prom, loki, ha) as hardened systemd units |
 | `ca` | 192.168.2.160 | `security`, `ca` | step-ca internal Certificate Authority (ACME for `*.homelab.local`) |
-| `fleet` | 192.168.2.164 | `security`, `fleet` | Fleet osquery management server (MySQL + Redis) |
 | `harbor` | 192.168.2.174 | `registry`, `harbor` | Harbor container registry (OIDC, Postgres on `database`) |
 | `forgejo` | 192.168.2.178 | `forgejo`, `git` | Forgejo git forge (Postgres on `database`, SSH on :2222) |
 | `jellyfin` | 192.168.2.180 | `media`, `jellyfin` | Jellyfin + SSO-Auth plugin, ZFS `mediapool`, hofvarpnir container |
