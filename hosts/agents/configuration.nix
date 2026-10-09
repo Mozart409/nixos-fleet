@@ -17,7 +17,6 @@
     ../../modules/disko-xfs.nix
     ../../modules/tailscale.nix
     ../../modules/step-ca-trust.nix
-    ../../modules/osquery.nix
     ./zones.nix
   ];
 

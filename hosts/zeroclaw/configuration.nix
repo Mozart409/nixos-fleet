@@ -9,7 +9,6 @@
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
     ../../modules/step-ca-trust.nix
-    ../../modules/osquery.nix
     ../../modules/podman.nix
     ../../modules/moshi-hook-user.nix
     ../../modules/coding-harness.nix

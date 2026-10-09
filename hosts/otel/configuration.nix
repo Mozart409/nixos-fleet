@@ -9,7 +9,6 @@
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
     ../../modules/step-ca-trust.nix
-    ../../modules/osquery.nix
     ./alerting.nix
     ./blackbox.nix
     ../../modules/loki.nix

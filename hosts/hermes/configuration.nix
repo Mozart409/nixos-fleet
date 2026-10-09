@@ -272,7 +272,6 @@ in {
     ../../modules/disko-xfs.nix
     ../../modules/tailscale.nix
     ../../modules/step-ca-trust.nix
-    ../../modules/osquery.nix
     ../../modules/fluent-bit.nix
     ../../modules/caddy-http3.nix
     # Profiles: renders profiles/<name>/{config.yaml,SOUL.md,.env,memories/} and

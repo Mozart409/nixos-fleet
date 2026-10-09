@@ -197,7 +197,7 @@ NixOS config (`harbor`, for instance, boots Debian on .166 but runs on .174).
 - `../flake.nix` (repo root) – inputs, `hostAddrs`, `nixosConfigurations`, `colmenaHive`
 - `hosts/` – per-host configurations (fleet + `wotan`)
 - `modules/` – shared fleet modules (`common`, `disko-config`, `disko-jellyfin`,
-  `tailscale`, `step-ca-trust`, `osquery`, `podman`, `nix-gc`, `coding-harness`,
+  `tailscale`, `step-ca-trust`, `podman`, `nix-gc`, `coding-harness`,
   `herdr`, `moshi-hook`); `modules/{wotan,desktop,home}/` are the desktop's
 - `lib/mkConfigs.nix` – `mkDesktop` for wotan
 - `pkgs/` – third-party packaging

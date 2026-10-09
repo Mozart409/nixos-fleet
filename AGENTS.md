@@ -715,7 +715,7 @@ two secrets at dummy values encrypted to its public key
 (`tests/fixtures/secrets/*.age`). This makes agenix's real decrypt pipeline
 succeed for real inside the VM -- not a bypass, the legitimate mechanism.
 Everything else (tailscale-auth-key, axon-gateway-env,
-every database-host role password, osquery's fleet-enroll-secret) is left to fail softly and is never
+every database-host role password) is left to fail softly and is never
 asserted on. See `tests/fixtures/README.md` to regenerate.
 
 **Static IPs never take effect.** `hosts/dns`, `hosts/otel`, `hosts/database`
@@ -728,8 +728,8 @@ a real dependency of e.g. `unbound.service` on dns).
 
 **Network-dependent integrations are expected to be non-functional and are
 never asserted on**: tailscaled-autoconnect, comin's forgejo pull, Caddy's
-step-ca ACME cert issuance (`ca.homelab.local` is unreachable), osquery
-enrollment, `services.loki-logs` shipping to `loki.homelab.local`, the
+step-ca ACME cert issuance (`ca.homelab.local` is unreachable),
+`services.loki-logs` shipping to `loki.homelab.local`, the
 alertmanager-axon-bridge webhook relay. None of these block
 `multi-user.target` or the services under test.
 
