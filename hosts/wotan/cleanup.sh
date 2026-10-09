@@ -160,16 +160,18 @@ else
   cleanup_task journal sudo journalctl --vacuum-time=30d 2>/dev/null || true
 fi
 
-# /tmp cleanup
+# /tmp cleanup. Dot-dirs are skipped: .X11-unix, .ICE-unix, .font-unix and
+# .XIM-unix are often empty but X/ICE clients expect them, and only
+# systemd-tmpfiles recreates them, at boot.
 if ((dry)); then
   cleanup_task tmp sh -c '
     echo "Would remove from /tmp:"
-    sudo find /tmp -mindepth 1 -maxdepth 1 \( -type f -atime +7 -o -type d -empty \) -print 2>/dev/null || true
+    sudo find /tmp -mindepth 1 -maxdepth 1 \( -type f -atime +7 -o -type d -empty ! -name ".*" \) -print 2>/dev/null || true
   ' 2>/dev/null || true
 else
   cleanup_task tmp sh -c '
     sudo find /tmp -mindepth 1 -maxdepth 1 -type f -atime +7 -delete 2>/dev/null || true
-    sudo find /tmp -mindepth 1 -maxdepth 1 -type d -empty -delete 2>/dev/null || true
+    sudo find /tmp -mindepth 1 -maxdepth 1 -type d -empty ! -name ".*" -delete 2>/dev/null || true
   ' 2>/dev/null || true
 fi
 
