@@ -22,7 +22,7 @@ Variants {
     required property var modelData
     screen: modelData
 
-    property string endpoint: "https://prometheus.homelab.local"
+    property string endpoint: "https://prometheus.homelab.internal"
     // `up` is per scrape job and a host with several jobs reports one series
     // each, so the grid has to collapse them.
     //

@@ -928,7 +928,13 @@
     };
 
     virtualHosts."prometheus.homelab.local prometheus.homelab.internal" = {
-      extraConfig = open 9090;
+      # webExternalUrl carries the tailnet /prometheus prefix, so the UI's
+      # redirects and links point at /prometheus/... here too; strip it.
+      extraConfig =
+        ''
+          uri strip_prefix /prometheus
+        ''
+        + open 9090;
     };
   };
 

@@ -173,7 +173,7 @@ in {
         # vhost stopped requiring the query token on 2026-09-24 (browsers
         # cannot send one); the header below is now ignored, kept so this
         # server keeps working if the gate ever comes back.
-        host = "https://prometheus.homelab.local";
+        host = "https://prometheus.homelab.internal";
         tokenFile = config.age.secrets.otel-query-token.path;
         bind = "127.0.0.1:8082";
         allowedHosts = loopbackOnly;
