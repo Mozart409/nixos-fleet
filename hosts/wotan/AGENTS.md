@@ -64,6 +64,8 @@ just switch-wotan -r          # nh os boot instead (NVIDIA driver bumps, pitfall
 just build-wotan              # = nh os build .#wotan (real build, not a dry run)
 just build-home-wotan         # = nix build ...home-manager.users.amadeus.home.activationPackage --dry-run
 just test-wotan               # = sudo nixos-rebuild test --flake .#wotan
+just cleanup-wotan            # GC nix (keep 2), drop result links + cargo targets, prune podman/journal/tmp
+just cleanup-wotan -n         # dry run: list what would go, remove nothing
 
 # Using nh directly; programs.nh.flake is preset to ~/code/yggdrasil
 nh os switch .#nixosConfigurations.wotan
