@@ -32,9 +32,14 @@
       workSize = 8192;
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
-      # Hermes memory is the assistant's long-term memory; Multica's GC would
-      # delete it after 90 days untouched.
-      environment.MULTICA_GC_HERMES_MEMORY_TTL = "0";
+      environment = {
+        # Hermes memory is the assistant's long-term memory; Multica's GC would
+        # delete it after 90 days untouched.
+        MULTICA_GC_HERMES_MEMORY_TTL = "0";
+        # Absolute per-run cap (upstream default 0 = none). Without it a hung
+        # run held the slot for 5 h and blocked the queue behind it.
+        MULTICA_AGENT_TIMEOUT = "1h";
+      };
       # ~/.hermes/config.yaml. Multica runs Hermes against the daemon user's
       # own home (or a per-task overlay derived from it), and Hermes has no
       # env fallback for the model. The key is OPENCODE_ZEN_API_KEY from the
