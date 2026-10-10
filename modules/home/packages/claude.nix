@@ -35,7 +35,11 @@
     exit 2
   '';
 
+  # Settings shared with the agents host's zones (modules/claude-settings-common.nix).
+  common = import ../../claude-settings-common.nix;
+
   claudeSettings = {
+    inherit (common) includeGitInstructions attribution language spinnerTipsEnabled cleanupPeriodDays respectGitignore;
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
       allow = [
@@ -159,12 +163,8 @@
       filesystem.allowWrite = ["~/.cache"];
     };
     env =
-      {
-        CLAUDE_CODE_ENABLE_TELEMETRY = "0";
-        # Updates come from the flake, not the built-in updater.
-        DISABLE_AUTOUPDATER = "1";
-        EDITOR = "nvim";
-      }
+      common.env
+      // {EDITOR = "nvim";}
       // signingEnv;
     hooks.PreToolUse = [
       {
@@ -177,16 +177,6 @@
         ];
       }
     ];
-    includeGitInstructions = true;
-    attribution = {
-      commit = "";
-      pr = "";
-      sessionUrl = false;
-    };
-    language = "english";
-    spinnerTipsEnabled = false;
-    cleanupPeriodDays = 3;
-    respectGitignore = true;
     outputStyle = "Concise";
     model = "opus";
     effortLevel = "high";

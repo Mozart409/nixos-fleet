@@ -108,7 +108,7 @@ in {
   "multica-token-assistant.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # raw mul_... PAT of the assistant zone's daemon
   "multica-token-heimdahl.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # raw mul_... PAT of the heimdahl zone's daemon
   "multica-zone-assistant-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # env-file for the assistant zone's agent CLIs: OPENCODE_ZEN_API_KEY=..., Hermes provider keys
-  "multica-zone-heimdahl-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # env-file for the heimdahl zone's agent CLIs: OPENCODE_ZEN_API_KEY=...
+  "multica-zone-heimdahl-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # env-file for the heimdahl zone's agent CLIs: OPENCODE_ZEN_API_KEY=..., CLAUDE_CODE_OAUTH_TOKEN=... (from `claude setup-token`, Claude Pro)
   "nebula-amartum-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];

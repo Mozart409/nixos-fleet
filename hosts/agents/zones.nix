@@ -21,9 +21,12 @@
       # that `nix develop` in a task realises devShells into.
       workSize = 49152;
       storeSize = 24576;
-      packages = [pkgs.opencode];
+      packages = [pkgs.opencode pkgs.claude-code];
       environment = {};
       hermes = null;
+      # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
+      # (secrets/agenix-rules.nix), so there is no interactive /login.
+      claude = true;
     };
     assistant = {
       index = 3;
@@ -32,6 +35,7 @@
       workSize = 8192;
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
+      claude = false;
       environment = {
         # Hermes memory is the assistant's long-term memory; Multica's GC would
         # delete it after 90 days untouched.
@@ -57,6 +61,31 @@
   };
 
   hermes = self.inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  # ~/.claude/settings.json of a zone with Claude Code. The portable part is
+  # shared with wotan (modules/claude-settings-common.nix) and the deny floor
+  # is the repo-wide one (modules/claude-deny-core.nix). Deliberately absent
+  # from wotan's file: its bubblewrap sandbox (the VM is the sandbox), the
+  # git-commit-signing hook and SSH_AUTH_SOCK/GIT_CONFIG_* env (wotan's signing
+  # agent), plugins and marketplaces (need network installs), the axon/ventara
+  # MCP allows (gateway tokens), wotan-only denies and allows (switch.sh, ~
+  # paths), model/effort/TUI/outputStyle choices, and EDITOR. The permission
+  # mode is left to Multica, which launches claude per task.
+  claudeSettings = name: let
+    common = import ../../modules/claude-settings-common.nix;
+  in
+    common
+    // {
+      "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+      env =
+        common.env
+        // {
+          # No error reporting, feedback survey or other background traffic.
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+        };
+      permissions.deny = import ../../modules/claude-deny-core.nix {home = "/${zoneHome name}";};
+    };
+  zoneHome = name: "/var/lib/multica-${name}";
 
   hostAddr = "10.42.0.1";
   guestAddr = zone: "10.42.0.${toString zone.index}";
@@ -265,6 +294,30 @@
         (umask 077; mv "$tmp" "$authfile")
       '';
       environment.HOME = "/var/lib/multica-${name}";
+    };
+
+    # Claude Code needs no login here (CLAUDE_CODE_OAUTH_TOKEN comes from the
+    # zone env), but without hasCompletedOnboarding it would still stop at the
+    # first-run wizard. settings.json is rewritten on every boot, like the
+    # Hermes config; ~/.claude.json also holds Claude's live state, so only the
+    # onboarding keys are merged into it.
+    systemd.services."claude-config-${name}" = lib.mkIf zone.claude {
+      description = "Write the ${name} zone's Claude Code settings";
+      wantedBy = ["multica-daemon-${name}.service"];
+      before = ["multica-daemon-${name}.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "multica-${name}";
+      };
+      script = ''
+        install -D -m 0600 ${(pkgs.formats.json {}).generate "claude-${name}-settings.json" (claudeSettings name)} \
+          /var/lib/multica-${name}/.claude/settings.json
+        state=/var/lib/multica-${name}/.claude.json
+        [ -f "$state" ] || (umask 077; echo '{}' > "$state")
+        tmp="$(mktemp)"
+        ${pkgs.jq}/bin/jq '. + {hasCompletedOnboarding: true}' "$state" > "$tmp"
+        (umask 077; mv "$tmp" "$state")
+      '';
     };
 
     # Rewritten on every boot, so Nix stays the source of truth even if a
