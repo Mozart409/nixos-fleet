@@ -189,6 +189,9 @@ hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu 
 hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("scratch"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratch" }))
 
+-- Scratchwindow: quick text dump in nvim, toggled over whatever is on screen
+hl.bind(mainMod .. " + N", hl.dsp.workspace.toggle_special("scratchwindow"))
+
 -- Lockscreen
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
 
@@ -344,6 +347,23 @@ hl.window_rule({
     name = "scratchpad-border",
     match = { workspace = "s[true]" },
     border_color = "rgb(ff3333)",
+})
+
+-- Scratchwindow: first SUPER+N opens kitty on ~/notes/dump.md (cursor on a
+-- fresh last line, insert mode, autosaves on focus loss / leaving insert /
+-- edits); later toggles just show/hide it. Plain nvim on purpose, so it uses
+-- the normal config and loses no basics.
+hl.workspace_rule({
+    workspace = "special:scratchwindow",
+    on_created_empty = [[kitty --class scratchwindow sh -c "mkdir -p $HOME/notes; exec nvim -c 'autocmd FocusLost,InsertLeave,TextChanged * silent! write' -c 'normal! Go' -c startinsert $HOME/notes/dump.md"]],
+})
+
+-- Mauve border (theme "special" colour) for the scratchwindow. Declared after
+-- scratchpad-border so it wins over the red one on the same window.
+hl.window_rule({
+    name = "scratchwindow-border",
+    match = { class = "scratchwindow" },
+    border_color = "rgb(cba6f7)",
 })
 
 -- Small utility / dialog windows float centered instead of splitting a tile
