@@ -800,7 +800,7 @@ resource "proxmox_virtual_environment_vm" "agents_vm" {
 
   # Pinned, no ballooning (same reasoning as the hermes VM this replaces): the
   # microVMs reserve their RAM up front, and a balloon reclaiming it would
-  # starve them. 16 GB = coding zone ~8 + assistant ~3 + host and its Nix
+  # starve them. 16 GB = heimdahl zone ~8 + assistant ~3 + host and its Nix
   # store. Fits in the ~20 GB that retiring development (12) and hermes (8)
   # freed on this oversubscribed node (todo/pve-gigabyte-memory-oversubscription.md).
   memory {

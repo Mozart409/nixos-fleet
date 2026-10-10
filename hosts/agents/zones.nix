@@ -13,7 +13,7 @@
   # `index` is the guest's address (10.42.0.<index>) and MAC suffix; never
   # reuse one. 10.42.0.1 is the host end of every tap.
   zones = {
-    coding = {
+    heimdahl = {
       index = 2;
       vcpu = 4;
       mem = 8192;

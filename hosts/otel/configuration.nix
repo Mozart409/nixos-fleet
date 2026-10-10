@@ -525,8 +525,8 @@
           {
             targets = ["agents.homelab.internal:9102"];
             labels = {
-              instance = "homelab-agents-coding";
-              zone = "coding";
+              instance = "homelab-agents-heimdahl";
+              zone = "heimdahl";
             };
           }
           {

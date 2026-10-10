@@ -53,7 +53,7 @@
       restartTriggers = lib.mkOption {
         type = lib.types.listOf lib.types.unspecified;
         default = [];
-        example = lib.literalExpression "[config.age.secrets.multica-token-coding.file]";
+        example = lib.literalExpression "[config.age.secrets.multica-token-heimdahl.file]";
         description = ''
           Restart the daemon when these change. Pass the agenix secrets' .file
           (their store path changes on every re-encryption; the /run/agenix
@@ -119,7 +119,7 @@ in {
       default = {};
       description = ''
         One daemon per zone. The attribute name is the runtime name shown in
-        Multica (coding, assistant, web) and the CLI profile, which isolates
+        Multica (heimdahl, assistant, web) and the CLI profile, which isolates
         config, state and health port when several zones share a host.
       '';
     };
