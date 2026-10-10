@@ -193,6 +193,16 @@
         fi
       }
 
+      # `claude` gets the MCP gateway tokens (expanded from ''${VAR} in
+      # managed-mcp.json) read fresh from the agenix files on every launch and
+      # given to this one process, never exported. A rotation is picked up by
+      # the next launch, and other shell children don't carry the tokens.
+      claude() {
+        AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
+        VENTARA_GATEWAY_TOKEN="$(sed -n 's/^VENTARA_GATEWAY_TOKEN=//p' "''${VENTARA_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
+          command claude "$@"
+      }
+
       # `tk` kills the current directory's `t`, `tc` and `to` sessions (run from
       # shell). `=` makes the target an exact match, not a name prefix.
       tk() {

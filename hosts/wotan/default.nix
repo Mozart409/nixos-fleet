@@ -446,9 +446,10 @@
 
   age.secrets.axon-gateway-env = {
     file = ../../secrets/axon-gateway-env.age;
-    mode = "440";
+    # Owner-only: read by the `claude` zsh function and (as root) by
+    # opencode-serve's EnvironmentFile.
+    mode = "400";
     owner = username;
-    group = "users";
     # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
   };
 
@@ -456,9 +457,10 @@
   # axon-gateway (a separate instance from the homelab one above).
   age.secrets.ventara-gateway-env = {
     file = ../../secrets/ventara-gateway-env.age;
-    mode = "440";
+    # Owner-only: read by the `claude` zsh function and (as root) by
+    # opencode-serve's EnvironmentFile.
+    mode = "400";
     owner = username;
-    group = "users";
     # Format inside the file: VENTARA_GATEWAY_TOKEN=ABC123
   };
 
