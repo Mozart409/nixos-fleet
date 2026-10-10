@@ -284,7 +284,7 @@
     enable = true;
     port = 9090;
     retentionTime = "30d";
-    webExternalUrl = "https://homelab-otel.dropbear-butterfly.ts.net/prometheus";
+    webExternalUrl = "https://otel.homelab.internal/prometheus";
     extraFlags = [
       "--web.route-prefix=/"
       # Tempo's metrics-generator (services.tempo.settings.metrics_generator
@@ -581,8 +581,7 @@
       # comes back; the endpoint was wotan.homelab.local:10808.
 
       # Hofvarpnir — migrated onto homelab-jellyfin; scrape its step-ca Caddy
-      # vhost (otel trusts step-ca via modules/step-ca-trust.nix). Was the
-      # tsbridge ts.net name on the old LXC.
+      # vhost (otel trusts step-ca via modules/step-ca-trust.nix).
       {
         job_name = "hofvarpnir";
         scheme = "https";
@@ -663,7 +662,7 @@
       server = {
         http_addr = "127.0.0.1";
         http_port = 3000;
-        root_url = "https://homelab-otel.dropbear-butterfly.ts.net/grafana/";
+        root_url = "https://otel.homelab.internal/grafana/";
         serve_from_sub_path = true;
       };
       security = {
@@ -809,7 +808,7 @@
     mode = "0400";
   };
 
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy with step-ca TLS
   services.caddy = let
     pushToken = "{file.${config.age.secrets.otel-push-token.path}}";
     queryToken = "{file.${config.age.secrets.otel-query-token.path}}";
@@ -820,7 +819,7 @@
       @push header Authorization "Bearer ${pushToken}"
       @query header Authorization "Bearer ${queryToken}"
     '';
-    # The otel.homelab.local / ts.net "everything on one name" sites. Grafana
+    # The otel.homelab.{local,internal} "everything on one name" site. Grafana
     # (its own OIDC login) and prometheus stay open; loki, tempo and the OTLP
     # receiver need a token. Loki's push path takes either token so a host that
     # only holds the push token can ship logs; reads need the query token.
@@ -899,16 +898,6 @@
   in {
     enable = true;
 
-    # Tailscale hostname
-    virtualHosts."homelab-otel.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-        ${aggregate}
-      '';
-    };
-
     # Local network hostname with step-ca certificate
     virtualHosts."otel.homelab.local otel.homelab.internal" = {
       extraConfig = ''
@@ -929,7 +918,7 @@
     };
 
     virtualHosts."prometheus.homelab.local prometheus.homelab.internal" = {
-      # webExternalUrl carries the tailnet /prometheus prefix, so the UI's
+      # webExternalUrl carries the /prometheus prefix, so the UI's
       # redirects and links point at /prometheus/... here too; strip it.
       extraConfig =
         ''
@@ -938,12 +927,6 @@
         + open 9090;
     };
   };
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
 
   networking.firewall = {
     enable = true;

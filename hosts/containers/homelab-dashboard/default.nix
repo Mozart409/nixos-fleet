@@ -46,7 +46,7 @@
         }
         {
           name = "Grafana";
-          url = "https://homelab-otel.dropbear-butterfly.ts.net/grafana";
+          url = "https://otel.homelab.internal/grafana";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg";
         }
         {
@@ -101,7 +101,7 @@
         }
         {
           name = "Grafana";
-          url = "https://homelab-otel.dropbear-butterfly.ts.net/grafana/api/health";
+          url = "https://otel.homelab.internal/grafana/api/health";
         }
         {
           name = "Open WebUI";
