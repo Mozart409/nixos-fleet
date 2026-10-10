@@ -9,7 +9,7 @@
 
   services.homelab-dashboard = {
     enable = true;
-    # Fronted by Caddy (dashboard.homelab.local), like searxng/axon/pbs-mcp.
+    # Fronted by Caddy (dashboard.homelab.internal), like searxng/axon/pbs-mcp.
     # Bind to localhost only; do not open it directly to the LAN.
     openFirewall = false;
     settings = {
@@ -17,7 +17,7 @@
       port = 8084;
       search = {
         type = "searxng";
-        url = "https://searxng.homelab.local";
+        url = "https://searxng.homelab.internal";
       };
       weather = {
         latitude = 48.1374;
@@ -41,18 +41,13 @@
         }
         {
           name = "Forgejo";
-          url = "https://homelab-forgejo.dropbear-butterfly.ts.net/";
+          url = "https://forgejo.homelab.internal/";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg";
         }
         {
           name = "Grafana";
           url = "https://otel.homelab.internal/grafana";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg";
-        }
-        {
-          name = "Harbor";
-          url = "https://homelab-harbor.dropbear-butterfly.ts.net/";
-          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/harbor.svg";
         }
         {
           name = "Home Assistant";
@@ -71,7 +66,7 @@
         }
         {
           name = "Open WebUI";
-          url = "https://homelab-containers.dropbear-butterfly.ts.net/";
+          url = "https://containers.homelab.internal/";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/open-webui.svg";
         }
         {
@@ -86,18 +81,18 @@
         }
         {
           name = "UniFi";
-          url = "https://192.168.2.142:8443";
+          url = "https://unifi.homelab.internal";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ubiquiti-unifi.svg";
         }
       ];
       health_checks = [
         {
           name = "Axon Gateway";
-          url = "https://axon.homelab.local/health";
+          url = "https://axon.homelab.internal/health";
         }
         {
           name = "Forgejo";
-          url = "https://forgejo.homelab.local";
+          url = "https://forgejo.homelab.internal";
         }
         {
           name = "Grafana";
@@ -105,11 +100,11 @@
         }
         {
           name = "Open WebUI";
-          url = "https://containers.homelab.local";
+          url = "https://containers.homelab.internal";
         }
         {
           name = "RomM";
-          url = "https://romm.homelab.local";
+          url = "https://romm.homelab.internal";
         }
         {
           name = "Router";
@@ -117,7 +112,7 @@
         }
         {
           name = "SearXNG";
-          url = "https://searxng.homelab.local";
+          url = "https://searxng.homelab.internal";
         }
         {
           name = "step-ca";
