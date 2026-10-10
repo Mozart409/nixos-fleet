@@ -27,6 +27,13 @@
       # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
       # (secrets/agenix-rules.nix), so there is no interactive /login.
       claude = true;
+      # Forgejo account the zone's agents clone and push as, with its key
+      # secrets/forgejo-bot-<bot>-ssh.age. Repo access is a collaborator
+      # invite in the Forgejo UI.
+      forgejoBot = {
+        name = "heimdall";
+        email = "heimdall@homelab.local";
+      };
     };
     assistant = {
       index = 3;
@@ -36,6 +43,7 @@
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
       claude = false;
+      forgejoBot = null;
       environment = {
         # Hermes memory is the assistant's long-term memory; Multica's GC would
         # delete it after 90 days untouched.
@@ -169,10 +177,14 @@
         }
       ];
 
-      credentialFiles = {
-        multica-token = config.age.secrets."multica-token-${name}".path;
-        zone-env = config.age.secrets."multica-zone-${name}-env".path;
-      };
+      credentialFiles =
+        {
+          multica-token = config.age.secrets."multica-token-${name}".path;
+          zone-env = config.age.secrets."multica-zone-${name}-env".path;
+        }
+        // lib.optionalAttrs (zone.forgejoBot != null) {
+          forgejo-ssh = config.age.secrets."forgejo-bot-${zone.forgejoBot.name}-ssh".path;
+        };
     };
 
     # Routed, not bridged: each zone has its own tap and /32, so zones share
@@ -320,6 +332,40 @@
       '';
     };
 
+    # Git over SSH to Forgejo as the zone's bot. The key is copied out of the
+    # credential on every boot (the daemon's git and manual herdr sessions
+    # both need it under the daemon user's home), like opencode's auth.json.
+    systemd.services."forgejo-key-${name}" = lib.mkIf (zone.forgejoBot != null) {
+      description = "Install the ${name} zone's Forgejo SSH key";
+      wantedBy = ["multica-daemon-${name}.service"];
+      before = ["multica-daemon-${name}.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "multica-${name}";
+        LoadCredential = ["forgejo-ssh:${credential "forgejo-ssh"}"];
+      };
+      script = ''
+        install -D -m 0400 "$CREDENTIALS_DIRECTORY/forgejo-ssh" /var/lib/multica-${name}/.ssh/forgejo
+      '';
+    };
+    # Forgejo's SSH listens on 2222 as user `forgejo` (hosts/forgejo).
+    programs.ssh.extraConfig = lib.mkIf (zone.forgejoBot != null) ''
+      Host forgejo.homelab.internal
+        Port 2222
+        User forgejo
+        IdentityFile ~/.ssh/forgejo
+        IdentitiesOnly yes
+        StrictHostKeyChecking accept-new
+    '';
+    programs.git = lib.mkIf (zone.forgejoBot != null) {
+      enable = true;
+      config = {
+        user.name = zone.forgejoBot.name;
+        user.email = zone.forgejoBot.email;
+        init.defaultBranch = "main";
+      };
+    };
+
     # Rewritten on every boot, so Nix stays the source of truth even if a
     # `hermes model` run in the zone edited it.
     systemd.services."hermes-config-${name}" = lib.mkIf (zone.hermes != null) {
@@ -347,7 +393,8 @@ in {
 
   # Per-zone secrets, decrypted on this host and handed to the guest as
   # systemd credentials. qemu reads them, and it runs as `microvm`.
-  age.secrets = lib.mkMerge (lib.mapAttrsToList (name: _: {
+  age.secrets = lib.mkMerge (lib.mapAttrsToList (name: zone:
+    {
       "multica-token-${name}" = {
         file = ../../secrets/multica-token-${name}.age;
         owner = "microvm";
@@ -358,15 +405,25 @@ in {
         owner = "microvm";
         mode = "0400";
       };
+    }
+    // lib.optionalAttrs (zone.forgejoBot != null) {
+      "forgejo-bot-${zone.forgejoBot.name}-ssh" = {
+        file = ../../secrets/forgejo-bot-${zone.forgejoBot.name}-ssh.age;
+        owner = "microvm";
+        mode = "0400";
+      };
     })
-    zones);
+  zones);
 
   systemd.services = lib.mkMerge (lib.mapAttrsToList (name: zone: {
       # Credentials are read at VM start, so a rotated secret needs a restart.
-      "microvm@${name}".restartTriggers = [
-        config.age.secrets."multica-token-${name}".file
-        config.age.secrets."multica-zone-${name}-env".file
-      ];
+      "microvm@${name}".restartTriggers =
+        [
+          config.age.secrets."multica-token-${name}".file
+          config.age.secrets."multica-zone-${name}-env".file
+        ]
+        ++ lib.optional (zone.forgejoBot != null)
+        config.age.secrets."forgejo-bot-${zone.forgejoBot.name}-ssh".file;
 
       # Host end of the zone's tap: 10.42.0.1/32 plus a host route to the
       # guest. Runs after microvm.nix creates the tap, and again whenever the

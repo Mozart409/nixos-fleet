@@ -62,7 +62,7 @@ in {
   "fleet-enroll-secret.age".publicKeys = users;
   "fleet-mysql-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostFleet];
   "forgejo-bot-eve-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "forgejo-bot-heimdall-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
+  "forgejo-bot-heimdall-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the heimdahl zone pushes as heimdall (zones.nix forgejoBot)
   "forgejo-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostForgejo hostDatabase];
   "futo-notes-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase];
   "futo-notes-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
