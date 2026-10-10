@@ -143,6 +143,8 @@ hl.on("hyprland.start", function()
     -- hyprsunset runs via its systemd user service (hyprsunset.service), see
     -- modules/home/packages/hyprland-configs.nix for why.
     hl.exec_cmd("hypridle")
+    -- Handy (offline speech-to-text) lives in the tray; transcripts are typed with wtype.
+    hl.exec_cmd("handy")
 end)
 
 ---------------------
@@ -153,6 +155,9 @@ local mainMod = "SUPER"
 
 -- Application launcher
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("rofi -show drun -run-command 'bash -c \"{cmd}\"'"))
+
+-- Handy: Wayland has no global shortcuts for apps, so drive it via its CLI.
+hl.bind(mainMod .. " + CTRL + SPACE", hl.dsp.exec_cmd("handy --toggle-transcription"))
 
 -- Window switcher. Same rofi, different mode -- lists open windows across both
 -- monitors and every workspace, which is the one thing the bar cannot show.

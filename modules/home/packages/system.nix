@@ -11,6 +11,7 @@
     file
     glow
     gparted
+    handy
     just
     nettools
     nvtopPackages.full
@@ -18,6 +19,7 @@
     steam-devices-udev-rules
     trash-cli
     vulnix
+    wtype
     xclip
     # keep-sorted end
   ];
