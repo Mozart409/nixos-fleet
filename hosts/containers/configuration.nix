@@ -20,7 +20,6 @@
     ./homelab-dashboard
     ./romm
     ./mailpit
-    # Harbor moved to dedicated VM (hosts/harbor)
   ];
 
   homelab.multica.server.enable = true;

@@ -19,14 +19,13 @@ set. IPs are the static addresses configured in each host's NixOS config.
 
 | Host | IP | Colmena tags | Role |
 |------|------|------|------|
-| `database` | 192.168.2.134 | `database` | PostgreSQL 18 + pgbouncer, multi-tenant (tofu state, forgejo, harbor, romm, hofvarpnir); `postgresqlBackup` |
+| `database` | 192.168.2.134 | `database` | PostgreSQL 18 + pgbouncer, multi-tenant (tofu state, forgejo, romm, hofvarpnir); `postgresqlBackup` |
 | `otel` | 192.168.2.135 | `monitoring` | Observability stack: Prometheus, Grafana, Loki, Tempo |
 | `unifi` | 192.168.2.142 | `unifi` | UniFi Network Controller |
 | `dns` | 192.168.2.145 | `dns` | Unbound recursive DNS + authoritative `homelab.local` zone (A + PTR) |
 | `containers` | 192.168.2.149 | `containers` | Podman host: Open WebUI, axon-gateway, SearXNG, RomM, homelab-dashboard, Multica (backend + web) |
 | `mcp` | 192.168.2.152 | `mcp` | MCP servers from the `homelab-mcp-servers` monorepo (pbs, pg, prom, loki, ha) as hardened systemd units |
 | `ca` | 192.168.2.160 | `security`, `ca` | step-ca internal Certificate Authority (ACME for `*.homelab.local`) |
-| `harbor` | 192.168.2.174 | `registry`, `harbor` | Harbor container registry (OIDC, Postgres on `database`) |
 | `forgejo` | 192.168.2.178 | `forgejo`, `git` | Forgejo git forge (Postgres on `database`, SSH on :2222) |
 | `jellyfin` | 192.168.2.180 | `media`, `jellyfin` | Jellyfin + SSO-Auth plugin, ZFS `mediapool`, hofvarpnir container |
 | `agents` | 192.168.2.190 | `ai`, `agents` | Agent platform: Multica daemons per trust zone (microVMs); successor to `development`/`hermes` |
@@ -189,7 +188,7 @@ just iac-apply
 VM definitions live in `iac/main.tf`; state is in PostgreSQL on the `database`
 host. The cloud-init `ip_config` blocks there only apply to the Debian bootstrap
 image — the authoritative address for an installed host is the static IP in its
-NixOS config (`harbor`, for instance, boots Debian on .166 but runs on .174).
+NixOS config, which can differ from the bootstrap address.
 
 ## Layout
 

@@ -22,11 +22,11 @@ let
   # secret) go to the humans plus every host that is currently deployed --
   # and only those. A decommissioned VM's host key lives on in its PBS
   # backups and old disk images, so leaving it here keeps every fleet-wide
-  # secret decryptable by an artefact nobody is watching. Decommissioned but
-  # kept in the tree (hosts/{fleet,harbor,cache,development,hermes,zeroclaw})
-  # keep their own per-host secrets below; reviving one is: add its key back
-  # here (and to the shared secrets it needs, e.g. axon-gateway-env),
-  # `just reencrypt`.
+  # secret decryptable by an artefact nobody is watching. Decommissioned
+  # hosts kept in the tree (hosts/{cache,development,hermes,zeroclaw},
+  # docs/archive/{fleet,harbor}) keep their own per-host secrets below;
+  # reviving one is: add its key back here (and to the shared secrets it
+  # needs, e.g. axon-gateway-env), `just reencrypt`.
   #
   # zeroclaw, development and hermes were all decommissioned on 2026-10-06
   # (VMs dropped from infra/iac/main.tf), so hostZeroclaw, hostDevelopment and
