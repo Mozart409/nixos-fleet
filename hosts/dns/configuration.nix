@@ -144,7 +144,7 @@
           ''"multica.homelab.internal. A 192.168.2.149"''
           ''"otel.homelab.internal. A 192.168.2.135"''
           ''"otel.homelab.local. A 192.168.2.135"''
-          # Pocket-ID (OIDC provider for forgejo, open-webui,
+          # Pocket-ID (OIDC provider for forgejo,
           # romm, grafana). An LXC on pve-gigabyte, not a NixOS guest in this
           # repo. The tailnet name pocketid.dropbear-butterfly.ts.net stays the
           # issuer every consumer is configured with -- the issuer URL is part

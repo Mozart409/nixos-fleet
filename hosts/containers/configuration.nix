@@ -13,7 +13,6 @@
     ../../modules/podman.nix
     ../../modules/caddy-http3.nix
     ../../modules/multica-server.nix
-    ./open-webui
     ./searxng
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
     # MCP servers it fronts could go loopback-only.
@@ -49,43 +48,15 @@
   # postgres exporter for the uptime-forge TimescaleDB left with it on
   # 2026-09-12 -- see the retirement note under services.caddy.)
 
-  # Open WebUI now lives in ./open-webui (listens on localhost:8088)
-
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy with step-ca TLS
   services.caddy = {
     enable = true;
 
-    # Tailscale hostname
-    virtualHosts."homelab-containers.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
+    # (Open WebUI was served at the root of containers.homelab.{local,internal}
+    # and homelab-containers.dropbear-butterfly.ts.net until 2026-10-11, when
+    # it was retired; its config is in docs/archive/open-webui/.)
 
-        # Open WebUI is a SvelteKit SPA with a build-time base path of "/",
-        # so it must be served at the host root (not a subpath).
-        handle {
-          reverse_proxy localhost:8088
-        }
-      '';
-    };
-
-    # Local network hostname with step-ca certificate
-    virtualHosts."containers.homelab.local containers.homelab.internal" = {
-      extraConfig = ''
-        tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
-        }
-
-        # Open WebUI is a SvelteKit SPA with a build-time base path of "/",
-        # so it must be served at the host root (not a subpath).
-        handle {
-          reverse_proxy localhost:8088
-        }
-      '';
-    };
-
-    # (Both vhosts above carried a `handle /uptime-forge*` -> localhost:3000
+    # (Those vhosts carried a `handle /uptime-forge*` -> localhost:3000
     # until 2026-09-12, when uptime-forge and its TimescaleDB were retired as
     # unused. hosts/containers/uptime-forge/ was deleted 2026-10-04 (see git
     # history). The podman volume `uptime_forge_db` and /var/lib/uptime-forge
@@ -137,12 +108,6 @@
     # retired as unused. hosts/containers/futo-notes/ is kept on disk, imported
     # nowhere -- same convention as hosts/cache/.)
   };
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
 
   # Firewall configuration
   networking.firewall = {

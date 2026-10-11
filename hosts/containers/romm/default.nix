@@ -93,7 +93,7 @@ in {
       # Metadata providers.
       HASHEOUS_API_ENABLED = "true";
 
-      # OIDC via Pocket ID (same provider as open-webui / harbor). The redirect
+      # OIDC via Pocket ID (same provider as forgejo / grafana). The redirect
       # URI and base URL must exactly match the callback registered in Pocket ID.
       OIDC_ENABLED = "true";
       OIDC_PROVIDER = "pocket-id";

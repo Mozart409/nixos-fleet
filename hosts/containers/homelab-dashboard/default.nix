@@ -65,11 +65,6 @@
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg";
         }
         {
-          name = "Open WebUI";
-          url = "https://containers.homelab.internal/";
-          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/open-webui.svg";
-        }
-        {
           name = "Prometheus";
           url = "https://prometheus.homelab.internal";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prometheus.svg";
@@ -97,10 +92,6 @@
         {
           name = "Grafana";
           url = "https://otel.homelab.internal/grafana/api/health";
-        }
-        {
-          name = "Open WebUI";
-          url = "https://containers.homelab.internal";
         }
         {
           name = "RomM";
@@ -132,7 +123,7 @@
 
   # The homelab-dashboard service runs as a systemd DynamicUser, so there is no
   # static user/group to chown to. systemd reads EnvironmentFile as root before
-  # dropping privileges, so root-only (0400) access is sufficient (cf. open-webui).
+  # dropping privileges, so root-only (0400) access is sufficient.
   age.secrets.dashboard-env = {
     file = ../../../secrets/dashboard-env.age;
     mode = "0400";

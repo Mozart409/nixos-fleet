@@ -278,7 +278,7 @@ in {
     serviceConfig = {
       ExecStart = "${pkgs.python3}/bin/python3 ${./alertmanager-axon-bridge.py}";
       # systemd reads this as root before dropping to the DynamicUser, so the
-      # secret stays 0400 root-owned (same pattern as open-webui's env file).
+      # secret stays 0400 root-owned (same pattern as the dashboard's env file).
       EnvironmentFile = config.age.secrets.axon-gateway-env.path;
       Restart = "on-failure";
       RestartSec = "10s";

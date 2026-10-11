@@ -68,8 +68,6 @@
   # ProbeFailed -- the same dedup contract as the lists below.
   certSubjects = {
     homelab-containers = [
-      "containers.homelab.local"
-      "containers.homelab.internal"
       "dashboard.homelab.local"
       "dashboard.homelab.internal"
       "romm.homelab.local"
@@ -177,10 +175,6 @@
       }
       {
         url = "https://romm.homelab.internal";
-        instance = "homelab-containers";
-      }
-      {
-        url = "https://containers.homelab.internal";
         instance = "homelab-containers";
       }
       # The one name deliberately left on .local: step-ca is not behind Caddy (it
