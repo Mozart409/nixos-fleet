@@ -61,7 +61,7 @@
       # zone env, which the daemon passes down to every agent.
       hermes = {
         model = {
-          default = "space-bunny-free";
+          default = "deepseek-v4-flash";
           provider = "opencode-zen";
         };
         timezone = "Europe/Berlin";
