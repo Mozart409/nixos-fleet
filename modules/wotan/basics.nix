@@ -39,14 +39,12 @@
     max-free = 40 * 1024 * 1024 * 1024;
   };
 
-  nix.gc = {
-    automatic = true;
-    dates = "daily";
-    persistent = true;
-    options = "--delete-generations +3";
-  };
-
   programs.nh = {
+    clean = {
+      dates = "daily";
+      enable = true;
+      extraArgs = "--keep 3 --keep-one";
+    };
     enable = true;
     flake = "/home/amadeus/code/yggdrasil";
   };
