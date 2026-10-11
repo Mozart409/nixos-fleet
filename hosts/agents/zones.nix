@@ -43,7 +43,10 @@
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
       claude = false;
-      forgejoBot = null;
+      forgejoBot = {
+        name = "eve";
+        email = "eve@homelab.local";
+      };
       environment = {
         # Hermes memory is the assistant's long-term memory; Multica's GC would
         # delete it after 90 days untouched.
@@ -363,6 +366,17 @@
         user.name = zone.forgejoBot.name;
         user.email = zone.forgejoBot.email;
         init.defaultBranch = "main";
+        # Forgejo advertises its clone URLs under the tailnet name (ROOT_URL),
+        # which does not resolve in the zones (no MagicDNS, and the dns host
+        # has no ts.net forward), and Multica stores whatever URL was pasted.
+        # Send every spelling over SSH to the LAN name, with the bot's key.
+        url."ssh://forgejo@forgejo.homelab.internal:2222/".insteadOf = [
+          "ssh://forgejo@homelab-forgejo.dropbear-butterfly.ts.net:2222/"
+          "https://homelab-forgejo.dropbear-butterfly.ts.net/"
+          "ssh://forgejo@forgejo.homelab.local:2222/"
+          "https://forgejo.homelab.local/"
+          "https://forgejo.homelab.internal/"
+        ];
       };
     };
 

@@ -61,7 +61,7 @@ in {
   "development-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   "fleet-enroll-secret.age".publicKeys = users;
   "fleet-mysql-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostFleet];
-  "forgejo-bot-eve-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
+  "forgejo-bot-eve-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the assistant zone pushes as eve (zones.nix forgejoBot)
   "forgejo-bot-heimdall-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the heimdahl zone pushes as heimdall (zones.nix forgejoBot)
   "forgejo-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostForgejo hostDatabase];
   "futo-notes-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase];
