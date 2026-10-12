@@ -65,6 +65,11 @@
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg";
         }
         {
+          name = "Multica";
+          url = "https://multica.homelab.internal";
+          icon = "https://raw.githubusercontent.com/multica-ai/multica/main/docs/assets/logo-dark.svg";
+        }
+        {
           name = "Prometheus";
           url = "https://prometheus.homelab.internal";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prometheus.svg";
