@@ -352,6 +352,9 @@
         static_configs = [
           {
             targets = ["localhost:9090"];
+            labels = {
+              instance = "homelab-otel";
+            };
           }
         ];
       }
@@ -371,6 +374,9 @@
         static_configs = [
           {
             targets = ["localhost:8888"];
+            labels = {
+              instance = "homelab-otel";
+            };
           }
         ];
       }
@@ -381,6 +387,9 @@
         static_configs = [
           {
             targets = ["localhost:3200"];
+            labels = {
+              instance = "homelab-otel";
+            };
           }
         ];
       }
