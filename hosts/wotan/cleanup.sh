@@ -103,24 +103,23 @@ cleanup_task() {
 # race each other for a password prompt.
 sudo -v
 
-# Remove cargo target/ dirs of every crate or workspace below $1. Only dirs
-# holding cargo's CACHEDIR.TAG are touched, so a plain "target" folder that
-# merely sits next to a Cargo.toml survives.
+# Remove every cargo target dir below $1: any directory holding cargo's
+# CACHEDIR.TAG, whatever it is called and wherever it sits (workspace roots,
+# members built on their own, --target-dir builds), so a plain "target" folder
+# that is not a cargo cache survives. A matched dir is pruned, not descended.
 # shellcheck disable=SC2329 # invoked indirectly via cleanup_task
 clean_rust_targets() {
   local root="$1"
   [ -d "$root" ] || return 0
-  find "$root" \( -name target -o -name node_modules -o -name .git -o -name .direnv \) -prune \
-    -o -type f -name Cargo.toml -print0 2>/dev/null |
-    while IFS= read -r -d '' manifest; do
-      local target="${manifest%/Cargo.toml}/target"
-      if [ -f "$target/CACHEDIR.TAG" ]; then
-        if ((dry)); then
-          echo "Would remove $target ($(du -sh "$target" 2>/dev/null | cut -f1))"
-        else
-          echo "Removing $target ($(du -sh "$target" 2>/dev/null | cut -f1))"
-          rm -rf "$target"
-        fi
+  find "$root" \( -name node_modules -o -name .git -o -name .direnv \) -prune \
+    -o -type d -exec test -f '{}/CACHEDIR.TAG' \; -prune -print0 2>/dev/null |
+    while IFS= read -r -d '' target; do
+      grep -qs 'cargo' "$target/CACHEDIR.TAG" || continue
+      if ((dry)); then
+        echo "Would remove $target ($(du -sh "$target" 2>/dev/null | cut -f1))"
+      else
+        echo "Removing $target ($(du -sh "$target" 2>/dev/null | cut -f1))"
+        rm -rf "$target"
       fi
     done
 }
@@ -135,13 +134,55 @@ case "$repo/" in
 "$HOME/code/"*) ;;
 *) cleanup_task rust_repo clean_rust_targets "$repo" || true ;;
 esac
+if [ -n "${CARGO_TARGET_DIR:-}" ]; then
+  cleanup_task rust_shared clean_rust_targets "$CARGO_TARGET_DIR" || true
+fi
+
+# JS package caches. npm's _cacache is a pure download cache; pnpm's
+# content-addressed store is pruned of packages no project links any more
+# (run from $HOME so a project's local store setting doesn't redirect it),
+# and its metadata cache is dropped outright.
+# shellcheck disable=SC2329 # invoked indirectly via cleanup_task
+clean_npm() {
+  if ((dry)); then
+    echo "Would clear npm cache ($(du -sh "$HOME/.npm/_cacache" 2>/dev/null | cut -f1))"
+  else
+    npm cache clean --force
+  fi
+}
+
+# shellcheck disable=SC2329 # invoked indirectly via cleanup_task
+clean_pnpm() {
+  cd "$HOME" || return 0
+  if ((dry)); then
+    local store
+    store="$(pnpm store path)"
+    echo "Would prune pnpm store $store ($(du -sh "$store" 2>/dev/null | cut -f1) before pruning)"
+    echo "Would remove pnpm metadata cache ($(du -sh "$HOME/.cache/pnpm" 2>/dev/null | cut -f1))"
+  else
+    pnpm store prune
+    rm -rf "$HOME/.cache/pnpm"
+  fi
+}
+
+if command -v npm >/dev/null 2>&1; then
+  cleanup_task npm clean_npm || true
+fi
+if command -v pnpm >/dev/null 2>&1; then
+  cleanup_task pnpm clean_pnpm || true
+fi
 
 # Container cleanup. Neither prune has a dry run, so show reclaimable space.
+# Rootless and rootful podman keep separate stores (~/.local/share/containers
+# vs /var/lib/containers); the rootful one holds the oci-containers images and
+# drops every image no container uses, since those re-pull on start.
 if command -v podman >/dev/null 2>&1; then
   if ((dry)); then
     cleanup_task podman sh -c 'echo "podman (RECLAIMABLE is what a prune would free):"; podman system df' 2>/dev/null || true
+    cleanup_task podman_root sh -c 'echo "rootful podman (RECLAIMABLE is what a prune would free):"; sudo podman system df' 2>/dev/null || true
   else
     cleanup_task podman sh -c 'podman system prune -f && podman volume prune -f' 2>/dev/null || true
+    cleanup_task podman_root sudo podman system prune -af 2>/dev/null || true
   fi
 fi
 

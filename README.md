@@ -82,7 +82,7 @@ took 21 GB there, before Claude Code and the bun-hosted plugins.
 
 | Host | Role |
 |------|------|
-| `wotan` | My workstation: Hyprland, NVIDIA/CUDA, local vLLM. Deploys only itself (`just switch-wotan`), no inbound SSH. See `hosts/wotan/README.md` |
+| `wotan` | My workstation: Hyprland, NVIDIA/CUDA. Deploys only itself (`just switch-wotan`), no inbound SSH. See `hosts/wotan/README.md` |
 
 ### Provisioned by IaC, not in the Colmena hive
 

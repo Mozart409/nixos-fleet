@@ -8,8 +8,6 @@
   #   security.hardening.enable       -> security.nix
   #   hardware.razer.enable           -> razer.nix
   #   hardware.moza.enable            -> moza.nix
-  #   services.vllm.enable            -> vllm.nix
-  #   services.spacebot.enable        -> spacebot.nix (Podman container)
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
   #
@@ -20,8 +18,6 @@
     ./security.nix
     ./razer.nix
     ./moza.nix
-    ./vllm.nix
-    ./spacebot.nix
     ./opencode-serve.nix
     ../desktop/default.nix
     ../desktop/hyprland.nix

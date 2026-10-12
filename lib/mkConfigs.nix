@@ -6,16 +6,10 @@
   # Shared nixpkgs config — single source of truth for all nixos and
   # home-manager evaluations.  cudaSupport is included here because it
   # affects the package set that the cache.nixos-cuda.org substituter
-  # carries (vLLM, torch, etc.).
+  # carries (torch, etc.).
   sharedNixpkgsConfig = {
     allowUnfree = true;
     cudaSupport = true;
-    permittedInsecurePackages = [
-      # vLLM 0.16.0 — three CVEs documented in modules/wotan/vllm.nix.
-      # Mitigations: loopback-only bind, trusted-repo-only models. Drop when
-      # nixpkgs ships vllm >= 0.20.0.
-      "python3.13-vllm-0.16.0"
-    ];
   };
 in {
   inherit sharedNixpkgsConfig;

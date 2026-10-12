@@ -1,7 +1,7 @@
 # wotan
 
-My desktop workstation: Hyprland on NVIDIA (CUDA), Quickshell bar, Podman,
-local vLLM. Part of the `yggdrasil` monorepo; the flake is at the repo root
+My desktop workstation: Hyprland on NVIDIA (CUDA), Quickshell bar, Podman.
+Part of the `yggdrasil` monorepo; the flake is at the repo root
 (`~/code/yggdrasil`), not in `/etc/nixos`.
 
 wotan only ever deploys **itself**. It is not a `colmenaHive` node, has no
@@ -19,21 +19,20 @@ infra/
 │   ├── desktop-config.nix       # desktop.environment = "hyprland", file managers
 │   ├── disko-config.nix, hardware-configuration.nix
 │   ├── nebula.nix, nebula/      # nebula overlay certs
-│   ├── spacebot/                # Spacebot agent identity files
 │   ├── switch.sh                # the normal way to deploy (see below)
 │   └── AGENTS.md                # desktop details for coding agents
 ├── modules/
 │   ├── wotan/                   # wotan-only NixOS modules (default.nix aggregates them,
-│   │                            #   plus ../desktop): basics, packages, vLLM, spacebot, …
+│   │                            #   plus ../desktop): basics, packages, …
 │   ├── desktop/                 # Hyprland, file managers, user experience
 │   └── home/                    # home-manager: configs/, packages/, services/
-├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA, vLLM, glaze pin)
+├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA, glaze pin)
 ├── secrets/                     # agenix secrets, shared with the fleet (agenix-rules.nix)
 └── docs/wotan/                  # config.d2 diagram, easyeffects tuning, keymaps
 ```
 
 The root `flake.nix` builds it as `nixosConfigurations.wotan = desktop.mkDesktop
-"wotan" system "amadeus"`. CUDA, the vLLM insecure allow and the glaze overlay
+"wotan" system "amadeus"`. CUDA and the glaze overlay
 live only in `mkDesktop`; the fleet's `mkHost` never sees them.
 
 ## Usage
