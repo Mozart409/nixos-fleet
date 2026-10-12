@@ -16,25 +16,35 @@
   # - https://bun.com/docs/pm/npmrc
   # - https://docs.npmjs.com/cli/v11/using-npm/config
 
+  # pnpm >= 11 reads only registry/auth settings from .npmrc; everything else
+  # comes from this global config (camelCase keys). Check a key with
+  # `pnpm config get <key>` outside any project. blockExoticSubdeps (on by
+  # default since pnpm 11), strictPeerDependencies and shamefullyHoist (off by
+  # default) are not accepted globally, only in a project's
+  # pnpm-workspace.yaml, so they are left out here.
+  xdg.configFile."pnpm/config.yaml".text = ''
+    # 7-day minimum release age (minutes), failing instead of warning
+    minimumReleaseAge: 10080
+    minimumReleaseAgeStrict: true
+
+    # Verify integrity of packages in the store
+    verifyStoreIntegrity: true
+
+    # Disable lifecycle scripts by default (review manually)
+    ignoreScripts: true
+
+    # Enforce exact versions (no ^ or ~)
+    saveExact: true
+  '';
+
   home.file = {
-    # npm + pnpm configuration (pnpm reads .npmrc)
+    # npm configuration. pnpm-only keys live in pnpm/config.yaml above; npm
+    # warns about every key it does not know.
     ".npmrc".text = ''
       ## === SUPPLY CHAIN SECURITY === ##
 
       # npm: 7-day minimum release age (days)
       min-release-age=7
-
-      # pnpm: 7-day minimum release age (10080 minutes)
-      minimum-release-age=10080
-
-      # pnpm: Strictly enforce minimum-release-age (fail instead of warn)
-      minimum-release-age-strict=true
-
-      # pnpm: Block git/tarball dependencies in transitive deps (default in pnpm 11)
-      block-exotic-subdeps=true
-
-      # pnpm: Verify integrity of packages in store
-      verify-store-integrity=true
 
       ## === SCRIPT EXECUTION === ##
 
@@ -61,12 +71,6 @@
 
       # Disable funding messages (cleaner output)
       fund=false
-
-      # pnpm: strict peer dependencies
-      strict-peer-dependencies=true
-
-      # pnpm: don't hoist by default (prevents phantom dependencies)
-      shamefully-hoist=false
 
       # Global install location (survives dev shell entry)
       prefix=''${HOME}/.npm-global
