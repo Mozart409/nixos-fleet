@@ -536,14 +536,7 @@
 
   # Install ueberzugpp for image previews in terminals without native support (like Alacritty)
   home.packages = with pkgs; [
-    # enableOpencv = false: cudaSupport is on globally (lib/mkConfigs.nix), so
-    # opencv is a CUDA build, and its exported OpenCVConfig.cmake runs
-    # find_package(CUDAToolkit) in every consumer. That resolves a malformed
-    # CUDAToolkit_ROOT (two store paths concatenated) and kills ueberzugpp's
-    # configure step. ueberzugpp only uses opencv for image processing it does
-    # not need here, so dropping the dep is enough -- overriding its own
-    # cudaSupport is NOT, since the find_package call comes from opencv itself.
-    (ueberzugpp.override {enableOpencv = false;})
+    ueberzugpp
     # Additional tools yazi can use
     # keep-sorted start
     fd # Fast file finder

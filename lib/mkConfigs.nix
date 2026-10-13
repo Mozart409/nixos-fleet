@@ -4,12 +4,11 @@
   nixpkgs,
 }: let
   # Shared nixpkgs config — single source of truth for all nixos and
-  # home-manager evaluations.  cudaSupport is included here because it
-  # affects the package set that the cache.nixos-cuda.org substituter
-  # carries (torch, etc.).
+  # home-manager evaluations.  cudaSupport stays off: globally it turned
+  # every CUDA-capable package (handy's onnxruntime, opencv, ...) into a
+  # multi-GiB CUDA build. Enable it per package with `.override` instead.
   sharedNixpkgsConfig = {
     allowUnfree = true;
-    cudaSupport = true;
   };
 in {
   inherit sharedNixpkgsConfig;
