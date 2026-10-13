@@ -6,14 +6,14 @@
 }: {
   options = {
     desktop.easyeffects.enable =
-      lib.mkEnableOption "EasyEffects system-wide loudness normalization (EBU R128 auto gain + limiter)";
+      lib.mkEnableOption "EasyEffects loudness normalization for output and the mic (EBU R128 auto gain + limiter)";
   };
 
   config = lib.mkIf config.desktop.easyeffects.enable {
     # EasyEffects inserts itself as a virtual PipeWire output sink ("Easy Effects
     # Sink"). Make it the default output and every app routed there (Brave, mpv,
     # etc.) is processed before being forwarded to the real device, regardless of
-    # source. The "loudness" preset levels all sources toward a common loudness
+    # source. The "wotan" preset levels all sources toward a common loudness
     # and catches peaks with a limiter.
     #
     # Requires system-level `programs.dconf.enable = true`
@@ -21,7 +21,7 @@
     services.easyeffects = {
       enable = true;
       # Auto-load the preset below when the daemon starts.
-      preset = "loudness";
+      preset = "wotan";
     };
 
     # NOTE: the preset is shipped as a verbatim EasyEffects 8.x JSON file instead
@@ -47,7 +47,7 @@
     # (-12 dB / 4:1) to gently reduce dynamic range; all other compressor keys are
     # verbatim EasyEffects 8.2.4 export. Limiter `threshold` (-1 dB) leaves
     # headroom so boosted-quiet content can't clip; `alr` smooths gain changes.
-    xdg.dataFile."easyeffects/output/loudness.json".text = ''
+    xdg.dataFile."easyeffects/output/wotan.json".text = ''
       {
           "output": {
               "autogain#0": {
@@ -134,6 +134,64 @@
       }
     '';
 
+    # Microphone chain with the same name, so the service's `--load-preset
+    # wotan` loads it into the input pipeline too (EasyEffects loads every
+    # pipeline that has a preset of that name). The Barracuda X boom mic sits
+    # around -40 dBFS RMS with hardware and PipeWire gain both at maximum, and
+    # its firmware gates silence to near zero. Autogain lifts speech toward
+    # `target`; `silence-threshold` (-50 dB) is below quiet speech but above
+    # the gated floor, so autogain freezes instead of boosting the gate's
+    # residue. The limiter block is the verbatim output-preset one. Measured
+    # after the change: speech at about -22 dBFS RMS, peaks at about -5 dBFS.
+    xdg.dataFile."easyeffects/input/wotan.json".text = ''
+      {
+          "input": {
+              "autogain#0": {
+                  "bypass": false,
+                  "force-silence": false,
+                  "input-gain": 0.0,
+                  "maximum-history": 6,
+                  "output-gain": 0.0,
+                  "reference": "Integrated",
+                  "silence-threshold": -50.0,
+                  "target": -18.0
+              },
+              "blocklist": [],
+              "limiter#0": {
+                  "alr": true,
+                  "alr-attack": 5.0,
+                  "alr-knee": 0.0,
+                  "alr-knee-smooth": -5.0,
+                  "alr-release": 50.0,
+                  "attack": 5.0,
+                  "bypass": false,
+                  "dithering": "None",
+                  "gain-boost": true,
+                  "input-gain": 0.0,
+                  "input-to-link": -80.01,
+                  "input-to-sidechain": -80.01,
+                  "link-to-input": -80.01,
+                  "link-to-sidechain": -80.01,
+                  "lookahead": 5.0,
+                  "mode": "Herm Thin",
+                  "output-gain": 0.0,
+                  "oversampling": "None",
+                  "release": 5.0,
+                  "sidechain-preamp": 0.0,
+                  "sidechain-to-input": -80.01,
+                  "sidechain-to-link": -80.01,
+                  "sidechain-type": "Internal",
+                  "stereo-link": 100.0,
+                  "threshold": -1.0
+              },
+              "plugins_order": [
+                  "autogain#0",
+                  "limiter#0"
+              ]
+          }
+      }
+    '';
+
     # Pin "Easy Effects Sink" as the default output so apps route through the
     # effects automatically — declaratively, without relying on WirePlumber's
     # mutable ~/.local/state. The EE sink is a client-created null-sink that no
@@ -141,10 +199,11 @@
     # to it; instead this oneshot sets the configured-default metadata by name
     # (exactly what `wpctl set-default` does) once the sink appears. It runs with
     # and re-runs after the EE daemon (PartOf), and falls back gracefully to the
-    # hardware sink if EasyEffects ever isn't running.
+    # hardware sink if EasyEffects ever isn't running. "Easy Effects Source" is
+    # pinned as the default input the same way, so apps get the processed mic.
     systemd.user.services.easyeffects-default-sink = {
       Unit = {
-        Description = "Route the default audio output through EasyEffects";
+        Description = "Route the default audio output and input through EasyEffects";
         After = ["easyeffects.service"];
         PartOf = ["easyeffects.service"];
       };
@@ -155,17 +214,21 @@
         ExecStart = let
           ee-default-sink = pkgs.writeShellScript "ee-default-sink" ''
             set -eu
-            # EasyEffects creates "easyeffects_sink" shortly after the daemon
-            # starts; wait up to ~30s for it before pinning it as default.
+            # EasyEffects creates "easyeffects_sink" and "easyeffects_source"
+            # shortly after the daemon starts; wait up to ~30s for them before
+            # pinning them as defaults.
             for _ in $(seq 1 60); do
-              if ${pkgs.pipewire}/bin/pw-cli ls Node 2>/dev/null | grep -q '"easyeffects_sink"'; then
+              nodes=$(${pkgs.pipewire}/bin/pw-cli ls Node 2>/dev/null || true)
+              if grep -q '"easyeffects_sink"' <<<"$nodes" && grep -q '"easyeffects_source"' <<<"$nodes"; then
                 ${pkgs.pipewire}/bin/pw-metadata -n default 0 \
                   default.configured.audio.sink '{"name":"easyeffects_sink"}'
+                ${pkgs.pipewire}/bin/pw-metadata -n default 0 \
+                  default.configured.audio.source '{"name":"easyeffects_source"}'
                 exit 0
               fi
               sleep 0.5
             done
-            echo "easyeffects_sink did not appear within timeout" >&2
+            echo "easyeffects_sink/easyeffects_source did not appear within timeout" >&2
             exit 1
           '';
         in "${ee-default-sink}";

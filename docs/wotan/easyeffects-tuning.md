@@ -10,10 +10,10 @@ reaching the real device.
 
 ## How it works
 
-The `loudness` preset is shipped as a verbatim EasyEffects 8.2.4 JSON export
+The `wotan` preset is shipped as a verbatim EasyEffects 8.2.4 JSON export
 (not via Nix `toJSON`) because the 8.x schema is strict — any missing or
 mistyped key triggers a "wrong format" error on load. Edit the JSON inside the
-`xdg.dataFile."easyeffects/output/loudness.json"` block, then rebuild.
+`xdg.dataFile."easyeffects/output/wotan.json"` block, then rebuild.
 
 **Signal chain** (`plugins_order`): `autogain → compressor → limiter`
 
@@ -23,15 +23,33 @@ mistyped key triggers a "wrong format" error on load. Edit the JSON inside the
 | **compressor** | Tames dynamic range *within* a source (loud/quiet swings) |
 | **limiter** | Catches peaks so boosted content can't clip |
 
+## Microphone (input pipeline)
+
+`easyeffects/input/wotan.json` (same module) is the mic chain:
+`autogain → limiter`. It shares the `wotan` name so the service's
+`--load-preset wotan` loads it too, and `easyeffects-default-sink` pins
+`easyeffects_source` as the default input. Apps should record from
+"Easy Effects Source", not the raw Barracuda device.
+
+| Key | Current | Note |
+|---|---|---|
+| autogain `target` | `-18.0` | Louder voice: raise toward `-14`. |
+| autogain `silence-threshold` | `-50.0` | Must stay below quiet speech (~-40 dB raw) and above the headset's gated floor. |
+| limiter `threshold` | `-1.0` | Same as output. |
+
+Raw Barracuda X boom mic: ~-40 dBFS RMS speech at full hardware gain (67/67)
+and 100% PipeWire volume; processed: ~-22 dBFS RMS, peaks ~-5 dBFS
+(measured 2026-10-13).
+
 ## Applying changes
 
-1. Edit `loudness.json` in `modules/home/packages/easyeffects.nix`.
+1. Edit `wotan.json` (output or input) in `modules/home/packages/easyeffects.nix`.
 2. Rebuild: `./switch.sh` (or `nh os switch .#nixosConfigurations.wotan`).
 3. Change **one** value at a time and listen for a day before the next tweak.
 
 > **Schema safety:** to add a new plugin, create it once in the EasyEffects GUI
 > with default settings, save it as a throwaway preset, and copy the exact
-> exported block (correct keys + float formatting) into `loudness.json`. Don't
+> exported block (correct keys + float formatting) into `wotan.json`. Don't
 > hand-write plugin blocks from memory.
 
 ## autogain — overall loudness leveling
