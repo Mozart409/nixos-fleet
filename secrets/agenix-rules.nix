@@ -64,6 +64,7 @@ in {
   "forgejo-bot-eve-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the assistant zone pushes as eve (zones.nix forgejoBot)
   "forgejo-bot-heimdall-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the heimdahl zone pushes as heimdall (zones.nix forgejoBot)
   "forgejo-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostForgejo hostDatabase];
+  "forgejo-mcp-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp]; # bare Forgejo access token for forgejo-mcp on the mcp host
   "futo-notes-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase];
   "futo-notes-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "garage-rpc-secret.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];

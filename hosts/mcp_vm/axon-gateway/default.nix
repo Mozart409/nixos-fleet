@@ -115,6 +115,14 @@
     transport = "http"
     enabled = true
 
+    # forgejo-mcp from nixpkgs (a plain unit in ../configuration.nix, not a
+    # homelab-mcp-servers instance); it carries its own Forgejo token.
+    [[backends]]
+    name = "forgejo"
+    url = "http://127.0.0.1:8093/mcp"
+    transport = "http"
+    enabled = true
+
     [[backends]]
     name = "alertmanager"
     url = "http://127.0.0.1:8086/mcp"
@@ -171,8 +179,8 @@ in {
   # The MCP servers must be listening before the gateway probes them, or it
   # marks them dead until its next reconnect.
   systemd.services.podman-axon-gateway = {
-    after = map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
-    wants = map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
+    after = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
+    wants = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
   };
 
   age.secrets.axon-gateway-env = {

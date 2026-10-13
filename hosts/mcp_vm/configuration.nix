@@ -85,6 +85,7 @@
       "hamcp-server"
       "alertmanagermcp-server"
       "tempomcp-server"
+      "forgejo-mcp"
     ]
     ++ map (db: {
       unit = "${pgUnitName db}.service";
@@ -140,6 +141,10 @@ in {
       # as <PREFIX>_TOKEN from LoadCredential.
       otel-query-token = {
         file = ../../secrets/otel-query-token.age;
+      };
+      # Bare Forgejo access token for forgejo-mcp (below).
+      forgejo-mcp-token = {
+        file = ../../secrets/forgejo-mcp-token.age;
       };
     }
     # postgres://mcp:<pw>@database.homelab.local:5432/<db> — same read-only role
@@ -276,6 +281,56 @@ in {
       })
     homelabDatabases
     // {
+      # Forgejo MCP from nixpkgs (not part of homelab-mcp-servers, so it gets a
+      # plain unit rather than a services.homelab-mcp.servers entry). Loopback
+      # only, like the rest; the gateway reaches it as the `forgejo` backend.
+      #
+      # In http mode forgejo-mcp forwards the caller's Authorization header to
+      # Forgejo by default. axon sends none, so operator-token fallback makes it
+      # use its own token instead -- safe only because nothing but this host's
+      # loopback can reach the port.
+      #
+      # 8093 is the next free loopback port after tempomcp-server's 8092.
+      forgejo-mcp = {
+        description = "Forgejo MCP server";
+        wantedBy = ["multi-user.target"];
+        wants = ["agenix.target" "network-online.target"];
+        after = ["agenix.target" "network-online.target"];
+        restartTriggers = [secretNonce config.age.secrets.forgejo-mcp-token.file];
+        environment = {
+          FORGEJO_URL = "https://forgejo.homelab.internal";
+          FORGEJO_MCP_ALLOW_OPERATOR_TOKEN_FALLBACK = "true";
+          SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+        };
+        # Token via LoadCredential, exported only inside the process -- never
+        # on the command line, where it would show up in `ps`.
+        script = ''
+          FORGEJO_ACCESS_TOKEN="$(< "$CREDENTIALS_DIRECTORY/token")"
+          export FORGEJO_ACCESS_TOKEN
+          exec ${lib.getExe pkgs.forgejo-mcp} -transport http -host 127.0.0.1 -http-port 8093
+        '';
+        serviceConfig = {
+          DynamicUser = true;
+          LoadCredential = "token:${config.age.secrets.forgejo-mcp-token.path}";
+          Restart = "on-failure";
+          RestartSec = 5;
+          NoNewPrivileges = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          PrivateDevices = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+          RestrictNamespaces = true;
+          LockPersonality = true;
+          MemoryDenyWriteExecute = true;
+          SystemCallArchitectures = "native";
+          CapabilityBoundingSet = "";
+        };
+      };
+
       # Give Caddy access to Tailscale socket for cert fetching
       caddy = {
         after = ["tailscaled.service"];
