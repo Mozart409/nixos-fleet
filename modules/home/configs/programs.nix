@@ -115,15 +115,19 @@
           expandFocusedSidePanel = true;
           mouseEvents = true;
           skipDiscardChangeWarning = false;
+          # Kanagawa (wave) palette.
           theme = {
-            activeBorderColor = ["#89b4fa" "bold"];
-            inactiveBorderColor = ["#a6adc8"];
-            optionsTextColor = ["#89b4fa"];
-            selectedLineBgColor = ["#313244"];
-            selectedRangeBgColor = ["#313244"];
-            unstagedChangesColor = ["#f38ba8"];
-            defaultFgColor = ["#cdd6f4"];
-            searchingActiveBorderColor = ["#f9e2af"];
+            activeBorderColor = ["#7E9CD8" "bold"]; # crystalBlue
+            inactiveBorderColor = ["#727169"]; # fujiGray
+            optionsTextColor = ["#7E9CD8"]; # crystalBlue
+            selectedLineBgColor = ["#2D4F67"]; # waveBlue2
+            selectedRangeBgColor = ["#2D4F67"]; # waveBlue2
+            inactiveViewSelectedLineBgColor = ["#223249"]; # waveBlue1
+            cherryPickedCommitFgColor = ["#7FB4CA"]; # springBlue
+            cherryPickedCommitBgColor = ["#2D4F67"]; # waveBlue2
+            unstagedChangesColor = ["#C34043"]; # autumnRed
+            defaultFgColor = ["#DCD7BA"]; # fujiWhite
+            searchingActiveBorderColor = ["#E6C384" "bold"]; # carpYellow
           };
         };
         git = {
