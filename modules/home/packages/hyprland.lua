@@ -157,7 +157,8 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("rofi -show drun -run-command 'bash -c \"{cmd}\"'"))
 
 -- Handy: Wayland has no global shortcuts for apps, so drive it via its CLI.
-hl.bind(mainMod .. " + CTRL + SPACE", hl.dsp.exec_cmd("handy --toggle-transcription"))
+-- The shortcut set in Handy's own settings never fires; this bind is the one.
+hl.bind("ALT + SPACE", hl.dsp.exec_cmd("handy --toggle-transcription"))
 
 -- Window switcher. Same rofi, different mode -- lists open windows across both
 -- monitors and every workspace, which is the one thing the bar cannot show.
