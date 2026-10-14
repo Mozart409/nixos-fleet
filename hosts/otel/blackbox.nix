@@ -70,6 +70,9 @@
     homelab-containers = [
       "dashboard.homelab.local"
       "dashboard.homelab.internal"
+      # .internal only (no .local vhosts); both verified 2026-10-14.
+      "hindsight.homelab.internal"
+      "hindsight-ui.homelab.internal"
       "romm.homelab.local"
       "romm.homelab.internal"
       "searxng.homelab.local"
@@ -169,6 +172,12 @@
       # Re-add them here if the hosts come back; the URLs were
       # https://hermes.homelab.internal/health, https://ci.homelab.internal and
       # https://harbor.homelab.internal.
+      # Hindsight (shared agent memory): /health is unauthenticated and 200
+      # only while its database is connected. Verified 200 on 2026-10-14.
+      {
+        url = "https://hindsight.homelab.internal/health";
+        instance = "homelab-containers";
+      }
       {
         url = "https://searxng.homelab.internal";
         instance = "homelab-containers";
