@@ -26,8 +26,9 @@
 
   # Declarative gateway config. Secrets are NOT inlined here — they are referenced
   # as ${VAR} placeholders and resolved by axon at startup from the environment
-  # file below. Missing referenced vars are a hard startup error, so every ${VAR}
-  # used here MUST be present in secrets/axon-gateway-env.age.
+  # files below. Missing referenced vars are a hard startup error, so every ${VAR}
+  # used here MUST be present in secrets/axon-gateway-env.age, except
+  # HINDSIGHT_API_KEY, which generateHindsightEnv writes from hindsight-api-key.age.
   #
   # Pulled into a `let` binding (rather than staying inline as `environment.etc`'s
   # `.text`) solely so its content can be hashed below into the restart nonce —
@@ -128,6 +129,33 @@
     url = "http://127.0.0.1:8086/mcp"
     transport = "http"
     enabled = true
+
+    # Hindsight on the containers host: the shared agent memory, bank
+    # `homelab`. The only backend that is not on this host, so the only one
+    # over TLS (step-ca, trusted through the mounted CA bundle). The tenant
+    # key is forwarded as Bearer. Read and write only: clear_memories,
+    # delete_bank, delete_document and the mental-model/directive writers stay
+    # out of every agent's reach; bank admin goes through the Control Plane.
+    # Every token gets it (no [[tokens]] restriction), decided 2026-10-14.
+    [[backends]]
+    name = "hindsight"
+    url = "https://hindsight.homelab.internal/mcp/homelab/"
+    transport = "http"
+    auth_token = "''${HINDSIGHT_API_KEY}"
+    allowed_tools = ["retain", "recall", "reflect", "list_memories", "get_memory"]
+    # retain and reflect wait on an LLM call.
+    timeout_secs = 120
+    enabled = true
+  '';
+
+  # The Hindsight key is the raw tenant key shared with the containers host,
+  # not a line in axon-gateway-env.age, so it gets its own env file.
+  generateHindsightEnv = pkgs.writeShellScript "generate-axon-hindsight-env" ''
+    set -eu
+    mkdir -p /run/axon-gateway
+    umask 077
+    printf 'HINDSIGHT_API_KEY=%s\n' "$(cat ${config.age.secrets.hindsight-api-key.path})" \
+      > /run/axon-gateway/hindsight.env
   '';
 
   gatewayVhost = ''
@@ -144,12 +172,12 @@ in {
 
   virtualisation.oci-containers.containers = {
     axon-gateway = {
-      image = "ghcr.io/mozart409/axon-gateway:v0.3.2";
+      image = "ghcr.io/mozart409/axon-gateway:v0.3.3";
       autoStart = true;
       volumes = [
         "/etc/axon-gateway/config.toml:/app/config.toml:ro"
-        # step-ca root for anything the gateway still dials over TLS (none of
-        # the backends today, but base_url/health checks may).
+        # step-ca root for anything the gateway dials over TLS: the hindsight
+        # backend, and base_url/health checks.
         "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
       ];
       cmd = ["/app/config.toml"];
@@ -162,7 +190,10 @@ in {
         # unit change with it.
         CONFIG_HASH = builtins.hashString "sha256" configText;
       };
-      environmentFiles = [config.age.secrets.axon-gateway-env.path];
+      environmentFiles = [
+        config.age.secrets.axon-gateway-env.path
+        "/run/axon-gateway/hindsight.env"
+      ];
       extraOptions = [
         "--network=host"
         "--health-cmd=wget -q --spider http://127.0.0.1:${toString gatewayPort}/health || exit 1"
@@ -177,14 +208,24 @@ in {
   };
 
   # The MCP servers must be listening before the gateway probes them, or it
-  # marks them dead until its next reconnect.
+  # marks them dead until its next reconnect. (hindsight is on another host,
+  # so it can't be ordered here; the health check picks it up when it's back.)
   systemd.services.podman-axon-gateway = {
+    serviceConfig.ExecStartPre = ["${generateHindsightEnv}"];
+    # A rotated key keeps its /run/agenix path; restart on the .age store path.
+    restartTriggers = [config.age.secrets.hindsight-api-key.file];
     after = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
     wants = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
   };
 
   age.secrets.axon-gateway-env = {
     file = ../../../secrets/axon-gateway-env.age;
+    mode = "0400";
+  };
+
+  # Raw Hindsight tenant key, shared with the containers host.
+  age.secrets.hindsight-api-key = {
+    file = ../../../secrets/hindsight-api-key.age;
     mode = "0400";
   };
 

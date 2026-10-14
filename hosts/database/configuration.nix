@@ -168,6 +168,14 @@ in {
     group = "postgres";
   };
 
+  # Hindsight database password. Shared with the containers host, which
+  # builds the container's database URL from the same file at start.
+  age.secrets.hindsight-db-password = {
+    file = ../../secrets/hindsight-db-password.age;
+    owner = "postgres";
+    group = "postgres";
+  };
+
   # Password for the read-only `mcp` role consumed by the pgmcp MCP servers on
   # the mcp host. The same password is embedded in each pg-mcp-<db>-url.age
   # secret over there — rotating it means re-encrypting all of them.
@@ -347,7 +355,7 @@ in {
     # `attic` removed 2026-09-09 with the cache VM (iac/main.tf). Dropping it
     # here also drops its nightly dump, because services.postgresqlBackup below
     # derives its database list from this one.
-    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica"];
+    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight"];
 
     # Initial users
     ensureUsers = [
@@ -369,6 +377,10 @@ in {
       }
       {
         name = "multica";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "hindsight";
         ensureDBOwnership = true;
       }
       # Read-only role for the pgmcp MCP servers. No ensureDBOwnership: it owns
@@ -480,6 +492,35 @@ in {
     description = "Set Multica PostgreSQL user password";
     secret = config.age.secrets.multica-db-password;
     timeouts = migrationRoleTimeouts;
+  };
+
+  # Hindsight runs its alembic migrations on startup (and retain/reflect are
+  # long LLM-backed writes), so it gets the same exemptions as the others.
+  systemd.services.postgresql-hindsight-password = mkRolePasswordUnit {
+    role = "hindsight";
+    description = "Set Hindsight PostgreSQL user password";
+    secret = config.age.secrets.hindsight-db-password;
+    timeouts = migrationRoleTimeouts;
+  };
+
+  # pgvector for Hindsight. Same reason as Multica's below: the extension is
+  # untrusted, the hindsight role cannot create it, and its migrations need it
+  # on the first start.
+  systemd.services.postgresql-hindsight-extension = {
+    description = "Create pgvector extension for Hindsight";
+    after = ["postgresql-setup.service"];
+    requires = ["postgresql-setup.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "postgres";
+      Group = "postgres";
+    };
+    script = ''
+      ${psql} -d hindsight -v ON_ERROR_STOP=1 \
+        -c 'CREATE EXTENSION IF NOT EXISTS "vector";'
+    '';
   };
 
   # pgvector and pg_bigm for Multica. The backend runs its own migrations on

@@ -97,6 +97,10 @@ in {
   "hermes-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   "hermes-research-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   "hf-token.age".publicKeys = [amadeus hostWotan]; # env-file: HF_TOKEN=hf_... (vLLM gated models)
+  "hindsight-api-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostMcp]; # raw tenant key; containers builds its env from it, axon forwards it as Bearer
+  "hindsight-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase]; # raw password; containers builds the database URL from it
+  "hindsight-llm-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # env-file: HINDSIGHT_API_LLM_API_KEY=<OpenCode Zen key>
+  "hindsight-ui-oauth2-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # env-file: OAUTH2_PROXY_CLIENT_ID/_CLIENT_SECRET/_COOKIE_SECRET (Pocket ID client)
   "hofvarpnir-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostJellyfin];
   "hofvarpnir-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostJellyfin];
   "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI

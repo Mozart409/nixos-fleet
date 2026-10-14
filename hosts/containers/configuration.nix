@@ -16,6 +16,7 @@
     ./searxng
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
     # MCP servers it fronts could go loopback-only.
+    ./hindsight
     ./homelab-dashboard
     ./romm
     ./mailpit

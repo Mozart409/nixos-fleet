@@ -129,6 +129,8 @@
           ''"dns.homelab.local. A 192.168.2.145"''
           ''"forgejo.homelab.internal. A 192.168.2.178"''
           ''"forgejo.homelab.local. A 192.168.2.178"''
+          ''"hindsight-ui.homelab.internal. A 192.168.2.149"''
+          ''"hindsight.homelab.internal. A 192.168.2.149"''
           ''"hofvarpnir.homelab.internal. A 192.168.2.180"''
           ''"hofvarpnir.homelab.local. A 192.168.2.180"''
           ''"homeassistant.local. A 192.168.2.208"''
