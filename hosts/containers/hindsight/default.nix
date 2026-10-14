@@ -70,17 +70,14 @@ in {
     mode = "0400";
   };
 
-  # HINDSIGHT_API_LLM_API_KEY: an OpenCode Zen key of its own, so Hindsight's
-  # spend shows up separately from the agent zones'.
-  age.secrets.hindsight-llm-env = {
-    file = ../../../secrets/hindsight-llm-env.age;
-    mode = "0400";
-  };
-
+  # The secrets only this host needs, read by both the container and
+  # oauth2-proxy (each ignores the other's variables):
+  # HINDSIGHT_API_LLM_API_KEY, an OpenCode Zen key of its own so Hindsight's
+  # spend shows up separately from the agent zones'; and
   # OAUTH2_PROXY_CLIENT_ID, OAUTH2_PROXY_CLIENT_SECRET and
-  # OAUTH2_PROXY_COOKIE_SECRET for the Pocket ID client of the Control Plane.
-  age.secrets.hindsight-ui-oauth2-env = {
-    file = ../../../secrets/hindsight-ui-oauth2-env.age;
+  # OAUTH2_PROXY_COOKIE_SECRET for the Control Plane's Pocket ID client.
+  age.secrets.hindsight-env = {
+    file = ../../../secrets/hindsight-env.age;
     mode = "0400";
   };
 
@@ -107,7 +104,7 @@ in {
       };
     environmentFiles = [
       "/run/hindsight/hindsight.env"
-      config.age.secrets.hindsight-llm-env.path
+      config.age.secrets.hindsight-env.path
     ];
     extraOptions = [
       # Upstream's recommended run flags; the local embedding model uses it.
@@ -123,7 +120,7 @@ in {
     restartTriggers = [
       config.age.secrets.hindsight-db-password.file
       config.age.secrets.hindsight-api-key.file
-      config.age.secrets.hindsight-llm-env.file
+      config.age.secrets.hindsight-env.file
     ];
   };
 
@@ -134,7 +131,7 @@ in {
     enable = true;
     provider = "oidc";
     oidcIssuerUrl = "https://pocketid.dropbear-butterfly.ts.net";
-    keyFile = config.age.secrets.hindsight-ui-oauth2-env.path;
+    keyFile = config.age.secrets.hindsight-env.path;
     redirectURL = "https://${uiHost}/oauth2/callback";
     httpAddress = "http://127.0.0.1:${toString uiAuthPort}";
     upstream = ["http://127.0.0.1:${toString uiPort}"];
@@ -147,6 +144,10 @@ in {
       skip-provider-button = true;
     };
   };
+
+  # The module's own trigger is the stable /run/agenix path; add the .age
+  # store path so a rotated secret restarts it too.
+  systemd.services.oauth2-proxy.restartTriggers = [config.age.secrets.hindsight-env.file];
 
   services.caddy.virtualHosts = {
     # API + MCP. The tenant key is the auth; axon-gateway is the only client.
