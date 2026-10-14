@@ -49,6 +49,11 @@
           url = "https://otel.homelab.internal/grafana";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg";
         }
+        # The Control Plane, behind the Pocket ID login.
+        {
+          name = "Hindsight";
+          url = "https://hindsight-ui.homelab.internal";
+        }
         {
           name = "Home Assistant";
           url = "https://homeassistant.dropbear-butterfly.ts.net/lovelace/0";
@@ -97,6 +102,11 @@
         {
           name = "Grafana";
           url = "https://otel.homelab.internal/grafana/api/health";
+        }
+        # Unauthenticated; 200 only while the database is connected.
+        {
+          name = "Hindsight";
+          url = "https://hindsight.homelab.internal/health";
         }
         {
           name = "RomM";
