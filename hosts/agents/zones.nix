@@ -95,6 +95,9 @@
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
         };
       permissions.deny = import ../../modules/claude-deny-core.nix {home = "/${zoneHome name}";};
+      # Agent memory is the shared Hindsight bank; per-zone auto-memory files
+      # would be one more silo nothing else reads.
+      autoMemoryEnabled = false;
     };
   zoneHome = name: "/var/lib/multica-${name}";
 
