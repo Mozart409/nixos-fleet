@@ -12,5 +12,16 @@
   programs.lazygit = {
     enable = true;
     settings.git.autoFetch = false;
+    settings.gui.theme = {
+      activeBorderColor = ["#33ccff" "bold"];
+      inactiveBorderColor = ["#6c7086"];
+      searchingActiveBorderColor = ["#f5c542" "bold"];
+      optionsTextColor = ["#33ccff"];
+      selectedLineBgColor = ["#1e1e28"];
+      cherryPickedCommitBgColor = ["#1e1e28"];
+      cherryPickedCommitFgColor = ["#a6e3a1"];
+      unstagedChangesColor = ["#ff6b6b"];
+      defaultFgColor = ["#cfd6f4"];
+    };
   };
 }
