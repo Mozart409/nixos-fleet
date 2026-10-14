@@ -15,7 +15,7 @@
   # below instead of being hand-duplicated per tool/per host.
   mcpServers = {
     axon-gateway = {
-      url = "https://axon.homelab.local/mcp";
+      url = "https://axon.homelab.internal/mcp";
       # Name of the env var (see the axon-gateway-env secret each importing
       # host must declare) that each tool expands AT ITS OWN RUNTIME — the
       # token itself is never baked into these config files, only a

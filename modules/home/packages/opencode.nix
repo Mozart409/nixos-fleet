@@ -168,11 +168,11 @@
               "curl *": "ask",
               "wget *": "ask",
               "curl *.homelab.internal*": "allow",
-              "curl *.homelab.local*": "allow",
+              "curl *.homelab.internal*": "allow",
               "curl *localhost*": "allow",
               "curl *127.0.0.1*": "allow",
               "wget *.homelab.internal*": "allow",
-              "wget *.homelab.local*": "allow",
+              "wget *.homelab.internal*": "allow",
               "wget *localhost*": "allow",
               "wget *127.0.0.1*": "allow",
 
@@ -223,7 +223,7 @@
           mcp = {
             axon-gateway = {
               type = "remote";
-              url = "https://axon.homelab.local/mcp";
+              url = "https://axon.homelab.internal/mcp";
               transport = "http";
               oauth = false;
               headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
@@ -239,7 +239,7 @@
             };
             homeassistant = {
               type = "remote";
-              url = "https://mcp.homelab.local/mcp";
+              url = "https://mcp.homelab.internal/mcp";
               enabled = false;
             };
             gh_grep = {

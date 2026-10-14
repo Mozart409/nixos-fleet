@@ -24,7 +24,7 @@
       mcpServers = {
         axon-gateway = {
           type = "http";
-          url = "https://axon.homelab.local/mcp";
+          url = "https://axon.homelab.internal/mcp";
           headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
         };
         # nixos-ventara-ai's own axon-gateway; token from
