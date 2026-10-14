@@ -53,6 +53,7 @@
         {
           name = "Hindsight";
           url = "https://hindsight-ui.homelab.internal";
+          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/hindsight.png";
         }
         {
           name = "Home Assistant";
