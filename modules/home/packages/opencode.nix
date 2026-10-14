@@ -37,6 +37,15 @@
   };
 
   config = lib.mkMerge [
+    # Hindsight recall/retain rules (modules/agent-memory.nix). OpenCode has no
+    # session hooks; it reads the global AGENTS.md next to each project's.
+    {
+      home.file.".config/opencode/AGENTS.md".text =
+        (import ../../agent-memory.nix {
+          inherit pkgs lib;
+          agent = "opencode-wotan";
+        }).instructions;
+    }
     (lib.mkIf config.opencode.guardrails.enable {
       # Plugin = the actual enforcement. opencode loads {plugin,plugins}/*.{ts,js}
       # from the config dir (symlinks included) at startup.

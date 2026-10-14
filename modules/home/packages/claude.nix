@@ -8,6 +8,12 @@
   # Commit signing via the signing-only agent from opencode-serve (see
   # modules/wotan/opencode-serve.nix): Claude never gets the login keys.
   signing = osConfig.services.opencode-serve.signing;
+
+  # Hindsight recall/retain rules, as a SessionStart hook (modules/agent-memory.nix).
+  memory = import ../../agent-memory.nix {
+    inherit pkgs lib;
+    agent = "claude-wotan";
+  };
   signingEnv = lib.optionalAttrs (signing.keyFile != null) {
     SSH_AUTH_SOCK = "/run/opencode-signing/agent.sock";
     GIT_CONFIG_COUNT = "3";
@@ -166,6 +172,7 @@
       common.env
       // {EDITOR = "nvim";}
       // signingEnv;
+    hooks.SessionStart = memory.claudeHooks.SessionStart;
     hooks.PreToolUse = [
       {
         matcher = "Bash";

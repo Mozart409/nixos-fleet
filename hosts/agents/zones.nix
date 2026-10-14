@@ -98,7 +98,12 @@
       # Agent memory is the shared Hindsight bank; per-zone auto-memory files
       # would be one more silo nothing else reads.
       autoMemoryEnabled = false;
+      # Recall/retain rules for that bank (modules/agent-memory.nix). The
+      # hindsight_* tools come from the axon MCP server in Multica's agent
+      # config; without it the text tells the agent to ignore it.
+      hooks = (memory "claude-${name}").claudeHooks;
     };
+  memory = agent: import ../../modules/agent-memory.nix {inherit pkgs lib agent;};
   zoneHome = name: "/var/lib/multica-${name}";
 
   hostAddr = "10.42.0.1";
@@ -286,6 +291,22 @@
       workspacesRoot = "/srv/work/${name}";
       packages = zone.packages ++ [pkgs.nix];
       inherit (zone) environment;
+    };
+
+    # The Hindsight rules for OpenCode (modules/agent-memory.nix), as its global
+    # AGENTS.md. Multica only injects MCP config, so this file is left alone.
+    systemd.services."opencode-memory-${name}" = {
+      description = "Write the ${name} zone's global OpenCode instructions";
+      wantedBy = ["multica-daemon-${name}.service"];
+      before = ["multica-daemon-${name}.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "multica-${name}";
+      };
+      script = ''
+        install -D -m 0644 ${pkgs.writeText "opencode-${name}-AGENTS.md" (memory "opencode-${name}").instructions} \
+          /var/lib/multica-${name}/.config/opencode/AGENTS.md
+      '';
     };
 
     # opencode keeps provider keys in auth.json, not its config; merge the Zen
