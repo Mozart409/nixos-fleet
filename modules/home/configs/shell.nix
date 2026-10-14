@@ -189,7 +189,12 @@
           OPENCODE_SERVER_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
             command opencode attach "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" --dir "$PWD" "$@"
         else
-          command opencode "$@"
+          # Subcommands run locally, not on the server, so they need the
+          # gateway tokens themselves (`opencode mcp list` got a 401 from axon
+          # without them and reported the SSE fallback's 405).
+          AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
+          VENTARA_GATEWAY_TOKEN="$(sed -n 's/^VENTARA_GATEWAY_TOKEN=//p' "''${VENTARA_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
+            command opencode "$@"
         fi
       }
 
