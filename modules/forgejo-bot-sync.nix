@@ -162,7 +162,7 @@ in {
     };
     forgejoHost = lib.mkOption {
       type = lib.types.str;
-      default = "forgejo.homelab.local";
+      default = "forgejo.homelab.internal";
     };
     forgejoPort = lib.mkOption {
       type = lib.types.port;

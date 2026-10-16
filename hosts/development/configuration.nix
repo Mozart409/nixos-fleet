@@ -142,8 +142,9 @@ in {
   # and the agent socket is back in play. Add new patterns in pairs.
   #
   # `!*.ts.net` exists because `homelab-*` is greedier than it looks: the git
-  # remote here is ssh://forgejo@homelab-forgejo.dropbear-butterfly.ts.net:2222,
-  # which `homelab-*` matches. That handed Forgejo an IdentitiesOnly list
+  # remote here used to be ssh://forgejo@homelab-forgejo.dropbear-butterfly.ts.net:2222
+  # (Forgejo's old ROOT_URL host; now forgejo.homelab.internal), which
+  # `homelab-*` matches. That handed Forgejo an IdentitiesOnly list
   # containing just id_colmena and no agent fallback, so `git pull` died with
   # `Permission denied (publickey)` — and silently, with no passphrase prompt,
   # because ssh offers the *public* key first and never needs to decrypt one the
