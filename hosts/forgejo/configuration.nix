@@ -55,8 +55,8 @@
       };
 
       server = {
-        DOMAIN = "forgejo.homelab.local";
-        ROOT_URL = "https://homelab-forgejo.dropbear-butterfly.ts.net/";
+        DOMAIN = "forgejo.homelab.internal";
+        ROOT_URL = "https://forgejo.homelab.internal/";
         HTTP_ADDR = "127.0.0.1";
         HTTP_PORT = 3000;
         SSH_PORT = 2222;
