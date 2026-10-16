@@ -127,10 +127,22 @@ in {
   # The Control Plane has no login of its own (HINDSIGHT_CP_ACCESS_KEY stays
   # unset), so Pocket ID is the login. The Pocket ID client is restricted to
   # my user there; any account it lets through gets in here.
+  #
+  # Pocket ID's endpoints are pinned and OIDC discovery is off. With discovery
+  # on, oauth2-proxy fetches the issuer's /.well-known/openid-configuration at
+  # startup; on a fresh boot the tailnet/MagicDNS name is not resolvable yet, so
+  # the process exits, trips systemd's start limit and parks in `failed`. That
+  # is exactly what happened on 2026-10-17: the containers VM rebooted, Caddy
+  # answered the UI vhost 502 while the API stayed healthy. Pinning the four
+  # endpoints removes the startup network dependency altogether (Grafana in
+  # hosts/otel does the same). Endpoints are Pocket ID's discovery document.
   services.oauth2-proxy = {
     enable = true;
     provider = "oidc";
     oidcIssuerUrl = "https://pocketid.dropbear-butterfly.ts.net";
+    loginURL = "https://pocketid.dropbear-butterfly.ts.net/authorize";
+    redeemURL = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/token";
+    profileURL = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/userinfo";
     keyFile = config.age.secrets.hindsight-env.path;
     redirectURL = "https://${uiHost}/oauth2/callback";
     httpAddress = "http://127.0.0.1:${toString uiAuthPort}";
@@ -142,12 +154,23 @@ in {
     extraConfig = {
       code-challenge-method = "S256";
       skip-provider-button = true;
+      # Required alongside skip-oidc-discovery for provider=oidc.
+      skip-oidc-discovery = true;
+      oidc-jwks-url = "https://pocketid.dropbear-butterfly.ts.net/.well-known/jwks.json";
     };
   };
 
   # The module's own trigger is the stable /run/agenix path; add the .age
   # store path so a rotated secret restarts it too.
-  systemd.services.oauth2-proxy.restartTriggers = [config.age.secrets.hindsight-env.file];
+  #
+  # The module sets Restart=always. Disable the start limit and space retries
+  # out, so any transient failure keeps retrying instead of parking the unit in
+  # `failed` until someone notices the UI is down.
+  systemd.services.oauth2-proxy = {
+    restartTriggers = [config.age.secrets.hindsight-env.file];
+    unitConfig.StartLimitIntervalSec = 0;
+    serviceConfig.RestartSec = 5;
+  };
 
   services.caddy.virtualHosts = {
     # API + MCP. The tenant key is the auth; axon-gateway is the only client.

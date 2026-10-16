@@ -178,6 +178,17 @@
         url = "https://hindsight.homelab.internal/health";
         instance = "homelab-containers";
       }
+      # Hindsight's Control Plane UI, via its oauth2-proxy front. The UI root
+      # 302s to Pocket ID and the prober follows redirects, which would drag the
+      # tailnet IdP into the probe -- so hit oauth2-proxy's own liveness path
+      # instead: /ping answers 200 with no auth and without touching the Control
+      # Plane upstream. This is the target that would have caught 2026-10-17,
+      # when the unit was `failed` after the containers reboot and Caddy returned
+      # 502 while the tls_cert probe below stayed green.
+      {
+        url = "https://hindsight-ui.homelab.internal/ping";
+        instance = "homelab-containers";
+      }
       {
         url = "https://searxng.homelab.internal";
         instance = "homelab-containers";
