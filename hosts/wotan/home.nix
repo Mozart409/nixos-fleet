@@ -185,10 +185,15 @@
         IdentitiesOnly = "yes";
       };
     };
+    # IdentityFile accumulates across matching blocks, so Forgejo (git as user
+    # `forgejo`, caught by `*.internal` above) is offered id_ed25519 after id_agent.
     extraConfig = ''
       Match User ${username},root
         IdentityFile ~/.ssh/id_ed25519
         IdentitiesOnly yes
+
+      Match host forgejo.homelab.internal
+        IdentityFile ~/.ssh/id_ed25519
     '';
   };
 
