@@ -401,9 +401,14 @@ resource "proxmox_virtual_environment_vm" "containers_vm" {
     type  = "host"
   }
 
+  # Pinned floating = dedicated, like forgejo_vm: on 2026-10-16 ballooning
+  # dragged this guest to its 1792 MiB floor, it swapped ~2 GiB onto zfs_pool
+  # (the HDD mirror), load hit 9 and hindsight/multica/SSH timed out. The
+  # working set (RAM + swap) peaked at 3.5 GB over the prior 14 days; 6 GiB
+  # leaves room for page cache and hindsight's local embedding/reranker models.
   memory {
-    dedicated = 3584
-    floating  = 1792
+    dedicated = 6144
+    floating  = 6144
   }
 
   disk {
