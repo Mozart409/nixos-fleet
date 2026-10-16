@@ -80,9 +80,14 @@ resource "proxmox_virtual_environment_vm" "database_vm" {
     type  = "host"
   }
 
+  # Pinned floating = dedicated, like containers_vm: on 2026-10-16 ballooning
+  # held this guest at 0.73 GB, it swapped onto zfs_pool, and with io stall at
+  # 50% multica's PAT last_used_at UPDATEs queued on row locks for 1.6-10 s.
+  # Working set (RAM + swap) peaked at 1.3 GB; the rest is page cache for
+  # forgejo, multica, hindsight (pgvector) and the other databases.
   memory {
-    dedicated = 1536
-    floating  = 768
+    dedicated = 4096
+    floating  = 4096
   }
 
   disk {
