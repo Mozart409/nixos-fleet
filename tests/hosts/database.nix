@@ -2,6 +2,7 @@
 harness.mkHostTest {
   name = "database";
   hostPath = ../../hosts/database/configuration.nix;
+  memorySize = 2048; # shared_buffers = 1GB
   extraModules = [harness.clearStaticNetworking];
   testScript = ''
     machine.wait_for_unit("multi-user.target")

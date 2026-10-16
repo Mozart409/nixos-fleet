@@ -200,11 +200,15 @@ in {
     package = pkgs.postgresql_18.withPackages (ps: [ps.pg_bigm ps.pgvector]);
 
     settings = {
-      # Performance tuning (adjust based on available RAM)
-      shared_buffers = "256MB";
-      effective_cache_size = "1GB";
-      maintenance_work_mem = "64MB";
-      work_mem = "4MB";
+      # Sized for the 4 GiB pinned in iac/main.tf (database_vm, 2026-10-16):
+      # shared_buffers ~25% of RAM, effective_cache_size ~75%.
+      # maintenance_work_mem is generous for pgvector HNSW builds (hindsight)
+      # and autovacuum; work_mem stays modest since it is per sort/hash node
+      # across up to max_connections backends.
+      shared_buffers = "1GB";
+      effective_cache_size = "3GB";
+      maintenance_work_mem = "256MB";
+      work_mem = "8MB";
       max_connections = 100;
 
       # Timezone. NixOS generates postgresql.conf from this attrset and drops
@@ -240,7 +244,7 @@ in {
       log_line_prefix = "%m [%p] %q%u@%d/%a ";
 
       # Cheap, high-signal diagnostics for a slow-disk box: who waited on a lock
-      # (>deadlock_timeout, 1s), which sorts/hashes spilled past work_mem (4MB)
+      # (>deadlock_timeout, 1s), which sorts/hashes spilled past work_mem (8MB)
       # onto the HDDs, and when autovacuum ate the disk.
       log_lock_waits = true;
       log_temp_files = "10MB";
