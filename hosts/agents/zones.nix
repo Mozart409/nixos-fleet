@@ -390,10 +390,11 @@
         user.name = zone.forgejoBot.name;
         user.email = zone.forgejoBot.email;
         init.defaultBranch = "main";
-        # Forgejo advertises its clone URLs under the tailnet name (ROOT_URL),
-        # which does not resolve in the zones (no MagicDNS, and the dns host
-        # has no ts.net forward), and Multica stores whatever URL was pasted.
-        # Send every spelling over SSH to the LAN name, with the bot's key.
+        # Forgejo advertised its clone URLs under the tailnet name until
+        # ROOT_URL moved to forgejo.homelab.internal, and Multica stores
+        # whatever URL was pasted. The tailnet name does not resolve in the
+        # zones (no MagicDNS, and the dns host has no ts.net forward), so send
+        # every spelling over SSH to the LAN name, with the bot's key.
         url."ssh://forgejo@forgejo.homelab.internal:2222/".insteadOf = [
           "ssh://forgejo@homelab-forgejo.dropbear-butterfly.ts.net:2222/"
           "https://homelab-forgejo.dropbear-butterfly.ts.net/"
