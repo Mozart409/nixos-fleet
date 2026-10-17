@@ -11,6 +11,10 @@ others are agents; override a single host in `roleOverrides`.
 2. Add a DNS record or DHCP reservation for `<name>.homelab.internal`.
 3. Build and flash the image (below), boot it, then do the secret steps.
 
+Once `k3s-token.age` is committed, k3s fails (and restarts in a loop) on a new Pi
+until its host key is in `piHosts`, the secret is re-encrypted (`just reencrypt`)
+and the host is applied. The Pi still boots and SSH works meanwhile.
+
 ## Build and flash
 
 From wotan (it has aarch64 binfmt):
@@ -42,5 +46,8 @@ variant noted in `agenix-rules.nix`) after extending `piHosts`.
 ## Notes
 
 - Ports: every node opens 10250/tcp and 8472/udp; the server also 6443/tcp.
-- One server only: embedded etcd without HA. Do not set two servers.
+- One server only, on k3s' default SQLite datastore (no etcd writes on the SD
+  card). To go HA later (second server, or a USB SSD), restart the server with
+  `--cluster-init` (set `services.k3s.clusterInit = true`); k3s migrates SQLite
+  to embedded etcd, then add servers with `serverAddr`. Not wired up yet.
 - The previous Pi and k3s-cntrl-1 config is archived in `docs/archive/rpi-k3s/`.

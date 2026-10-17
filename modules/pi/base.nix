@@ -51,12 +51,8 @@
     };
   };
 
-  # Same keys modules/server.nix authorizes on the rest of the fleet.
-  homelab.users.amadeus.sshKeys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMPJIxb+FNkiFtPB/9eUenHa1RCWLBI0ia7KN/nFIdGH iPhone"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH/HCRJuzlIbgcWk68ehApZl6kN+7PnKIgYSLRZ5IjzQ amadeus@Amadeuss-MacBook-Pro.local"
-  ];
+  # The fleet's keys (lib/ssh-keys.nix), incl. the colmena deploy key.
+  homelab.users.amadeus.sshKeys = import ../../lib/ssh-keys.nix;
   security.sudo.wheelNeedsPassword = false;
 
   environment.systemPackages = with pkgs; [

@@ -13,7 +13,7 @@
 
   # The first entry is the k3s server (embedded etcd), every other entry an
   # agent. Override one host here to switch its role: "server" | "agent".
-  # A second server needs HA setup (clusterInit/serverAddr) that
+  # A second server needs HA setup (--cluster-init/serverAddr) that
   # modules/k3s/server.nix does not do yet.
   roleOverrides = {
     # rpi4-2 = "agent";
