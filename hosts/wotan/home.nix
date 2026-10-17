@@ -184,6 +184,9 @@
         IdentityFile = "~/.ssh/id_agent";
         IdentitiesOnly = "yes";
       };
+      "10.0.10.*" = {
+        ProxyJump = "root@172.16.10.11";
+      };
     };
     # IdentityFile accumulates across matching blocks, so Forgejo (git as user
     # `forgejo`, caught by `*.internal` above) is offered id_ed25519 after id_agent.
