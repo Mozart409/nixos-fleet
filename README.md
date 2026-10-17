@@ -98,8 +98,7 @@ took 21 GB there, before Claude Code and the bun-hosted plugins.
   are gone; only `hosts/` dirs and `nixosConfigurations` entries linger.
 - `k3s-server-1` / `k3s-agent-1` — commented out in `flake.nix` and
   `iac/main.tf`.
-- `rpi4-1` — commented out in the hive. `rpi4` / `rpi5` remain as SD-image
-  builds (`just rpi-build rpi4`).
+- `rpi`, `rpi4-1`, `k3s-cntrl-1` — archived in `docs/archive/rpi-k3s/`.
 - `minimal` — bootstrap config used by `just deploy-minimal`, not a host.
 
 All active hosts run Tailscale and a Caddy front end, serving both Tailscale TLS
