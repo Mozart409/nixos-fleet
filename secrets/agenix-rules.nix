@@ -42,6 +42,9 @@ let
   #   cd infra/secrets && agenix -r -i /run/user/1000/rekey && shred -u /run/user/1000/rekey
   # Verify with sha256sum before/after: age uses a fresh ephemeral key per
   # encryption, so an UNCHANGED ciphertext means nothing happened.
+  # Pi 4 host keys, added after each Pi's first boot (`just get-host-key <host>`);
+  # empty until then. See infra/docs/rpi-k3s.md.
+  piHosts = [];
   users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostAgents];
   # keep-sorted end
 in {
@@ -104,6 +107,7 @@ in {
   "hofvarpnir-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostJellyfin];
   "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI
   "homeassistant-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
+  "k3s-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook] ++ piHosts; # raw token (pwgen -s 64 1) for the Pi k3s fleet, see infra/docs/rpi-k3s.md; the file does not exist yet
   "mailpit-ui-auth.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # htpasswd line for the Mailpit UI: amadeus:$2y$... (htpasswd -nB amadeus)
   "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # plain auth token
   "multica-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase]; # raw password; containers builds DATABASE_URL from it
