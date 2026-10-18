@@ -234,7 +234,19 @@ hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.move({ direction = "down" })
 -- refuses an id that is taken). change_id re-labels compositor-side without
 -- an event quickshell handles, so the bar would count windows on their
 -- pre-swap buttons; restarting the quickshell user service resyncs it.
+-- The restarted bar maps its layer surfaces over a fullscreen window that
+-- crossed monitors (a fullscreen video), so once quickshell is back each
+-- such window drops and regains compositor fullscreen, the same as leaving
+-- and re-entering fullscreen by hand. Only the internal state is cycled; the
+-- client state stays put, so the browser keeps its video fullscreen.
 local swapTempId = 9999
+local refullscreenTimer -- held so the pending oneshot is not collected
+local function refullscreen(windows)
+    for _, w in ipairs(windows) do
+        hl.dispatch(hl.dsp.window.fullscreen_state({ internal = 0, client = w.client, window = w.window }))
+        hl.dispatch(hl.dsp.window.fullscreen_state({ internal = w.internal, client = w.client, window = w.window }))
+    end
+end
 hl.bind(mainMod .. " + SHIFT + up", function()
     local here = hl.get_active_workspace()
     local other
@@ -247,12 +259,24 @@ hl.bind(mainMod .. " + SHIFT + up", function()
     if not here or not other or here.id <= 0 or other.id <= 0 then
         return
     end
+    local fullscreen = {}
+    for _, ws in ipairs({ here, other }) do
+        local w = ws.fullscreen_window
+        if w then
+            fullscreen[#fullscreen + 1] = { window = w, internal = w.fullscreen, client = w.fullscreen_client }
+        end
+    end
     local a, b = here.id, other.id
     hl.dispatch(hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" }))
     hl.dispatch(hl.dsp.workspace.change_id({ workspace = a, id = swapTempId }))
     hl.dispatch(hl.dsp.workspace.change_id({ workspace = b, id = a }))
     hl.dispatch(hl.dsp.workspace.change_id({ workspace = swapTempId, id = b }))
     hl.dispatch(hl.dsp.exec_cmd("systemctl --user restart quickshell.service"))
+    if #fullscreen > 0 then
+        refullscreenTimer = hl.timer(function()
+            refullscreen(fullscreen)
+        end, { timeout = 1500, type = "oneshot" })
+    end
 end)
 
 -- Push window to the previous/next monitor unconditionally (works for tiled
