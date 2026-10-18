@@ -144,6 +144,19 @@ in {
   # the per-link DNS set below.
   networking.networkmanager.unmanaged = ["interface-name:nebula-*"];
 
+  # vm-prod-01's names (nixos-ventara-ai docs/prod.md, "Names"). The overlay's
+  # split DNS serves only int.oyabu.cc and portal.amartum.ai has no public
+  # records yet, so pin them to prod's amartum address. Tenant names
+  # (<slug>.portal.amartum.ai) need their own entry: hosts has no wildcards.
+  # Drop once real A records exist.
+  networking.hosts."172.16.10.12" = [
+    "portal.amartum.ai"
+    "auth.portal.amartum.ai"
+    "harbor.sys.portal.amartum.ai"
+    "api.sys.portal.amartum.ai"
+    "s3.sys.portal.amartum.ai"
+  ];
+
   # "-" keeps a resolvectl failure from failing nebula@amartum itself.
   systemd.services."nebula@amartum".serviceConfig.ExecStartPost = [
     "-+${config.systemd.package}/bin/resolvectl dns nebula-amartum 172.16.10.1 172.16.10.2 172.16.10.3"
