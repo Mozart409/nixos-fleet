@@ -185,7 +185,7 @@
         IdentitiesOnly = "yes";
       };
       "10.0.10.*" = {
-        ProxyJump = "root@172.16.10.11";
+        ProxyJump = "amadeus@172.16.10.10";
       };
     };
     # IdentityFile accumulates across matching blocks, so Forgejo (git as user
