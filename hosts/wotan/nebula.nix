@@ -155,6 +155,8 @@ in {
     "harbor.sys.portal.amartum.ai"
     "api.sys.portal.amartum.ai"
     "s3.sys.portal.amartum.ai"
+    # step-ca for agent mTLS, :9443 (nixos-ventara-ai ADR 0012).
+    "ca.sys.portal.amartum.ai"
   ];
 
   # "-" keeps a resolvectl failure from failing nebula@amartum itself.
