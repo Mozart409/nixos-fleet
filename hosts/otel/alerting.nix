@@ -174,6 +174,143 @@
           }
         ];
       }
+      {
+        # Free space per block device. `min by (instance, device, fstype)`
+        # instead of one series per mountpoint on purpose: a btrfs host mounts
+        # ONE device at /, /var, /home, /nix and /.swapvol (all subvolumes of
+        # /dev/sda3), so a mountpoint-keyed rule fires five identical alerts
+        # for a single full disk. The device is what actually runs out, and it
+        # is the label the alert shows.
+        #
+        # The fstype filter drops everything that is not a persisted disk:
+        # tmpfs (a zone's entire / is a tmpfs rootfs), ramfs (/run/keys),
+        # overlay, squashfs, autofs, the read-only virtiofs /nix/.ro-store
+        # share, and fuse (the pve /etc/pve and lxcfs mounts). The mountpoint
+        # filter drops /nix and everything under it: on btrfs /nix is another
+        # alias of /, and /nix/.rw-store is the zones' per-boot writable
+        # overlay, covered by its own rule below.
+        #
+        # Thresholds: warning at 15% free, critical at 5%. Nothing in the
+        # fleet sits below ~38% free at the time of writing, so these do not
+        # fire on stable-but-full disks the way a flat 20% would. One honest
+        # limit: btrfs `df` (and so node_filesystem_avail_bytes) OVER-reports
+        # free space when metadata is exhausted -- a btrfs can refuse writes
+        # while this metric is still comfortably high (it did, see
+        # todo/dns-cache-ssd-xfs-migration.md). This rule catches data
+        # exhaustion, not metadata exhaustion.
+        name = "disk-space";
+        rules = [
+          {
+            alert = "DiskSpaceLow";
+            expr = "min by (instance, device, fstype) (node_filesystem_avail_bytes{fstype!~\"tmpfs|ramfs|devtmpfs|overlay|squashfs|autofs|fuse.*|virtiofs\", mountpoint!~\"/nix(/.*)?\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|ramfs|devtmpfs|overlay|squashfs|autofs|fuse.*|virtiofs\", mountpoint!~\"/nix(/.*)?\"}) < 0.15";
+            for = "15m";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.device }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} free";
+              description = "{{ $labels.device }} at {{ $labels.instance }} has been under 15% free for 15 minutes. Confirm with `df -h` on the host; /nix is reclaimed by nix-gc, and journald is capped at 50M per host.";
+            };
+          }
+          {
+            alert = "DiskSpaceCritical";
+            expr = "min by (instance, device, fstype) (node_filesystem_avail_bytes{fstype!~\"tmpfs|ramfs|devtmpfs|overlay|squashfs|autofs|fuse.*|virtiofs\", mountpoint!~\"/nix(/.*)?\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|ramfs|devtmpfs|overlay|squashfs|autofs|fuse.*|virtiofs\", mountpoint!~\"/nix(/.*)?\"}) < 0.05";
+            for = "5m";
+            labels.severity = "critical";
+            annotations = {
+              summary = "{{ $labels.device }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} free";
+              description = "{{ $labels.device }} at {{ $labels.instance }} has under 5% free. Writes are about to fail; free space now (nix-collect-garbage -d, prune logs) before services start erroring.";
+            };
+          }
+        ];
+      }
+      {
+        # Memory pressure. MemAvailable (not MemFree) is the honest number:
+        # it is what the kernel would hand to a new allocation without
+        # swapping. The ZFS caveat matters on pve-gigabyte, the one bare-metal
+        # host: its ARC is not page cache, so MemAvailable under-reports what
+        # is actually reclaimable, and that host sits at ~86% used even when
+        # perfectly healthy -- which is why the warning is 90% used and not
+        # 85%, and why the exclusion list below is empty rather than naming it.
+        # The guests (btrfs/xfs/ext4, no ARC) report MemAvailable truthfully,
+        # and the agent zones sit at 7-11% used.
+        name = "memory";
+        rules = [
+          {
+            alert = "MemoryAvailableLow";
+            expr = "node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10";
+            for = "30m";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.instance }} has only {{ $value | humanizePercentage }} memory available";
+              description = "Less than 10% of MemAvailable for 30 minutes on {{ $labels.instance }}. Confirm with `free -h` and `ps -eo pid,rss,comm --sort=-rss | head`; on the hypervisor check ZFS ARC before believing this (ARC is not reclaimable page cache).";
+            };
+          }
+          {
+            # The definitive signal: the kernel already had to kill something.
+            # MemAvailable is a forecast; this is the outcome. node_vmstat_oom_kill
+            # is a monotonic counter, so any increase in the last hour is real.
+            alert = "OutOfMemoryKills";
+            expr = "increase(node_vmstat_oom_kill[1h]) > 0";
+            for = "15m";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.instance }} has OOM-killed {{ $value | printf \"%.0f\" }} process(es) in the last hour";
+              description = "The kernel killed a process on {{ $labels.instance }} to reclaim memory. Check `journalctl -k | grep -i 'killed process'` to see what died; usually a build or an agent run exceeded the host's RAM.";
+            };
+          }
+        ];
+      }
+      {
+        # The Multica control plane and its per-zone daemons. There is no
+        # multica-specific metric to scrape (the release images expose none),
+        # so the unit state is the signal: the backend spawns podman-multica-*
+        # units on `containers`, and each agent zone runs multica-daemon-<zone>.
+        # Both hosts run node_exporter's systemd collector (modules/server.nix),
+        # so `state="active"` exists for each even when the unit is not, and
+        # `== 0` means "not active". The database side is shared postgres and is
+        # already covered by TargetDown for the database-node/-postgres jobs;
+        # /health and the TLS cert are probed in ./blackbox.nix.
+        name = "multica";
+        rules = [
+          {
+            alert = "MulticaUnitDown";
+            # `[.]` rather than `\.`: PromQL double-quoted strings are Go string
+            # literals, where `\.` is an invalid escape (it made promtool-less
+            # `prometheus` reject the whole file with "unknown escape sequence").
+            expr = "node_systemd_unit_state{state=\"active\", name=~\"podman-multica-(backend|web)[.]service|multica-daemon-.+[.]service\"} == 0";
+            for = "5m";
+            labels.severity = "critical";
+            annotations = {
+              summary = "{{ $labels.name }} is not active on {{ $labels.instance }}";
+              description = "The Multica backend, web SPA or a zone's daemon has been inactive/failed for 5 minutes. Check `systemctl status {{ $labels.name }}` and its journal on {{ $labels.instance }}; the backend retries its migrations every 10s, so a persistent failure is usually the database, not the unit.";
+            };
+          }
+        ];
+      }
+      {
+        # The agent zones' own disks. /nix/.rw-store is the writable overlay
+        # the zones build devShells into; it is excluded from the fleet-wide
+        # disk rule above because it is wiped and recreated empty on every VM
+        # start (hosts/agents/zones.nix, microvm.preStart), so it is not a
+        # permanent disk. It still fills over a VM's life -- heimdahl's went
+        # from 95% to ~0% free over one day on 2026-10-19 -- and a full overlay
+        # fails `nix develop` inside the zone, so it is monitored here with a
+        # reboot as the remedy. /srv/work (the task worktrees) and /var (the
+        # daemon's home and Hermes memory) are ordinary volumes and are covered
+        # by the disk-space rule.
+        name = "agent-zones";
+        rules = [
+          {
+            alert = "ZoneStoreOverlayFilling";
+            expr = "node_filesystem_avail_bytes{job=\"agents-zones\", mountpoint=\"/nix/.rw-store\"} / node_filesystem_size_bytes{job=\"agents-zones\", mountpoint=\"/nix/.rw-store\"} < 0.10";
+            for = "30m";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.zone }} zone's writable store overlay is {{ $value | humanizePercentage }} free";
+              description = "The /nix/.rw-store overlay on {{ $labels.instance }} has been under 10% free for 30 minutes. A full overlay fails `nix develop` inside the zone. It is wiped on every VM start, so `systemctl restart microvm@{{ $labels.zone }}` on the agents host reclaims it; if it refills fast, look for a task leaving large build output behind.";
+            };
+          }
+        ];
+      }
     ];
   };
 in {

@@ -73,6 +73,9 @@
       # .internal only (no .local vhosts); both verified 2026-10-14.
       "hindsight.homelab.internal"
       "hindsight-ui.homelab.internal"
+      # Multica's vhost is declared on the .internal name only (its module
+      # default, modules/multica-server.nix); verify=0 on 2026-10-20.
+      "multica.homelab.internal"
       "romm.homelab.local"
       "romm.homelab.internal"
       "searxng.homelab.local"
@@ -195,6 +198,16 @@
       }
       {
         url = "https://romm.homelab.internal";
+        instance = "homelab-containers";
+      }
+      # Multica's backend liveness (Caddy routes /health to the backend
+      # container, not the SPA). Verified 200 on 2026-10-20. This is the only
+      # outside-in check of the control plane: up{job="containers-node"} and
+      # the unit-state alert in ./alerting.nix both stay green while the
+      # backend is up but its database connection is broken -- /health is what
+      # notices that.
+      {
+        url = "https://multica.homelab.internal/health";
         instance = "homelab-containers";
       }
       # The one name deliberately left on .local: step-ca is not behind Caddy (it
