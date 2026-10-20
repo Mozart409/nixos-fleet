@@ -6,7 +6,6 @@
   #
   #   desktop.enable                  -> desktop/*
   #   security.hardening.enable       -> security.nix
-  #   hardware.razer.enable           -> razer.nix
   #   hardware.moza.enable            -> moza.nix
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
@@ -16,7 +15,6 @@
     ./common-packages.nix
     ./claude-code.nix
     ./security.nix
-    ./razer.nix
     ./moza.nix
     ./opencode-serve.nix
     ../desktop/default.nix

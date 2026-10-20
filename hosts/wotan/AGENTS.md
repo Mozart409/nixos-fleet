@@ -220,8 +220,7 @@ Servers use the fleet's `mkHost` (see `infra/AGENTS.md` §5). A second desktop w
    modules take it as a function arg (`{username, ...}`) instead of hardcoding `amadeus`.
 4. Import the desktop modules via the aggregator: `../../modules/wotan` (imports every
    desktop module; each optional one is gated by its own `enable` flag — e.g.
-   `hardware.razer.enable`, `hardware.moza.enable`,
-   `programs.claudeCodeMcp.enable`, `desktop.enable`).
+   `hardware.moza.enable`, `programs.claudeCodeMcp.enable`, `desktop.enable`).
 5. Keep it out of `colmenaHive`.
 
 ### Module Organization

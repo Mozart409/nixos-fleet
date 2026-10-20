@@ -116,9 +116,6 @@
     user = username;
   };
 
-  # Razer device support
-  hardware.razer.enable = true;
-
   # MOZA sim-racing wheelbase support
   hardware.moza.enable = true;
 
