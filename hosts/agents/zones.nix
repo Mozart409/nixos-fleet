@@ -241,7 +241,46 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
     ];
 
-    nix.settings.experimental-features = ["nix-command" "flakes"];
+    # Bound the writable store overlay (microvm.writableStoreOverlay above,
+    # mounted as the upper of /nix/store). Nothing else does: the guests import
+    # neither common.nix nor server.nix, so modules/nix-gc.nix -- the hosts'
+    # daily GC and their min-free/max-free -- never reaches them. A full
+    # overlay silently breaks `nix develop` inside the zone until the VM is
+    # restarted (preStart deletes the image), which is what otel's
+    # ZoneStoreOverlayFilling alert watches for. Two mechanisms, both mirroring
+    # nix-gc.nix but sized for these small volumes rather than its fleet-wide
+    # 5/10 GiB:
+    #
+    #   * Nix auto-GC: while something builds, once the overlay's free space
+    #     drops below min-free Nix collects unreachable paths back up to
+    #     max-free. Sized as fractions of storeSize because the volumes differ
+    #     (8 GiB assistant, 24 GiB heimdahl): trigger at 1/8 free, collect to
+    #     1/4. 1/8 sits just above the 10%-free the alert warns at, so the
+    #     backstop acts before a person is paged.
+    #   * A daily fleet-style nix-collect-garbage, for paths no build is
+    #     holding once its temp root is gone.
+    #
+    # The overlay's Nix database lives on the tmpfs root and resets on reboot
+    # (like the overlay itself), but within a VM's uptime it is intact and GC
+    # reclaims real overlay paths. The read-only lower store -- the host's
+    # /nix/store -- is never in the DB and is never touched.
+    nix.settings = {
+      experimental-features = ["nix-command" "flakes"];
+      min-free = zone.storeSize * 1024 * 1024 / 8;
+      max-free = zone.storeSize * 1024 * 1024 / 4;
+    };
+    nix.gc = {
+      automatic = true;
+      dates = "daily";
+      options = "--delete-older-than 3d";
+      randomizedDelaySec = "2h";
+    };
+    # Store deletion during agent work is pure iowait; stay out of the way,
+    # same as modules/nix-gc.nix does on the fleet.
+    systemd.services.nix-gc.serviceConfig = {
+      Nice = 19;
+      IOSchedulingClass = "idle";
+    };
 
     # Guest metrics for otel, reachable from the agents host only; the host
     # forwards metricsPort to it. Same collectors as modules/server.nix.
