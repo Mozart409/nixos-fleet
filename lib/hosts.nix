@@ -128,10 +128,6 @@ let
     scratchpad = {
       ip = "192.168.2.185";
     };
-    unifi = {
-      ip = "192.168.2.142";
-      tailscale = "homelab-unifi";
-    };
     wotan = {
       ip = "192.168.2.71";
     };

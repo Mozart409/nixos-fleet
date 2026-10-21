@@ -429,18 +429,6 @@ in {
           }
         ];
       }
-      # UniFi host exporters
-      {
-        job_name = "unifi-node";
-        static_configs = [
-          {
-            targets = ["${hosts.fqdn "unifi"}:9100"];
-            labels = {
-              instance = "homelab-unifi";
-            };
-          }
-        ];
-      }
       # Containers host exporters
       {
         job_name = "containers-node";

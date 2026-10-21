@@ -6,15 +6,18 @@ Scripts `unifi-os-server` script in a Debian 13 LXC. UniFi OS Server is a
 multi-service appliance stack; keep it in its supported Docker environment
 rather than trying to model the whole stack as NixOS services.
 
-The current `hosts/unifi/configuration.nix` runs the legacy Network Application
+The current `docs/archive/unifi/host-configuration.nix` ran the legacy Network Application
 (`pkgs.unifi`). This migration is for the newer UniFi OS Server, not a
 repackaging of that NixOS service.
 
 ## Status
 
-**Not started — planning only.** Keep the current controller available until
-the new server has imported its backup, devices are adopted, and monitoring and
-access paths have been checked.
+**Not started — planning only.** The NixOS controller VM was decommissioned
+in the repo on 2026-10-21 (config in `docs/archive/unifi/`; registry entry,
+DNS records, monitoring and the `unifi_vm` tofu resource removed), so Phase 3
+is done apart from `hostUnifi`. Phases 0–2 still apply to a fresh UniFi OS
+Server install; restore from the controller backup taken before the VM was
+destroyed.
 
 ## Target and decisions
 

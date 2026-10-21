@@ -53,7 +53,6 @@
   # and therefore deliberately absent -- add each back when it is fixed, that is
   # the whole point of having found them:
   #   pgadmin.homelab.local        verify=10, CERT EXPIRED (host: database)
-  #   unifi.homelab.internal       verify=1
   #   *-mcp.homelab.internal       (moot since 2026-09-14: those vhosts are gone,
   #                                see the homelab-mcp entry below)
   #
@@ -110,9 +109,6 @@
       "tempo.homelab.internal"
       "prometheus.homelab.local"
       "prometheus.homelab.internal"
-    ];
-    homelab-unifi = [
-      "unifi.homelab.local"
     ];
     # Since 2026-09-14 the mcp host serves exactly one vhost: axon-gateway
     # (moved here from containers). The eleven per-backend *-mcp.homelab.local

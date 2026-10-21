@@ -85,11 +85,6 @@
           url = "https://pve-gigabyte.dropbear-butterfly.ts.net/";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg";
         }
-        {
-          name = "UniFi";
-          url = "https://unifi.homelab.internal";
-          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ubiquiti-unifi.svg";
-        }
       ];
       health_checks = [
         {
