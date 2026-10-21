@@ -17,7 +17,7 @@
 #   ip         LAN address (192.168.2.0/24).
 #   zones      DNS zones that get an A record for <name> (and every alias),
 #              first entry = the primary name `fqdn` returns. Default
-#              ["homelab.local" "homelab.internal"]; .internal-only for names
+#              ["homelab.internal" "homelab.local"]; .internal-only for names
 #              born after the legacy zone was frozen.
 #   ptr        zones whose <name>.<zone> gets a PTR record. Default
 #              ["homelab.local"] (PTRs were never mirrored into .internal).
@@ -39,7 +39,7 @@ let
     prefixLength = 24;
   };
 
-  legacyAndInternal = ["homelab.local" "homelab.internal"];
+  legacyAndInternal = ["homelab.internal" "homelab.local"];
   internalOnly = {
     zones = ["homelab.internal"];
     ptr = [];
