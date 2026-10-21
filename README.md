@@ -213,10 +213,11 @@ NixOS config, which can differ from the bootstrap address.
   credentials, agenix for everything else.
 - Commits are single-line conventional commits, verified by `cog verify`; run
   `just fmt` before committing Nix changes (lefthook also enforces it).
-- Adding a host means touching `flake.nix` (`hostAddrs`,
-  `nixosConfigurations`, `colmenaHive`), `iac/main.tf` (VM + output),
-  `hosts/dns/configuration.nix` (A + PTR), and `hosts/otel/configuration.nix`
-  (Prometheus scrape). Checklist in AGENTS.md §5.
+- Adding a host means an entry in `lib/hosts.nix` (the host registry: IP,
+  DNS names, tailnet name; A/PTR records, `hostAddrs` and the static address
+  derive from it), `flake.nix` (`nixosConfigurations`, `colmenaHive`),
+  `iac/main.tf` (VM + output) and `hosts/otel/configuration.nix` (Prometheus
+  scrape). Checklist in AGENTS.md §5.
 - Some services are not restarted by `colmena apply` — `hermes-agent` after
   SOUL/skill/config changes, `podman-axon-gateway` after config.toml edits,
   Caddy after adding several vhosts at once. Post-deploy checklist in AGENTS.md §3.
