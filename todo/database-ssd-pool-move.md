@@ -69,7 +69,7 @@ re-key. See the comment above the woodpecker `disk` block in `iac/main.tf`.
       source with no undo. Confirm a current PBS snapshot of VM 4323 **and** a
       logical dump:
       ```bash
-      ssh database.homelab.local -- sudo ls -lt /var/backup/postgresql | head
+      ssh database.homelab.internal -- sudo ls -lt /var/backup/postgresql | head
       ```
 - [ ] `ssd_pool` headroom: `pvesm status | grep ssd_pool` (64 G zvol, sparse).
 
@@ -135,7 +135,7 @@ true;` to `hosts/database/configuration.nix` or mount with `discard=async` —
       shows nothing left on `zfs_pool`.
 - [ ] Guest: `lsblk -d -o NAME,ROTA` → `sda 0` (after reboot with `ssd=1`).
 - [ ] Postgres: `sudo systemctl status postgresql`, and from a client
-      `psql "sslmode=verify-full host=database.homelab.local ..."` works.
+      `psql "sslmode=verify-full host=database.homelab.internal ..."` works.
 - [ ] Write latency:
       `rate(node_disk_write_time_seconds_total{instance="homelab-database"}[5m]) / rate(node_disk_writes_completed_total{instance="homelab-database"}[5m])`
       should sit in low single-digit ms, and stay there during the next

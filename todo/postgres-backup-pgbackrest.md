@@ -278,7 +278,7 @@ services.prometheus.rules = [
 ];
 ```
 
-Caddy (both Tailscale + `otel.homelab.local` vhosts — mirror `/prometheus*`):
+Caddy (both Tailscale + `otel.homelab.internal` vhosts — mirror `/prometheus*`):
 ```
 handle_path /alertmanager* {
   reverse_proxy localhost:9093
@@ -293,7 +293,7 @@ inbound 9093 required for paging.**
 ### Notification path: Alertmanager → bridge → HA notify (not raw axon MCP)
 
 **Constraint:** Alertmanager only speaks HTTP webhooks. axon-gateway is an **MCP**
-aggregator (`https://axon.homelab.local/mcp`); AM cannot call `hamcp_call_service`
+aggregator (`https://axon.homelab.internal/mcp`); AM cannot call `hamcp_call_service`
 directly.
 
 **Same end path as hermes/axon today** (verified in
@@ -313,7 +313,7 @@ directly.
    with a long-lived access token (agenix secret; HA already issues these —
    same trust model as hamcp's HA token).
 
-Use `*.homelab.local` for the HA base URL (MagicDNS does not resolve between
+Use `*.homelab.internal` for the HA base URL (MagicDNS does not resolve between
 homelab VMs — AGENTS.md). Exact HA hostname/IP is a deploy-time fill-in.
 
 Keep the bridge loopback-only; no new public surface. Optional later: teach
@@ -431,6 +431,6 @@ systemd.timers.pgbackrest-info-metric = {
   lifecycle, token scoped to the bucket); put key/secret + cipher pass in the
   agenix secret **and** cipher-pass in a password manager.
 - HA long-lived token for the otel bridge (agenix); confirm HA base URL as
-  `*.homelab.local`.
+  `*.homelab.internal`.
 - After first successful backup: **rehearse a restore**, then remove
   `services.postgresqlBackup`.

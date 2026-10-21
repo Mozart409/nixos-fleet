@@ -82,7 +82,7 @@ uptime (`containers`), hofvarpnir (`jellyfin`), terraform, the pgmcp servers
 `atticd` is the one to watch — it runs sea-orm migrations on connect:
 
 ```bash
-ssh cache.homelab.local 'systemctl status atticd'
+ssh cache.homelab.internal 'systemctl status atticd'
 ```
 
 ### Restart that `colmena apply` does NOT do for you
@@ -91,13 +91,13 @@ Per AGENTS.md §3.5 — this branch edits axon-gateway's `config.toml` backends,
 so the restart is **required**, not optional:
 
 ```bash
-ssh containers.homelab.local 'sudo systemctl restart podman-axon-gateway'
+ssh containers.homelab.internal 'sudo systemctl restart podman-axon-gateway'
 ```
 
 If hermes has parked the axon-gateway MCP as a result, bounce it too:
 
 ```bash
-ssh hermes.homelab.local 'sudo systemctl restart hermes-agent'
+ssh hermes.homelab.internal 'sudo systemctl restart hermes-agent'
 ```
 
 ---
@@ -197,7 +197,7 @@ Remove the orphaned forgejo dumps — dropping it from the list does not delete
 the files. Confirm the real backup exists first:
 
 ```bash
-ssh forgejo.homelab.local 'ls -lh /var/backup/postgresql/'
+ssh forgejo.homelab.internal 'ls -lh /var/backup/postgresql/'
 sudo rm -f /var/backup/postgresql/forgejo.sql.zstd /var/backup/postgresql/forgejo.prev.sql.zstd
 ```
 
@@ -251,9 +251,9 @@ sudo -u postgres psql -c "SELECT pid, usename, application_name, client_addr, st
 Confirm the pgmcp side is gone too:
 
 ```bash
-ssh mcp.homelab.local 'systemctl list-units "pgmcp-*"'      # no pgmcp-appuser-server
-curl -sk -o /dev/null -w '%{http_code}\n' https://pg-appuser-mcp.homelab.local/mcp   # expect 000
-curl -sk -o /dev/null -w '%{http_code}\n' https://pg-appdb-mcp.homelab.local/mcp     # expect 406 (healthy)
+ssh mcp.homelab.internal 'systemctl list-units "pgmcp-*"'      # no pgmcp-appuser-server
+curl -sk -o /dev/null -w '%{http_code}\n' https://pg-appuser-mcp.homelab.internal/mcp   # expect 000
+curl -sk -o /dev/null -w '%{http_code}\n' https://pg-appdb-mcp.homelab.internal/mcp     # expect 406 (healthy)
 ```
 
 `406` is healthy for an MCP endpoint reached without an `Accept` header; `000`

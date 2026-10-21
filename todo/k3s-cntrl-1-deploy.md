@@ -52,7 +52,7 @@ generated.
 
 ## 2. DNS + Prometheus — already done
 
-- `hosts/dns/configuration.nix`: A + PTR for `k3s-cntrl-1.homelab.local` /
+- `hosts/dns/configuration.nix`: A + PTR for `k3s-cntrl-1.homelab.internal` /
   `.internal` at `192.168.2.186`.
 - `hosts/otel/configuration.nix`: `k3s-cntrl-1-node` scrape job for node
   metrics on `:9100`.
@@ -102,7 +102,7 @@ builds) and was already run clean during development.
       svclb all `Running` (the bundled k3s addons; none were disabled)
 - [ ] `curl -k https://192.168.2.186:6443/healthz` → `ok`
 - [ ] `up{job="k3s-cntrl-1-node"} == 1` in Prometheus (otel)
-- [ ] `dig k3s-cntrl-1.homelab.local` / `.internal` resolve to `192.168.2.186`
+- [ ] `dig k3s-cntrl-1.homelab.internal` / `.internal` resolve to `192.168.2.186`
       from another homelab host
 
 ## 5. Not done / deliberately deferred
@@ -123,5 +123,5 @@ builds) and was already run clean during development.
 - **No `k3s-cntrl-2` / worker nodes yet.** `clusterInit = true` only
   bootstraps a single-node HA-capable etcd; joining additional servers means
   a new host importing the same module with `role = "server"` and
-  `serverAddr = "https://k3s-cntrl-1.homelab.local:6443"` (no `clusterInit`
+  `serverAddr = "https://k3s-cntrl-1.homelab.internal:6443"` (no `clusterInit`
   on joiners), or `role = "agent"` for a pure worker.

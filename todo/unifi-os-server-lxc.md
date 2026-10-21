@@ -31,7 +31,7 @@ access paths have been checked.
   `iac/main.tf` and run the app installer inside it, or use the Community Script
   for CT creation as well. In either case, document the app installation/update
   path because the UniFi OS payload is managed inside the container.
-- Prefer retaining `192.168.2.142` and `unifi.homelab.local` for the new
+- Prefer retaining `192.168.2.142` and `unifi.homelab.internal` for the new
   controller if the existing VM is decommissioned. This keeps existing DNS
   consumers stable; coordinate the address handoff to avoid a collision.
 - New UI port is `11443` (the current NixOS proxy targets `8443`). Device
@@ -70,7 +70,7 @@ access paths have been checked.
   complete or correct list for the new server.
 - [ ] Confirm the UI is reachable at `https://<host>:11443` from the intended
   LAN/tailnet clients. Decide whether to put Caddy on another NixOS host in
-  front of it for `unifi.homelab.local` and step-ca TLS.
+  front of it for `unifi.homelab.internal` and step-ca TLS.
 
 ## Phase 2 — Restore and cut over
 

@@ -72,7 +72,7 @@ agenix -e futo-notes-env.age           # plain KEY=value: FUTO_NOTES_PASSWORD=<.
 - [ ] **4** Verify:
       - `agenix -d futo-notes-db-password.age` prints the value (no
         `no identity matched` on a key the MacBook holds).
-      - `ssh containers.homelab.local 'sudo podman exec futo-notes printenv DATABASE_URL FUTO_NOTES_PASSWORD'`
-      - Log in to the FUTO Notes app against `https://notes.homelab.local`.
+      - `ssh containers.homelab.internal 'sudo podman exec futo-notes printenv DATABASE_URL FUTO_NOTES_PASSWORD'`
+      - Log in to the FUTO Notes app against `https://notes.homelab.internal`.
 - [x] **5** Commit the re-encrypted `.age` blobs — done, part of `06955da`. No
       stray placeholder files existed beside them; nothing else to remove.

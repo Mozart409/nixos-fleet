@@ -45,9 +45,9 @@ No `just reencrypt` needed: removing a secret does not re-key the others.
 pgmcp instance, but that was inferred from the repo, not the live cluster:
 
 ```bash
-ssh database.homelab.local 'sudo -u postgres psql -d appuser -c "\dt"'
-ssh database.homelab.local 'sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('"'"'appuser'"'"'));"'
-ssh database.homelab.local 'sudo -u postgres psql -c "SELECT schemaname, relname, n_live_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC LIMIT 20;"' # in appuser
+ssh database.homelab.internal 'sudo -u postgres psql -d appuser -c "\dt"'
+ssh database.homelab.internal 'sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('"'"'appuser'"'"'));"'
+ssh database.homelab.internal 'sudo -u postgres psql -c "SELECT schemaname, relname, n_live_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC LIMIT 20;"' # in appuser
 ```
 
 If that shows real rows, **stop** — reconsider.
@@ -55,16 +55,16 @@ If that shows real rows, **stop** — reconsider.
 ### 1c. Dump, then drop
 
 ```bash
-ssh database.homelab.local 'sudo -u postgres pg_dump -Fc appuser > /var/backup/postgresql/appuser-final-$(date +%F).dump'
-ssh database.homelab.local 'sudo -u postgres psql -c "DROP DATABASE appuser;"'
-ssh database.homelab.local 'sudo -u postgres psql -c "DROP ROLE appuser;"'
+ssh database.homelab.internal 'sudo -u postgres pg_dump -Fc appuser > /var/backup/postgresql/appuser-final-$(date +%F).dump'
+ssh database.homelab.internal 'sudo -u postgres psql -c "DROP DATABASE appuser;"'
+ssh database.homelab.internal 'sudo -u postgres psql -c "DROP ROLE appuser;"'
 ```
 
 If `DROP DATABASE` fails with *"is being accessed by other users"*, find the
 client before forcing:
 
 ```bash
-ssh database.homelab.local 'sudo -u postgres psql -c "SELECT pid, usename, application_name, client_addr, state FROM pg_stat_activity WHERE datname = '"'"'appuser'"'"';"'
+ssh database.homelab.internal 'sudo -u postgres psql -c "SELECT pid, usename, application_name, client_addr, state FROM pg_stat_activity WHERE datname = '"'"'appuser'"'"';"'
 ```
 
 The dump is the rollback — `appuser` is the only irreversible step in this plan.

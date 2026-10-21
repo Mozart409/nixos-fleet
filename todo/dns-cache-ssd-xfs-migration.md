@@ -22,9 +22,9 @@ the guest keeps its old filesystem and nothing tells you otherwise.
 > pushed closures onto `dns`, whose btrfs root was at 89 %, and **btrfs ran out
 > of metadata space**. unbound could not `rename()` its `root.key`, crash-looped
 > **1,674 times**, and LAN DNS went down — which then hung every *other* host's
-> push, because they all still carried `https://cache.homelab.local/homelab` as a
+> push, because they all still carried `https://cache.homelab.internal/homelab` as a
 > substituter and the *target* is what fetches from it during a colmena push.
-> `otel` sat 19 minutes on `copying path … from cache.homelab.local`. **The cache
+> `otel` sat 19 minutes on `copying path … from cache.homelab.internal`. **The cache
 > host was healthy the whole time** (HTTP 200 in 14 ms by IP); it was collateral,
 > not cause — the name simply stopped resolving when unbound died, and nix waits
 > out `stalled-download-timeout` (300 s) per path rather than failing fast.
@@ -116,7 +116,7 @@ Infrastructure:
 - ✅ **Part A DONE** — `dns` reinstalled onto XFS on `ssd_pool`. Root went from
       15 G btrfs at 89 % to **26.9 G XFS**; swap is now a real 4 G partition
       rather than a btrfs swapfile; unbound active and resolving, and
-      `cache.homelab.local` correctly NXDOMAINs
+      `cache.homelab.internal` correctly NXDOMAINs
 - ✅ `ca` rescued from the pending wedge (`sfdisk` + `btrfs resize`; 19 GiB
       device, 3.5 GiB unallocated, metadata 61.9 %), memory raised to 2 GB and
       its step-ca Badger DB repaired after the reboot — no longer urgent
@@ -126,7 +126,7 @@ Infrastructure:
 - ✅ Tailscale — node renamed back to `homelab-dns` (it joined as
       `homelab-dns-1`), approved, and `192.168.2.0/24` re-approved.
       `AdvertiseRoutes` confirms the route is live
-- ✅ Both Caddy vhosts serving: `https://dns.homelab.local` **200** (step-ca) and
+- ✅ Both Caddy vhosts serving: `https://dns.homelab.internal` **200** (step-ca) and
       `https://homelab-dns.dropbear-butterfly.ts.net` **200** (tailscale cert,
       after one `systemctl restart caddy` following the rename)
 - ✅ Fleet `colmena apply` — all 10 nodes evaluated, pushed and activated (20 min
@@ -195,11 +195,11 @@ Colmena has no negation for `--on`, so either deploy the other nodes explicitly
 
 ### 2. Destroying the cache VM before the fleet is redeployed re-creates the stall
 
-Every host still carries `https://cache.homelab.local/homelab` as a substituter
+Every host still carries `https://cache.homelab.internal/homelab` as a substituter
 until it is redeployed, and the *target* is what fetches from it during a push.
 Point that at a name that resolves to a host which no longer answers and nix
 waits on it — `stalled-download-timeout` is 300 s per path, which is how a
-19-minute "copying path … from cache.homelab.local" happens.
+19-minute "copying path … from cache.homelab.internal" happens.
 
 **Least-surprise order** would have been: fleet apply first (drops the
 substituter), *then* destroy the VM. **That is not what happened** — the cache VM
@@ -213,7 +213,7 @@ not exist`). The valid deployment options are `buildOnTarget`, `sshOptions`,
 `src/nix/hive/options.nix` in the colmena source before reaching for another.
 
 **What actually resolved it:** once `dns` was reinstalled it stopped serving an A
-record for `cache.homelab.local`, so lookups now NXDOMAIN immediately rather than
+record for `cache.homelab.internal`, so lookups now NXDOMAIN immediately rather than
 hanging on a dead IP for `stalled-download-timeout` (300 s) per path. The stall
 was never really about substitution being enabled — it was about a name that
 resolved to an address nothing answered on. A substituter that fails fast is
@@ -241,13 +241,13 @@ cd iac && tofu apply -target=proxmox_virtual_environment_vm.dns_vm
 | `iac/main.tf` said | `size = 16` — **stale**, below the live 20 GB; a plan would have tried to shrink and the provider cannot. Now 32. |
 | Memory | `dedicated 1536 / floating 768` — **not pinned** |
 | agenix | `tailscale-auth-key`, `fleet-enroll-secret` (via `users`) |
-| Tailscale role | **subnet router** — advertises `192.168.2.0/24`, and the tailnet's split-DNS target for `homelab.local` |
+| Tailscale role | **subnet router** — advertises `192.168.2.0/24`, and the tailnet's split-DNS target for `homelab.internal` |
 
 ### Why the blast radius is smaller than it looks
 
 `modules/dns-client-cache.nix` puts a local unbound stub on **every host except
 this one**, with `serve-expired` + `serve-expired-ttl 1800` and a 30-minute
-`cache-min-ttl` floor. While `dns` is down, other hosts answer `*.homelab.local`
+`cache-min-ttl` floor. While `dns` is down, other hosts answer `*.homelab.internal`
 from stale cache rather than failing, and `modules/common.nix` lists
 `192.168.2.1` as a second nameserver for public names. A window well under 30
 minutes is absorbed almost invisibly.
@@ -271,7 +271,7 @@ so the balloon may have taken it under the line. Check before you start.
       rather than trust: `zpool list ssd_pool` on `pve-gigabyte`.
 - [ ] **A0.2 Confirm the closure is built**, so the install never needs a name
       resolved while the resolver is down (the `homelab-mcp` flake input is
-      `git+https://forgejo.homelab.local/…`):
+      `git+https://forgejo.homelab.internal/…`):
       ```bash
       nix build --no-link --print-out-paths '.#nixosConfigurations.dns.config.system.build.toplevel'
       ```
@@ -327,7 +327,7 @@ the move stays independently revertible.
       ```
 - [ ] **A2.4 Confirm unbound answers** before touching anything else:
       ```bash
-      dig +short @192.168.2.145 forgejo.homelab.local     # 192.168.2.178
+      dig +short @192.168.2.145 forgejo.homelab.internal     # 192.168.2.178
       dig +short @192.168.2.145 nixos.org                 # forwarding works
       ```
 
@@ -369,13 +369,13 @@ the entire homelab LAN, not just this host.
       from node approval, and the one that silently breaks remote access.
       `extraUpFlags` re-advertises it automatically on a fresh install, so this
       is console-side only.
-- [ ] **A4.4** Confirm split-DNS still maps `homelab.local` → `192.168.2.145`.
+- [ ] **A4.4** Confirm split-DNS still maps `homelab.internal` → `192.168.2.145`.
 - [ ] **A4.5** Verify from a remote tailnet client: `dig +short
-      @192.168.2.145 forgejo.homelab.local` and `ping 192.168.2.178`.
+      @192.168.2.145 forgejo.homelab.internal` and `ping 192.168.2.178`.
 
 ### A5 · Certificates and smoke test
 
-- [ ] **A5.1** `curl -sS -o /dev/null -w '%{http_code}\n' https://dns.homelab.local`.
+- [ ] **A5.1** `curl -sS -o /dev/null -w '%{http_code}\n' https://dns.homelab.internal`.
       If stuck at 000, it is the step-ca ACME `badNonce` storm: stop Caddy →
       restart step-ca on `ca` → start Caddy, **in that order** (either alone fails).
 - [ ] **A5.2** Tailscale cert for `homelab-dns.dropbear-butterfly.ts.net` — needs
@@ -453,7 +453,7 @@ drops its backup with it — no second edit, and no stale backup unit left behin
 ### Operator steps (done 2026-09-09, except B.5)
 
 - [x] **B.1 Deploy the fleet, minus `dns`.** Every host keeps its
-      `attic-login`/`attic-push-system` units and its `cache.homelab.local`
+      `attic-login`/`attic-push-system` units and its `cache.homelab.internal`
       substituter until redeployed. **Exclude `dns`** — see Ordering hazard 1;
       its config now described a disk it did not have. **Part A is done, so
       `dns` can be included now.**
@@ -462,7 +462,7 @@ drops its backup with it — no second edit, and no stale backup unit left behin
       ```
       The *push* units failing is harmless (`|| true`). The **substituter** was
       the real hazard, but it has defused itself: the reinstalled `dns` no longer
-      serves `cache.homelab.local`, so those lookups NXDOMAIN immediately instead
+      serves `cache.homelab.internal`, so those lookups NXDOMAIN immediately instead
       of hanging. See Ordering hazard 2.
 - [ ] **B.2 Destroy the VM.** Removing the resource from `iac/main.tf` is what
       does it; confirm the plan shows **`1 to destroy`** and that it is VM
@@ -578,7 +578,7 @@ So:
   `loki`/`tempo`/`otel`/`prometheus` at ~15 days — they do not renew for another
   ~5 days. That is the window.
   ```bash
-  ssh amadeus@otel.homelab.local \
+  ssh amadeus@otel.homelab.internal \
     'curl -sG http://localhost:9090/api/v1/query \
        --data-urlencode "query=sort((probe_ssl_earliest_cert_expiry - time())/86400)"'
   ```
@@ -772,7 +772,7 @@ So:
       *system* trust store with no `-k`:
       ```
       https://ca.homelab.local:8443/health   HTTP 200
-      https://database.homelab.local         HTTP 200
+      https://database.homelab.internal         HTTP 200
       ```
 
 ## Part D — Fold the findings back

@@ -74,7 +74,7 @@ failures were diagnosed, and the guests' own `MemTotal` was the only evidence
 available.
 
 Fixed on 2026-08-06 (`hosts/dns/configuration.nix` A+PTR for
-`pve-gigabyte.homelab.local`, `hosts/otel/configuration.nix:564` retargeted).
+`pve-gigabyte.homelab.internal`, `hosts/otel/configuration.nix:564` retargeted).
 Needs a deploy of both `dns` and `otel` to take effect — **do this first**, since
 every task below wants host memory history that does not exist yet.
 

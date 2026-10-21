@@ -369,14 +369,14 @@ handle /loki* {
 The `*.dropbear-butterfly.ts.net` MagicDNS names do **not** resolve from the
 homelab VMs (e.g. `hermes` cannot resolve `homelab-mcp.dropbear-butterfly.ts.net`
 → `Name or service not known`). For service-to-service URLs between hosts, use
-the local DNS names (`<host>.homelab.local`, served by the `dns` host) instead.
+the local DNS names (`<host>.homelab.internal`, served by the `dns` host) instead.
 These carry step-ca TLS certs, which are trusted on any host importing
 `modules/step-ca-trust.nix`.
 
 - **WRONG** (in `services.hermes-agent.mcpServers`):
   `url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";`  # NXDOMAIN from hermes
 - **CORRECT**:
-  `url = "https://axon.homelab.local/mcp";`  # resolves + step-ca TLS trusted (the gateway; the MCP backends themselves are loopback-only on `mcp` since 2026-09-14)
+  `url = "https://axon.homelab.internal/mcp";`  # resolves + step-ca TLS trusted (the gateway; the MCP backends themselves are loopback-only on `mcp` since 2026-09-14)
 
 ### Tailscale ACLs Filter Ports Before the Host Firewall Ever Sees Them
 
@@ -699,7 +699,7 @@ a real dependency of e.g. `unbound.service` on dns).
 **Network-dependent integrations are expected to be non-functional and are
 never asserted on**: tailscaled-autoconnect, comin's forgejo pull, Caddy's
 step-ca ACME cert issuance (`ca.homelab.local` is unreachable),
-`services.loki-logs` shipping to `loki.homelab.local`, the
+`services.loki-logs` shipping to `loki.homelab.internal`, the
 alertmanager-axon-bridge webhook relay. None of these block
 `multi-user.target` or the services under test.
 

@@ -22,10 +22,10 @@ set. IPs are the static addresses configured in each host's NixOS config.
 | `database` | 192.168.2.134 | `database` | PostgreSQL 18 + pgbouncer, multi-tenant (tofu state, forgejo, romm, hofvarpnir); `postgresqlBackup` |
 | `otel` | 192.168.2.135 | `monitoring` | Observability stack: Prometheus, Grafana, Loki, Tempo |
 | `unifi` | 192.168.2.142 | `unifi` | UniFi Network Controller |
-| `dns` | 192.168.2.145 | `dns` | Unbound recursive DNS + authoritative `homelab.local` zone (A + PTR) |
+| `dns` | 192.168.2.145 | `dns` | Unbound recursive DNS + authoritative `homelab.internal` zone (A + PTR) |
 | `containers` | 192.168.2.149 | `containers` | Podman host: axon-gateway, SearXNG, RomM, homelab-dashboard, Multica (backend + web) |
 | `mcp` | 192.168.2.152 | `mcp` | MCP servers from the `homelab-mcp-servers` monorepo (pbs, pg, prom, loki, ha) as hardened systemd units |
-| `ca` | 192.168.2.160 | `security`, `ca` | step-ca internal Certificate Authority (ACME for `*.homelab.local`) |
+| `ca` | 192.168.2.160 | `security`, `ca` | step-ca internal Certificate Authority (ACME for `*.homelab.internal`) |
 | `forgejo` | 192.168.2.178 | `forgejo`, `git` | Forgejo git forge (Postgres on `database`, SSH on :2222) |
 | `jellyfin` | 192.168.2.180 | `media`, `jellyfin` | Jellyfin + SSO-Auth plugin, ZFS `mediapool`, hofvarpnir container |
 | `agents` | 192.168.2.190 | `ai`, `agents` | Agent platform: Multica daemons per trust zone (microVMs); successor to `development`/`hermes` |
@@ -42,7 +42,7 @@ syntax-checked.
 Retained for reference, describing what the host was:
 
 `development` served nothing: no Caddy vhost, no
-`homelab.local` service, only the node exporter on :9100 and SSH. It is a
+`homelab.internal` service, only the node exporter on :9100 and SSH. It is a
 headless box for driving LLM coding agents by hand over SSH/tmux, and it is the
 only host that imports `modules/coding-harness.nix` + `modules/herdr.nix`
 together:
@@ -102,9 +102,9 @@ took 21 GB there, before Claude Code and the bun-hosted plugins.
 - `minimal` — bootstrap config used by `just deploy-minimal`, not a host.
 
 All active hosts run Tailscale and a Caddy front end, serving both Tailscale TLS
-(`*.dropbear-butterfly.ts.net`) and step-ca certs for `*.homelab.local`.
+(`*.dropbear-butterfly.ts.net`) and step-ca certs for `*.homelab.internal`.
 Note that MagicDNS names do **not** resolve between homelab VMs — use
-`<host>.homelab.local` for service-to-service URLs (see AGENTS.md §6).
+`<host>.homelab.internal` for service-to-service URLs (see AGENTS.md §6).
 
 ## Quick start
 

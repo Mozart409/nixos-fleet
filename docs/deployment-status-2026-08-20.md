@@ -21,13 +21,13 @@ failure (`nixos-rebuild switch` exit 4 — activation itself succeeded, but
 listed both the `dns` host (`192.168.2.145`) and the LAN gateway
 (`192.168.2.1`) as forwarders. Unbound distributes queries across
 `forward-addr` entries by measured RTT, not by which server actually knows
-the zone — so it periodically asked the gateway for `*.homelab.local` /
+the zone — so it periodically asked the gateway for `*.homelab.internal` /
 `*.homelab.internal` names. The gateway has no idea about those private
 zones and answers **NXDOMAIN** (a valid-looking but wrong response) instead
 of failing, which unbound can't distinguish from a real authoritative
 answer. Confirmed live: 20 repeated raw DNS queries against `development`'s
-local unbound for `development.homelab.local` / `dns.homelab.local` /
-`containers.homelab.local` intermittently returned NXDOMAIN while the same
+local unbound for `development.homelab.internal` / `dns.homelab.internal` /
+`containers.homelab.internal` intermittently returned NXDOMAIN while the same
 queries against the `dns` host directly were correct 100% of the time.
 
 Fix: `local.`/`internal.` now forward to `192.168.2.145` only. The gateway
@@ -65,7 +65,7 @@ broken independently — open question, not chased further this session.
 Evidence `dns` was stuck on a pre-`620e00b` build regardless of cause:
 
 - Raw DNS queries direct against `dns` (`192.168.2.145`) for
-  `notes.homelab.local`/`.internal` return a clean, consistent **NXDOMAIN**
+  `notes.homelab.internal`/`.internal` return a clean, consistent **NXDOMAIN**
   (20/20, no flapping) — the A record from `620e00b` was never loaded, unlike
   the forwarder-flapping bug above which alternated answers.
 - `containers` itself **is** current — comin last fetched there 2026-08-20
@@ -76,7 +76,7 @@ Evidence `dns` was stuck on a pre-`620e00b` build regardless of cause:
 - `notes.homelab.internal`/`.local` via the same direct-IP method returns a
   TLS `internal error` alert, not a clean response — Caddy has the vhost
   configured but is stuck without a valid cert for it, because its step-ca
-  ACME issuance for `notes.homelab.local` couldn't resolve/validate the name
+  ACME issuance for `notes.homelab.internal` couldn't resolve/validate the name
   while `dns` didn't know about it.
 
 **Fix — RESOLVED 2026-08-21 ~10:28 CEST.** Full-hive `just ca`/`colmena
@@ -90,10 +90,10 @@ window, so it got the manual nudge:
 colmena exec --on containers -- sudo systemctl restart caddy
 ```
 
-**Verified:** DNS queries for `notes.homelab.local`/`.internal` now return
+**Verified:** DNS queries for `notes.homelab.internal`/`.internal` now return
 `NOERROR` (20/20) from both `development`'s local resolver and the `dns`
 host directly. `https://notes.homelab.internal/` and
-`https://notes.homelab.local/` both return `200`, and `notes.homelab.local`
+`https://notes.homelab.internal/` both return `200`, and `notes.homelab.internal`
 verifies clean **with** cert validation on (no `-k`) — Caddy successfully
 completed step-ca ACME issuance once the A record was resolvable.
 `just cah <host>` (single-node `colmena-apply-host`) is the better path for
@@ -101,7 +101,7 @@ future `dns`-style deploys from `development` — avoid the full-hive `just
 ca`/`colmena apply` there.
 
 **Bonus finding while checking Loki:** `harbor` and `woodpecker` both show
-intermittent comin pull failures this morning (`lookup forgejo.homelab.local:
+intermittent comin pull failures this morning (`lookup forgejo.homelab.internal:
 no such host`, recurring 04:01, 05:55, 08:45–09:39) — the same LAN-gateway
 forwarder-flapping bug fixed by `192e1e2` above, but that fix has so far only
 been deployed to `development` (`self-deploy`), not fleet-wide. Self-limiting

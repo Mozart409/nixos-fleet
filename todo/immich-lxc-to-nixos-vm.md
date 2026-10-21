@@ -154,7 +154,7 @@ and the migration's fallback position holds. Still not started.
 - **Machine learning.** `services.immich.machine-learning.enable` — the ML
   service is CPU-hungry and the host is already IO-starved. Consider leaving it
   off for the initial cutover and enabling it once storage is fixed.
-- **Hostname.** `immich.homelab.local` (step-ca) is required. Decide whether a
+- **Hostname.** `immich.homelab.internal` (step-ca) is required. Decide whether a
   `homelab-immich.dropbear-butterfly.ts.net` tailnet vhost is also wanted —
   jellyfin has both, hofvarpnir is LAN-only.
 
@@ -229,9 +229,9 @@ and the migration's fallback position holds. Still not started.
 - [ ] **1.4 `flake.nix`** — add to `hostAddrs`, `nixosConfigurations` (`mkHost`),
   and `colmenaHive`.
 - [ ] **1.5 `hosts/dns/configuration.nix`** — A + PTR records for
-  `immich.homelab.local` → `192.168.2.186`.
+  `immich.homelab.internal` → `192.168.2.186`.
 - [ ] **1.6 `hosts/otel/configuration.nix`** — Prometheus scrape job
-  `immich-node`, target `immich.homelab.local:9100`, label
+  `immich-node`, target `immich.homelab.internal:9100`, label
   `instance = "homelab-immich"`. (Address by DNS name, not raw IP — `AGENTS.md`
   §5 step 5.)
 - [ ] **1.7** `git add` the new files, then `just fmt` and
@@ -255,7 +255,7 @@ and the migration's fallback position holds. Still not started.
   all seven (`unaccent`, `uuid-ossp`, `cube`, `earthdistance`, `pg_trgm`,
   `vector`, `vchord`) and `ALTER EXTENSION … UPDATE`s them. Do not hand-roll
   any of that.
-- [ ] **2.2 Caddy vhost** `immich.homelab.local` with the step-ca ACME directory,
+- [ ] **2.2 Caddy vhost** `immich.homelab.internal` with the step-ca ACME directory,
   `reverse_proxy` to the immich port. Copy the jellyfin pattern. Set generous
   body-size limits — immich uploads are large.
 - [ ] **2.3** Deploy and confirm a **clean, empty** immich starts, the DB is
@@ -306,7 +306,7 @@ and the migration's fallback position holds. Still not started.
 ## Phase 4 — Switch over and decommission
 
 - [ ] **4.1** Repoint DNS / dashboard / uptime-forge / mobile clients to
-  `immich.homelab.local`.
+  `immich.homelab.internal`.
 - [ ] **4.2 Move the PBS backup job.** Remove `104` from the **01:00** job; add
   `4348` to the **03:00** job (the block-level VM job). This is the payoff —
   verify the first run and record its duration against the 8 h baseline.
@@ -332,7 +332,7 @@ and the migration's fallback position holds. Still not started.
 - `rate(node_pressure_io_waiting_seconds_total{instance="pve-gigabyte"}[15m])`
   no longer shows the multi-hour morning plateau.
 - Photo/album/face counts match pre-migration.
-- `immich.homelab.local` serves a valid step-ca cert.
+- `immich.homelab.internal` serves a valid step-ca cert.
 
 ## Risks and gotchas
 

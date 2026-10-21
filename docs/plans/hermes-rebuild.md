@@ -136,7 +136,7 @@ old state dir is migrated.
 
 **Out (deleted, not migrated):**
 
-- The api_server, its `hermes.homelab.local` / Tailscale Caddy vhosts, and the
+- The api_server, its `hermes.homelab.internal` / Tailscale Caddy vhosts, and the
   `hermes-api-server-key` secret. Open WebUI stops being a client (§12). Caddy itself
   stays, for the dashboard vhost only (§9.1).
 - The Obsidian vault: `hermes-vault-git-setup`, `hermes-vault-bootstrap`,
@@ -344,7 +344,7 @@ instead:
 
 ```nix
 programs.ssh.extraConfig = ''
-  Match user hermes host forgejo.homelab.local,forgejo.homelab.internal
+  Match user hermes host forgejo.homelab.internal,forgejo.homelab.local
     Port 2222
     User forgejo
     IdentityFile ${config.age.secrets.hermes-forgejo-ssh.path}
@@ -900,7 +900,7 @@ carries an A record per host at its LAN address — including
 `hermes.homelab.internal. A 192.168.2.155`. That is the split-DNS path the phone already
 uses, and it works through the subnet router whether or not hermes itself is on the
 tailnet. Deploys do not need it either: hermes' colmena entry targets
-`hermes.homelab.local` and has no `hostAddrs` entry, so `DEPLOY_NET=tailscale` never
+`hermes.homelab.internal` and has no `hostAddrs` entry, so `DEPLOY_NET=tailscale` never
 switched it over.
 
 **Outbound is what keeps it.**
@@ -921,7 +921,7 @@ switched it over.
   ever to be used in anger, and not needed for this rebuild.
 - **`ventara-gateway`**, registered by `modules/coding-harness.nix`, is
   `https://ventara-vm01.dropbear-butterfly.ts.net:8093/mcp`. Tailnet-only with no LAN
-  equivalent. (`axon-gateway` is fine — `axon.homelab.local`.)
+  equivalent. (`axon-gateway` is fine — `axon.homelab.internal`.)
 
 So: **keep Tailscale, drop the blanket trust.** That is the security property that
 actually matters here — no port is open merely because it arrived on `tailscale0` —
@@ -1018,7 +1018,7 @@ receives `tailscale-auth-key.age`.
 ## 12. Cross-Host Cleanups
 
 - **`hosts/containers/open-webui/default.nix`** — `OPENAI_API_BASE_URLS` (line 94)
-  includes `https://hermes.homelab.local/v1`, and the surrounding comments describe
+  includes `https://hermes.homelab.internal/v1`, and the surrounding comments describe
   hermes as a model backend reachable with the API server key. Remove the hermes entry
   and the key slot from the commented `open-webui-env` layout, leaving the wotan vLLM
   endpoint. Dropping the api_server without this leaves Open WebUI with a dead backend.
