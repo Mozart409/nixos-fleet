@@ -3,8 +3,12 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  hosts = import ../../lib/hosts.nix;
+in {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "otel")
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
@@ -16,18 +20,6 @@
   ];
 
   networking.hostName = "homelab-otel";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.135";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # OpenTelemetry Collector (contrib build)
   users.users.otelcol = {
@@ -398,7 +390,7 @@
         job_name = "database-node";
         static_configs = [
           {
-            targets = ["database.homelab.local:9100"];
+            targets = ["${hosts.fqdn "database"}:9100"];
             labels = {
               instance = "homelab-database";
             };
@@ -409,7 +401,7 @@
         job_name = "database-postgres";
         static_configs = [
           {
-            targets = ["database.homelab.local:9187"];
+            targets = ["${hosts.fqdn "database"}:9187"];
             labels = {
               instance = "homelab-database";
             };
@@ -430,7 +422,7 @@
         job_name = "dns-node";
         static_configs = [
           {
-            targets = ["192.168.2.145:9100"];
+            targets = ["${hosts.hosts.dns.ip}:9100"];
             labels = {
               instance = "homelab-dns";
             };
@@ -442,7 +434,7 @@
         job_name = "unifi-node";
         static_configs = [
           {
-            targets = ["unifi.homelab.local:9100"];
+            targets = ["${hosts.fqdn "unifi"}:9100"];
             labels = {
               instance = "homelab-unifi";
             };
@@ -454,7 +446,7 @@
         job_name = "containers-node";
         static_configs = [
           {
-            targets = ["containers.homelab.local:9100"];
+            targets = ["${hosts.fqdn "containers"}:9100"];
             labels = {
               instance = "homelab-containers";
             };
@@ -468,7 +460,7 @@
         job_name = "mcp-node";
         static_configs = [
           {
-            targets = ["mcp.homelab.local:9100"];
+            targets = ["${hosts.fqdn "mcp"}:9100"];
             labels = {
               instance = "homelab-mcp";
             };
@@ -489,7 +481,7 @@
         job_name = "ca-node";
         static_configs = [
           {
-            targets = ["ca.homelab.local:9100"];
+            targets = ["${hosts.fqdn "ca"}:9100"];
             labels = {
               instance = "homelab-ca";
             };
@@ -505,7 +497,7 @@
         job_name = "forgejo-node";
         static_configs = [
           {
-            targets = ["forgejo.homelab.local:9100"];
+            targets = ["${hosts.fqdn "forgejo"}:9100"];
             labels = {
               instance = "homelab-forgejo";
             };
@@ -519,7 +511,7 @@
         job_name = "agents-node";
         static_configs = [
           {
-            targets = ["agents.homelab.internal:9100"];
+            targets = ["${hosts.fqdn "agents"}:9100"];
             labels = {
               instance = "homelab-agents";
             };
@@ -532,14 +524,14 @@
         job_name = "agents-zones";
         static_configs = [
           {
-            targets = ["agents.homelab.internal:9102"];
+            targets = ["${hosts.fqdn "agents"}:9102"];
             labels = {
               instance = "homelab-agents-heimdahl";
               zone = "heimdahl";
             };
           }
           {
-            targets = ["agents.homelab.internal:9103"];
+            targets = ["${hosts.fqdn "agents"}:9103"];
             labels = {
               instance = "homelab-agents-assistant";
               zone = "assistant";
@@ -556,7 +548,7 @@
         job_name = "jellyfin-node";
         static_configs = [
           {
-            targets = ["jellyfin.homelab.local:9100"];
+            targets = ["${hosts.fqdn "jellyfin"}:9100"];
             labels = {
               instance = "homelab-jellyfin";
             };
@@ -597,7 +589,7 @@
         metrics_path = "/metrics";
         static_configs = [
           {
-            targets = ["hofvarpnir.homelab.local"];
+            targets = ["${hosts.fqdn "hofvarpnir"}"];
             labels = {
               instance = "hofvarpnir";
             };
@@ -616,7 +608,7 @@
         job_name = "pve-node";
         static_configs = [
           {
-            targets = ["pve-gigabyte.homelab.local:9100"];
+            targets = ["${hosts.fqdn "pve-gigabyte"}:9100"];
             labels = {
               instance = "pve-gigabyte";
             };
@@ -632,7 +624,7 @@
         metrics_path = "/metrics";
         static_configs = [
           {
-            targets = ["axon.homelab.local"];
+            targets = ["${hosts.fqdn "axon"}"];
             labels = {
               # Moved from containers to the mcp host on 2026-09-14.
               instance = "homelab-mcp";

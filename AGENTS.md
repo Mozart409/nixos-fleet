@@ -283,27 +283,31 @@ The `just iac-*` recipes run inside `infra/iac` for you.
 
 When adding a new host to the homelab, ensure the following are updated:
 
-1. **Host Configuration**: Create `hosts/<hostname>/configuration.nix`
-2. **Flake Registration**:
-   - Add to `hostAddrs` with the host's `<hostname>.homelab.local` name (not its
-     raw IP — add the DNS record in step 4 first) and its Tailscale name
+1. **Host Registry**: Add the host to `lib/hosts.nix` (`ip`, `tailscale`, and
+   `zones`/`aliases` if it differs from the defaults documented there; new
+   hosts should use `zones = ["homelab.internal"]`). That one entry generates
+   its unbound A and PTR records (`hosts/dns/configuration.nix`), its
+   `hostAddrs` deploy target in `flake.nix`, and the static ens18 address +
+   gateway module.
+2. **Host Configuration**: Create `hosts/<hostname>/configuration.nix` and
+   import `((import ../../lib/hosts.nix).staticNetwork "<hostname>")`
+3. **Flake Registration**:
    - Add to `nixosConfigurations` using `mkHost`
    - Add to `colmenaHive` with deployment settings
-3. **Infrastructure (OpenTofu)**: Add VM resource in `iac/main.tf` and update outputs
-4. **DNS Entry**: Add A record and PTR record in `hosts/dns/configuration.nix`:
-   - `local-data`: `''"<hostname>.homelab.local. A <ip>"''`
-   - `local-data-ptr`: `''"<ip> <hostname>.homelab.local"''`
+     (`targetHost = targetHost "<hostname>"`)
+4. **Infrastructure (OpenTofu)**: Add VM resource in `iac/main.tf` and update
+   outputs (its `ip_config` address still has to match the registry by hand)
 5. **Prometheus Monitoring**: Add scrape config in `hosts/otel/configuration.nix`.
-   Address the target by its DNS name from step 4, not its IP, and always set
-   `labels.instance` — that label overrides the one prometheus derives from the
-   target address, which is what keeps series stable if the host is ever re-IP'd
-   or re-addressed:
+   Address the target by its registry DNS name (`hosts.fqdn`), not its IP, and
+   always set `labels.instance` — that label overrides the one prometheus
+   derives from the target address, which is what keeps series stable if the
+   host is ever re-IP'd or re-addressed:
    ```nix
    {
      job_name = "<hostname>-node";
      static_configs = [
        {
-         targets = ["<hostname>.homelab.local:9100"];
+         targets = ["${hosts.fqdn "<hostname>"}:9100"];
          labels = { instance = "homelab-<hostname>"; };
        }
      ];
@@ -312,9 +316,11 @@ When adding a new host to the homelab, ensure the following are updated:
    Note prometheus resolves a target's name when it dials the connection, not on
    every scrape (it holds HTTP keep-alives and has no DNS cache), so an A-record
    change is only picked up once the connection drops or prometheus restarts.
-   The one job kept on a raw IP is `dns-node`, so the resolver host stays
-   observable when unbound is down.
-6. **Git**: Stage new files with `git add` before running `nix flake check`
+   The one job kept on a raw IP is `dns-node` (`hosts.hosts.dns.ip`), so the
+   resolver host stays observable when unbound is down.
+6. **Git**: Stage new files with `git add` before evaluating the host
+   (`nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`;
+   never a bare `nix flake check`)
 
 ## 6. Common Pitfalls
 

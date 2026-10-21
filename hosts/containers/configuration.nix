@@ -5,6 +5,8 @@
   ...
 }: {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "containers")
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
@@ -32,18 +34,6 @@
     "net.ipv6.conf.all.disable_ipv6" = 1;
     "net.ipv6.conf.default.disable_ipv6" = 1;
   };
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.149";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # The node exporter is enabled fleet-wide by modules/common.nix. (The
   # postgres exporter for the uptime-forge TimescaleDB left with it on

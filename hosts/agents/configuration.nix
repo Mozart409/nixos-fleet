@@ -12,6 +12,8 @@
   # Zones: one microVM per trust zone, each with its own Multica daemon
   # (./zones.nix).
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "agents")
     ../../modules/common.nix
     # XFS root on ssd_pool (iac/main.tf, agents_vm), same as dns/ca/hermes.
     ../../modules/disko-xfs.nix
@@ -21,17 +23,6 @@
   ];
 
   networking.hostName = "homelab-agents";
-
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.190";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # Compressed RAM swap absorbs the spike of an agent CLI plus a cold devShell
   # before the disk swap is touched (same reasoning as hermes/development).

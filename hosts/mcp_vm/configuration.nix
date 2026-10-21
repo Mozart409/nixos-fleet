@@ -93,6 +93,8 @@
     }) (builtins.attrNames homelabDatabases);
 in {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "mcp")
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
@@ -104,18 +106,6 @@ in {
   ];
 
   networking.hostName = "homelab-mcp";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.152";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # Ship all homelab-mcp server journals to the central Loki.
   services.loki-logs = {

@@ -5,6 +5,8 @@
   ...
 }: {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "ca")
     ../../modules/common.nix
     # XFS, not btrfs: `ca` ran btrfs on a zvol (CoW on CoW) and reached 89 % of a
     # 19 G root, the same state that wedged `dns`. Swapped 2026-09-09 alongside
@@ -16,18 +18,6 @@
   ];
 
   networking.hostName = "homelab-ca";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.160";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # step-ca Certificate Authority
   # Password for the intermediate CA key (created via agenix)
