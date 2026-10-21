@@ -94,14 +94,13 @@ in {
       HASHEOUS_API_ENABLED = "true";
 
       # OIDC via Pocket ID (same provider as forgejo / grafana). The redirect
-      # URI and base URL must exactly match the callback registered in Pocket ID.
-      # Both stay on .local until Pocket ID's romm client also lists
-      # https://romm.homelab.internal/api/oauth/openid; switch them together.
+      # URI and base URL must exactly match a callback registered in Pocket ID
+      # (its romm client lists both the .internal and the legacy .local one).
       OIDC_ENABLED = "true";
       OIDC_PROVIDER = "pocket-id";
-      OIDC_REDIRECT_URI = "https://romm.homelab.local/api/oauth/openid";
+      OIDC_REDIRECT_URI = "https://romm.homelab.internal/api/oauth/openid";
       OIDC_SERVER_APPLICATION_URL = "https://pocketid.dropbear-butterfly.ts.net";
-      ROMM_BASE_URL = "https://romm.homelab.local";
+      ROMM_BASE_URL = "https://romm.homelab.internal";
       # Served only over HTTPS via Caddy.
       ROMM_SESSION_SECURE_COOKIE = "true";
     };
