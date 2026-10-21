@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  hosts = import ../../lib/hosts.nix;
+in {
   imports = [
     ../../modules/common.nix
     # XFS root on ssd_pool, not the old btrfs-on-zfs_pool layout
@@ -106,104 +108,10 @@
           # reserved private TLD) resolves normally. Both zones are served.
           "homelab.internal. static"
         ];
-        local-data = [
-          # keep-sorted start
-          # homelab.internal mirror of every homelab.local A record (parallel
-          # zone for Apple clients — see the local-zone note). keep-sorted
-          # interleaves these with the .local entries on commit.
-          ''"agents.homelab.internal. A 192.168.2.190"''
-          ''"alertmanager.homelab.internal. A 192.168.2.135"''
-          ''"alertmanager.homelab.local. A 192.168.2.135"''
-          ''"axon.homelab.internal. A 192.168.2.152"''
-          ''"axon.homelab.local. A 192.168.2.152"''
-          ''"ca.homelab.internal. A 192.168.2.160"''
-          # Homelab services with step-ca certificates
-          ''"ca.homelab.local. A 192.168.2.160"''
-          ''"containers.homelab.internal. A 192.168.2.149"''
-          ''"containers.homelab.local. A 192.168.2.149"''
-          ''"dashboard.homelab.internal. A 192.168.2.149"''
-          ''"dashboard.homelab.local. A 192.168.2.149"''
-          ''"database.homelab.internal. A 192.168.2.134"''
-          ''"database.homelab.local. A 192.168.2.134"''
-          ''"dns.homelab.internal. A 192.168.2.145"''
-          ''"dns.homelab.local. A 192.168.2.145"''
-          ''"forgejo.homelab.internal. A 192.168.2.178"''
-          ''"forgejo.homelab.local. A 192.168.2.178"''
-          ''"hindsight-ui.homelab.internal. A 192.168.2.149"''
-          ''"hindsight.homelab.internal. A 192.168.2.149"''
-          ''"hofvarpnir.homelab.internal. A 192.168.2.180"''
-          ''"hofvarpnir.homelab.local. A 192.168.2.180"''
-          ''"homeassistant.local. A 192.168.2.208"''
-          ''"jellyfin.homelab.internal. A 192.168.2.180"''
-          ''"jellyfin.homelab.local. A 192.168.2.180"''
-          ''"k3s-cntrl-1.homelab.internal. A 192.168.2.186"''
-          ''"k3s-cntrl-1.homelab.local. A 192.168.2.186"''
-          ''"loki.homelab.internal. A 192.168.2.135"''
-          ''"loki.homelab.local. A 192.168.2.135"''
-          ''"mailpit.homelab.internal. A 192.168.2.149"''
-          ''"mcp.homelab.internal. A 192.168.2.152"''
-          ''"mcp.homelab.local. A 192.168.2.152"''
-          ''"multica.homelab.internal. A 192.168.2.149"''
-          ''"otel.homelab.internal. A 192.168.2.135"''
-          ''"otel.homelab.local. A 192.168.2.135"''
-          # Pocket-ID (OIDC provider for forgejo,
-          # romm, grafana). An LXC on pve-gigabyte, not a NixOS guest in this
-          # repo. The tailnet name pocketid.dropbear-butterfly.ts.net stays the
-          # issuer every consumer is configured with -- the issuer URL is part
-          # of token identity, so these records ADD a LAN path, they do not
-          # replace it. A client that switches to the .internal name also needs
-          # Pocket-ID to serve a certificate valid for it.
-          ''"pocketid.homelab.internal. A 192.168.2.102"''
-          ''"pocketid.homelab.local. A 192.168.2.102"''
-          ''"prometheus.homelab.internal. A 192.168.2.135"''
-          ''"prometheus.homelab.local. A 192.168.2.135"''
-          ''"pve-gigabyte.homelab.internal. A 192.168.2.46"''
-          ''"pve-gigabyte.homelab.local. A 192.168.2.46"''
-          ''"pve-gigabyte.local. A 192.168.2.46"''
-          ''"romm.homelab.internal. A 192.168.2.149"''
-          ''"romm.homelab.local. A 192.168.2.149"''
-          ''"scratchpad.homelab.internal. A 192.168.2.185"''
-          ''"scratchpad.homelab.local. A 192.168.2.185"''
-          ''"searxng.homelab.internal. A 192.168.2.149"''
-          ''"searxng.homelab.local. A 192.168.2.149"''
-          ''"tempo.homelab.internal. A 192.168.2.135"''
-          ''"tempo.homelab.local. A 192.168.2.135"''
-          ''"unifi.homelab.internal. A 192.168.2.142"''
-          ''"unifi.homelab.local. A 192.168.2.142"''
-          ''"wotan.homelab.internal. A 192.168.2.71"''
-          ''"wotan.homelab.local. A 192.168.2.71"''
-          # keep-sorted end
-        ];
-        local-data-ptr = [
-          # keep-sorted start
-          ''"192.168.2.102 pocketid.homelab.local"''
-          ''"192.168.2.134 database.homelab.local"''
-          ''"192.168.2.135 alertmanager.homelab.local"''
-          ''"192.168.2.135 loki.homelab.local"''
-          ''"192.168.2.135 otel.homelab.local"''
-          ''"192.168.2.135 prometheus.homelab.local"''
-          ''"192.168.2.135 tempo.homelab.local"''
-          ''"192.168.2.142 unifi.homelab.local"''
-          ''"192.168.2.145 dns.homelab.local"''
-          ''"192.168.2.149 containers.homelab.local"''
-          ''"192.168.2.149 dashboard.homelab.local"''
-          ''"192.168.2.149 romm.homelab.local"''
-          ''"192.168.2.149 searxng.homelab.local"''
-          ''"192.168.2.152 axon.homelab.local"''
-          ''"192.168.2.152 mcp.homelab.local"''
-          ''"192.168.2.160 ca.homelab.local"''
-          ''"192.168.2.178 forgejo.homelab.local"''
-          ''"192.168.2.180 hofvarpnir.homelab.local"''
-          ''"192.168.2.180 jellyfin.homelab.local"''
-          ''"192.168.2.185 scratchpad.homelab.local"''
-          ''"192.168.2.186 k3s-cntrl-1.homelab.local"''
-          ''"192.168.2.190 agents.homelab.internal"''
-          ''"192.168.2.208 homeassistant.local"''
-          ''"192.168.2.46 pve-gigabyte.homelab.local"''
-          ''"192.168.2.46 pve-gigabyte.local"''
-          ''"192.168.2.71 wotan.homelab.local"''
-          # keep-sorted end
-        ];
+        # A and PTR records for every name in the host registry
+        # (lib/hosts.nix): one place to add or re-address a host.
+        local-data = hosts.dns.localData;
+        local-data-ptr = hosts.dns.localDataPtr;
       };
 
       # Forward zone for upstream DNS (using DNS over TLS)
