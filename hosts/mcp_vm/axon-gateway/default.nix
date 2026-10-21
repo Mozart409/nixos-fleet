@@ -172,7 +172,7 @@ in {
 
   virtualisation.oci-containers.containers = {
     axon-gateway = {
-      image = "ghcr.io/mozart409/axon-gateway:v0.3.3";
+      image = "ghcr.io/mozart409/axon-gateway:v0.4.1";
       autoStart = true;
       volumes = [
         "/etc/axon-gateway/config.toml:/app/config.toml:ro"
