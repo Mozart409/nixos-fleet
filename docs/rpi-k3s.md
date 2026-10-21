@@ -37,8 +37,11 @@ agenix encrypts to those.
 
    (agenix opens `$EDITOR`; paste the pwgen output if the pipe is not accepted.)
 4. `git add infra/secrets/k3s-token.age` (flakes only see tracked files), commit.
-5. `colmena apply --on @raspberry-pi`. Apply order is not guaranteed; if an
-   agent fails to join before the server is up, re-run the apply.
+5. The Pis are not colmena nodes (removed from `colmenaHive` 2026-10-21).
+   Re-add them there (they were `piHive` in `flake.nix`, tagged
+   `raspberry-pi`) before deploying with `colmena apply --on @raspberry-pi`.
+   Apply order is not guaranteed; if an agent fails to join before the
+   server is up, re-run the apply.
 
 Adding a Pi later means re-encrypting: `just reencrypt` (or the ssh-identity
 variant noted in `agenix-rules.nix`) after extending `piHosts`.

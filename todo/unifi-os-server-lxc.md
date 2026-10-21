@@ -90,8 +90,9 @@ access paths have been checked.
 
 Only after the new server has been stable and rollback is no longer needed:
 
-- [ ] Remove the `unifi` entries from `flake.nix` (`hostAddrs`,
-  `nixosConfigurations`, and `colmenaHive`) and delete `hosts/unifi/`.
+- [ ] Remove the `unifi` entries from `flake.nix` (`hostAddrs` and
+  `nixosConfigurations`; it left `colmenaHive` on 2026-10-21) and delete
+  `hosts/unifi/`.
 - [ ] Remove `unifi_vm` and its output from `iac/main.tf`, or replace the VM
   resource with the chosen LXC resource. Reconcile state before destroying the
   old VM; do not let Terraform/OpenTofu recreate or destroy the wrong guest.
