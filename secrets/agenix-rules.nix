@@ -16,7 +16,6 @@ let
   hostJellyfin = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDjBjNv4pvr08UdR2QL72Re3B22cUV+3DQvR2oG3/nsA root@homelab-jellyfin";
   hostMcp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGkfmvav5dWx4dAbDHcJSuKG32GSmdVdOK+uQ1xjCtse root@homelab-mcp";
   hostOtel = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGz4mCD5XyFkwVaSzzWHhral8WqMGo01nKZM3gAX2vzP amadeus@homelab-otel";
-  hostUnifi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1dva0wW3yY7pu0bT2HafVcn08BZMjzTwEh3CGcdfb8 root@homelab-unifi";
   hostWotan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB+ZFy9VtNhNzlpUg0tNqMPZFj3kCt50wvXD7aw88MZ root@wotan";
   # Fleet-wide secrets (tailscale auth key, otel push token, fleet enrol
   # secret) go to the humans plus every host that is currently deployed --
@@ -45,7 +44,7 @@ let
   # Pi 4 host keys, added after each Pi's first boot (`just get-host-key <host>`);
   # empty until then. See infra/docs/rpi-k3s.md.
   piHosts = [];
-  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostUnifi hostContainers hostMcp hostCa hostForgejo hostJellyfin hostAgents];
+  users = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostOtel hostDns hostContainers hostMcp hostCa hostForgejo hostJellyfin hostAgents];
   # keep-sorted end
 in {
   # Desktop-only secrets are the `[amadeus hostWotan]` rules (amadeus is

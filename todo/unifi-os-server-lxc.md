@@ -15,7 +15,7 @@ repackaging of that NixOS service.
 **Not started — planning only.** The NixOS controller VM was decommissioned
 in the repo on 2026-10-21 (config in `docs/archive/unifi/`; registry entry,
 DNS records, monitoring and the `unifi_vm` tofu resource removed), so Phase 3
-is done apart from `hostUnifi`. Phases 0–2 still apply to a fresh UniFi OS
+is done. Phases 0–2 still apply to a fresh UniFi OS
 Server install; restore from the controller backup taken before the VM was
 destroyed.
 
@@ -106,7 +106,7 @@ Only after the new server has been stable and rollback is no longer needed:
   `hosts/otel/configuration.nix` and the UniFi blackbox target in
   `hosts/otel/blackbox.nix`; verify uptime-forge continues checking the final
   UI endpoint in `hosts/containers/uptime-forge/forge.toml`.
-- [ ] Remove the old `hostUnifi` SSH recipient from `secrets/secrets.nix` and
+- [x] Remove the old `hostUnifi` SSH recipient from `secrets/agenix-rules.nix` and
   run `just reencrypt` if it is no longer needed by any secret.
 - [ ] Update the host inventory in `README.md`, the UniFi dashboard link in
   `hosts/containers/homelab-dashboard/default.nix`, and the host list in
