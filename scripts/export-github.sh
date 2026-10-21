@@ -5,8 +5,8 @@
 # `main`. Runs from wotan's switch.sh; only wotan pushes to GitHub.
 #
 # Before anything is pushed:
-#   - guard: no path under an exported prefix mentions knowledge-base, and no
-#     note (*.md) under it is a byte-for-byte copy of one in knowledge-base/;
+#   - guard (export-guard.sh): no vault path or vault blob under an exported
+#     prefix, in its tip or anywhere in the history the split publishes;
 #   - gitleaks over the prefix's whole history (.gitleaksignore applies).
 #
 # An export whose tree has not changed since its last successful push is
@@ -77,39 +77,12 @@ for n in "${!only[@]}"; do
   }
 done
 
-# Guard: runs on the commit being published (main, or HEAD for --check).
-rev=$ref
-[[ $mode == check ]] && rev=HEAD
-declare -A kb_notes=()
-while read -r _ _ blob _; do
-  kb_notes[$blob]=1
-done < <(git ls-tree -r "$rev" -- knowledge-base | grep -E '\.md$' || true)
-
-guard_failed=0
-for line in "${exports[@]}"; do
-  IFS=$'\t' read -r name prefix _ <<<"$line"
-  case "$prefix" in
-    knowledge-base | knowledge-base/*)
-      echo "  ✗ $name: knowledge-base/ is never exported" >&2
-      guard_failed=1
-      ;;
-  esac
-  while IFS=$'\t' read -r meta path; do
-    read -r _ _ blob <<<"$meta"
-    if [[ $path == *knowledge-base* ]]; then
-      echo "  ✗ $name: $path looks like vault content" >&2
-      guard_failed=1
-    elif [[ $path == *.md && -n ${kb_notes[$blob]:-} ]]; then
-      echo "  ✗ $name: $path is a copy of a knowledge-base/ note" >&2
-      guard_failed=1
-    fi
-  done < <(git ls-tree -r "$rev" -- "$prefix")
-done
-if ((guard_failed)); then
-  echo 'export guard failed: move that content out of the exported prefix' >&2
-  exit 1
+# Guard (export-guard.sh): the tip and the whole history that a split would
+# publish, on the commit being published (main, or HEAD for --check).
+if [[ $mode == check ]]; then
+  exec infra/scripts/export-guard.sh HEAD
 fi
-[[ $mode == check ]] && exit 0
+infra/scripts/export-guard.sh "$ref"
 
 state_dir=$(git rev-parse --git-path exports)
 mkdir -p "$state_dir"
