@@ -40,6 +40,7 @@
       crt = "/var/lib/step-ca/certs/intermediate_ca.crt";
       key = "/var/lib/step-ca/secrets/intermediate_ca_key";
       dnsNames = [
+        "ca.homelab.internal"
         "ca.homelab.local"
         "homelab-ca"
         "homelab-ca.dropbear-butterfly.ts.net"
