@@ -823,7 +823,7 @@ The Caddy vhost:
 services.caddy.virtualHosts."hermes-dashboard.homelab.internal hermes-dashboard.homelab.local" = {
   extraConfig = ''
     tls {
-      ca https://ca.homelab.local:8443/acme/acme/directory
+      ca https://ca.homelab.internal:8443/acme/acme/directory
     }
     handle {
       reverse_proxy 127.0.0.1:9119

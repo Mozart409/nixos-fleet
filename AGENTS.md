@@ -698,7 +698,7 @@ a real dependency of e.g. `unbound.service` on dns).
 
 **Network-dependent integrations are expected to be non-functional and are
 never asserted on**: tailscaled-autoconnect, comin's forgejo pull, Caddy's
-step-ca ACME cert issuance (`ca.homelab.local` is unreachable),
+step-ca ACME cert issuance (`ca.homelab.internal` is unreachable),
 `services.loki-logs` shipping to `loki.homelab.internal`, the
 alertmanager-axon-bridge webhook relay. None of these block
 `multi-user.target` or the services under test.

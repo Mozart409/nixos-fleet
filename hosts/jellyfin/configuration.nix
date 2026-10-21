@@ -114,7 +114,7 @@
     virtualHosts."jellyfin.homelab.internal jellyfin.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:8096
@@ -128,7 +128,7 @@
     virtualHosts."hofvarpnir.homelab.internal hofvarpnir.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:3000

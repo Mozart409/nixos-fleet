@@ -179,7 +179,7 @@ in {
     ${apiHost} = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy 127.0.0.1:${toString apiPort}
@@ -189,7 +189,7 @@ in {
     ${uiHost} = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy 127.0.0.1:${toString uiAuthPort}

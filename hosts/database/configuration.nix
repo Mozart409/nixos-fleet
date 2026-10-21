@@ -9,7 +9,7 @@
   # Where postgres reads its TLS cert/key from. Populated by the acme postRun
   # below (real step-ca leaf) or, until that first succeeds, by the self-signed
   # placeholder postgresql's preStart writes -- so `ssl = true` never keeps the
-  # server from starting on a fresh install or while ca.homelab.local is down.
+  # server from starting on a fresh install or while ca.homelab.internal is down.
   pgSslDir = "/var/lib/postgresql/ssl";
   pgCertName = "database.homelab.local";
   # Second SAN: clients address this host by either name (hofvarpnir's
@@ -698,7 +698,7 @@ in {
     virtualHosts."database.homelab.internal database.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         handle {
@@ -735,7 +735,7 @@ in {
     acceptTerms = true;
     defaults = {
       email = "acme@homelab.local";
-      server = "https://ca.homelab.local:8443/acme/acme/directory";
+      server = "https://ca.homelab.internal:8443/acme/acme/directory";
     };
     certs.${pgCertName} = {
       extraDomainNames = pgCertAltNames;
@@ -764,7 +764,7 @@ in {
     #     key it does not own unless that key is root-owned;
     #  2. whatever is already there;
     #  3. a self-signed placeholder, so `ssl = true` can never wedge startup
-    #     (fresh install, ca.homelab.local unreachable). Clients pinned to
+    #     (fresh install, ca.homelab.internal unreachable). Clients pinned to
     #     verify-full refuse it, which is the correct failure.
     # (1) exists because the acme unit's own reloadServices is not enough on a
     # deploy: switch-to-configuration starts acme-* and restarts postgresql

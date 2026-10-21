@@ -83,7 +83,7 @@
             labels.severity = "warning";
             annotations = {
               summary = "{{ $labels.probe_target }} certificate expires in {{ $value | printf \"%.1f\" }} days";
-              description = "ACME renewal against ca.homelab.local has most likely wedged -- the backoff is in-process and does not recover on its own. Restart caddy on the serving host and allow ~2.5 minutes for renewal to finish before rechecking.";
+              description = "ACME renewal against ca.homelab.internal has most likely wedged -- the backoff is in-process and does not recover on its own. Restart caddy on the serving host and allow ~2.5 minutes for renewal to finish before rechecking.";
             };
           }
         ];
@@ -454,7 +454,7 @@ in {
   services.caddy.virtualHosts."alertmanager.homelab.internal alertmanager.homelab.local" = {
     extraConfig = ''
       tls {
-        ca https://ca.homelab.local:8443/acme/acme/directory
+        ca https://ca.homelab.internal:8443/acme/acme/directory
       }
       reverse_proxy localhost:${toString config.services.prometheus.alertmanager.port}
     '';

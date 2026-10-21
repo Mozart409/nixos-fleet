@@ -38,7 +38,7 @@ harness.mkHostTest {
 
     # NOT asserted on, intentionally: tailscaled-autoconnect (needs a real
     # tailscale-auth-key secret and a real control-plane connection)
-    # and caddy's ACME cert issuance against ca.homelab.local (no route to it in
+    # and caddy's ACME cert issuance against ca.homelab.internal (no route to it in
     # the sandbox).
     # All soft-fail without affecting the assertions above.
   '';

@@ -151,7 +151,7 @@ in {
     virtualHosts."dns.homelab.internal dns.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         handle {

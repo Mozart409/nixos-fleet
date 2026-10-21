@@ -123,7 +123,7 @@
         }
         {
           name = "step-ca";
-          url = "https://ca.homelab.local:8443/health";
+          url = "https://ca.homelab.internal:8443/health";
         }
         # (Uptime Forge at containers.homelab.local/uptime-forge was retired
         # 2026-09-12.)

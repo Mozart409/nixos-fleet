@@ -870,7 +870,7 @@ in {
     # browser. Used for prometheus (and, in ./alerting.nix, alertmanager).
     open = port: ''
       tls {
-        ca https://ca.homelab.local:8443/acme/acme/directory
+        ca https://ca.homelab.internal:8443/acme/acme/directory
       }
       reverse_proxy localhost:${toString port}
     '';
@@ -881,7 +881,7 @@ in {
     # the 401 fallback win for push requests.
     single = port: withPush: ''
       tls {
-        ca https://ca.homelab.local:8443/acme/acme/directory
+        ca https://ca.homelab.internal:8443/acme/acme/directory
       }
       ${authMatchers}
       ${lib.optionalString withPush ''
@@ -903,7 +903,7 @@ in {
     virtualHosts."otel.homelab.internal otel.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
         ${aggregate}
       '';

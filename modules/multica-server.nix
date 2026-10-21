@@ -205,12 +205,11 @@ in {
     # SPA. The list mirrors the rewrites in upstream apps/web/next.config.ts
     # (v0.6.1): /api, /v1, /ws, /health, /uploads and /auth. /auth is split:
     # only the backend's endpoints go there, because /auth/callback is a web
-    # page (Next.js serves its own pages before applying those rewrites). The
-    # ACME URL stays on ca.homelab.local: step-ca's cert has no .internal SAN.
+    # page (Next.js serves its own pages before applying those rewrites).
     services.caddy.virtualHosts.${cfg.domain} = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         @backend path /api/* /v1/* /ws /ws/* /health /uploads/* /auth/send-code /auth/verify-code /auth/google /auth/logout

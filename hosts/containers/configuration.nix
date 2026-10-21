@@ -62,7 +62,7 @@
     virtualHosts."searxng.homelab.internal searxng.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:8089
@@ -74,7 +74,7 @@
     virtualHosts."dashboard.homelab.internal dashboard.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:8084
@@ -88,7 +88,7 @@
     virtualHosts."romm.homelab.internal romm.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:8095

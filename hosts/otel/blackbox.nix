@@ -210,13 +210,10 @@
         url = "https://multica.homelab.internal/health";
         instance = "homelab-containers";
       }
-      # The one name deliberately left on .local: step-ca is not behind Caddy (it
-      # serves :8443 itself), so unlike every entry above there is no vhost
-      # listing both names -- whether its cert carries a ca.homelab.internal SAN
-      # is a step-ca config question, not a DNS one. Switch it only after
-      # confirming that cert, or the probe fails on a name change alone.
+      # step-ca is not behind Caddy (it serves :8443 itself), so the names this
+      # probe can use are the dnsNames in hosts/ca/configuration.nix.
       {
-        url = "https://ca.homelab.local:8443/health";
+        url = "https://ca.homelab.internal:8443/health";
         instance = "homelab-ca";
       }
       # Grafana runs on this host. Probed over loopback on purpose: going out via

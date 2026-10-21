@@ -67,7 +67,7 @@
     virtualHosts."zeroclaw.homelab.internal zeroclaw.homelab.local" = {
       extraConfig = ''
         tls {
-          ca https://ca.homelab.local:8443/acme/acme/directory
+          ca https://ca.homelab.internal:8443/acme/acme/directory
         }
 
         reverse_proxy localhost:42617
