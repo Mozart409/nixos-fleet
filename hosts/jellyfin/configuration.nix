@@ -5,6 +5,8 @@
   ...
 }: {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "jellyfin")
     ../../modules/common.nix
     # Dedicated disko layout: btrfs OS disk + optimized ZFS media pool.
     ../../modules/disko-jellyfin.nix
@@ -23,18 +25,6 @@
   ];
 
   networking.hostName = "homelab-jellyfin";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.180";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # ZFS support
   boot.supportedFilesystems = ["zfs"];

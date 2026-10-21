@@ -5,6 +5,8 @@
   ...
 }: {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "unifi")
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
@@ -19,18 +21,6 @@
     ];
 
   networking.hostName = "homelab-unifi";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.142";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # UniFi Network Controller
   services.unifi = {

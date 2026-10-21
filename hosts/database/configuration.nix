@@ -110,6 +110,8 @@
   };
 in {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    ((import ../../lib/hosts.nix).staticNetwork "database")
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
@@ -119,18 +121,6 @@ in {
   ];
 
   networking.hostName = "homelab-database";
-
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.134";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
 
   # Terraform state database password
   age.secrets.terraform-state-db-password = {

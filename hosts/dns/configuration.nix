@@ -7,6 +7,8 @@
   hosts = import ../../lib/hosts.nix;
 in {
   imports = [
+    # Static ens18 address + gateway from the host registry.
+    (hosts.staticNetwork "dns")
     ../../modules/common.nix
     # XFS root on ssd_pool, not the old btrfs-on-zfs_pool layout
     # (modules/disko-config.nix). Two reasons, both covered in disko-xfs.nix:
@@ -23,17 +25,6 @@ in {
 
   networking.hostName = "homelab-dns";
 
-  # Static IP configuration
-  networking.interfaces.ens18 = {
-    useDHCP = false;
-    ipv4.addresses = [
-      {
-        address = "192.168.2.145";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.defaultGateway = "192.168.2.1";
   networking.nameservers = ["127.0.0.1" "192.168.2.1"]; # Override: DNS server uses localhost
 
   # Unbound DNS resolver with systemd integration
