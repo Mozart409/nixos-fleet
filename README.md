@@ -29,7 +29,7 @@ set. IPs are the static addresses configured in each host's NixOS config.
 | `jellyfin` | 192.168.2.180 | `media`, `jellyfin` | Jellyfin + SSO-Auth plugin, ZFS `mediapool`, hofvarpnir container |
 | `agents` | 192.168.2.190 | `ai`, `agents` | Agent platform: Multica daemons per trust zone (microVMs); successor to `development`/`hermes` |
 
-#### `development` — the retired agent workstation (gone 2026-10-06)
+#### Retired agent hosts (gone 2026-10-06)
 
 `development`, `hermes` and `zeroclaw` were all decommissioned on 2026-10-06,
 so no live host imports `modules/coding-harness.nix` any more. Their successor
@@ -38,44 +38,9 @@ evaluates for module changes. Until its zones import the harness,
 `coding-harness.nix`, `claude-permissions*.nix` and `herdr.nix` are still only
 syntax-checked.
 
-Retained for reference, describing what the host was:
-
-`development` served nothing: no Caddy vhost, no
-`homelab.internal` service, only the node exporter on :9100 and SSH. It is a
-headless box for driving LLM coding agents by hand over SSH/tmux, and it is the
-only host that imports `modules/coding-harness.nix` + `modules/herdr.nix`
-together:
-
-- **Agents**: `claude-code` and `opencode` (plus `bun`/`nodejs`, which opencode
-  needs to bootstrap its global plugins), with the usual CLI kit — neovim,
-  lazygit, ripgrep, fd, fzf, delta, bat, eza, httpie, jq/yq, tmux.
-- **MCP wiring**: `coding-harness-config` (a oneshot as `amadeus`) deep-merges
-  the axon-gateway MCP server into `~/.claude.json` and
-  `~/.config/opencode/opencode.jsonc` with `jq`, so Nix owns those keys without
-  clobbering each tool's live session state. The bearer token is never baked
-  into the configs — they reference `$AXON_GATEWAY_TOKEN`, which
-  `environment.interactiveShellInit` sources from the agenix secret into every
-  interactive login shell.
-- **Provider key**: `development-opencode-zen-key.age`, merged into opencode's
-  `auth.json`. Deliberately a per-host key — `hermes` has its own
-  `hermes-opencode-zen-key.age` so a leak is contained and revocation is
-  per-host.
-- **herdr** (`v0.7.5`, pinned as a flake input) is installed with its
-  opencode + claude integrations as a user service; `moshi-hook` pairs the iOS
-  companion app from `moshi-device-id.age` and runs its hook daemon. The moshi
-  units run in **both** the `agent` and `amadeus` user managers — one daemon,
-  pairing and socket per login, so a notification reaches the phone whichever
-  account raised it. Both need `linger = true`, which the modules set.
-- **Podman** is available for experiments, with `podman+` in
-  `trustedInterfaces` so containers on any per-experiment bridge can reach
-  aardvark-dns.
-- **Disko** pins the OS disk by `/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0`
-  — the VM also has a 4 MB cloud-init drive on the ATA bus, so `/dev/sdX` is not
-  stable and the default `/dev/sda` could target the wrong disk during install.
-
-Sizing (4 GB RAM / 256 GB disk) is deliberate and documented in `iac/main.tf`:
-opencode alone peaked at ~570 MB RSS on the hand-built reference box and `/nix`
-took 21 GB there, before Claude Code and the bun-hosted plugins.
+The `development` and `hermes` configs are archived (2026-10-21) in
+`docs/archive/development/` and `docs/archive/hermes/`, which also describe
+what each host was. `zeroclaw` stays under `hosts/`, wired to nothing.
 
 ### Desktop (not in the Colmena hive)
 

@@ -257,7 +257,7 @@
   # `env.`) instead of `--arg`, so it never appears in argv / `ps` output.
   #
   # Gated on the host declaring `age.secrets.opencode-zen-key`: each consumer
-  # supplies its OWN per-host key file (see hosts/development), so a leak is
+  # supplies its OWN per-host key file (see docs/archive/development), so a leak is
   # contained and revocation is per-host. Hosts that declare nothing (zeroclaw)
   # simply skip this — the attribute must not be referenced at all there, or
   # evaluation fails.

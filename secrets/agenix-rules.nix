@@ -61,7 +61,6 @@ in {
   "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
   "dashboard-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "development-forgejo-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "development-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   "fleet-enroll-secret.age".publicKeys = users;
   "fleet-mysql-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostFleet];
   "forgejo-bot-eve-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # the assistant zone pushes as eve (zones.nix forgejoBot)
@@ -81,24 +80,9 @@ in {
   "harbor-oidc-client-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHarbor];
   "harbor-oidc-client-secret.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostHarbor];
   "hermes-agentmail-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  # Per-profile provider credentials. A named Hermes profile resolves its
-  # providers only from its OWN .env, so each profile home gets its own file
-  # (env-file format: DEEPSEEK_API_KEY=..., optionally OPENCODE_ZEN_API_KEY=...).
-  # hosts/hermes/configuration.nix names them; modules/hermes-profiles.nix
-  # concatenates each into profiles/<name>/.env at 0600. This separates what
-  # each profile USES, not what it could read -- one uid owns all five.
-  "hermes-coding-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  # Superseded by hermes-default-env.age (the default profile's own .env).
-  # Kept as a recipient entry only while the file still exists in the tree.
-  "hermes-deepseek-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "hermes-default-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   # Re-minted for the 2026-09 rebuild: this now holds the `hermes` Forgejo
   # ACCOUNT's own key, not the retired `hermes-bot` account's.
   "hermes-forgejo-ssh.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "hermes-infra-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "hermes-kb-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "hermes-opencode-zen-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
-  "hermes-research-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];
   "hf-token.age".publicKeys = [amadeus hostWotan]; # env-file: HF_TOKEN=hf_... (vLLM gated models)
   "hindsight-api-key.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostMcp]; # raw tenant key; containers builds its env from it, axon forwards it as Bearer
   "hindsight-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase]; # raw password; containers builds the database URL from it

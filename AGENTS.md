@@ -201,7 +201,8 @@ The `just iac-*` recipes run inside `infra/iac` for you.
          -   `hosts/mcp_vm/configuration.nix` — bump `secretNonce` when an MCP
              credential changes; it is wired to the secret-consuming units'
              `restartTriggers`.
-         -   `hosts/hermes/configuration.nix` — all three profiles are written
+         -   `hosts/hermes/configuration.nix` (retired, now
+             `docs/archive/hermes/host-configuration.nix`) — all three profiles are written
              at stable paths under `/home/hermes/agent/.hermes/`, so
              `configHash` (every profile's settings / SOUL.md / memories /
              env, the default profile's `hermesHomeFiles` / `mcpServers`, and
@@ -733,8 +734,9 @@ More Jellyfin OIDC notes:
 > `development` and `zeroclaw`: the VM is gone from `infra/iac/main.tf`, and its
 > `hostAddrs`, `nixosConfigurations`, `colmenaHive`, DNS, agenix and Prometheus
 > entries are all removed or commented out. Nothing below describes a running
-> machine. It is kept because `infra/hosts/hermes/` and
-> `infra/modules/hermes-profiles.nix` are still on disk and are the obvious
+> machine. It is kept because the host config (archived 2026-10-21 in
+> `docs/archive/hermes/`; `hosts/hermes/…` paths below now live there) and
+> `infra/modules/hermes-profiles.nix` are the obvious
 > reference for the agentic-platform VM planned to replace it — every trap
 > below was paid for in production. `docs/plans/hermes-rebuild.md` is the
 > design doc for the host as it was.
@@ -926,7 +928,7 @@ directory, imported by exactly two consumers so the lists cannot drift:
 | `modules/claude-settings-verify.nix` | **Checker.** Re-reads the same data and confirms it survived; notifies `notify.iphone_von_amadeus` via the axon gateway on drift. Runs after every boot plus a daily timer. |
 
 Both were imported by `hosts/development/configuration.nix` (and by
-`hosts/hermes`, which pointed `codingHarness.user` at the `hermes` login). Both
+`hosts/hermes`, both now in `docs/archive/`, which pointed `codingHarness.user` at the `hermes` login). Both
 hosts are retired, so nothing imports them today.
 
 The deny list starts with **`modules/claude-deny-core.nix`**, the floor every
