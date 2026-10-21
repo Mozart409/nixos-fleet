@@ -79,7 +79,7 @@
       listen = "[::]:8080";
 
       # API endpoint configuration
-      api-endpoint = "https://cache.homelab.local";
+      api-endpoint = "https://cache.homelab.internal";
 
       # Use local storage (alternative: S3 via Garage)
       storage = {
@@ -170,7 +170,7 @@
 
   # Ship the atticd journal to the central Loki. modules/fluent-bit.nix runs a
   # fluent-bit shipper that tails journald for the listed units and pushes to
-  # https://loki.homelab.local/loki/api/v1/push; the step-ca TLS chain is
+  # https://loki.homelab.internal/loki/api/v1/push; the step-ca TLS chain is
   # already trusted via ../../modules/step-ca-trust.nix in
   # hosts/cache/configuration.nix. Logs land in Loki under job="attic".
   #

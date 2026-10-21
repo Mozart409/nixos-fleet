@@ -61,7 +61,7 @@ in {
   # RomM - self-hosted ROM manager. Single container: the image bundles its own
   # redis (persisted to /redis-data), so no separate redis container is needed.
   # Binds 127.0.0.1:8095 -> 8080; Caddy (see ../configuration.nix) is the only
-  # thing that proxies to it, terminating step-ca TLS at romm.homelab.local.
+  # thing that proxies to it, terminating step-ca TLS at romm.homelab.internal.
   virtualisation.oci-containers.containers.romm = {
     image = "ghcr.io/rommapp/romm:5.3";
     autoStart = true;
@@ -78,10 +78,10 @@ in {
     ];
     environment = {
       # Database - central PostgreSQL host (hosts/database). Addressed by name,
-      # not IP, because the server cert is issued for database.homelab.local
+      # not IP, because the server cert is issued for database.homelab.{local,internal}
       # and verify-full checks the hostname.
       ROMM_DB_DRIVER = "postgresql";
-      DB_HOST = "database.homelab.local";
+      DB_HOST = "database.homelab.internal";
       DB_PORT = "5432";
       DB_NAME = "romm";
       DB_USER = "romm";
@@ -95,6 +95,8 @@ in {
 
       # OIDC via Pocket ID (same provider as forgejo / grafana). The redirect
       # URI and base URL must exactly match the callback registered in Pocket ID.
+      # Both stay on .local until Pocket ID's romm client also lists
+      # https://romm.homelab.internal/api/oauth/openid; switch them together.
       OIDC_ENABLED = "true";
       OIDC_PROVIDER = "pocket-id";
       OIDC_REDIRECT_URI = "https://romm.homelab.local/api/oauth/openid";

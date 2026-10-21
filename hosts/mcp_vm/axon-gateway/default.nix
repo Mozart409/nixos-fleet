@@ -39,7 +39,7 @@
   configText = ''
     [gateway]
     bind = "127.0.0.1:${toString gatewayPort}"
-    base_url = "https://axon.homelab.local"
+    base_url = "https://axon.homelab.internal"
     # Bearer token clients must present to use the gateway.
     auth_token = "''${AXON_GATEWAY_TOKEN}"
     rate_limit_per_minute = 1000
@@ -239,11 +239,11 @@ in {
         ${gatewayVhost}
       '';
     };
-    # axon.homelab.local moved here from the containers host on 2026-09-14;
+    # axon.homelab.internal moved here from the containers host on 2026-09-14;
     # every client (hermes, otel's alertmanager bridge, development, the
     # dashboard health check, prometheus) reaches it by that name, so for
     # them the move was a DNS change (hosts/dns/configuration.nix).
-    "axon.homelab.local axon.homelab.internal" = {
+    "axon.homelab.internal axon.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory

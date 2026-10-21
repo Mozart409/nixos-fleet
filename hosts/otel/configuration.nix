@@ -200,7 +200,7 @@ in {
       # and distributor/querier/metrics-generator/backend-scheduler all
       # cascade-failing off it, leaving tempo.service in `failed` -- which is
       # what made every `colmena apply --on otel` exit 4, and what served the
-      # 502 on tempo.homelab.local.
+      # 502 on tempo.homelab.internal.
       #
       # NB the older comment above blamed a 3.0 schema mismatch. That was
       # wrong: the previous config passes `tempo -config.verify` cleanly
@@ -323,7 +323,7 @@ in {
       };
     };
 
-    # Targets are addressed by their *.homelab.local names (records live in
+    # Targets are addressed by their *.homelab.internal names (records live in
     # hosts/dns/configuration.nix) rather than raw IPs, so a re-IP is a one-line
     # change there instead of an edit in both places.
     #
@@ -411,7 +411,7 @@ in {
       # DNS host exporters.
       #
       # Deliberately the only job still addressed by IP. Every other target here
-      # is a *.homelab.local name served by unbound on this very host, so if
+      # is a *.homelab.internal name served by unbound on this very host, so if
       # unbound dies the job that would tell you must not be behind the name it
       # can no longer resolve. Prometheus re-resolves a target only when it dials
       # a new connection (see the comment on scrape_interval below), and a dead
@@ -598,12 +598,12 @@ in {
       }
       # Proxmox VE hypervisor (bare-metal, not nix-managed) node_exporter.
       #
-      # Use the .homelab.local name, not the bare .local one that was here
+      # Use the .homelab.internal name, not the bare .local one that was here
       # before: this scrape silently went to `no such host` on 2026-08-05 and
       # stayed down, which is exactly when the woodpecker ballooning needed
       # diagnosing. `.local` is mDNS-reserved, so a resolver that does not hand
       # it to unbound never sees the local-data record at all. Every other
-      # target here uses .homelab.local for the same reason.
+      # target here uses .homelab.internal for the same reason.
       {
         job_name = "pve-node";
         static_configs = [
@@ -900,7 +900,7 @@ in {
     enable = true;
 
     # Local network hostname with step-ca certificate
-    virtualHosts."otel.homelab.local otel.homelab.internal" = {
+    virtualHosts."otel.homelab.internal otel.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -910,15 +910,15 @@ in {
     };
 
     # Dedicated per-service hostnames (step-ca certs), each served at root
-    virtualHosts."loki.homelab.local loki.homelab.internal" = {
+    virtualHosts."loki.homelab.internal loki.homelab.local" = {
       extraConfig = single 3100 true;
     };
 
-    virtualHosts."tempo.homelab.local tempo.homelab.internal" = {
+    virtualHosts."tempo.homelab.internal tempo.homelab.local" = {
       extraConfig = single 3200 false;
     };
 
-    virtualHosts."prometheus.homelab.local prometheus.homelab.internal" = {
+    virtualHosts."prometheus.homelab.internal prometheus.homelab.local" = {
       # webExternalUrl carries the /prometheus prefix, so the UI's
       # redirects and links point at /prometheus/... here too; strip it.
       extraConfig =

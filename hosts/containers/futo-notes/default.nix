@@ -39,7 +39,7 @@ in {
   # FUTO Notes Server — E2E-encrypted sync server for the FUTO Notes app.
   # The server stores opaque encrypted blobs and never sees plaintext.
   # Binds 127.0.0.1:3006 -> 3000; Caddy proxies with step-ca TLS at
-  # notes.homelab.local. Uses central PostgreSQL (hosts/database).
+  # notes.homelab.internal. Uses central PostgreSQL (hosts/database).
   virtualisation.oci-containers.containers.futo-notes = {
     image = "gitlab.futo.org:5050/futo-notes/futo-notes-server/server:stable";
     autoStart = true;

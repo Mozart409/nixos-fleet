@@ -59,7 +59,7 @@
     # SearXNG on its own hostname so off-host clients (e.g. hermes-agent's
     # web_search backend) can reach it. SearXNG binds 127.0.0.1:8089, so Caddy
     # — running on this host — is the only thing that proxies to it.
-    virtualHosts."searxng.homelab.local searxng.homelab.internal" = {
+    virtualHosts."searxng.homelab.internal searxng.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -71,7 +71,7 @@
 
     # homelab-dashboard. Binds 127.0.0.1:8084 (see ./homelab-dashboard), so
     # Caddy is the only thing that proxies to it. Served at its own hostname.
-    virtualHosts."dashboard.homelab.local dashboard.homelab.internal" = {
+    virtualHosts."dashboard.homelab.internal dashboard.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -84,8 +84,8 @@
     # RomM (ROM manager). Binds 127.0.0.1:8095 (see ./romm), so Caddy is the only
     # thing that proxies to it. RomM is a root-served SPA (no URL subpath
     # support), so it gets its own hostname. The Pocket ID OIDC callback is
-    # https://romm.homelab.local/api/oauth/openid.
-    virtualHosts."romm.homelab.local romm.homelab.internal" = {
+    # https://romm.homelab.internal/api/oauth/openid.
+    virtualHosts."romm.homelab.internal romm.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory

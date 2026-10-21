@@ -151,7 +151,7 @@
     };
 
     # Local network hostname with step-ca certificate
-    virtualHosts."forgejo.homelab.local forgejo.homelab.internal" = {
+    virtualHosts."forgejo.homelab.internal forgejo.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -164,7 +164,7 @@
     };
 
     # Redirect plain HTTP to HTTPS for the local hostname.
-    virtualHosts."http://forgejo.homelab.local http://forgejo.homelab.internal" = {
+    virtualHosts."http://forgejo.homelab.internal http://forgejo.homelab.local" = {
       extraConfig = ''
         redir https://{host}{uri} permanent
       '';

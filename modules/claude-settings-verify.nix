@@ -140,7 +140,7 @@
             }
           }
         }')
-        curl -sS --max-time 20 -X POST https://axon.homelab.local/mcp \
+        curl -sS --max-time 20 -X POST https://axon.homelab.internal/mcp \
           -H "Authorization: Bearer $AXON_GATEWAY_TOKEN" \
           -H "Content-Type: application/json" \
           -H "Accept: application/json, text/event-stream" \

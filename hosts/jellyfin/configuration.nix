@@ -111,7 +111,7 @@
     };
 
     # Local network hostname with step-ca certificate
-    virtualHosts."jellyfin.homelab.local jellyfin.homelab.internal" = {
+    virtualHosts."jellyfin.homelab.internal jellyfin.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -125,7 +125,7 @@
     # LAN-only: Tailscale can only cert/route this node's own name, so there is
     # no ts.net vhost — reach it over Tailscale via split-DNS to the dns host.
     # App serves /metrics + /dashboard at root, so no path stripping.
-    virtualHosts."hofvarpnir.homelab.local hofvarpnir.homelab.internal" = {
+    virtualHosts."hofvarpnir.homelab.internal hofvarpnir.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory

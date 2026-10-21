@@ -84,7 +84,7 @@ in {
     };
 
     # Local network hostname with step-ca certificate
-    virtualHosts."cache.homelab.local cache.homelab.internal" = {
+    virtualHosts."cache.homelab.internal cache.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory

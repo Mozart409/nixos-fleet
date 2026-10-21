@@ -7,7 +7,7 @@
 # no shipper config at all.
 #
 # Imported only by the host that actually runs Loki. Everything else reaches it
-# over https://loki.homelab.local (a Caddy vhost on that same host, terminating
+# over https://loki.homelab.internal (a Caddy vhost on that same host, terminating
 # step-ca TLS and reverse-proxying to localhost:3100).
 {...}: {
   services.loki = {

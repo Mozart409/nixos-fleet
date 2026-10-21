@@ -46,7 +46,7 @@ lib.mkIf (config.networking.hostName != "homelab-dns") {
         # unbound auto-configures both "local." (RFC 6762, mDNS) and
         # "internal." (RFC 9476) as reserved special-use TLDs and answers
         # them NXDOMAIN internally by default. The homelab runs parallel
-        # `*.homelab.local` and `*.homelab.internal` zones (the latter for
+        # `*.homelab.internal` and legacy `*.homelab.local` zones (the former for
         # Apple/mDNS clients that force *.local off-DNS, see
         # hosts/dns/configuration.nix), so both need overriding or this stub
         # breaks the moment any host's `networking.nameservers` points at it.

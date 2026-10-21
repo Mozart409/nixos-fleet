@@ -695,7 +695,7 @@ in {
     };
 
     # Local network hostname with step-ca certificate
-    virtualHosts."database.homelab.local database.homelab.internal" = {
+    virtualHosts."database.homelab.internal database.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory

@@ -83,11 +83,9 @@
         # HTTP against the homelab and loopback skips the prompt. This only
         # matches command text; sandbox.network below is the actual boundary.
         "Bash(curl *.homelab.internal*)"
-        "Bash(curl *.homelab.local*)"
         "Bash(curl *localhost*)"
         "Bash(curl *127.0.0.1*)"
         "Bash(wget *.homelab.internal*)"
-        "Bash(wget *.homelab.local*)"
         "Bash(wget *localhost*)"
         "Bash(wget *127.0.0.1*)"
         "WebSearch"
@@ -160,7 +158,6 @@
         # Unlisted hosts prompt instead of failing.
         allowedDomains = [
           "*.homelab.internal"
-          "*.homelab.local"
           "localhost"
           "127.0.0.1"
         ];

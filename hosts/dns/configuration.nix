@@ -148,7 +148,7 @@ in {
     };
 
     # Local network hostname with step-ca certificate
-    virtualHosts."dns.homelab.local dns.homelab.internal" = {
+    virtualHosts."dns.homelab.internal dns.homelab.local" = {
       extraConfig = ''
         tls {
           ca https://ca.homelab.local:8443/acme/acme/directory
@@ -162,9 +162,9 @@ in {
   };
 
   # Subnet router: advertise the LAN so tailnet clients (e.g. a laptop while
-  # away) can reach *.homelab.local by their real 192.168.2.x addresses and hit
+  # away) can reach *.homelab.internal by their real 192.168.2.x addresses and hit
   # the internal Caddy vhosts with genuine step-ca certs. "server" enables
-  # net.ipv4.ip_forward. Pair with a split-DNS entry (homelab.local ->
+  # net.ipv4.ip_forward. Pair with a split-DNS entry (homelab.internal ->
   # 192.168.2.145) in the Tailscale admin console.
   # NOTE: tailscaled-autoconnect only runs `tailscale up` when not already
   # connected, so on an already-authed node apply the route once by hand:

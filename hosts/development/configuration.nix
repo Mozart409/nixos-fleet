@@ -161,14 +161,14 @@ in {
   # dropped; that is the same re-provisioning footgun that breaks agenix.
   programs.ssh.extraConfig = ''
     # amadeus's own Forgejo key.
-    Host forgejo.homelab.local forgejo.homelab.internal
+    Host forgejo.homelab.internal forgejo.homelab.local
       Port 2222
       User forgejo
       IdentityFile ~/.ssh/id_ed25519
       IdentitiesOnly yes
       StrictHostKeyChecking accept-new
 
-    Host *.homelab.local *.homelab.internal homelab-* 192.168.2.* !forgejo.homelab.local !forgejo.homelab.internal !*.ts.net
+    Host *.homelab.internal *.homelab.local homelab-* 192.168.2.* !forgejo.homelab.internal !forgejo.homelab.local !*.ts.net
       User amadeus
       # Passphraseless deploy key so colmena can push non-interactively. The
       # agents run as amadeus, so any agent session can read it; only the
@@ -185,7 +185,7 @@ in {
     # here without a ProxyJump). MagicDNS resolves it from this host
     # (ventara-vm01 -> 100.x on the shared tailnet), so no HostName pin is
     # needed. The name matches NONE of the homelab patterns above (it is not
-    # `homelab-*`/`*.homelab.local`/`192.168.2.*`), so without this block ssh
+    # `homelab-*`/`*.homelab.internal`/`192.168.2.*`), so without this block ssh
     # falls back to the broken managed agent and prompts to unlock the key.
     # Same deploy key + `IdentityAgent none` as the homelab block; ventara's
     # modules/common.nix authorizes this key's pubkey (amadeus@development-colmena).
@@ -297,9 +297,9 @@ in {
   # nix-ai-tools' own binary cache (see flake.nix's nix-ai-tools input comment
   # and crushPkg above). nixpkgs declares `substituters`/`trusted-public-keys`
   # with mkAfter (nixos/modules/config/nix.nix), so this MERGES with the
-  # cache.nixos.org + cache.homelab.local entries from modules/attic-cache.nix
+  # cache.nixos.org + cache.homelab.internal entries from modules/attic-cache.nix
   # rather than replacing them -- same pattern that module uses. Plain public
-  # CA TLS (unlike cache.homelab.local's step-ca cert), so no extra trust
+  # CA TLS (unlike cache.homelab.internal's step-ca cert), so no extra trust
   # module is needed here.
   nix.settings = {
     substituters = ["https://cache.numtide.com"];

@@ -208,7 +208,7 @@
   # of it; `eve` gets the Home Assistant slice via `tools.include`, an fnmatch
   # whitelist over the server's raw tool names (tools/mcp_tool_registration.py).
   axonMcpServer = {
-    url = "https://axon.homelab.local/mcp";
+    url = "https://axon.homelab.internal/mcp";
     headers.Authorization = "Bearer \${AXON_GATEWAY_TOKEN}";
   };
   axonMcpSettings = {
@@ -428,7 +428,7 @@ in {
   # precedes the `Host` blocks common.nix appends and ssh takes the first value
   # it finds, so this wins.
   programs.ssh.extraConfig = lib.mkBefore ''
-    Match user hermes host forgejo.homelab.local,forgejo.homelab.internal,homelab-forgejo.dropbear-butterfly.ts.net
+    Match user hermes host forgejo.homelab.internal,forgejo.homelab.local,homelab-forgejo.dropbear-butterfly.ts.net
       Port 2222
       User forgejo
       IdentityFile ${config.age.secrets.hermes-forgejo-ssh.path}
@@ -689,7 +689,7 @@ in {
     mcpServers = {
       axon-gateway = {
         enabled = false;
-        url = "https://axon.homelab.local/mcp";
+        url = "https://axon.homelab.internal/mcp";
       };
       agentmail = {
         enabled = false;

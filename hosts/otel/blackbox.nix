@@ -220,7 +220,7 @@
         instance = "homelab-ca";
       }
       # Grafana runs on this host. Probed over loopback on purpose: going out via
-      # otel.homelab.local would make a Grafana alert also depend on unbound,
+      # otel.homelab.internal would make a Grafana alert also depend on unbound,
       # Caddy and step-ca, so a DNS blip would read as "Grafana is down".
       {
         url = "http://localhost:3000/api/health";

@@ -97,11 +97,11 @@
   lokiOutput = {
     name = "loki";
     match = "*";
-    # loki.homelab.local is a Caddy vhost on the otel host that reverse-proxies
+    # loki.homelab.internal is a Caddy vhost on the otel host that reverse-proxies
     # at root to Loki's localhost:3100. Its TLS cert comes from step-ca, which
     # is trusted on every host importing modules/step-ca-trust.nix — so any
     # consumer of this module must also import that (hosts here already do).
-    host = "loki.homelab.local";
+    host = "loki.homelab.internal";
     port = 443;
     tls = "on";
     "tls.verify" = "on";

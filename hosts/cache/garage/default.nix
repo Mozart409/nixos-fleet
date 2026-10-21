@@ -30,7 +30,7 @@
       s3_api = {
         s3_region = "garage";
         api_bind_addr = "[::]:3900";
-        root_domain = ".s3.homelab.local";
+        root_domain = ".s3.homelab.internal";
       };
 
       admin = {

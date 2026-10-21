@@ -137,7 +137,7 @@ in {
         file = ../../secrets/forgejo-mcp-token.age;
       };
     }
-    # postgres://mcp:<pw>@database.homelab.local:5432/<db> — same read-only role
+    # postgres://mcp:<pw>@database.homelab.internal:5432/<db> — same read-only role
     # and password for every entry, one database each.
     // lib.mapAttrs' (db: _:
       lib.nameValuePair (pgSecretName db) {
@@ -176,7 +176,7 @@ in {
       lokimcp-server = {
         enable = true;
         package = mcpPackages.lokimcp-server;
-        host = "https://loki.homelab.local";
+        host = "https://loki.homelab.internal";
         tokenFile = config.age.secrets.otel-query-token.path;
         bind = "127.0.0.1:8083";
         allowedHosts = loopbackOnly;

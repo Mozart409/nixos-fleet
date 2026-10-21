@@ -5,7 +5,7 @@
   ...
 }: {
   # Bootstrap image: no central log shipping. It has no route to
-  # loki.homelab.local and no step-ca trust, so fluent-bit would only fail in a
+  # loki.homelab.internal and no step-ca trust, so fluent-bit would only fail in a
   # loop. common.nix sets this with mkDefault precisely so images can opt out.
   services.loki-logs.enable = false;
 

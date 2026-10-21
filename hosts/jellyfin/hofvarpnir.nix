@@ -15,7 +15,7 @@ in {
   # pattern as axon-gateway / romm. Postgres lives on homelab-database; media
   # lives under /media/hofvarpnir (bind-mounted at the container's downloads dir).
   # Public access is via hofvarpnir.homelab.internal (canonical) and
-  # hofvarpnir.homelab.local (Caddy vhost + step-ca TLS in ./configuration.nix).
+  # hofvarpnir.homelab.internal (Caddy vhost + step-ca TLS in ./configuration.nix).
   # The old tsbridge name keeps hitting the LXC until cutover.
 
   virtualisation.oci-containers.containers.hofvarpnir = {
@@ -39,7 +39,7 @@ in {
       # creates /media/hofvarpnir 0755 jellyfin:jellyfin.
       "/media/hofvarpnir:/var/lib/hofvarpnir/downloads"
       # Host CA bundle (includes step-ca) so the container can verify TLS to
-      # *.homelab.local, including the OTLP and Loki pushes to otel below.
+      # *.homelab.internal, including the OTLP and Loki pushes to otel below.
       # Both exporters verify against the system store (reqwest 0.13 via
       # rustls-platform-verifier; reqwest 0.12 via native roots), which reads
       # SSL_CERT_FILE -- verified end to end in hofvarpnir's
@@ -75,7 +75,7 @@ in {
 
       # --- Observability ----------------------------------------------------
       # Rewritten from the LXC's homelab-otel.*.ts.net (MagicDNS does NOT resolve
-      # between homelab VMs) to the step-ca *.homelab.local names on the otel host.
+      # between homelab VMs) to the step-ca *.homelab.internal names on the otel host.
       METRICS_ENABLED = "true";
       # Both pipelines go through Caddy on otel's aggregate vhost, gated by the
       # fleet push token (headers rendered at container start, see preStart
@@ -83,8 +83,8 @@ in {
       # OTLP/HTTP and "/loki/api/v1/push" for Loki -- exactly the two paths
       # that vhost forwards with the push token. OTLP/HTTP, not gRPC: Caddy
       # has no h2c upstream for the collector's 4317.
-      LOKI_URL = "https://otel.homelab.local";
-      OTEL_EXPORTER_OTLP_ENDPOINT = "https://otel.homelab.local";
+      LOKI_URL = "https://otel.homelab.internal";
+      OTEL_EXPORTER_OTLP_ENDPOINT = "https://otel.homelab.internal";
       OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf";
       OTEL_SERVICE_NAME = "hofvarpnir";
       # Sampling is tunable without a release; unset means 100%. To cut Tempo
@@ -93,7 +93,7 @@ in {
 
       SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
       # TLS to postgres (hosts/database has ssl = true). DATABASE_URL in
-      # hofvarpnir-env.age says `database.homelab.local?sslmode=verify-full`;
+      # hofvarpnir-env.age says `database.homelab.internal?sslmode=verify-full`;
       # sqlx takes the root cert from this libpq env var (its rustls build
       # would otherwise verify against bundled webpki roots, which do not
       # include step-ca) and the host CA bundle is mounted above.
@@ -120,7 +120,7 @@ in {
     };
 
     # Secrets injected as root before podman launches:
-    #   DATABASE_URL       — central Postgres (database.homelab.local, sslmode=verify-full);
+    #   DATABASE_URL       — central Postgres (database.homelab.internal, sslmode=verify-full);
     #                        embeds the hofvarpnir role password, so rotating
     #                        hofvarpnir-db-password.age means re-encrypting this too
     #   OIDC_CLIENT_ID     — from Pocket ID (not strictly secret, kept here for convenience)

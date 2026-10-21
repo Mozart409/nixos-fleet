@@ -102,7 +102,7 @@
             labels.severity = "warning";
             annotations = {
               summary = "Alertmanager cannot deliver notifications";
-              description = "Deliveries to the axon bridge are failing, so alerts are firing into a void. Check: systemctl status alertmanager-axon-bridge, and whether axon.homelab.local is reachable.";
+              description = "Deliveries to the axon bridge are failing, so alerts are firing into a void. Check: systemctl status alertmanager-axon-bridge, and whether axon.homelab.internal is reachable.";
             };
           }
         ];
@@ -348,7 +348,7 @@ in {
     alertmanager = {
       enable = true;
       listenAddress = "127.0.0.1";
-      webExternalUrl = "https://alertmanager.homelab.local";
+      webExternalUrl = "https://alertmanager.homelab.internal";
 
       # Single node. Without this alertmanager still binds its gossip listener on
       # 9094 for a cluster that will never have a second member.
@@ -451,7 +451,7 @@ in {
   # 2026-09-14 until 2026-09-24; that made the UI unusable from a browser (no
   # way to attach a bearer token) and pushed every link into Grafana, so the
   # gate is gone. Reaching it still means reaching 443 on this host.
-  services.caddy.virtualHosts."alertmanager.homelab.local alertmanager.homelab.internal" = {
+  services.caddy.virtualHosts."alertmanager.homelab.internal alertmanager.homelab.local" = {
     extraConfig = ''
       tls {
         ca https://ca.homelab.local:8443/acme/acme/directory

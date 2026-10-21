@@ -65,7 +65,7 @@ in {
           {
             name = "loki";
             match = "*";
-            host = "loki.homelab.local";
+            host = "loki.homelab.internal";
             port = 443;
             tls = "on";
             "tls.verify" = "on";

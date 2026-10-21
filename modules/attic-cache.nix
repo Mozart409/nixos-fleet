@@ -2,8 +2,8 @@
   # The `homelab` cache on hosts/cache (atticd behind Caddy).
   #
   # Attic namespaces binary-cache URLs under the cache name, so the substituter
-  # URL includes it — https://cache.homelab.local alone is NOT a valid cache.
-  endpoint = "https://cache.homelab.local/homelab";
+  # URL includes it — https://cache.homelab.internal alone is NOT a valid cache.
+  endpoint = "https://cache.homelab.internal/homelab";
 
   # Public half of the signing keypair atticd generated when the cache was
   # created. Re-read it at any time with:
@@ -32,7 +32,7 @@ in {
     fallback = true;
   };
 
-  # TLS: cache.homelab.local presents a step-ca certificate, so any host using
+  # TLS: cache.homelab.internal presents a step-ca certificate, so any host using
   # this module must also import modules/step-ca-trust.nix — the nix daemon
   # verifies against the system CA bundle and will otherwise refuse the
   # substituter outright.

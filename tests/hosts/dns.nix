@@ -9,21 +9,31 @@ harness.mkHostTest {
     machine.wait_for_unit("unbound.service")
     machine.wait_for_open_port(53)
 
-    # Forward A records this host is actually configured to serve.
+    # Forward A records in homelab.internal, the primary zone.
+    machine.succeed(
+        "dig @127.0.0.1 -p 53 database.homelab.internal +short | grep -q '^192.168.2.134$'"
+    )
+    machine.succeed(
+        "dig @127.0.0.1 -p 53 dns.homelab.internal +short | grep -q '^192.168.2.145$'"
+    )
+    machine.succeed(
+        "dig @127.0.0.1 -p 53 axon.homelab.internal +short | grep -q '^192.168.2.152$'"
+    )
+    # The legacy homelab.local zone is still served as a compatibility alias.
     machine.succeed(
         "dig @127.0.0.1 -p 53 database.homelab.local +short | grep -q '^192.168.2.134$'"
     )
     machine.succeed(
         "dig @127.0.0.1 -p 53 dns.homelab.local +short | grep -q '^192.168.2.145$'"
     )
-    # homelab.internal mirror zone (Apple-client parallel zone).
-    machine.succeed(
-        "dig @127.0.0.1 -p 53 database.homelab.internal +short | grep -q '^192.168.2.134$'"
-    )
 
-    # Reverse (PTR) record.
+    # Reverse (PTR) records: legacy hosts keep their homelab.local PTR, hosts
+    # born .internal-only get a homelab.internal one.
     machine.succeed(
         "dig @127.0.0.1 -p 53 -x 192.168.2.134 +short | grep -q 'database.homelab.local'"
+    )
+    machine.succeed(
+        "dig @127.0.0.1 -p 53 -x 192.168.2.190 +short | grep -q 'agents.homelab.internal'"
     )
 
     # NOT asserted on, intentionally: tailscaled-autoconnect (needs a real

@@ -6,10 +6,10 @@ speaks MCP JSON-RPC (`tools/call`). Neither end is configurable enough to meet
 the other, so this sits between them.
 
 Why the gateway rather than posting to Home Assistant directly, which would need
-no bridge at all: Home Assistant has no *.homelab.local record. Its only names
+no bridge at all: Home Assistant has no *.homelab.internal record. Its only names
 are a MagicDNS ts.net name -- which does not resolve between homelab VMs, see
 AGENTS.md -- and a bare .local name, which is mDNS-reserved and which unbound
-therefore never gets asked about. axon.homelab.local resolves, carries a step-ca
+therefore never gets asked about. axon.homelab.internal resolves, carries a step-ca
 cert this host already trusts, and is the exact path
 modules/claude-settings-verify.nix already uses in production.
 
@@ -26,7 +26,7 @@ import sys
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-AXON_URL = os.environ.get("BRIDGE_AXON_URL", "https://axon.homelab.local/mcp")
+AXON_URL = os.environ.get("BRIDGE_AXON_URL", "https://axon.homelab.internal/mcp")
 NOTIFY_ENTITY = os.environ.get("BRIDGE_NOTIFY_ENTITY", "notify.iphone_von_amadeus")
 LISTEN_PORT = int(os.environ.get("BRIDGE_PORT", "9099"))
 
