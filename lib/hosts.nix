@@ -154,8 +154,14 @@ let
 
   sortStrings = builtins.sort builtins.lessThan;
 
-  # Primary DNS name of a host: <name>.<first zone>.
-  fqdn = name: "${name}.${builtins.head (hosts.${name}.zones or legacyAndInternal)}";
+  byName = builtins.listToAttrs (map (n: {
+      inherit (n) name;
+      value = n;
+    })
+    names);
+
+  # Primary DNS name of a host or alias: <name>.<first zone>.
+  fqdn = name: "${name}.${builtins.head byName.${name}.zones}";
 in {
   inherit network hosts fqdn;
 
