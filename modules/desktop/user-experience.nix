@@ -81,6 +81,9 @@
       AutofillCreditCardEnabled = false;
       # Startup: New Tab Page only (not "continue where you left off").
       RestoreOnStartup = 5;
+      # Spellcheck German and English; forced on, cannot be disabled in the UI.
+      SpellcheckEnabled = true;
+      SpellcheckLanguage = ["de" "en-US"];
     };
 
     # Auto-start applications configuration
