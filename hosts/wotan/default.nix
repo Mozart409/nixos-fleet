@@ -274,6 +274,20 @@
       "/home/${username}/.claude/.credentials.json"
     ];
   };
+  # The server loads plugins and config from ~/.config/opencode once, at
+  # startup. home-manager rewrites those files without touching this unit, so
+  # a switch left it running the old plugin until a manual restart. Contents,
+  # not `source`: a `./file` source is a path into the whole flake source and
+  # would restart the server on every commit.
+  systemd.services.opencode-serve.restartTriggers = let
+    files = config.home-manager.users.${username}.home.file;
+    contents = f:
+      if f.text != null
+      then f.text
+      else builtins.hashFile "sha256" f.source;
+  in
+    map (name: contents files.${name})
+    (lib.filter (lib.hasPrefix ".config/opencode/") (lib.attrNames files));
 
   # Swap on zram — helps avoid OOM during large builds and LLM inference
   zramSwap = {
