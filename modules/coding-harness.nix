@@ -223,7 +223,7 @@
       mcp = opencodeMcpServers;
       permission = opencodePermissions;
     }
-    // lib.optionalAttrs (opencodePlugins != []) {plugin = opencodePlugins;}));
+    // lib.optionalAttrs (opencodePlugins != []) {plugins = opencodePlugins;}));
 
   # ~/.claude.json holds Claude Code's own live session/account state
   # alongside `mcpServers`, and ~/.config/opencode/opencode.jsonc is written

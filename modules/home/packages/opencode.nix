@@ -258,7 +258,7 @@
               };
             };
           };
-          plugin = ["context-mode"];
+          plugins = ["context-mode"];
           references = {
             "context-mode" = {
               path = "${config.opencode.referencesDir}/context-mode.md";

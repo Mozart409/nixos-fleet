@@ -12,6 +12,18 @@
 // tool output so a value that slips through some unforeseen path still
 // never reaches the model context (or the provider).
 //
+// V2 plugin API: opencode v2 default-exports a definition with an `id` and a
+// `setup(ctx)` function, and hooks are registered on the domain that owns the
+// operation (`ctx.tool.hook(...)`). The V1 `tool.execute.before` /
+// `tool.execute.after` string keys and the `(input, output)` callback split
+// are gone: each hook now receives a single mutable event
+// (`{ tool, sessionID, agent, messageID, id, input }`, plus `status`/`result`
+// or `status`/`error` on execute.after). We deliberately export the plain
+// definition object instead of `Plugin.define(...)`: the loader validates
+// `{ id, setup }` directly (or `{ id, effect }`), and importing
+// `@opencode/plugin` would need node_modules this Nix-deployed file does not
+// have.
+//
 // No imports on purpose: plain ESM, loaded by opencode's own runtime.
 
 const REDACTED = "[REDACTED by secret-guard]";
@@ -132,11 +144,74 @@ function redact(text) {
   return { text: out, hits };
 }
 
-export const SecretGuard = async () => {
-  return {
-    "tool.execute.before": async (input, output) => {
-      const tool = String(input.tool || "").toLowerCase();
-      const args = output.args || {};
+// Recursively scrub every string in a tool result value (result.output is a
+// string; result.content is a string, a Tool.Content object, or an array of
+// them). Returns the scrubbed value plus how many tokens were redacted.
+function scrub(value) {
+  if (typeof value === "string") {
+    const {text, hits} = redact(value);
+    return {value: text, hits};
+  }
+  if (Array.isArray(value)) {
+    let hits = 0;
+    const out = value.map((v) => {
+      const r = scrub(v);
+      hits += r.hits;
+      return r.value;
+    });
+    return { value: out, hits };
+  }
+  if (value && typeof value === "object") {
+    let hits = 0;
+    const out = {...value};
+    for (const k of Object.keys(out)) {
+      const r = scrub(out[k]);
+      hits += r.hits;
+      out[k] = r.value;
+    }
+    return { value: out, hits };
+  }
+  return { value, hits: 0 };
+}
+
+function notice(hits) {
+  return `\n\n[secret-guard: ${hits} secret-looking value(s) redacted from this output]`;
+}
+
+// Append the notice to whatever text field the result actually carries, so the
+// model learns the output was scrubbed. Falls back to metadata when there is
+// no string to extend.
+function appendNotice(result, hits) {
+  const text = notice(hits);
+  if (typeof result.output === "string") {
+    result.output += text;
+    return;
+  }
+  if (typeof result.content === "string") {
+    result.content += text;
+    return;
+  }
+  if (result.content && !Array.isArray(result.content) && typeof result.content.text === "string") {
+    result.content.text += text;
+    return;
+  }
+  if (Array.isArray(result.content)) {
+    const part = result.content.find((p) => p && typeof p === "object" && typeof p.text === "string");
+    if (part) {
+      part.text += text;
+      return;
+    }
+  }
+  result.metadata = {...(result.metadata || {}), secretGuard: text.trim()};
+}
+
+export default {
+  id: "secret-guard",
+
+  async setup(ctx) {
+    await ctx.tool.hook("execute.before", (event) => {
+      const tool = String(event.tool || "").toLowerCase();
+      const args = event.input || {};
 
       if (tool === "bash") {
         const cmd = String(args.command || "");
@@ -150,15 +225,23 @@ export const SecretGuard = async () => {
           if (isSecretPath(s)) block(tool, `secret path ${JSON.stringify(s)}`);
         }
       }
-    },
+    });
 
-    "tool.execute.after": async (_input, output) => {
-      const { text, hits } = redact(output.output);
-      if (hits > 0) {
-        output.output = `${text}\n\n[secret-guard: ${hits} secret-looking value(s) redacted from this output]`;
+    await ctx.tool.hook("execute.after", (event) => {
+      if (event.status !== "completed" || !event.result) return;
+      const result = event.result;
+
+      let hits = 0;
+      if (typeof result.output === "string") {
+        const r = redact(result.output);
+        result.output = r.text;
+        hits += r.hits;
       }
-    },
-  };
-};
+      const scrubbed = scrub(result.content);
+      result.content = scrubbed.value;
+      hits += scrubbed.hits;
 
-export default SecretGuard;
+      if (hits > 0) appendNotice(result, hits);
+    });
+  },
+};
