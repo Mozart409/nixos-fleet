@@ -267,7 +267,7 @@
         force = true;
         text = builtins.toJSON {
           "$schema" = "https://opencode.ai/v2/cli.json";
-          theme.name = "osaka-jade";
+          theme.name = "vesper";
           diffs.wrap = "word";
           session = {
             sidebar = "auto";
