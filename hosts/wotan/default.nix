@@ -230,8 +230,8 @@
 
   # opencode headless server — persistent background service so every new
   # opencode session attaches to the same server instead of spawning a new one.
-  # A zsh function in configs/shell.nix (`opencode` → `opencode attach
-  # $OPENCODE_SERVER_URL --dir "$PWD"`) makes this transparent. Commands run
+  # A zsh function in configs/shell.nix (`opencode` → `opencode --server
+  # $OPENCODE_SERVER_URL "$PWD"`) makes this transparent. Commands run
   # in the server's environment, not the attaching shell's: devshell/direnv
   # tools are only available via `nix develop -c ...`.
   services.opencode-serve = {
@@ -247,7 +247,8 @@
     environmentFiles = [
       config.age.secrets.axon-gateway-env.path
       config.age.secrets.ventara-gateway-env.path
-      # Basic auth; clients get it via OPENCODE_SERVER_PASSWORD (home.nix).
+      # Basic auth; the server reads OPENCODE_SERVER_PASSWORD from this env
+      # file, and clients pass the same value as OPENCODE_PASSWORD (home.nix).
       config.age.secrets.opencode-server-password.path
     ];
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.

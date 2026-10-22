@@ -170,11 +170,11 @@ in {
     # in herdr's source), so this function is exactly as visible to herdr's
     # resume as it is to a manually-typed `opencode`. Only a bare launch or
     # the flag set herdr's resume plan actually uses is intercepted; anything
-    # else (subcommands like `auth`/`run`/`models`, or flags `attach` doesn't
+    # else (subcommands like `auth`/`run`/`models`, or flags the v2 CLI doesn't
     # support) passes straight through to the real binary untouched.
     opencode() {
       case "$1" in
-        ""|--session|-s|--continue|-c|--fork)
+        ""|--session|-s|--continue|-c)
           if ! systemctl --user is-active --quiet opencode-server.service 2>/dev/null; then
             # `systemd-run --user` starts the transient unit as a child of the
             # systemd --user manager, NOT of this shell — so it does not
@@ -193,8 +193,8 @@ in {
             # A cold-boot start (server binary + plugin node_modules bootstrap)
             # has been observed taking ~15s end to end, well past a short poll
             # budget — so this waits up to 60s, and on genuine failure to come
-            # up REFUSES to attach instead of racing an `opencode attach` against
-            # a still-closed port (which fails with an opaque "Unable to
+            # up REFUSES to connect instead of racing an `opencode --server`
+            # against a still-closed port (which fails with an opaque "Unable to
             # connect" from the opencode CLI itself, indistinguishable from a
             # real outage).
             local _oc_tries=0
@@ -208,7 +208,7 @@ in {
               return 1
             fi
           fi
-          command opencode attach "http://127.0.0.1:${toString opencodeServerPort}" --dir "$PWD" "$@"
+          command opencode --server "http://127.0.0.1:${toString opencodeServerPort}" "$@" "$PWD"
           ;;
         *)
           command opencode "$@"

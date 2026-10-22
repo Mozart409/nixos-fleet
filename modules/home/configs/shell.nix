@@ -177,17 +177,20 @@
       tc() { _tai claude claude; }
       to() { _tai opencode opencode; }
 
-      # Interactive `opencode` (no args, or only flags like -c/-s) attaches to
+      # Interactive `opencode` (no args, or only flags like -c/-s) connects to
       # the shared opencode-serve instance for $PWD instead of spawning its own
-      # server. Subcommands (`opencode run`, `opencode models`, ...) pass through.
-      # The basic-auth password is read from the agenix file per call and only
-      # given to this one process — never exported, so other shell children
-      # (e.g. sandboxed agents) can't use the server to escape their sandbox.
+      # server. opencode v2 removed the `attach <url> --dir <dir>` form: a server
+      # is selected with `--server <url>` and the working directory is a trailing
+      # positional argument. Subcommands (`opencode run`, `opencode models`, ...)
+      # pass through. The basic-auth password is read from the agenix file per
+      # call and only given to this one process — never exported, so other shell
+      # children (e.g. sandboxed agents) can't use the server to escape their
+      # sandbox.
       opencode() {
         if (( $# == 0 )) || [[ $1 == -* ]]; then
           local pwfile="''${OPENCODE_SERVER_PASSWORD_FILE:-/run/agenix/opencode-server-password}"
-          OPENCODE_SERVER_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
-            command opencode attach "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" --dir "$PWD" "$@"
+          OPENCODE_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
+            command opencode --server "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" "$@" "$PWD"
         else
           # Subcommands run locally, not on the server, so they need the
           # gateway tokens themselves (`opencode mcp list` got a 401 from axon
