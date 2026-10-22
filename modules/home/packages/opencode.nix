@@ -261,6 +261,26 @@
         };
       };
 
+      # v2 TUI settings. Read-only from the store, so `/settings` changes in
+      # the TUI no longer persist: change them here instead.
+      home.file.".config/opencode/cli.json" = {
+        force = true;
+        text = builtins.toJSON {
+          "$schema" = "https://opencode.ai/v2/cli.json";
+          theme.name = "osaka-jade";
+          diffs.wrap = "word";
+          session = {
+            sidebar = "auto";
+            scrollbar = false;
+            thinking = "show";
+          };
+          animations = true;
+          # No tab strip: tabs were persisted and reopened (plus a new one) on
+          # every launch against the shared opencode-serve instance.
+          tabs.mode = "off";
+        };
+      };
+
       home.file."${config.opencode.commandsDir}/cc.md" = {
         text = ''
           ---
