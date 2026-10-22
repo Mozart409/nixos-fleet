@@ -63,6 +63,12 @@
       session = {
         COOKIE_SECURE = true;
         PROVIDER = "file";
+        # 30 days instead of the 24 h default.
+        SESSION_LIFE_TIME = 30 * 24 * 60 * 60;
+      };
+
+      security = {
+        LOGIN_REMEMBER_DAYS = 30;
       };
 
       log = {
