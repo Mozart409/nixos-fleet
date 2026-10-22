@@ -18,12 +18,15 @@ banner 'switching ...'
 # switch runs the container CDI generator against the new userspace libs while
 # the old kernel module is still loaded (NVML mismatch) and the unit fails
 # (see AGENTS.md pitfall #8). Rebooting is left to the user.
+# -l switches only: no git push, GitHub export or attic push.
 mode=switch
+local_only=false
 while (($#)); do
   case "$1" in
   -r) mode=boot ;;
+  -l) local_only=true ;;
   *)
-    echo "usage: $0 [-r]" >&2
+    echo "usage: $0 [-r] [-l]" >&2
     exit 2
     ;;
   esac
@@ -87,6 +90,10 @@ if [[ $mode == boot ]]; then
 else
   echo 'Switching NixOS configuration...'
   nh os switch .#nixosConfigurations.wotan "${nh_args[@]}"
+fi
+
+if $local_only; then
+  exit 0
 fi
 
 echo ''

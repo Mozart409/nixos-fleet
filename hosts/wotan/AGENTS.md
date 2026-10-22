@@ -59,6 +59,7 @@ What keeps that safe is **who deploys**, not who edits:
 # Preferred: the user's normal workflow (infra/hosts/wotan/switch.sh)
 just switch-wotan             # nh os switch, skipping unreachable substituters, then git push to ALL remotes
 just switch-wotan -r          # nh os boot instead (NVIDIA driver bumps, pitfall #8); reboot manually
+just switch-wotan-local       # switch only: no git push, GitHub export or attic push (-r works too)
 
 # Other wotan recipes in the root justfile
 just build-wotan              # = nh os build .#wotan (real build, not a dry run)
