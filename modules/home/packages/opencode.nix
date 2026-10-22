@@ -246,11 +246,6 @@
               headers.Authorization = "Bearer {env:VENTARA_GATEWAY_TOKEN}";
               enabled = true;
             };
-            homeassistant = {
-              type = "remote";
-              url = "https://mcp.homelab.internal/mcp";
-              enabled = false;
-            };
             gh_grep = {
               type = "remote";
               url = "https://mcp.grep.app";
