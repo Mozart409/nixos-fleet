@@ -273,7 +273,9 @@
             sidebar = "auto";
             scrollbar = false;
             thinking = "show";
+            tps = true;
           };
+          debug.turn_tokens = true;
           animations = true;
           # No tab strip: tabs were persisted and reopened (plus a new one) on
           # every launch against the shared opencode-serve instance.
