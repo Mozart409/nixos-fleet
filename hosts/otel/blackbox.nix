@@ -246,6 +246,32 @@
     ];
   };
 
+  # Public sites, not homelab services. Kept out of `http_2xx` above because
+  # they are scraped on their own cadence: the fleet's 30s is right for a
+  # service whose failure someone is about to page on, but a personal site only
+  # needs to be known-down within the hour, and a 10m interval keeps the probe
+  # traffic from looking like a scraper to Cloudflare (which fronts both of
+  # these) while still catching a real outage quickly.
+  #
+  # `instance` is the site's own hostname: there is no node-exporter job to
+  # borrow an instance from, so nothing dedupes these. TargetDown therefore
+  # never fires for them and ProbeFailed in ./alerting.nix is the whole signal,
+  # which is the point -- a failed probe here means the public site is down,
+  # not that a homelab host is.
+  #
+  # Both were curl-verified 200 / ssl_verify_result=0 on 2026-10-23, per the
+  # "curl it first" rule at the top of this file.
+  externalProbeTargets = [
+    {
+      url = "https://mozart409.com";
+      instance = "mozart409.com";
+    }
+    {
+      url = "https://ideal-coaching.com";
+      instance = "ideal-coaching.com";
+    }
+  ];
+
   blackboxConfig = (pkgs.formats.yaml {}).generate "blackbox.yml" {
     modules = {
       http_2xx = {
@@ -329,6 +355,17 @@
       }
     ];
   };
+
+  # Same http_2xx prober and relabelling as the fleet probes, but on its own
+  # job name and interval. Reusing mkProbeJob keeps the target -> exporter
+  # indirection (and `probe_target`) identical; only the cadence and job name
+  # differ, so the series are self-describing in Grafana.
+  externalProbeJob =
+    (mkProbeJob "http_2xx" externalProbeTargets)
+    // {
+      job_name = "blackbox-external-http";
+      scrape_interval = "10m";
+    };
 in {
   services.prometheus.exporters.blackbox = {
     enable = true;
@@ -339,5 +376,7 @@ in {
   };
 
   # Merges with the scrapeConfigs list in ./configuration.nix.
-  services.prometheus.scrapeConfigs = lib.mapAttrsToList mkProbeJob probeTargets;
+  services.prometheus.scrapeConfigs =
+    lib.mapAttrsToList mkProbeJob probeTargets
+    ++ [externalProbeJob];
 }
