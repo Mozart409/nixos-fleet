@@ -21,7 +21,11 @@
       # that `nix develop` in a task realises devShells into.
       workSize = 49152;
       storeSize = 24576;
-      packages = [pkgs.opencode pkgs.claude-code];
+      # surrealkit is in the root devShell but in no binary cache. Built from
+      # source inside the zone, rustc on surrealdb-core was OOM-killed
+      # (2026-10-23); in the guest closure it is built on the deploy host and
+      # registered in the guest's store DB, so `nix develop` reuses it.
+      packages = [pkgs.opencode pkgs.claude-code self.packages.${pkgs.stdenv.hostPlatform.system}.surrealkit];
       environment = {};
       hermes = null;
       # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
@@ -240,6 +244,15 @@
     users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"
     ];
+
+    # The host's zram does not reach the guests, which have no swap at all.
+    # Compressed RAM swap absorbs the peak of a large rustc link or codegen
+    # step in a task build instead of the OOM killer.
+    zramSwap = {
+      enable = true;
+      algorithm = "zstd";
+      memoryPercent = 50;
+    };
 
     # Bound the writable store overlay (microvm.writableStoreOverlay above,
     # mounted as the upper of /nix/store). Nothing else does: the guests import
