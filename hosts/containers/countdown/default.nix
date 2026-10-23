@@ -16,7 +16,7 @@
 
   # Postgres is the `countdown` database on the database host. It is addressed
   # by name because the server cert is issued for database.homelab.internal and
-  # verify-full checks the hostname. The password is a raw hex string (URL-safe)
+  # verify-full checks the hostname. The password is alphanumeric (`pwgen -s`, URL-safe)
   # and is spliced into DATABASE_URL at start, so it never reaches the store.
   start = pkgs.writeShellScript "countdown-start" ''
     set -eu
