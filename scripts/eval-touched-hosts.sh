@@ -4,12 +4,40 @@
 # OOM-killed. Logic carried over from the archived Woodpecker pipeline
 # (docs/archive/woodpecker/pve/nix.yml).
 #
-# Usage: eval-touched-hosts.sh <changed file>...   (lefthook passes {push_files})
+# Usage: eval-touched-hosts.sh --push              (pre-push: git's refs on stdin)
+#        eval-touched-hosts.sh <changed file>...   (evaluate for these files)
 #        eval-touched-hosts.sh --hosts <host>...   (evaluate these hosts directly)
 # Skip once: LEFTHOOK_EXCLUDE=host-eval git push
+#
+# Not lefthook's {push_files}: for a branch without an upstream (every agent
+# branch) it is `git diff HEAD origin/main`, a two-dot diff that also counts
+# everything merged to main since the branch was cut, so a vault-only push
+# evaluated wotan and the fleet (~8 min).
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+
+# Files the pushed refs change: <local ref> <local sha> <remote ref> <remote
+# sha> per line. An update diffs against what the remote has; a new branch
+# against its merge-base with main, so only the branch's own commits count.
+pushed_files() {
+  local zero=0000000000000000000000000000000000000000
+  local _lref lsha _rref rsha base
+  while read -r _lref lsha _rref rsha; do
+    [[ $lsha == "$zero" ]] && continue # branch deletion
+    if [[ $rsha != "$zero" ]] && git cat-file -e "$rsha^{commit}" 2>/dev/null; then
+      base=$rsha
+    else
+      base=$(git merge-base "$lsha" origin/main 2>/dev/null) || base=$(git hash-object -t tree /dev/null)
+    fi
+    git diff --name-only "$base" "$lsha" --
+  done
+}
+
+if [[ ${1:-} == --push ]]; then
+  mapfile -t files < <(pushed_files | sort -u)
+  set -- "${files[@]}"
+fi
 
 # Representative fleet hosts for changes to shared fleet code: dns is a plain
 # mkHost node (common.nix + the home-manager/nixvim layer), agents is the agent
