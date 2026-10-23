@@ -187,6 +187,12 @@
     modelSettings."claude-opus-5-5".effortLevel = "medium";
     tui = "fullscreen";
     autoCompactEnabled = true;
+    # Compact at 400k tokens instead of the window Claude Code tunes per model.
+    # Set here (not left to /autocompact, which would save the choice under
+    # modelSettings) so the value survives this file being regenerated. Valid
+    # range is 100000-1000000 tokens; Claude Code still caps it at the model's
+    # own context window.
+    autoCompactWindow = 400000;
     agentPushNotifEnabled = true;
     enabledPlugins = {
       "context7@claude-plugins-official" = true;
