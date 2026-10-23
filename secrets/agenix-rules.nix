@@ -58,7 +58,7 @@ in {
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
   "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostOtel hostWotan];
   "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
-  "countdown-db-password.age".publicKeys = [amadeus hostWotan hostContainers];
+  "countdown-db-password.age".publicKeys = [amadeus hostWotan hostContainers hostDatabase];
   "countdown-env.age".publicKeys = [amadeus hostWotan hostContainers];
   "dashboard-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "development-forgejo-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook];

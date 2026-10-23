@@ -166,6 +166,14 @@ in {
     group = "postgres";
   };
 
+  # countdown database password. Shared with the containers host, which builds
+  # the service's DATABASE_URL from the same file at start.
+  age.secrets.countdown-db-password = {
+    file = ../../secrets/countdown-db-password.age;
+    owner = "postgres";
+    group = "postgres";
+  };
+
   # Password for the read-only `mcp` role consumed by the pgmcp MCP servers on
   # the mcp host. The same password is embedded in each pg-mcp-<db>-url.age
   # secret over there — rotating it means re-encrypting all of them.
@@ -349,7 +357,7 @@ in {
     # `attic` removed 2026-09-09 with the cache VM (iac/main.tf). Dropping it
     # here also drops its nightly dump, because services.postgresqlBackup below
     # derives its database list from this one.
-    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight"];
+    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight" "countdown"];
 
     # Initial users
     ensureUsers = [
@@ -375,6 +383,10 @@ in {
       }
       {
         name = "hindsight";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "countdown";
         ensureDBOwnership = true;
       }
       # Read-only role for the pgmcp MCP servers. No ensureDBOwnership: it owns
@@ -494,6 +506,15 @@ in {
     role = "hindsight";
     description = "Set Hindsight PostgreSQL user password";
     secret = config.age.secrets.hindsight-db-password;
+    timeouts = migrationRoleTimeouts;
+  };
+
+  # countdown runs its sqlx migrations on start, so it gets the same
+  # exemptions as the other migrating roles.
+  systemd.services.postgresql-countdown-password = mkRolePasswordUnit {
+    role = "countdown";
+    description = "Set countdown PostgreSQL user password";
+    secret = config.age.secrets.countdown-db-password;
     timeouts = migrationRoleTimeouts;
   };
 

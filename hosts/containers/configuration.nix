@@ -15,6 +15,7 @@
     ../../modules/podman.nix
     ../../modules/caddy-http3.nix
     ../../modules/multica-server.nix
+    ./countdown
     ./searxng
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
     # MCP servers it fronts could go loopback-only.
@@ -78,6 +79,19 @@
         }
 
         reverse_proxy localhost:8084
+      '';
+    };
+
+    # countdown (rust/countdown-rs). Binds 127.0.0.1:3000 (see ./countdown), so
+    # Caddy is the only thing that proxies to it. .internal only. The Pocket ID
+    # OIDC callback is https://countdown.homelab.internal/auth/callback.
+    virtualHosts."countdown.homelab.internal" = {
+      extraConfig = ''
+        tls {
+          ca https://ca.homelab.internal:8443/acme/acme/directory
+        }
+
+        reverse_proxy localhost:3000
       '';
     };
 

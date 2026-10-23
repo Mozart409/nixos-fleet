@@ -60,6 +60,7 @@ let
       ip = "192.168.2.149";
       tailscale = "homelab-containers";
       aliases = {
+        countdown = internalOnly;
         dashboard = {};
         hindsight = internalOnly;
         hindsight-ui = internalOnly;

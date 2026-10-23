@@ -67,6 +67,8 @@
   # ProbeFailed -- the same dedup contract as the lists below.
   certSubjects = {
     homelab-containers = [
+      # .internal only (no .local vhost).
+      "countdown.homelab.internal"
       "dashboard.homelab.local"
       "dashboard.homelab.internal"
       # .internal only (no .local vhosts); both verified 2026-10-14.
