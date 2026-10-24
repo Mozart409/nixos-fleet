@@ -21,7 +21,7 @@ in {
   virtualisation.oci-containers.containers.hofvarpnir = {
     # Pin to the released tag for reproducibility — never :latest. Matches the tag
     # that was running on the LXC.
-    image = "ghcr.io/mozart409/hofvarpnir:0.17.0";
+    image = "ghcr.io/mozart409/hofvarpnir:0.18.0";
     autoStart = true;
 
     # Container :3000 -> host 127.0.0.1:3000. Loopback only so it is reachable
@@ -78,10 +78,8 @@ in {
       # session is refreshed on every request, an idle one lapses after this
       # long. Left unset, tower-sessions' default applies instead — a
       # browser-session cookie (logged out when the browser closes) whose
-      # server-side record survives two weeks. 720 h = 30 days.
-      #
-      # Needs a build newer than 0.17.0 (the release that added this variable);
-      # on the image tag pinned above it is simply ignored.
+      # server-side record survives two weeks. 720 h = 30 days. Needs 0.18.0 or
+      # newer; older images ignore it.
       SESSION_TIMEOUT_HOURS = "720";
 
       # --- Observability ----------------------------------------------------
