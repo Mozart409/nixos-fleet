@@ -73,6 +73,17 @@ in {
       DEFAULT_OUTPUT_DIR = "/var/lib/hofvarpnir/downloads";
       API_BASE_URL = "https://hofvarpnir.homelab.internal";
 
+      # --- Web session ------------------------------------------------------
+      # How long a web-UI login lasts, in hours. Sliding window: an active
+      # session is refreshed on every request, an idle one lapses after this
+      # long. Left unset, tower-sessions' default applies instead — a
+      # browser-session cookie (logged out when the browser closes) whose
+      # server-side record survives two weeks. 720 h = 30 days.
+      #
+      # Needs a build newer than 0.17.0 (the release that added this variable);
+      # on the image tag pinned above it is simply ignored.
+      SESSION_TIMEOUT_HOURS = "720";
+
       # --- Observability ----------------------------------------------------
       # Rewritten from the LXC's homelab-otel.*.ts.net (MagicDNS does NOT resolve
       # between homelab VMs) to the step-ca *.homelab.internal names on the otel host.
