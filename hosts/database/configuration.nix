@@ -712,8 +712,9 @@ in {
   #
   # stat_statements exports pg_stat_statements_{calls,seconds,rows,block_*}
   # for the top statements by total time, labelled with datname, user and
-  # queryid. include_query adds the normalised statement text ($1 placeholders,
-  # no literal values) so a series can be read without a psql session.
+  # queryid. include_query adds pg_stat_statements_query_id{queryid, query}
+  # carrying the normalised statement text ($1 placeholders, no literal
+  # values); join on queryid to read a series without a psql session.
   services.prometheus.exporters.postgres = {
     enable = true;
     runAsLocalSuperUser = true;
