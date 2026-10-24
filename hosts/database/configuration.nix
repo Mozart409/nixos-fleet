@@ -249,6 +249,13 @@ in {
       log_autovacuum_min_duration = "10s";
       # log_checkpoints is already on by default in PG15+.
 
+      # Per-query stats (calls, total time, block I/O) for every database,
+      # exported by postgres_exporter's stat_statements collector below. The
+      # view itself lives in the `postgres` database, where the exporter
+      # connects; see postgresql-pg-stat-statements. Changing
+      # shared_preload_libraries needs a server restart, not a reload.
+      shared_preload_libraries = "pg_stat_statements";
+
       # Session hardening. Only settings that target a PATHOLOGY belong at
       # cluster scope -- anything here applies to pg_dump, the prometheus
       # exporter and atticd's sea-orm startup migrations alike. Everything that
@@ -562,6 +569,26 @@ in {
     '';
   };
 
+  # The pg_stat_statements view for the exporter. The extension only has to
+  # exist in the database the exporter connects to (`postgres`, its default
+  # dataSourceName); it still records statements from every database.
+  systemd.services.postgresql-pg-stat-statements = {
+    description = "Create the pg_stat_statements extension for the exporter";
+    after = ["postgresql-setup.service"];
+    requires = ["postgresql-setup.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "postgres";
+      Group = "postgres";
+    };
+    script = ''
+      ${psql} -d postgres -v ON_ERROR_STOP=1 \
+        -c 'CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";'
+    '';
+  };
+
   # Set the postgres superuser password from agenix. The `postgres` role is
   # created by initdb, not by ensureUsers, so this one never actually raced —
   # but it orders on postgresql-setup.service anyway for consistency with the
@@ -682,9 +709,20 @@ in {
 
   # Postgres exporter. The node exporter is enabled fleet-wide by
   # modules/common.nix.
+  #
+  # stat_statements exports pg_stat_statements_{calls,seconds,rows,block_*}
+  # for the top statements by total time, labelled with datname, user and
+  # queryid. include_query adds the normalised statement text ($1 placeholders,
+  # no literal values) so a series can be read without a psql session.
   services.prometheus.exporters.postgres = {
     enable = true;
     runAsLocalSuperUser = true;
+    extraFlags = [
+      "--collector.stat_statements"
+      "--collector.stat_statements.include_query"
+      "--collector.stat_statements.query_length=200"
+      "--collector.stat_statements.limit=100"
+    ];
   };
 
   # Ship the PostgreSQL journal to the central Loki.

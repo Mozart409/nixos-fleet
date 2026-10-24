@@ -34,6 +34,12 @@ harness.mkHostTest {
         "sudo -u postgres psql -d multica -tAc \"select 1 from pg_extension where extname='vector'\" | grep -q 1"
     )
 
+    # pg_stat_statements: preloaded, and the view the exporter reads exists.
+    machine.wait_for_unit("postgresql-pg-stat-statements.service")
+    machine.succeed(
+        "sudo -u postgres psql -d postgres -tAc 'select count(*) from pg_stat_statements' | grep -qE '^[0-9]+$'"
+    )
+
     # NOT asserted on, intentionally: the mkRolePasswordUnit oneshots
     # (systemd.services.postgresql-*-password) fail without their real
     # agenix secrets -- expected and harmless, per AGENTS.md's documented
