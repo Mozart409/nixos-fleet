@@ -56,10 +56,11 @@ mapfile -t exports < <(awk '
   }
   /^[[:space:]]*(#|$)/ { next }
   /^\[\[export\]\][[:space:]]*$/ { flush(); seen = 1; name = prefix = remote = ""; next }
-  match($0, /^[[:space:]]*(name|prefix|remote)[[:space:]]*=[[:space:]]*"[^"]*"[[:space:]]*$/) {
+  match($0, /^[[:space:]]*(name|prefix|remote|tag_prefix)[[:space:]]*=[[:space:]]*"[^"]*"[[:space:]]*$/) {
     key = $0; sub(/[[:space:]]*=.*/, "", key); gsub(/[[:space:]]/, "", key)
     val = $0; sub(/^[^"]*"/, "", val); sub(/"[[:space:]]*$/, "", val)
-    if (key == "name") name = val; else if (key == "prefix") prefix = val; else remote = val
+    # tag_prefix belongs to release-github.sh; the export ignores it.
+    if (key == "name") name = val; else if (key == "prefix") prefix = val; else if (key == "remote") remote = val
     next
   }
   { print "exports.toml: cannot parse line " NR ": " $0 > "/dev/stderr"; exit 1 }
