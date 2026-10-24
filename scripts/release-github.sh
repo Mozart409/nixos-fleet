@@ -44,19 +44,8 @@ done
 name=${args[0]} version=${args[1]#v}
 
 step='exports.toml'
-# The [[export]] table for $name -> "prefix<TAB>remote<TAB>tag_prefix".
 # tag_prefix defaults to "v" (homelab-mcp-servers tags bare semver).
-entry=$(awk -v want="$name" '
-  function flush() { if (seen && name == want) { print prefix "\t" remote "\t" tp; found = 1 } }
-  /^\[\[export\]\][[:space:]]*$/ { flush(); seen = 1; name = prefix = remote = ""; tp = "v"; next }
-  match($0, /^[[:space:]]*[a-z_]+[[:space:]]*=[[:space:]]*"[^"]*"/) {
-    key = $0; sub(/[[:space:]]*=.*/, "", key); gsub(/[[:space:]]/, "", key)
-    val = $0; sub(/^[^"]*"/, "", val); sub(/".*$/, "", val)
-    if (key == "name") name = val; else if (key == "prefix") prefix = val
-    else if (key == "remote") remote = val; else if (key == "tag_prefix") tp = val
-  }
-  END { flush(); exit !found }
-' exports.toml) || die "no export named '$name' in exports.toml"
+entry=$(infra/scripts/export-lookup.sh "$name") || die "no export named '$name' in exports.toml"
 IFS=$'\t' read -r prefix remote tag_prefix <<<"$entry"
 [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version '$version' is not MAJOR.MINOR.PATCH"
 tag=$tag_prefix$version
