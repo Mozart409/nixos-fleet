@@ -26,6 +26,24 @@
     gen=$(readlink /nix/var/nix/profiles/system 2>/dev/null | ${pkgs.gnused}/bin/sed -n 's/^system-\([0-9]*\)-link$/\1/p')
     echo "''${gen:-0}"
   '';
+
+  # One nixos_kernel_info sample for /run/<system>/kernel. "current" is the
+  # system being activated ($systemConfig, see the activation-order trap below).
+  # "booted" falls back to it while /run/booted-system is missing: /run is a
+  # tmpfs, so the link is gone at boot, and the boot activation is the booted
+  # system. Version comes from the store path, .../<hash>-linux-<version>/bzImage.
+  kernelInfoScript = ''
+    kernel_info() {
+      path=$(readlink -f "$2/kernel" 2>/dev/null) || path=unknown
+      version=$(echo "$path" | ${pkgs.gnused}/bin/sed -n 's|^/nix/store/[^-]*-linux-\([^/]*\)/.*$|\1|p')
+      echo "nixos_kernel_info{system=\"$1\",version=\"''${version:-unknown}\",path=\"$path\"} 1"
+    }
+    current=''${systemConfig:-/run/current-system}
+    booted=/run/booted-system
+    [ -e "$booted" ] || booted=$current
+    kernel_info current "$current"
+    kernel_info booted "$booted"
+  '';
 in {
   # Enable the node_exporter textfile collector
   services.prometheus.exporters.node.extraFlags = [
@@ -52,6 +70,7 @@ in {
     text = ''
       mkdir -p ${textfileDir}
       tmp=${textfileDir}/nixos.prom.$$
+      kernels=$(${kernelInfoScript})
       cat > "$tmp" <<PROM
       # HELP nixos_info NixOS release and kernel version
       # TYPE nixos_info gauge
@@ -65,6 +84,9 @@ in {
       # HELP nixos_system_info Store path of the running system closure (compare against a locally evaluated toplevel)
       # TYPE nixos_system_info gauge
       nixos_system_info{system_path="$(readlink -f "''${systemConfig:-/run/current-system}" 2>/dev/null || echo unknown)"} 1
+      # HELP nixos_kernel_info Kernel of /run/current-system and /run/booted-system; they differ until the host reboots
+      # TYPE nixos_kernel_info gauge
+      $kernels
       PROM
       mv "$tmp" ${textfileDir}/nixos.prom
     '';
