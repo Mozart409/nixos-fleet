@@ -89,16 +89,14 @@
       };
     };
 
-    # Portal configuration
+    # Portal configuration. programs.hyprland already adds its portalPackage
+    # (rebuilt against programs.hyprland.package); listing
+    # pkgs.xdg-desktop-portal-hyprland as well puts two builds of the same
+    # user unit into user-units and fails the build.
     xdg.portal = {
       enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-gtk
-        xdg-desktop-portal-hyprland
-      ];
-      configPackages = with pkgs; [
-        xdg-desktop-portal-hyprland
-      ];
+      extraPortals = [pkgs.xdg-desktop-portal-gtk];
+      configPackages = [config.programs.hyprland.portalPackage];
     };
 
     # Hyprland configuration
