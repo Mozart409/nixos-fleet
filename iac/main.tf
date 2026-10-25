@@ -62,6 +62,15 @@ resource "proxmox_virtual_environment_download_file" "fedora_cloud_image" {
 }
 
 
+# Boot order on pve-gigabyte (startup.order; shutdown runs in reverse):
+#   1 dns       -- every host resolves *.homelab.internal through it
+#   2 ca        -- every Caddy fetches its ACME cert from step-ca
+#   3 database  -- Postgres for forgejo, multica, hindsight, the pg MCPs
+#   4 otel      -- up before the services that ship logs and metrics to it
+#   5 forgejo, containers, mcp, jellyfin
+#   6 agents    -- clones from forgejo, its daemons talk to multica on containers
+# VMs sharing an order start by vm_id, each up_delay seconds after the previous.
+
 # PostgreSQL Database VM
 resource "proxmox_virtual_environment_vm" "database_vm" {
   name        = "database"
@@ -131,7 +140,7 @@ resource "proxmox_virtual_environment_vm" "database_vm" {
   started = true
 
   startup {
-    order    = 1
+    order    = 3
     up_delay = 30
   }
 }
@@ -200,7 +209,7 @@ resource "proxmox_virtual_environment_vm" "otel_vm" {
   started = true
 
   startup {
-    order    = 2
+    order    = 4
     up_delay = 15
   }
 }
@@ -314,7 +323,7 @@ resource "proxmox_virtual_environment_vm" "dns_vm" {
   started = true
 
   startup {
-    order    = 2
+    order    = 1
     up_delay = 15
   }
 }
@@ -388,7 +397,7 @@ resource "proxmox_virtual_environment_vm" "containers_vm" {
   started = true
 
   startup {
-    order    = 2
+    order    = 5
     up_delay = 15
   }
 }
@@ -456,7 +465,7 @@ resource "proxmox_virtual_environment_vm" "mcp_vm" {
   started = true
 
   startup {
-    order    = 2
+    order    = 5
     up_delay = 15
   }
 }
@@ -632,6 +641,11 @@ resource "proxmox_virtual_environment_vm" "forgejo_vm" {
   started = true
 
   on_boot = true
+
+  startup {
+    order    = 5
+    up_delay = 15
+  }
 }
 
 # Jellyfin Media Server VM
@@ -708,7 +722,7 @@ resource "proxmox_virtual_environment_vm" "jellyfin_vm" {
   started = true
 
   startup {
-    order    = 2
+    order    = 5
     up_delay = 15
   }
 }
@@ -809,6 +823,10 @@ resource "proxmox_virtual_environment_vm" "agents_vm" {
   started = true
 
   on_boot = true
+
+  startup {
+    order = 6
+  }
 }
 
 
