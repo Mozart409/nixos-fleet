@@ -12,7 +12,7 @@ wotan is one host in the `yggdrasil` monorepo (`~/code/yggdrasil`, Forgejo canon
 - `modules/wotan/` - wotan-only NixOS modules; `default.nix` aggregates them plus `modules/desktop/`
 - `modules/desktop/` - Hyprland, file managers, user experience
 - `modules/home/` - home-manager user modules (`configs/`, `packages/`, `services/`)
-- `lib/mkConfigs.nix` - `mkDesktop` helper and the wotan-only nixpkgs config (CUDA, glaze pin)
+- `lib/mkConfigs.nix` - `mkDesktop` helper and the wotan-only nixpkgs config (CUDA)
 - `secrets/` + `secrets/agenix-rules.nix` - agenix secrets, **shared with the fleet**; wotan's rules are `[amadeus hostWotan]`
 
 **wotan deploys only itself.** It is not a `colmenaHive` node, has no inbound SSH (the firewall has no open TCP ports), and must never import the fleet's `modules/common.nix` or `modules/server.nix`, which turn sshd on. It imports `modules/base.nix` (timezone, locale, keymap, flakes, trusted-users, the `amadeus` account) and nothing else from the fleet; an assertion in `hosts/wotan/default.nix` fails evaluation if sshd, TCP 22 or Tailscale SSH ever gets enabled. Nothing in the fleet tooling reaches it.

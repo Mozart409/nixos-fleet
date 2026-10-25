@@ -26,14 +26,14 @@ infra/
 │   │                            #   plus ../desktop): basics, packages, …
 │   ├── desktop/                 # Hyprland, file managers, user experience
 │   └── home/                    # home-manager: configs/, packages/, services/
-├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA, glaze pin)
+├── lib/mkConfigs.nix            # mkDesktop + the wotan-only nixpkgs config (CUDA)
 ├── secrets/                     # agenix secrets, shared with the fleet (agenix-rules.nix)
 └── docs/wotan/                  # config.d2 diagram, easyeffects tuning, keymaps
 ```
 
 The root `flake.nix` builds it as `nixosConfigurations.wotan = desktop.mkDesktop
-"wotan" system "amadeus"`. CUDA and the glaze overlay
-live only in `mkDesktop`; the fleet's `mkHost` never sees them.
+"wotan" system "amadeus"`. The CUDA config
+lives only in `mkDesktop`; the fleet's `mkHost` never sees them.
 
 ## Usage
 
