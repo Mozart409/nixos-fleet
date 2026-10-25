@@ -21,11 +21,7 @@
       # that `nix develop` in a task realises devShells into.
       workSize = 49152;
       storeSize = 24576;
-      # surrealkit is in the root devShell but in no binary cache. Built from
-      # source inside the zone, rustc on surrealdb-core was OOM-killed
-      # (2026-10-23); in the guest closure it is built on the deploy host and
-      # registered in the guest's store DB, so `nix develop` reuses it.
-      packages = [pkgs.opencode pkgs.claude-code self.packages.${pkgs.stdenv.hostPlatform.system}.surrealkit];
+      packages = [pkgs.opencode pkgs.claude-code];
       environment = {};
       hermes = null;
       # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
