@@ -7,7 +7,6 @@
   #   desktop.enable                  -> desktop/*
   #   security.hardening.enable       -> security.nix
   #   hardware.moza.enable            -> moza.nix
-  #   services.vllm.enable            -> vllm.nix
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
   #
@@ -17,7 +16,6 @@
     ./claude-code.nix
     ./security.nix
     ./moza.nix
-    ./vllm.nix
     ./opencode-serve.nix
     ../desktop/default.nix
     ../desktop/hyprland.nix

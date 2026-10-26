@@ -274,6 +274,25 @@ Before committing changes:
 
 14. **Removing a Hyprland plugin needs a relogin — never `hyprctl plugin unload` it live:** plugins are loaded only at login, so dropping one from `modules/home/packages/hyprland-configs.nix` (rendered to `~/.config/hypr/plugins.lua`) and switching leaves the old `.so` running. Unloading it live is worse: on 2026-09-26 `hyprctl plugin unload` removed hyprfocus from `hyprctl plugin list` and deleted its config values, but `libhyprfocus.so` stayed mapped with its focus-change listener still hooked. 35 minutes later a layer surface closing (Quickshell launcher) triggered `refocusLastWindow`, and the listener read its deleted `CStringValue`, which made `operator new` throw. Hyprland SIGABRTed, which took down xdg-desktop-portal-hyprland, hypridle, hyprsunset and awww-daemon too, and the machine needed a reboot. After removing a plugin, log out and back in. Diagnose Hyprland crashes with `coredumpctl list` / `coredumpctl info <pid>` and `~/.cache/hyprland/hyprlandCrashReport<pid>.txt`. A plugin frame in the main-thread stack names the culprit, even one missing from the report's plugin list.
 
+## 🦙 llama.cpp Inference Server
+
+`services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module, CUDA build via the global `cudaSupport`) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808.
+
+- **Not started at boot** (`wantedBy = lib.mkForce []`): the model pins ~9 GiB of the 3060's 12 GiB. Start and stop it by hand:
+  ```bash
+  sudo systemctl start llama-cpp
+  journalctl -u llama-cpp -f
+  sudo systemctl stop llama-cpp
+  ```
+- **Model:** `Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q6_K.gguf`, 64K context, one slot, q8_0 KV cache, thinking off by default (`reasoning = "off"`; a request can send `"chat_template_kwargs": {"enable_thinking": true}`). The VRAM math and the fallback (halve `ctx-size`, or the Q4_K_M file) are in the comment above the block.
+- **Model dir:** `/var/lib/llama-cpp-models`, owned by `amadeus` via `systemd.tmpfiles.rules`, so downloads need no sudo. The service runs as a `DynamicUser` with `ProtectHome=true` and cannot read `~/models` (pitfall #7); world-readable files under `/var/lib` are fine.
+- **Download** (from the repo root; the dev shell sets `AGENIX_RULES` and agenix uses your default identity):
+  ```bash
+  (cd infra/secrets && HF_TOKEN=$(agenix -d hf-token.age | sed -n 's/^HF_TOKEN=//p') hf download HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q6_K.gguf --local-dir /var/lib/llama-cpp-models)
+  ```
+- **Switch models:** download another GGUF into `/var/lib/llama-cpp-models`, point `services.llama-cpp.settings.model` at it (and adjust `ctx-size`/sampling for that model), then `just switch-wotan`. The switch restarts the unit if it is running; otherwise `sudo systemctl start llama-cpp`.
+- **Settings are CLI flags:** each `settings` key becomes `--key value` on `ExecStart`, so values cannot contain spaces or quotes (no inline JSON). Check flag names against `tools/server/README.md` at the llama.cpp tag matching `pkgs.llama-cpp.version`.
+
 ## 🔐 Project Secrets (sops + gpg-agent)
 
 Application secrets for projects under `~/code` never live in plaintext. `set dotenv-load` in justfiles is replaced by an encrypted **`.sops.env`** (sops dotenv store: variable names visible, values `ENC[...]`, safe to commit) that is decrypted into **one child process only** via `sops exec-env` — nothing is written to disk or exported into the shell, so neither `cat` nor `printenv` nor an AI agent's subprocess can see the values. Configured by `modules/home/packages/sops.nix` (`sopsEnv.*` in `hosts/wotan/home.nix`).
@@ -291,63 +310,6 @@ Application secrets for projects under `~/code` never live in plaintext. `set do
   ```
 - **Edit:** `sops .sops.env` (opens `$EDITOR`, re-encrypts on save). **Add a var:** same. **Rotate recipients:** `sops updatekeys .sops.env`.
 - **Never:** `direnv`'s `dotenv`, `source .env`, or `export`ing secrets — anything in the ambient environment is visible to every child process and no guardrail catches `python -c 'print(os.environ)'`.
-
-## 🤖 vLLM Inference Server
-
-The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs as a **Podman OCI container** (`vllm/vllm-openai` image, see `services.vllm.image` for the pinned version) managed by `virtualisation.oci-containers`, so the systemd unit is **`podman-vllm.service`**. `autoStart = false` — it does not start at boot; launch it manually. Models are pulled from HuggingFace on first launch, not stored as local files.
-
-**Model cache location:** `/var/lib/vllm/huggingface/` on the host, mounted into the container (HF transformers format, NOT GGUF)
-
-**Currently configured model** (see `hosts/wotan/default.nix`):
-- `Qwen/Qwen3.5-35B-A3B-GPTQ-Int4` — official Qwen MoE (36B total, ~3B active), hybrid Gated-DeltaNet attention, tool use (`qwen3_coder` parser), thinking off by default, 64K context configured (262K model max). Text weights are 20.3 GiB (measured from safetensors headers; llmfit's 18 GB is low), so `cpuOffloadGb = 15` offloads part of them to system RAM. Vision encoder skipped with `--language-model-only`.
-
-**Switching models:**
-Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative candidates are listed in the comment block above the `services.vllm` declaration — re-verify with `llmfit --memory 12G fit` first. Prefer **trusted repos** (`Qwen/`, `RedHatAI/`) over community quants. Dense models that fit fully in VRAM should drop `cpuOffloadGb`.
-
-**API endpoints (OpenAI-compatible):**
-- List models: `http://127.0.0.1:10808/v1/models`
-- Chat completions: `http://127.0.0.1:10808/v1/chat/completions`
-- Completions: `http://127.0.0.1:10808/v1/completions`
-
-**Service management:**
-```bash
-sudo systemctl start podman-vllm    # Start (not auto-started at boot)
-systemctl status podman-vllm        # Check status
-journalctl -u podman-vllm -f        # Follow logs (watch model load on first start)
-sudo systemctl restart podman-vllm  # Restart service
-```
-
-**HuggingFace token (for gated models):**
-The HF token is stored as an agenix secret at `infra/secrets/hf-token.age` and passed to the container as an environment file. Format inside the file:
-```
-HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-Edit with: `nix run github:ryantm/agenix -- -e infra/secrets/hf-token.age`
-
-**Pre-download a model without loading it onto the GPU** (authenticated with the same token; the token is sourced inside the root shell, so it stays out of shell history and process args). The container mounts the cache at `/root/.cache/huggingface`, so files in `hub/` are picked up without a re-download:
-```bash
-sudo sh -c 'set -a; . /run/agenix/hf-token; exec nix run nixpkgs#python3Packages.huggingface-hub -- download Qwen/Qwen3.5-35B-A3B-GPTQ-Int4 --cache-dir /var/lib/vllm/huggingface/hub'
-```
-
-**Configuration:** `modules/wotan/vllm.nix` (module + options, including `cpuOffloadGb`) and `hosts/wotan/default.nix` (host-specific model + flags)
-
-### Hardware fitting with llmfit
-
-`llmfit` recommends GGUF/llama.cpp models by default — filter to vLLM-compatible HF format with `runtime=vLLM`:
-
-```bash
-llmfit system                                            # Show hardware specs
-llmfit --memory 12G fit                                  # Find fitting models (table)
-llmfit --memory 12G --max-context 262144 --json fit      # JSON output for scripting
-llmfit info "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"             # Detailed model info
-llmfit search "qwen"                                     # Search by name
-```
-
-Filter JSON output to vLLM-compatible candidates:
-```bash
-llmfit --memory 12G --json fit \
-  | jq '.models[] | select(.runtime=="vLLM" and (.fit_level=="Perfect" or .fit_level=="Good"))'
-```
 
 ## 📚 Additional Resources
 

@@ -289,104 +289,57 @@
     map (name: contents files.${name})
     (lib.filter (lib.hasPrefix ".config/opencode/") (lib.attrNames files));
 
-  # vLLM OpenAI-compatible inference server (Podman container, vllm-openai image).
-  # Models cached to /var/lib/vllm/huggingface on first run. Prefer official
-  # Qwen/ or RedHatAI/ repos over community quants. vLLM needs HF-format repos
-  # (config.json + safetensors); GGUF-only repos fail with "Invalid repository
-  # ID".
-  #
-  # Each known-good setup is a preset; switch with `preset` and rebuild.
-  #
-  # Alternatives (`llmfit --memory 12G --json fit`, runtime=vLLM):
-  #   Qwen/Qwen3-30B-A3B-GPTQ-Int4        # tested 2026-07-06: works, 20 tok/s,
-  #                                       # cpuOffloadGb = 10, maxModelLen = 40960,
-  #                                       # --tool-call-parser hermes
-  #   Qwen/Qwen2.5-Coder-7B-Instruct-AWQ  # dense, fits VRAM, 38 tok/s, coder-only,
-  #                                       # 32K ctx, no thinking (drop reasoning flags)
-  #   Qwen/Qwen3.5-27B-GPTQ-Int4          # dense 27B offloaded — ~5 tok/s, too slow
-  services.vllm = let
-    # Flags per the official vLLM Qwen3.5 recipe (vllm-project/recipes); all
-    # verified to exist in the v0.30.0 source (image CUDA 13.0, needs driver
-    # >= 580 — wotan runs 595; sm_86 is in its TORCH_CUDA_ARCH_LIST).
-    # No fp8 KV cache: the KV cache is tiny for Qwen3.5 (hybrid attention), and
-    # fp8 KV with head_dim 256 on Ampere narrows the attention backend choice.
-    qwen35Args = [
-      # Tool calling. Qwen3.5 uses the qwen3_coder format, not hermes.
-      "--enable-auto-tool-choice"
-      "--tool-call-parser"
-      "qwen3_coder"
-      # Thinking off by default: every reasoning block delays the reply by
-      # tens of seconds, and thinking turns can end with empty content.
-      "--reasoning-parser"
-      "qwen3"
-      "--default-chat-template-kwargs"
-      ''{"enable_thinking": false}''
-      # Disables torch.compile + CUDA graph capture. Kept because CUDA graphs
-      # cost extra VRAM we don't have, and --cpu-offload-gb is best supported
-      # in eager mode.
-      "--enforce-eager"
-    ];
-  in {
-    enable = true;
-    preset = "qwen35-35b-a3b";
-    presets = {
-      # Qwen3.5-35B-A3B, official Qwen GPTQ-Int4. MoE (36B total, 8/256
-      # experts ~3B active), tool use, hybrid Gated-DeltaNet attention (only
-      # some layers keep a KV cache, so long context is cheap). llmfit
-      # 2026-10-01: "Good" fit, ~19 tok/s est. — the best-scoring vLLM model
-      # from a trusted repo for RTX 3060 (12 GB) + 62 GB RAM.
-      #
-      # Sizes measured from the safetensors headers (llmfit's 18 GB is low):
-      # text weights 20.3 GiB (routed experts 15.8, attention 2.4, embed/lm_head
-      # 1.9 — attention and shared experts stay bf16), plus vision 0.8 and MTP
-      # 1.6 that vLLM skips here. KV cache: only 10/40 layers are full attention
-      # with 2 KV heads x 256 dim = ~20 KiB/token in bf16, ~1.25 GiB at 64K.
-      qwen35-35b-a3b = {
-        model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
-        # Agent system prompts + tool schemas are large; 64K leaves room for
-        # conversation history. Model max is 262144 — raise if KV headroom
-        # allows (vLLM logs "Maximum concurrency for N tokens" at startup).
-        maxModelLen = 65536;
-        # 20.3 GiB of text weights vs ~9.3 GiB GPU budget: keep ~5.3 GiB of
-        # weights on the GPU, leaving ~4 GiB for KV cache, the per-sequence
-        # Gated-DeltaNet state and activations. More offload = slower decode
-        # (the 30B MoE did 20 tok/s with 10 GiB offloaded). If startup fails
-        # with "No available memory for the cache blocks", raise this.
-        cpuOffloadGb = 15;
-        # Text only: skip loading the vision encoder, freeing VRAM for KV cache.
-        extraArgs = ["--language-model-only"] ++ qwen35Args;
-      };
-
-      # Huihui Qwen3.5-9B abliterated (uncensored), community GPTQ 4-bit g64.
-      # Dense, text-only checkpoint (Qwen3_5ForCausalLM), fits VRAM without
-      # offload. llmfit 2026-10-01: "Perfect" fit, ~32 tok/s est. Not yet
-      # tested here.
-      #
-      # Weights 7.8 GB (7.3 GiB) of the ~9.3 GiB GPU budget. KV cache: 8/32
-      # layers are full attention with 4 KV heads x 256 dim = 32 KiB/token in
-      # bf16, so 64K would need 2 GiB — more than is left. 32K = 1 GiB. If
-      # more is needed, try 65536 with cpuOffloadGb = 2.
-      huihui-qwen35-9b = {
-        model = "groxaxo/Huihui-Qwen3.5-9B-abliterated-GPTQ-Pro-4bit-g64";
-        maxModelLen = 32768;
-        extraArgs = qwen35Args;
-      };
-    };
-    port = 10808;
-    # Loopback only: published Podman ports bypass the host firewall.
-    host = "127.0.0.1";
-    # 0.80 of 11.61 GiB ≈ 9.3 GiB. Hyprland/Wayland holds ~1.5 GiB for the
-    # compositor, so 0.9 (10.45 GiB) overshoots the free pool on this host.
-    gpuMemoryUtilization = 0.80;
-    huggingfaceTokenFile = config.age.secrets.hf-token.path;
-  };
-
   # Swap on zram — helps avoid OOM during large builds and LLM inference
   zramSwap = {
     enable = true;
     algorithm = "zstd";
     memoryPercent = 50;
   };
+
+  # llama.cpp inference server (llama-server, OpenAI-compatible API on
+  # 127.0.0.1:10808/v1). Stock nixpkgs module; pkgs.llama-cpp is the CUDA
+  # build because of the global cudaSupport in lib/mkConfigs.nix.
+  # Every settings key becomes `--key value` on ExecStart, so values must not
+  # contain spaces or quotes. Flags checked against tools/server/README.md at
+  # llama.cpp tag b10408 (the locked package version).
+  #
+  # VRAM budget (RTX 3060, 11.6 GiB; Hyprland holds ~1.5 GiB → ~10 GiB free):
+  # Q6_K weights ~6.9 GiB. Qwen3.5 is hybrid Gated-DeltaNet: only 8 of 32
+  # layers keep a KV cache, 4 KV heads x 256 dim x 2 (K+V) x 8 layers = 16384
+  # values/token, i.e. 32 KiB at f16 or ~17 KiB at q8_0, so 65536 tokens cost
+  # ~1.1 GiB. Plus the small recurrent state and ~0.5-1 GiB of compute buffers
+  # that is ~9 GiB. If it OOMs at load, halve ctx-size or switch to the
+  # Q4_K_M file from the same repo.
+  services.llama-cpp = {
+    enable = true;
+    settings = {
+      host = "127.0.0.1";
+      port = 10808;
+      # Downloaded by the user into the tmpfiles dir below; the DynamicUser
+      # service cannot read /home (ProtectHome), but /var/lib is fine.
+      model = "/var/lib/llama-cpp-models/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q6_K.gguf";
+      n-gpu-layers = "all";
+      flash-attn = "on";
+      cache-type-k = "q8_0";
+      cache-type-v = "q8_0";
+      # One slot gets the whole context; the default (auto) splits it.
+      parallel = 1;
+      ctx-size = 65536;
+      # Thinking off by default (sets the template's enable_thinking=false).
+      # A request can still turn it on with
+      # "chat_template_kwargs": {"enable_thinking": true}.
+      reasoning = "off";
+      # Qwen3.5 model card, non-thinking mode for general tasks
+      # (repetition_penalty 1.0 is already llama.cpp's default).
+      temp = 0.7;
+      top-p = 0.8;
+      top-k = 20;
+      min-p = 0.0;
+      presence-penalty = 1.5;
+    };
+  };
+  # Not started at boot: it pins ~9 GiB of VRAM. `sudo systemctl start llama-cpp`.
+  systemd.services.llama-cpp.wantedBy = lib.mkForce [];
 
   # System state version
   system.stateVersion = "24.11";
@@ -395,6 +348,8 @@
   systemd.tmpfiles.rules = [
     "Z /mnt/storage 0755 ${username} users -"
     "d /home/${username}/models 0755 ${username} users -"
+    # GGUF files for services.llama-cpp, downloaded without sudo
+    "d /var/lib/llama-cpp-models 0755 ${username} users -"
   ];
 
   # Agenix secrets configuration
@@ -407,13 +362,6 @@
     mode = "440";
     owner = username;
     group = "users";
-  };
-
-  age.secrets.hf-token = {
-    file = ../../secrets/hf-token.age;
-    mode = "440";
-    # Owned by root so the vllm systemd service can read it via EnvironmentFile.
-    # Format inside the file: HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
   };
 
   # Raw attic token for switch.sh's `attic push`; home.nix points
