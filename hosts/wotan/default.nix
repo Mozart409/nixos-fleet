@@ -5,7 +5,13 @@
   lib,
   username,
   ...
-}: {
+}: let
+  # llama-server's API key (secrets/llama-cpp-api-key.age). Everything that
+  # uses it is gated on the file, so wotan still evaluates before it exists.
+  # A flake only sees git-tracked files: `git add` the .age file or this stays
+  # false and llama-server runs without a key (a warning says so).
+  llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
+in {
   imports = [
     # Disko configuration (must come before hardware-config)
     inputs.disko.nixosModules.disko
@@ -314,34 +320,111 @@
   services.llama-cpp = {
     enable = true;
     package = pkgs.llama-cpp.override {cudaSupport = true;};
-    settings = {
-      host = "127.0.0.1";
-      port = 10808;
-      # Downloaded by the user into the tmpfiles dir below; the DynamicUser
-      # service cannot read /home (ProtectHome), but /var/lib is fine.
-      model = "/var/lib/llama-cpp-models/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q6_K.gguf";
-      n-gpu-layers = "all";
-      flash-attn = "on";
-      cache-type-k = "q8_0";
-      cache-type-v = "q8_0";
-      # One slot gets the whole context; the default (auto) splits it.
-      parallel = 1;
-      ctx-size = 65536;
-      # Thinking off by default (sets the template's enable_thinking=false).
-      # A request can still turn it on with
-      # "chat_template_kwargs": {"enable_thinking": true}.
-      reasoning = "off";
-      # Qwen3.5 model card, non-thinking mode for general tasks
-      # (repetition_penalty 1.0 is already llama.cpp's default).
-      temp = 0.7;
-      top-p = 0.8;
-      top-k = 20;
-      min-p = 0.0;
-      presence-penalty = 1.5;
-    };
+    settings =
+      {
+        host = "127.0.0.1";
+        port = 10808;
+        # Downloaded by the user into the tmpfiles dir below; the DynamicUser
+        # service cannot read /home (ProtectHome), but /var/lib is fine.
+        model = "/var/lib/llama-cpp-models/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q6_K.gguf";
+        n-gpu-layers = "all";
+        flash-attn = "on";
+        cache-type-k = "q8_0";
+        cache-type-v = "q8_0";
+        # One slot gets the whole context; the default (auto) splits it.
+        parallel = 1;
+        ctx-size = 65536;
+        # Thinking off by default (sets the template's enable_thinking=false).
+        # A request can still turn it on with
+        # "chat_template_kwargs": {"enable_thinking": true}.
+        reasoning = "off";
+        # Qwen3.5 model card, non-thinking mode for general tasks
+        # (repetition_penalty 1.0 is already llama.cpp's default).
+        temp = 0.7;
+        top-p = 0.8;
+        top-k = 20;
+        min-p = 0.0;
+        presence-penalty = 1.5;
+      }
+      # API key (age.secrets.llama-cpp-api-key below). --api-key-file reads one
+      # key per line, each line verbatim (no trimming), skipping empty lines and
+      # lines starting with #. /health, /v1/health, /models, /v1/models and the
+      # web UI's static files stay unauthenticated (tools/server/server-http.cpp
+      # at b10408); every other endpoint wants `Authorization: Bearer <key>` (or
+      # `X-Api-Key: <key>`). optionalAttrs, not mkIf: settings is a freeform
+      # `attrs` submodule, which hands an mkIf to the command line unevaluated.
+      // lib.optionalAttrs llamaCppApiKey {
+        api-key-file = "/run/credentials/llama-cpp.service/api-key";
+      };
   };
-  # Not started at boot: it pins ~9 GiB of VRAM. `sudo systemctl start llama-cpp`.
-  systemd.services.llama-cpp.wantedBy = lib.mkForce [];
+  systemd.services.llama-cpp = {
+    # Not started at boot: it pins ~9 GiB of VRAM. `sudo systemctl start llama-cpp`.
+    wantedBy = lib.mkForce [];
+    # systemd (as root) copies the root-only agenix file into the unit's
+    # credential dir, where the DynamicUser can read it; only the path reaches
+    # ExecStart.
+    serviceConfig.LoadCredential = lib.mkIf llamaCppApiKey "api-key:${config.age.secrets.llama-cpp-api-key.path}";
+    # A new key (a different .age file) restarts the unit on switch if it is
+    # running; a stopped unit stays stopped.
+    restartTriggers = lib.mkIf llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file];
+  };
+  warnings = lib.optional (!llamaCppApiKey) "wotan: secrets/llama-cpp-api-key.age is missing (or not git-added), so llama-server runs without an API key";
+
+  # SillyTavern (stock nixpkgs module, global mode): web UI on
+  # http://127.0.0.1:8045, loopback only. `listen` stays at its default
+  # (false), which binds 127.0.0.1; IPv6 is off in the default config. Port
+  # 8045 rather than the default 8000, which dev servers like to take.
+  # Started at boot: it is a small node process with no dependency on
+  # llama-cpp, so it never pulls the model into VRAM. State, chats and
+  # per-user secrets live in /var/lib/SillyTavern/data/default-user.
+  services.sillytavern = {
+    enable = true;
+    port = 8045;
+    # The module's default configFile points at <pkg>/lib/node_modules/
+    # sillytavern/config.yaml, which the package does not ship (upstream only
+    # has default/config.yaml), leaving the tmpfiles symlink dangling. Use the
+    # shipped defaults: whitelistMode on for 127.0.0.1/::1, basic auth and
+    # user accounts off. SillyTavern only rewrites config.yaml when keys are
+    # missing, which never happens with its own default file.
+    configFile = "${config.services.sillytavern.package}/lib/node_modules/sillytavern/default/config.yaml";
+  };
+  systemd.services.sillytavern = {
+    # config.yaml keys can be overridden by SILLYTAVERN_<KEY> env vars
+    # (src/util.js keyToEnv). No browser to open from a system service.
+    environment.SILLYTAVERN_BROWSERLAUNCH_ENABLED = "false";
+    # Seed the llama.cpp key into SillyTavern's secret store, so the Text
+    # Completion -> llama.cpp connection needs only the server URL. The key
+    # comes in as a systemd credential (never in the store or argv) and is
+    # upserted as the active `api_key_llamacpp` entry with the fixed id
+    # "agenix"; other secrets, and llama.cpp keys added in the UI, are kept
+    # (the latter deactivated, so the agenix key is in use after every start).
+    # Same parsing as llama-server: the first non-empty line not starting
+    # with #.
+    serviceConfig.LoadCredential = lib.mkIf llamaCppApiKey "llama-cpp-api-key:${config.age.secrets.llama-cpp-api-key.path}";
+    restartTriggers = lib.mkIf llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file];
+    preStart = lib.mkIf llamaCppApiKey ''
+      dir=/var/lib/SillyTavern/data/default-user
+      f="$dir/secrets.json"
+      umask 077
+      mkdir -p "$dir"
+      [ -s "$f" ] || echo '{}' > "$f"
+      # Old flat files ({"key": "value"}) are migrated by SillyTavern
+      # itself, but only while no value is an array, so leave those alone.
+      if ${lib.getExe pkgs.jq} -e 'any(.[]; type == "string")' "$f" > /dev/null; then
+        echo "secrets.json is in the old flat format; not seeding the llama.cpp key" >&2
+        exit 0
+      fi
+      ${lib.getExe pkgs.jq} --rawfile raw "$CREDENTIALS_DIRECTORY/llama-cpp-api-key" '
+        ($raw | split("\n") | map(select(length > 0 and (startswith("#") | not))) | first) as $key
+        | if $key == null then error("llama-cpp-api-key credential is empty") else . end
+        | .api_key_llamacpp = (
+            [(.api_key_llamacpp // [])[] | select(.id != "agenix") | .active = false]
+            + [{id: "agenix", value: $key, label: "agenix", active: true}]
+          )
+      ' "$f" > "$f.tmp"
+      mv "$f.tmp" "$f"
+    '';
+  };
 
   # System state version
   system.stateVersion = "24.11";
@@ -373,6 +456,13 @@
     file = ../../secrets/attic-push-token-wotan.age;
     mode = "400";
     owner = username;
+  };
+
+  # Raw llama-server API key (pwgen -s 48 1), one line, no KEY= prefix. Stays
+  # root:root 0400: llama-cpp and sillytavern read it through LoadCredential.
+  # Gated like attic-push-token-wotan (`agenix -e llama-cpp-api-key.age`).
+  age.secrets.llama-cpp-api-key = lib.mkIf llamaCppApiKey {
+    file = ../../secrets/llama-cpp-api-key.age;
   };
 
   age.secrets.axon-gateway-env = {

@@ -93,6 +93,7 @@ in {
   "hofvarpnir-tui.age".publicKeys = [amadeus hostWotan]; # raw hof_sk_... token for the TUI
   "homeassistant-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "k3s-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook] ++ piHosts; # raw token (pwgen -s 64 1) for the Pi k3s fleet, see infra/docs/rpi-k3s.md; the file does not exist yet
+  "llama-cpp-api-key.age".publicKeys = [amadeus hostWotan]; # raw key (pwgen -s 48 1) for wotan's llama-server --api-key-file
   "mailpit-ui-auth.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # htpasswd line for the Mailpit UI: amadeus:$2y$... (htpasswd -nB amadeus)
   "moshi-device-id.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook]; # plain auth token
   "multica-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase]; # raw password; containers builds DATABASE_URL from it

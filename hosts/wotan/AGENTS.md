@@ -276,7 +276,7 @@ Before committing changes:
 
 ## 🦙 llama.cpp Inference Server
 
-`services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module; `package` is overridden with `cudaSupport = true`, since it is off globally) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808.
+`services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module; `package` is overridden with `cudaSupport = true`, since it is off globally) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808. Inference endpoints need the API key from `secrets/llama-cpp-api-key.age` (see **API key** below); SillyTavern is the chat front end (see **SillyTavern**).
 
 - **Not started at boot** (`wantedBy = lib.mkForce []`): the model pins ~9 GiB of the 3060's 12 GiB. Start and stop it by hand:
   ```bash
@@ -292,6 +292,36 @@ Before committing changes:
   ```
 - **Switch models:** download another GGUF into `/var/lib/llama-cpp-models`, point `services.llama-cpp.settings.model` at it (and adjust `ctx-size`/sampling for that model), then `just switch-wotan`. The switch restarts the unit if it is running; otherwise `sudo systemctl start llama-cpp`.
 - **Settings are CLI flags:** each `settings` key becomes `--key value` on `ExecStart`, so values cannot contain spaces or quotes (no inline JSON). Check flag names against `tools/server/README.md` at the llama.cpp tag matching `pkgs.llama-cpp.version`.
+
+### API key
+
+llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[amadeus hostWotan]`): the raw key on one line, no `KEY=` prefix. The agenix secret stays `root:root 0400`; systemd hands it to the `DynamicUser` as a credential (`LoadCredential`), and the module passes only the path, `--api-key-file /run/credentials/llama-cpp.service/api-key`. llama.cpp reads that file line by line, verbatim (no trimming, so no trailing spaces or CRLF), skipping empty lines and lines starting with `#`.
+
+- **Create or rotate** (bare filename, works from any directory in the dev shell):
+  ```bash
+  pwgen -s 48 1 | agenix -e llama-cpp-api-key.age   # piped input skips the editor
+  git add infra/secrets/llama-cpp-api-key.age        # the flake only sees tracked files
+  just switch-wotan
+  ```
+  Every use of the key is gated on `builtins.pathExists` of the `.age` file, so wotan evaluates without it; then llama-server runs **without** a key and evaluation prints a `warning:` saying so. An untracked `.age` file counts as missing. `restartTriggers` on the `.age` file restart `llama-cpp` (if it is running) and `sillytavern` when the key changes; a stopped `llama-cpp` stays stopped.
+- **Use it:** `Authorization: Bearer <key>` (llama.cpp also accepts `X-Api-Key: <key>`).
+  ```bash
+  KEY=$(sudo cat /run/agenix/llama-cpp-api-key)
+  curl -s http://127.0.0.1:10808/v1/chat/completions \
+    -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
+    -d '{"messages":[{"role":"user","content":"Hello"}]}'
+  curl -si http://127.0.0.1:10808/props | head -1   # no key: HTTP 401
+  ```
+- **Still unauthenticated** (`tools/server/server-http.cpp` at b10408): `/health`, `/v1/health`, `/models`, `/v1/models` and the built-in web UI's static files. A client's "connection check" against `/v1/models` therefore succeeds with a wrong key; only completions return 401. The built-in web UI at http://127.0.0.1:10808 needs the key pasted into its settings.
+
+### SillyTavern
+
+`services.sillytavern` (stock nixpkgs module, SillyTavern 1.18.0 in global mode) runs **`sillytavern.service`** as the static `sillytavern` user, **started at boot**: it is a small node process and has no dependency on `llama-cpp`, so it never loads the model.
+
+- **URL:** http://127.0.0.1:8045 (port 8045, not the default 8000, which dev servers like to take). `listen` is off, which binds 127.0.0.1 only; IPv6 is off; no firewall port. Config is SillyTavern's own `default/config.yaml` (whitelist mode for 127.0.0.1/::1, no basic auth, no user accounts); the module's default `configFile` points at a `config.yaml` the package does not ship. Override single keys with `SILLYTAVERN_<KEY>` environment variables on the unit (e.g. `SILLYTAVERN_BROWSERLAUNCH_ENABLED=false`, already set).
+- **Data:** `/var/lib/SillyTavern/data/default-user` (chats, characters, `settings.json`, `secrets.json`); `/var/lib/SillyTavern/extensions` holds third-party extensions. All of it is mutable state outside Nix.
+- **API key, seeded:** the unit loads the same agenix secret as a credential and its `preStart` upserts it with `jq` into `secrets.json` as the active `api_key_llamacpp` entry (id `agenix`), leaving every other secret alone. Llama.cpp keys typed into the UI are kept but deactivated on the next start, so the agenix key always wins.
+- **Connect once in the UI** (the server URL lives in the browser-written `settings.json`, so it is not seeded): start `llama-cpp`, open http://127.0.0.1:8045, then **API Connections** (plug icon) → **API: Text Completion** → **API Type: llama.cpp** → **API URL** `http://127.0.0.1:10808` (no `/v1`) → leave the key field empty (it already shows a saved key) → **Connect**. Alternatively **Chat Completion** → **Custom (OpenAI-compatible)** at `http://127.0.0.1:10808/v1`, but that uses a separate secret (`api_key_custom`) that is not seeded, so paste the key there yourself.
 
 ## 🔐 Project Secrets (sops + gpg-agent)
 
