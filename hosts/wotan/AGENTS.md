@@ -323,6 +323,19 @@ llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[am
 - **API key, seeded:** the unit loads the same agenix secret as a credential and its `preStart` upserts it with `jq` into `secrets.json` as the active `api_key_llamacpp` entry (id `agenix`), leaving every other secret alone. Llama.cpp keys typed into the UI are kept but deactivated on the next start, so the agenix key always wins.
 - **Connect once in the UI** (the server URL lives in the browser-written `settings.json`, so it is not seeded): start `llama-cpp`, open http://127.0.0.1:8045, then **API Connections** (plug icon) → **API: Text Completion** → **API Type: llama.cpp** → **API URL** `http://127.0.0.1:10808` (no `/v1`) → leave the key field empty (it already shows a saved key) → **Connect**. Alternatively **Chat Completion** → **Custom (OpenAI-compatible)** at `http://127.0.0.1:10808/v1`, but that uses a separate secret (`api_key_custom`) that is not seeded, so paste the key there yourself.
 
+## 🎨 ComfyUI
+
+`services.comfyui` in `hosts/wotan/default.nix` (stock nixpkgs module) runs **`comfyui.service`** as the static `comfyui` user: web UI and API on **http://127.0.0.1:8188**, loopback only, no auth.
+
+- **CUDA via wheels:** `cudaSupport` is off globally, so the package's Python set swaps `torch`/`torchvision` for `torch-bin`/`torchvision-bin` (prebuilt PyTorch wheels, CUDA 13). torch-dependent Python packages rebuild against them; no CUDA compile happens. `comfy-kitchen` is built without its CUDA kernels.
+- **Not started at boot** (`wantedBy = lib.mkForce []`): llama-cpp already pins ~9 GiB of the 12 GiB, and ComfyUI keeps loaded models in VRAM. Run one at a time on large models:
+  ```bash
+  sudo systemctl stop llama-cpp; sudo systemctl start comfyui
+  journalctl -u comfyui -f
+  ```
+- **Models:** `/var/lib/comfyui-models/<folder>` (`checkpoints`, `diffusion_models`, `text_encoders`, `vae`, `loras`, `clip_vision`, `controlnet`, `upscale_models`, `embeddings`), owned by `amadeus` via tmpfiles, so downloads need no sudo; wired in with a generated `--extra-model-paths-config`. Add a folder there and in the YAML for other model types. Files ComfyUI writes (outputs, inputs, custom nodes, `user/comfyui.db`) live in its state dir `/var/lib/comfyui` (0700 `comfyui`).
+- **Custom nodes:** ComfyUI-Manager is not enabled; it pip-installs node dependencies, which cannot land in the Nix Python env. Add Python deps through `services.comfyui.extraPackages` instead.
+
 ## 🔐 Project Secrets (sops + gpg-agent)
 
 Application secrets for projects under `~/code` never live in plaintext. `set dotenv-load` in justfiles is replaced by an encrypted **`.sops.env`** (sops dotenv store: variable names visible, values `ENC[...]`, safe to commit) that is decrypted into **one child process only** via `sops exec-env` — nothing is written to disk or exported into the shell, so neither `cat` nor `printenv` nor an AI agent's subprocess can see the values. Configured by `modules/home/packages/sops.nix` (`sopsEnv.*` in `hosts/wotan/home.nix`).

@@ -426,6 +426,56 @@ in {
     '';
   };
 
+  # ComfyUI (stock nixpkgs module): web UI and API on http://127.0.0.1:8188,
+  # loopback only (the module's default listen = 127.0.0.1 + ::1). cudaSupport
+  # is off globally, so the plain package runs torch on the CPU. Rather than a
+  # from-source CUDA torch (hours to build, and not what cache.nixos-cuda.org
+  # builds), its Python set swaps in the prebuilt PyTorch wheels: torch-bin
+  # and torchvision-bin, CUDA 13, which driver 595 supports. Everything else
+  # that depends on torch (kornia, spandrel, transformers, ...) is rebuilt
+  # against them; comfy-kitchen stays without its CUDA kernels and falls back
+  # to its eager/triton backends.
+  services.comfyui = {
+    enable = true;
+    package = pkgs.comfyui.override {
+      # python3.override with `self`, not overrideScope: comfyui builds its env
+      # with withPackages, which would drop scope overrides.
+      python3 = let
+        python = pkgs.python3.override {
+          self = python;
+          packageOverrides = final: _prev: {
+            torch = final.torch-bin;
+            torchvision = final.torchvision-bin;
+          };
+        };
+      in
+        python;
+    };
+    extraArgs = [
+      "--preview-method=auto"
+      # Models live in an amadeus-owned dir (tmpfiles below), so downloads need
+      # no sudo; the state dir /var/lib/comfyui is 0700 comfyui. Read-only for
+      # the service, which ProtectSystem=strict allows.
+      "--extra-model-paths-config=${(pkgs.formats.yaml {}).generate "extra_model_paths.yaml" {
+        wotan = {
+          base_path = "/var/lib/comfyui-models";
+          checkpoints = "checkpoints";
+          diffusion_models = "diffusion_models";
+          text_encoders = "text_encoders";
+          vae = "vae";
+          loras = "loras";
+          clip_vision = "clip_vision";
+          controlnet = "controlnet";
+          upscale_models = "upscale_models";
+          embeddings = "embeddings";
+        };
+      }}"
+    ];
+  };
+  # Not started at boot: llama-cpp already pins ~9 GiB of the 3060's 12 GiB,
+  # and ComfyUI keeps loaded models in VRAM. `sudo systemctl start comfyui`.
+  systemd.services.comfyui.wantedBy = lib.mkForce [];
+
   # System state version
   system.stateVersion = "24.11";
 
@@ -435,6 +485,17 @@ in {
     "d /home/${username}/models 0755 ${username} users -"
     # GGUF files for services.llama-cpp, downloaded without sudo
     "d /var/lib/llama-cpp-models 0755 ${username} users -"
+    # Model files for services.comfyui (extra_model_paths.yaml above)
+    "d /var/lib/comfyui-models 0755 ${username} users -"
+    "d /var/lib/comfyui-models/checkpoints 0755 ${username} users -"
+    "d /var/lib/comfyui-models/diffusion_models 0755 ${username} users -"
+    "d /var/lib/comfyui-models/text_encoders 0755 ${username} users -"
+    "d /var/lib/comfyui-models/vae 0755 ${username} users -"
+    "d /var/lib/comfyui-models/loras 0755 ${username} users -"
+    "d /var/lib/comfyui-models/clip_vision 0755 ${username} users -"
+    "d /var/lib/comfyui-models/controlnet 0755 ${username} users -"
+    "d /var/lib/comfyui-models/upscale_models 0755 ${username} users -"
+    "d /var/lib/comfyui-models/embeddings 0755 ${username} users -"
   ];
 
   # Agenix secrets configuration
