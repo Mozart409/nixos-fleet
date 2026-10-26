@@ -292,6 +292,63 @@ Application secrets for projects under `~/code` never live in plaintext. `set do
 - **Edit:** `sops .sops.env` (opens `$EDITOR`, re-encrypts on save). **Add a var:** same. **Rotate recipients:** `sops updatekeys .sops.env`.
 - **Never:** `direnv`'s `dotenv`, `source .env`, or `export`ing secrets — anything in the ambient environment is visible to every child process and no guardrail catches `python -c 'print(os.environ)'`.
 
+## 🤖 vLLM Inference Server
+
+The vLLM service provides an OpenAI-compatible inference endpoint with CUDA acceleration. It runs as a **Podman OCI container** (`vllm/vllm-openai` image, see `services.vllm.image` for the pinned version) managed by `virtualisation.oci-containers`, so the systemd unit is **`podman-vllm.service`**. `autoStart = false` — it does not start at boot; launch it manually. Models are pulled from HuggingFace on first launch, not stored as local files.
+
+**Model cache location:** `/var/lib/vllm/huggingface/` on the host, mounted into the container (HF transformers format, NOT GGUF)
+
+**Currently configured model** (see `hosts/wotan/default.nix`):
+- `Qwen/Qwen3.5-35B-A3B-GPTQ-Int4` — official Qwen MoE (36B total, ~3B active), hybrid Gated-DeltaNet attention, tool use (`qwen3_coder` parser), thinking off by default, 64K context configured (262K model max). Text weights are 20.3 GiB (measured from safetensors headers; llmfit's 18 GB is low), so `cpuOffloadGb = 15` offloads part of them to system RAM. Vision encoder skipped with `--language-model-only`.
+
+**Switching models:**
+Edit `services.vllm.model` in `hosts/wotan/default.nix` and rebuild. Alternative candidates are listed in the comment block above the `services.vllm` declaration — re-verify with `llmfit --memory 12G fit` first. Prefer **trusted repos** (`Qwen/`, `RedHatAI/`) over community quants. Dense models that fit fully in VRAM should drop `cpuOffloadGb`.
+
+**API endpoints (OpenAI-compatible):**
+- List models: `http://127.0.0.1:10808/v1/models`
+- Chat completions: `http://127.0.0.1:10808/v1/chat/completions`
+- Completions: `http://127.0.0.1:10808/v1/completions`
+
+**Service management:**
+```bash
+sudo systemctl start podman-vllm    # Start (not auto-started at boot)
+systemctl status podman-vllm        # Check status
+journalctl -u podman-vllm -f        # Follow logs (watch model load on first start)
+sudo systemctl restart podman-vllm  # Restart service
+```
+
+**HuggingFace token (for gated models):**
+The HF token is stored as an agenix secret at `infra/secrets/hf-token.age` and passed to the container as an environment file. Format inside the file:
+```
+HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+Edit with: `nix run github:ryantm/agenix -- -e infra/secrets/hf-token.age`
+
+**Pre-download a model without loading it onto the GPU** (authenticated with the same token; the token is sourced inside the root shell, so it stays out of shell history and process args). The container mounts the cache at `/root/.cache/huggingface`, so files in `hub/` are picked up without a re-download:
+```bash
+sudo sh -c 'set -a; . /run/agenix/hf-token; exec nix run nixpkgs#python3Packages.huggingface-hub -- download Qwen/Qwen3.5-35B-A3B-GPTQ-Int4 --cache-dir /var/lib/vllm/huggingface/hub'
+```
+
+**Configuration:** `modules/wotan/vllm.nix` (module + options, including `cpuOffloadGb`) and `hosts/wotan/default.nix` (host-specific model + flags)
+
+### Hardware fitting with llmfit
+
+`llmfit` recommends GGUF/llama.cpp models by default — filter to vLLM-compatible HF format with `runtime=vLLM`:
+
+```bash
+llmfit system                                            # Show hardware specs
+llmfit --memory 12G fit                                  # Find fitting models (table)
+llmfit --memory 12G --max-context 262144 --json fit      # JSON output for scripting
+llmfit info "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"             # Detailed model info
+llmfit search "qwen"                                     # Search by name
+```
+
+Filter JSON output to vLLM-compatible candidates:
+```bash
+llmfit --memory 12G --json fit \
+  | jq '.models[] | select(.runtime=="vLLM" and (.fit_level=="Perfect" or .fit_level=="Good"))'
+```
+
 ## 📚 Additional Resources
 
 - wotan README: `infra/hosts/wotan/README.md`

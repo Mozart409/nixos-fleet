@@ -46,7 +46,7 @@ what each host was. `zeroclaw` stays under `hosts/`, wired to nothing.
 
 | Host | Role |
 |------|------|
-| `wotan` | My workstation: Hyprland, NVIDIA/CUDA. Deploys only itself (`just switch-wotan`), no inbound SSH. See `hosts/wotan/README.md` |
+| `wotan` | My workstation: Hyprland, NVIDIA/CUDA, local vLLM. Deploys only itself (`just switch-wotan`), no inbound SSH. See `hosts/wotan/README.md` |
 
 ### Provisioned by IaC, not in the Colmena hive
 
