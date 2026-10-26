@@ -297,8 +297,9 @@
   };
 
   # llama.cpp inference server (llama-server, OpenAI-compatible API on
-  # 127.0.0.1:10808/v1). Stock nixpkgs module; pkgs.llama-cpp is the CUDA
-  # build because of the global cudaSupport in lib/mkConfigs.nix.
+  # 127.0.0.1:10808/v1). Stock nixpkgs module. cudaSupport is off globally
+  # (lib/mkConfigs.nix), so the package is overridden to the CUDA build; the
+  # plain pkgs.llama-cpp runs on the CPU ("no usable GPU found", ~4 tok/s).
   # Every settings key becomes `--key value` on ExecStart, so values must not
   # contain spaces or quotes. Flags checked against tools/server/README.md at
   # llama.cpp tag b10408 (the locked package version).
@@ -312,6 +313,7 @@
   # Q4_K_M file from the same repo.
   services.llama-cpp = {
     enable = true;
+    package = pkgs.llama-cpp.override {cudaSupport = true;};
     settings = {
       host = "127.0.0.1";
       port = 10808;

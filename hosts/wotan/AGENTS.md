@@ -276,7 +276,7 @@ Before committing changes:
 
 ## 🦙 llama.cpp Inference Server
 
-`services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module, CUDA build via the global `cudaSupport`) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808.
+`services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module; `package` is overridden with `cudaSupport = true`, since it is off globally) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808.
 
 - **Not started at boot** (`wantedBy = lib.mkForce []`): the model pins ~9 GiB of the 3060's 12 GiB. Start and stop it by hand:
   ```bash
