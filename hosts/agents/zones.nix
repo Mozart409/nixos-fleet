@@ -21,12 +21,14 @@
       # that `nix develop` in a task realises devShells into.
       workSize = 49152;
       storeSize = 24576;
-      packages = [pkgs.opencode pkgs.claude-code];
+      packages = [pkgs.claude-code];
       environment = {};
       hermes = null;
       # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
       # (secrets/agenix-rules.nix), so there is no interactive /login.
       claude = true;
+      # No OpenCode here, so the daemon registers no OpenCode runtime.
+      opencode = false;
       # Forgejo account the zone's agents clone and push as, with its key
       # secrets/forgejo-bot-<bot>-ssh.age. Repo access is a collaborator
       # invite in the Forgejo UI.
@@ -43,6 +45,7 @@
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
       claude = false;
+      opencode = true;
       forgejoBot = {
         name = "eve";
         email = "eve@homelab.local";
@@ -343,7 +346,7 @@
 
     # The Hindsight rules for OpenCode (modules/agent-memory.nix), as its global
     # AGENTS.md. Multica only injects MCP config, so this file is left alone.
-    systemd.services."opencode-memory-${name}" = {
+    systemd.services."opencode-memory-${name}" = lib.mkIf zone.opencode {
       description = "Write the ${name} zone's global OpenCode instructions";
       wantedBy = ["multica-daemon-${name}.service"];
       before = ["multica-daemon-${name}.service"];
@@ -359,7 +362,7 @@
 
     # opencode keeps provider keys in auth.json, not its config; merge the Zen
     # key in from the zone env (same approach as modules/coding-harness.nix).
-    systemd.services."opencode-auth-${name}" = {
+    systemd.services."opencode-auth-${name}" = lib.mkIf zone.opencode {
       description = "Write the OpenCode Zen key into the ${name} zone's opencode auth.json";
       wantedBy = ["multica-daemon-${name}.service"];
       before = ["multica-daemon-${name}.service"];
