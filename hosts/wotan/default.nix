@@ -11,6 +11,30 @@
   # A flake only sees git-tracked files: `git add` the .age file or this stays
   # false and llama-server runs without a key (a warning says so).
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
+
+  # The AI units the quickshell panel can switch on and off. One list for both
+  # halves: home-manager renders the panel from it
+  # (desktop.quickshell.serviceToggles) and the polkit rule below lets the user
+  # start/stop/restart exactly these units. Adding a unit here does both.
+  aiServiceToggles = [
+    {
+      unit = "llama-cpp.service";
+      label = "llama.cpp";
+      note = "~9 GiB VRAM";
+      gpu = true;
+    }
+    {
+      unit = "comfyui.service";
+      label = "ComfyUI";
+      note = "VRAM per model";
+      gpu = true;
+    }
+    {
+      unit = "sillytavern.service";
+      label = "SillyTavern";
+      note = "chat UI";
+    }
+  ];
 in {
   imports = [
     # Disko configuration (must come before hardware-config)
@@ -475,6 +499,38 @@ in {
   # Not started at boot: llama-cpp already pins ~9 GiB of the 3060's 12 GiB,
   # and ComfyUI keeps loaded models in VRAM. `sudo systemctl start comfyui`.
   systemd.services.comfyui.wantedBy = lib.mkForce [];
+
+  # Quickshell toggles for the AI units (aiServiceToggles at the top):
+  # ServiceTogglesWidget.qml, bottom-left on an empty workspace, driven by the
+  # quickshell-units script (modules/home/packages/quickshell.nix).
+  home-manager.users.${username}.desktop.quickshell.serviceToggles = {
+    enable = true;
+    title = "AI";
+    units = aiServiceToggles;
+  };
+  # ...and the polkit rule that makes those clicks work without sudo or a
+  # password prompt: the user may start, stop and restart exactly these units,
+  # nothing else (no enable/mask/edit, no other unit). No subject.local /
+  # subject.active check on purpose: quickshell runs under user@.service, not
+  # inside the logind session, so polkit sees it as neither. Appended to the
+  # rules in modules/desktop/user-experience.nix (security.polkit.enable is set
+  # in modules/desktop/default.nix).
+  security.polkit.extraConfig = ''
+    // aiServiceToggles (hosts/wotan/default.nix): quickshell service toggles
+    polkit.addRule(function(action, subject) {
+      if (action.id != "org.freedesktop.systemd1.manage-units" ||
+          subject.user != ${builtins.toJSON username}) {
+        return polkit.Result.NOT_HANDLED;
+      }
+      var units = ${builtins.toJSON (map (t: t.unit) aiServiceToggles)};
+      var verbs = ["start", "stop", "restart"];
+      if (units.indexOf(action.lookup("unit")) >= 0 &&
+          verbs.indexOf(action.lookup("verb")) >= 0) {
+        return polkit.Result.YES;
+      }
+      return polkit.Result.NOT_HANDLED;
+    });
+  '';
 
   # System state version
   system.stateVersion = "24.11";

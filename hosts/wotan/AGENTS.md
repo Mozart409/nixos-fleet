@@ -278,7 +278,7 @@ Before committing changes:
 
 `services.llama-cpp` in `hosts/wotan/default.nix` (the stock nixpkgs module; `package` is overridden with `cudaSupport = true`, since it is off globally) runs `llama-server` as **`llama-cpp.service`**. It serves the OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) on **http://127.0.0.1:10808/v1**, loopback only, plus the built-in web UI at http://127.0.0.1:10808. Inference endpoints need the API key from `secrets/llama-cpp-api-key.age` (see **API key** below); SillyTavern is the chat front end (see **SillyTavern**).
 
-- **Not started at boot** (`wantedBy = lib.mkForce []`): the model pins ~9 GiB of the 3060's 12 GiB. Start and stop it by hand:
+- **Not started at boot** (`wantedBy = lib.mkForce []`): the model pins ~9 GiB of the 3060's 12 GiB. Start and stop it from the Quickshell panel (see **AI Service Toggles**) or by hand (`sudo` optional: polkit allows start/stop/restart):
   ```bash
   sudo systemctl start llama-cpp
   journalctl -u llama-cpp -f
@@ -328,13 +328,22 @@ llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[am
 `services.comfyui` in `hosts/wotan/default.nix` (stock nixpkgs module) runs **`comfyui.service`** as the static `comfyui` user: web UI and API on **http://127.0.0.1:8188**, loopback only, no auth.
 
 - **CUDA via wheels:** `cudaSupport` is off globally, so the package's Python set swaps `torch`/`torchvision` for `torch-bin`/`torchvision-bin` (prebuilt PyTorch wheels, CUDA 13). torch-dependent Python packages rebuild against them; no CUDA compile happens. `comfy-kitchen` is built without its CUDA kernels.
-- **Not started at boot** (`wantedBy = lib.mkForce []`): llama-cpp already pins ~9 GiB of the 12 GiB, and ComfyUI keeps loaded models in VRAM. Run one at a time on large models:
+- **Not started at boot** (`wantedBy = lib.mkForce []`): llama-cpp already pins ~9 GiB of the 12 GiB, and ComfyUI keeps loaded models in VRAM. Run one at a time on large models (the Quickshell panel warns when both are up):
   ```bash
   sudo systemctl stop llama-cpp; sudo systemctl start comfyui
   journalctl -u comfyui -f
   ```
 - **Models:** `/var/lib/comfyui-models/<folder>` (`checkpoints`, `diffusion_models`, `text_encoders`, `vae`, `loras`, `clip_vision`, `controlnet`, `upscale_models`, `embeddings`), owned by `amadeus` via tmpfiles, so downloads need no sudo; wired in with a generated `--extra-model-paths-config`. Add a folder there and in the YAML for other model types. Files ComfyUI writes (outputs, inputs, custom nodes, `user/comfyui.db`) live in its state dir `/var/lib/comfyui` (0700 `comfyui`).
 - **Custom nodes:** ComfyUI-Manager is not enabled; it pip-installs node dependencies, which cannot land in the Nix Python env. Add Python deps through `services.comfyui.extraPackages` instead.
+
+## 🎛️ AI Service Toggles (Quickshell + polkit)
+
+A Quickshell panel switches `llama-cpp`, `comfyui` and `sillytavern` on and off without sudo. It is built like the Home Assistant light panel: same card, rows and switches, bottom-left on the primary screen, visible on an empty workspace (`WlrLayer.Bottom`).
+
+- **One list:** `aiServiceToggles` at the top of `hosts/wotan/default.nix` (unit, label, optional `note`, `gpu` flag). It feeds `desktop.quickshell.serviceToggles` (the panel) **and** the polkit rule, so adding a unit there adds both the switch and the permission. Only `.service` names are accepted.
+- **Panel:** `modules/home/packages/quickshell/ServiceTogglesWidget.qml`, gated by `Features.serviceToggles` in `shell.qml`. It never calls systemctl itself: the `quickshell-units` script (`modules/home/packages/quickshell.nix`) reads every unit's state with one `systemctl show` call (every 10 s, every 1 s while a unit is starting or stopping) and runs `systemctl --no-ask-password --no-block start|stop` only for listed units. Green = running, amber pulsing = activating/deactivating, red = failed (a click retries), dimmed = unit not installed. Two `gpu` units up at once shows a VRAM warning; nothing is stopped automatically.
+- **polkit rule** (`security.polkit.extraConfig` next to ComfyUI in `default.nix`, appended to the power rules in `modules/desktop/user-experience.nix`): `org.freedesktop.systemd1.manage-units` returns YES only for `subject.user == username`, a listed unit (`action.lookup("unit")`) and verb `start`/`stop`/`restart` (`action.lookup("verb")`). Anything else (reload, enable, other units) falls through to the default (admin auth). There is no `subject.active`/`subject.local` check because quickshell runs under `user@.service`, outside the logind session. The rule also covers the CLI: `systemctl start llama-cpp` works without sudo.
+- **Debug:** `quickshell-units states` prints the panel's JSON. A failed click shows systemctl's last line under the rows. `Access denied` means the rule did not match: check `/etc/polkit-1/rules.d/10-nixos.rules` and `journalctl -u polkit`.
 
 ## 🔐 Project Secrets (sops + gpg-agent)
 

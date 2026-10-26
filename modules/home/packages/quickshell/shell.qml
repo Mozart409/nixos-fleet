@@ -35,6 +35,15 @@ ShellRoot {
     HomeAssistantWidget {}
   }
 
+  // System unit toggles (wotan: the on-demand AI services), bottom-left on
+  // the primary screen. Gated the same way: without
+  // desktop.quickshell.serviceToggles there is no quickshell-units script.
+  LazyLoader {
+    active: Features.serviceToggles
+
+    ServiceTogglesWidget {}
+  }
+
   // Flake input drift, bottom-right so it cannot collide with the homelab
   // board above however tall that grows.
   DepsWidget {}

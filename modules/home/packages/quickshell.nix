@@ -121,6 +121,72 @@
     esac
   '';
 
+  # Backs ServiceTogglesWidget.qml: state and start/stop for a short, declared
+  # list of *system* units (wotan: the on-demand AI services). It runs as the
+  # user; the privilege comes from a polkit rule the host generates from the
+  # same list (hosts/wotan/default.nix), not from sudo. `--no-ask-password`
+  # keeps it from ever popping the polkit agent: a unit the rule does not
+  # cover fails with "Access denied" instead of prompting. `set` refuses
+  # undeclared units on top of that, so the panel cannot drive anything else
+  # even on a host with a looser rule.
+  #
+  #   quickshell-units states        -> {"units":[{unit,label,note,gpu,load,active,sub}]} | {"error":".."}
+  #   quickshell-units set <unit> on|off -> systemctl start|stop --no-block
+  #
+  # --no-block returns as soon as the job is queued, so the panel sees (and
+  # shows) activating/deactivating instead of freezing while ComfyUI starts.
+  # Explicit on/off for the same reason as quickshell-ha.
+  toggleUnits = builtins.toJSON cfg.serviceToggles.units;
+  quickshell-units = pkgs.writeShellScriptBin "quickshell-units" ''
+    set -euo pipefail
+    export PATH=${lib.makeBinPath [pkgs.systemd pkgs.jq pkgs.coreutils]}
+
+    units=${lib.escapeShellArg toggleUnits}
+
+    fail() {
+      jq -cn --arg e "$1" '{error: $e}'
+      exit 1
+    }
+
+    case "''${1:-}" in
+      states)
+        mapfile -t names < <(jq -r '.[].unit' <<<"$units")
+        (( ''${#names[@]} > 0 )) || fail "no units configured"
+        # One call for every unit: blank-line separated Key=Value blocks.
+        # Matched back by Id, so the output order does not matter; a unit
+        # that does not exist still answers, with LoadState=not-found.
+        out=$(systemctl show --property=Id,LoadState,ActiveState,SubState -- "''${names[@]}") \
+          || fail "systemctl show failed"
+        jq -Rsc --argjson cfg "$units" '
+          [split("\n\n")[]
+            | [splits("\n") | select(. != "") | capture("^(?<key>[^=]+)=(?<value>.*)$")]
+            | from_entries | select(.Id)]
+          | (map({key: .Id, value: .}) | from_entries) as $s
+          | {units: [$cfg[] | ($s[.unit] // {}) as $p | . + {
+              load: ($p.LoadState // "unknown"),
+              active: ($p.ActiveState // "unknown"),
+              sub: ($p.SubState // "")
+            }]}' <<<"$out"
+        ;;
+      set)
+        unit=''${2:?usage: quickshell-units set <unit> on|off}
+        case "''${3:-}" in
+          on) verb=start ;;
+          off) verb=stop ;;
+          *) fail "target must be on or off" ;;
+        esac
+        jq -e --arg u "$unit" 'any(.[]; .unit == $u)' <<<"$units" >/dev/null \
+          || fail "not an allowed unit: $unit"
+        out=$(systemctl --no-ask-password --no-block "$verb" -- "$unit" 2>&1) \
+          || fail "$(tail -n1 <<<"''${out:-systemctl $verb $unit failed}")"
+        ;;
+      *)
+        echo "usage: quickshell-units states | set <unit> on|off" >&2
+        exit 2
+        ;;
+    esac
+  '';
+
   # Runtime dependencies for shell scripts and widgets. The resource widgets
   # shell out on a timer, so everything they call has to be on the service's
   # PATH -- a missing binary shows up as a permanently blank readout, not an
@@ -200,6 +266,10 @@
       // quickshell-ha script is not installed and the panel would only ever
       // show an error.
       readonly property bool homeAssistant: ${lib.boolToString cfg.homeAssistant.enable}
+
+      // desktop.quickshell.serviceToggles -- same gate for quickshell-units.
+      readonly property bool serviceToggles: ${lib.boolToString cfg.serviceToggles.enable}
+      readonly property string serviceTogglesTitle: ${builtins.toJSON cfg.serviceToggles.title}
     }
   '';
 
@@ -311,6 +381,53 @@ in {
       };
     };
 
+    serviceToggles = {
+      enable = lib.mkEnableOption ''
+        the systemd service toggle desktop panel. Lists system units, so
+        toggling only works where the host grants the user
+        org.freedesktop.systemd1.manage-units for exactly these units via
+        polkit (wotan: hosts/wotan/default.nix)
+      '';
+
+      title = lib.mkOption {
+        type = lib.types.str;
+        default = "SERVICES";
+        description = "Panel header.";
+      };
+
+      units = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
+          options = {
+            unit = lib.mkOption {
+              type = lib.types.strMatching "[A-Za-z0-9@_.:-]+\\.service";
+              example = "llama-cpp.service";
+              description = "Full system unit name, `.service` suffix included.";
+            };
+            label = lib.mkOption {
+              type = lib.types.str;
+              description = "Display name.";
+            };
+            note = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              example = "~9 GiB VRAM";
+              description = "Short muted hint shown next to the label.";
+            };
+            gpu = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = ''
+                Competes for GPU memory. The panel warns while more than one
+                such unit is running; it never stops one by itself.
+              '';
+            };
+          };
+        });
+        default = [];
+        description = "Units shown, in order. Also the allowlist for toggling.";
+      };
+    };
+
     sourcePath = lib.mkOption {
       type = lib.types.str;
       default = "/home/amadeus/code/yggdrasil/infra/modules/home/packages/quickshell";
@@ -330,6 +447,9 @@ in {
       ]
       ++ lib.optionals cfg.homeAssistant.enable [
         quickshell-ha # Backs the Home Assistant toggle panel
+      ]
+      ++ lib.optionals cfg.serviceToggles.enable [
+        quickshell-units # Backs the systemd service toggle panel
       ]
       ++ [
         pkgs.pwvucontrol # Modern PipeWire volume control GUI (bar: right-click volume)
