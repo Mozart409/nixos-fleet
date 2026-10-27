@@ -499,6 +499,11 @@ in {
   # Not started at boot: llama-cpp already pins ~9 GiB of the 3060's 12 GiB,
   # and ComfyUI keeps loaded models in VRAM. `sudo systemctl start comfyui`.
   systemd.services.comfyui.wantedBy = lib.mkForce [];
+  # torch 2.14 routes some ops (e.g. bmm outer products in the text encoder)
+  # through Triton kernels, which JIT-compile a C helper at first use and fail
+  # with "Failed to find C compiler" (no cc in the unit's PATH). Fall back to
+  # the regular CUDA kernels instead.
+  systemd.services.comfyui.environment.TORCH_DISABLE_NATIVE_JIT = "1";
 
   # Quickshell toggles for the AI units (aiServiceToggles at the top):
   # ServiceTogglesWidget.qml, bottom-left on an empty workspace, driven by the

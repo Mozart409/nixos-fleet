@@ -328,6 +328,7 @@ llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[am
 `services.comfyui` in `hosts/wotan/default.nix` (stock nixpkgs module) runs **`comfyui.service`** as the static `comfyui` user: web UI and API on **http://127.0.0.1:8188**, loopback only, no auth.
 
 - **CUDA via wheels:** `cudaSupport` is off globally, so the package's Python set swaps `torch`/`torchvision` for `torch-bin`/`torchvision-bin` (prebuilt PyTorch wheels, CUDA 13). torch-dependent Python packages rebuild against them; no CUDA compile happens. `comfy-kitchen` is built without its CUDA kernels.
+- **No Triton JIT** (`TORCH_DISABLE_NATIVE_JIT=1` in the unit's environment): torch 2.14 sends some ops through Triton kernels, which compile a C helper on first use and fail under systemd with `Failed to find C compiler`. The variable makes torch use its regular CUDA kernels. Don't enable comfy-kitchen's Triton backend or `torch.compile` nodes without also giving the unit a compiler.
 - **Not started at boot** (`wantedBy = lib.mkForce []`): llama-cpp already pins ~9 GiB of the 12 GiB, and ComfyUI keeps loaded models in VRAM. Run one at a time on large models (the Quickshell panel warns when both are up):
   ```bash
   sudo systemctl stop llama-cpp; sudo systemctl start comfyui
