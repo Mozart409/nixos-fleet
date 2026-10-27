@@ -419,10 +419,18 @@ hl.window_rule({
     keep_aspect_ratio = true,
 })
 
--- Any fullscreen window (games, videos) blocks hypridle's dim/lock/suspend
+-- Fullscreen games block hypridle's dim/lock/suspend: gamepad input is not
+-- seat activity. Videos are not matched: a playing video inhibits idle
+-- itself (browser/mpv idle-inhibit, playerctl check in hypridle.conf), and a
+-- paused fullscreen video must not keep the desktop awake.
 hl.window_rule({
-    name = "idle-inhibit-fullscreen",
-    match = { class = ".*" },
+    name = "idle-inhibit-steam-games",
+    match = { class = "steam_app_.*" },
+    idle_inhibit = "fullscreen",
+})
+hl.window_rule({
+    name = "idle-inhibit-game-content",
+    match = { content = "game" },
     idle_inhibit = "fullscreen",
 })
 

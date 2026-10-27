@@ -353,10 +353,12 @@ in {
           on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then loginctl lock-session; fi          # lock screen
       }
 
-      # Suspend after 60 minutes
+      # Suspend after 30 minutes unless any player is playing (a paused
+      # fullscreen video does not count). `-a` checks every player, not just
+      # the first one playerctl picks.
       listener {
-          timeout = 3600                              # 60 minutes
-          on-timeout = if [ "$(playerctl status 2>/dev/null)" != "Playing" ]; then systemctl suspend; fi              # suspend system
+          timeout = 1800                              # 30 minutes
+          on-timeout = playerctl -a status 2>/dev/null | grep -qx Playing || systemctl suspend              # suspend system
       }
     '';
 
