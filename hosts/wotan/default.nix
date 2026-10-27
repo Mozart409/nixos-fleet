@@ -430,6 +430,8 @@ in {
     configFile = "${config.services.sillytavern.package}/lib/node_modules/sillytavern/default/config.yaml";
   };
   systemd.services.sillytavern = {
+    # Not started at boot: start/stop via the Quickshell AI toggles or manually.
+    wantedBy = lib.mkForce [];
     # config.yaml keys can be overridden by SILLYTAVERN_<KEY> env vars
     # (src/util.js keyToEnv). No browser to open from a system service.
     environment.SILLYTAVERN_BROWSERLAUNCH_ENABLED = "false";
