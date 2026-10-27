@@ -51,6 +51,46 @@ What keeps that safe is **who deploys**, not who edits:
   If a bot change moves the driver (usually via `flake.lock`), say so in the
   hand-off.
 
+## 🔒 Local Agents Run as `agent` (2026-10-27)
+
+Claude Code and opencode on wotan run as the no-sudo `agent` account
+(`modules/wotan/agent-user.nix`, home-manager in `hosts/wotan/agent-home.nix`),
+not as `amadeus`. Every agent process runs in a mount namespace where `/home`
+and `/run/user` are empty except `/home/amadeus/code` and `/home/agent`, bound
+back in at their real paths. So the agents can't see the rest of amadeus's
+home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
+
+- **Launch:** `claude` and `opencode <subcommand>` are zsh functions that run
+  `sudo agent-run claude|opencode …`. `agent-run` is the only thing amadeus may
+  sudo to without a password. It refuses to start outside `~/code`, passes the
+  MCP gateway tokens in as systemd credentials, and loads the directory's
+  `.envrc` (the agent's own `direnv allow`). Interactive `opencode` is a client
+  of `opencode-serve`, which runs as `agent` in the same confinement.
+- **State lives in `/home/agent`:** `~/.claude`, `~/.claude.json`,
+  `~/.config/opencode`, `~/.local/share/opencode`. A Claude permission rule for
+  a file in the repo needs the absolute form (`Read(//home/amadeus/code/…)`):
+  `~` now means `/home/agent`.
+- **Sharing `~/code`:** ACLs give both users rwx. The default ACLs make new
+  files inherit that (tmpfiles keeps it on `~/code` itself). A file created
+  with a narrow mode (e.g. 0644 by a tool that ignores umask) gets a narrow
+  ACL mask; `just agent-acl` repairs the whole tree. `safe.directory` in
+  `/etc/gitconfig` lets git work in repos the other user owns.
+- **Commit signing:** each harness has its own ssh-agent holding the bot key
+  `~amadeus/.ssh/id_ed25519_signing` (bot-signing@wotan):
+  `opencode-signing-agent` and `claude-signing-agent`
+  (`services.opencode-serve.signing.agents`). They run as `agent`, because
+  ssh-agent refuses clients with another uid. systemd hands them the key as a
+  credential, and that credential dir is hidden in every agent session, so
+  the agents can sign but cannot read the key.
+- **Gone for the agents:** clipboard and image paste, opening a browser,
+  `sops exec-env`/gpg, podman, and pushing over SSH (they never pushed from
+  wotan anyway).
+- **Tests:** `nix build .#nixosTests.x86_64-linux.agent-user`
+  (`infra/tests/modules/agent-user.nix`).
+- **First switch:** after `just switch-wotan`, run `just agent-acl` once, then
+  `just agent-migrate` (copies the Claude/opencode logins, history, memory and
+  direnv allows into `/home/agent` and restarts opencode-serve).
+
 ## ⚡ Build/Test/Lint Commands
 
 ### Building and Switching Configurations

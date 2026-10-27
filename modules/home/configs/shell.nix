@@ -186,26 +186,37 @@
       # call and only given to this one process — never exported, so other shell
       # children (e.g. sandboxed agents) can't use the server to escape their
       # sandbox.
+      # Only this exact path may be sudo'd without a password.
+      _agent_run=/run/current-system/sw/bin/agent-run
+
       opencode() {
         if (( $# == 0 )) || [[ $1 == -* ]]; then
           local pwfile="''${OPENCODE_SERVER_PASSWORD_FILE:-/run/agenix/opencode-server-password}"
           OPENCODE_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
             command opencode --server "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" "$@" "$PWD"
+        elif [[ -x $_agent_run ]]; then
+          # Subcommands run locally, not on the server: as the agent account,
+          # which gets the gateway tokens from agent-run (`opencode mcp list`
+          # got a 401 from axon without them).
+          sudo "$_agent_run" opencode "$@"
         else
-          # Subcommands run locally, not on the server, so they need the
-          # gateway tokens themselves (`opencode mcp list` got a 401 from axon
-          # without them and reported the SSE fallback's 405).
           AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
           VENTARA_GATEWAY_TOKEN="$(sed -n 's/^VENTARA_GATEWAY_TOKEN=//p' "''${VENTARA_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
             command opencode "$@"
         fi
       }
 
-      # `claude` gets the MCP gateway tokens (expanded from ''${VAR} in
+      # On wotan `claude` runs as the agent account, confined to ~/code
+      # (modules/wotan/agent-user.nix); agent-run hands it the MCP gateway
+      # tokens. Elsewhere it gets them (expanded from ''${VAR} in
       # managed-mcp.json) read fresh from the agenix files on every launch and
       # given to this one process, never exported. A rotation is picked up by
       # the next launch, and other shell children don't carry the tokens.
       claude() {
+        if [[ -x $_agent_run ]]; then
+          sudo "$_agent_run" claude "$@"
+          return
+        fi
         AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
         VENTARA_GATEWAY_TOKEN="$(sed -n 's/^VENTARA_GATEWAY_TOKEN=//p' "''${VENTARA_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
           command claude "$@"

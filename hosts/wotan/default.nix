@@ -268,7 +268,11 @@ in {
     enable = true;
     hostname = "127.0.0.1";
     port = 4096;
-    user = username;
+    # Runs as the agent account and sees only ~/code and the agent's own home,
+    # the same confinement agent-run gives interactive claude (agent-user.nix).
+    user = config.wotan.agentUser.user;
+    group = config.wotan.agentUser.user;
+    homeBindPaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
     # password = "";  # Set for auth; empty = no basic-auth.
     # The server process (not the attaching shell) connects to MCP servers, so
     # secrets referenced via {env:VAR} in opencode.json must be in the
@@ -283,26 +287,39 @@ in {
     ];
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
-    readWritePaths = ["/home/${username}"];
-    # Signing-only key (not a login key anywhere) in its own agent, so opencode
-    # can sign commits but can't authenticate/push. Private key stays hidden
-    # (~/.ssh is in inaccessiblePaths).
+    readWritePaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
+    # The bot signing key (not a login key anywhere), so the agents can sign
+    # commits but can't authenticate/push. One ssh-agent each for opencode and
+    # Claude Code (modules/home/packages/claude.nix). The key stays in
+    # amadeus's ~/.ssh; systemd hands it to them as a credential that every
+    # agent session has hidden.
     signing = {
       keyFile = "/home/${username}/.ssh/id_ed25519_signing";
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan";
+      agents = ["opencode" "claude"];
     };
     # systemd (PID 1) reads the secrets above before entering the sandbox, so
-    # /run/agenix can be hidden from every tool. ~/.gnupg stays visible but
-    # without private keys: signing goes through the (unsandboxed) gpg-agent.
+    # /run/agenix can be hidden from every tool. amadeus's home is already
+    # out of view (homeBindPaths).
     inaccessiblePaths = [
       "/run/agenix"
       "/run/agenix.d"
-      "/home/${username}/.ssh"
-      "/home/${username}/.gnupg/private-keys-v1.d"
-      "/home/${username}/.config/sops/age"
-      "/home/${username}/.config/age"
-      "/home/${username}/.claude/.credentials.json"
+      "${config.wotan.agentUser.home}/.claude/.credentials.json"
     ];
+  };
+
+  # Claude Code and opencode run as `agent` (modules/wotan/agent-user.nix):
+  # no sudo, and every agent process sees only ~/code of amadeus's home.
+  # amadeus starts them with `sudo agent-run claude|opencode` (the `claude`
+  # zsh function does that); the gateway tokens reach them as credentials.
+  home-manager.users.${config.wotan.agentUser.user} = import ./agent-home.nix;
+  wotan.agentUser = {
+    enable = true;
+    owner = username;
+    credentials = {
+      axon-gateway = config.age.secrets.axon-gateway-env.path;
+      ventara-gateway = config.age.secrets.ventara-gateway-env.path;
+    };
   };
   # The server loads plugins and config from ~/.config/opencode once, at
   # startup. home-manager rewrites those files without touching this unit, so
@@ -310,7 +327,7 @@ in {
   # not `source`: a `./file` source is a path into the whole flake source and
   # would restart the server on every commit.
   systemd.services.opencode-serve.restartTriggers = let
-    files = config.home-manager.users.${username}.home.file;
+    files = config.home-manager.users.${config.wotan.agentUser.user}.home.file;
     contents = f:
       if f.text != null
       then f.text
@@ -589,7 +606,7 @@ in {
 
   age.secrets.axon-gateway-env = {
     file = ../../secrets/axon-gateway-env.age;
-    # Owner-only: read by the `claude` zsh function and (as root) by
+    # Owner-only: read (as root) by agent-run's LoadCredential and
     # opencode-serve's EnvironmentFile.
     mode = "400";
     owner = username;
@@ -600,7 +617,7 @@ in {
   # axon-gateway (a separate instance from the homelab one above).
   age.secrets.ventara-gateway-env = {
     file = ../../secrets/ventara-gateway-env.age;
-    # Owner-only: read by the `claude` zsh function and (as root) by
+    # Owner-only: read (as root) by agent-run's LoadCredential and
     # opencode-serve's EnvironmentFile.
     mode = "400";
     owner = username;

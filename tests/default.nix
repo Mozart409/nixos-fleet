@@ -17,4 +17,6 @@ in {
   dns = import ./hosts/dns.nix {inherit harness;};
   otel = import ./hosts/otel.nix {inherit harness;};
   database = import ./hosts/database.nix {inherit harness;};
+  # Module tests (no host config): `nix build .#nixosTests.x86_64-linux.agent-user`
+  agent-user = import ./modules/agent-user.nix {inherit pkgs;};
 }

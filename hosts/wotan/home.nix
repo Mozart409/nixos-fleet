@@ -155,8 +155,8 @@
   };
 
   # Load agenix secrets into shell environment variables. The MCP gateway
-  # tokens are not exported here: the `claude` function (configs/shell.nix)
-  # reads them per launch, and opencode-serve gets them via environmentFiles.
+  # tokens are not exported here: agent-run hands them to claude as systemd
+  # credentials, and opencode-serve gets them via environmentFiles.
   home.sessionVariablesExtra = ''
     if [ -n "$CONTEXT7_API_KEY_FILE" ] && [ -f "$CONTEXT7_API_KEY_FILE" ]; then
       export CONTEXT7_API_KEY=$(cat "$CONTEXT7_API_KEY_FILE")

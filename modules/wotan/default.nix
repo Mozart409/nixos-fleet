@@ -9,9 +9,11 @@
   #   hardware.moza.enable            -> moza.nix
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
+  #   wotan.agentUser.enable          -> agent-user.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
+    ./agent-user.nix
     ./common-packages.nix
     ./claude-code.nix
     ./security.nix

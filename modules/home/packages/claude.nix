@@ -5,7 +5,7 @@
   osConfig,
   ...
 }: let
-  # Commit signing via the signing-only agent from opencode-serve (see
+  # Commit signing via Claude's own signing-only agent (signing.agents in
   # modules/wotan/opencode-serve.nix): Claude never gets the login keys.
   signing = osConfig.services.opencode-serve.signing;
 
@@ -15,7 +15,7 @@
     agent = "claude-wotan";
   };
   signingEnv = lib.optionalAttrs (signing.keyFile != null) {
-    SSH_AUTH_SOCK = "/run/opencode-signing/agent.sock";
+    SSH_AUTH_SOCK = signing.sockets.claude;
     GIT_CONFIG_COUNT = "3";
     GIT_CONFIG_KEY_0 = "user.signingkey";
     GIT_CONFIG_VALUE_0 = "key::${signing.publicKey}";
@@ -94,7 +94,7 @@
         "mcp__ventara-gateway"
         "Read(~/.config/nixpkgs/config.nix)"
         # agenix recipients file: public keys only.
-        "Read(~/code/yggdrasil/infra/secrets/agenix-rules.nix)"
+        "Read(//home/amadeus/code/yggdrasil/infra/secrets/agenix-rules.nix)"
       ];
       # Read(...) denies are also merged into sandbox.filesystem.denyRead, so
       # with the sandbox on they block `cat` & co. in Bash too, not just the

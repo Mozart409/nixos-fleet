@@ -47,22 +47,27 @@
   home = "/home/${cfg.user}";
 
   signingEnabled = cfg.signing.keyFile != null;
-  signingSocket = "/run/opencode-signing/agent.sock";
+  signingSocket = cfg.signing.sockets.opencode;
 
-  # Dedicated agent holding ONLY the signing key. It runs outside the opencode
-  # sandbox (which hides ~/.ssh), so opencode can sign commits without ever
-  # reading the key, and without access to the user's login keys.
-  signingAgentScript = pkgs.writeShellScript "opencode-signing-agent" ''
-    rm -f ${signingSocket}
-    ${pkgs.openssh}/bin/ssh-agent -D -a ${signingSocket} &
-    pid=$!
-    for _ in {1..50}; do
-      [ -S ${signingSocket} ] && break
-      ${pkgs.coreutils}/bin/sleep 0.1
-    done
-    SSH_AUTH_SOCK=${signingSocket} ${pkgs.openssh}/bin/ssh-add -q ${lib.escapeShellArg cfg.signing.keyFile}
-    wait "$pid"
-  '';
+  # One dedicated ssh-agent per harness (signing.agents), each holding ONLY
+  # the bot signing key. ssh-agent only serves its own uid, so they run as
+  # `user`; systemd (as root) hands each the key as a credential, so keyFile
+  # can stay where `user` cannot read it. The credential dirs are hidden from
+  # every agent process (signing.credentials).
+  signingAgentScript = name: let
+    socket = cfg.signing.sockets.${name};
+  in
+    pkgs.writeShellScript "${name}-signing-agent" ''
+      rm -f ${socket}
+      ${pkgs.openssh}/bin/ssh-agent -D -a ${socket} &
+      pid=$!
+      for _ in {1..50}; do
+        [ -S ${socket} ] && break
+        ${pkgs.coreutils}/bin/sleep 0.1
+      done
+      SSH_AUTH_SOCK=${socket} ${pkgs.openssh}/bin/ssh-add -q "$CREDENTIALS_DIRECTORY/signing-key"
+      wait "$pid"
+    '';
 in {
   options.services.opencode-serve = {
     enable = lib.mkEnableOption "opencode headless server";
@@ -89,6 +94,12 @@ in {
       type = lib.types.str;
       default = "amadeus";
       description = "User to run the service as.";
+    };
+
+    group = lib.mkOption {
+      type = lib.types.str;
+      default = "users";
+      description = "Group to run the service as.";
     };
 
     password = lib.mkOption {
@@ -163,6 +174,16 @@ in {
       description = "Writable paths; the rest of the filesystem is read-only (ProtectSystem=strict).";
     };
 
+    homeBindPaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = ''
+        If set, /home and /run/user are empty for the server (ProtectHome=tmpfs)
+        except these paths, bound back in at the same place. List them in
+        readWritePaths too to make them writable.
+      '';
+    };
+
     signing = {
       keyFile = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -179,6 +200,27 @@ in {
         example = "ssh-ed25519 AAAA... opencode-signing";
         description = "Public half of signing.keyFile; git signs via the agent with it.";
       };
+      agents = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = ["opencode"];
+        example = ["opencode" "claude"];
+        description = ''
+          One signing agent (`<name>-signing-agent.service`) per harness, all
+          with keyFile. opencode-serve uses `opencode`.
+        '';
+      };
+      sockets = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        readOnly = true;
+        default = lib.genAttrs cfg.signing.agents (n: "/run/${n}-signing/agent.sock");
+        description = "Socket of each signing agent, by name.";
+      };
+      credentials = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        readOnly = true;
+        default = map (n: "/run/credentials/${n}-signing-agent.service") cfg.signing.agents;
+        description = "Where the signing agents' key credentials live; hide them from every agent process.";
+      };
     };
 
     inaccessiblePaths = lib.mkOption {
@@ -188,96 +230,110 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = signingEnabled -> cfg.signing.publicKey != null;
-        message = "services.opencode-serve.signing.publicKey must be set with signing.keyFile.";
-      }
-    ];
-
-    systemd.services.opencode-signing-agent = lib.mkIf signingEnabled {
-      description = "ssh-agent holding only the AI-agent (opencode, Claude Code) commit-signing key";
-      serviceConfig = {
-        ExecStart = signingAgentScript;
-        Restart = "on-failure";
-        User = cfg.user;
-        Group = "users";
-        RuntimeDirectory = "opencode-signing";
-        RuntimeDirectoryMode = "0700";
-      };
-    };
-
-    systemd.services.opencode-serve = {
-      description = "opencode headless server";
-      wantedBy = ["multi-user.target"];
-      after = ["network.target"] ++ lib.optional signingEnabled "opencode-signing-agent.service";
-      requires = lib.optional signingEnabled "opencode-signing-agent.service";
-
-      environment =
+  # mkMerge: the signing agents and opencode-serve are both systemd.services.
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      assertions = [
         {
-          PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
-          EDITOR = "nvim";
+          assertion = signingEnabled -> cfg.signing.publicKey != null;
+          message = "services.opencode-serve.signing.publicKey must be set with signing.keyFile.";
         }
-        // lib.optionalAttrs signingEnabled {
-          # Only the signing agent: no login keys, so no SSH push either.
-          SSH_AUTH_SOCK = signingSocket;
-          # Env-level git config overrides ~/.config/git/config for every git
-          # run by opencode: sign with the dedicated key through the agent.
-          GIT_CONFIG_COUNT = "3";
-          GIT_CONFIG_KEY_0 = "user.signingkey";
-          GIT_CONFIG_VALUE_0 = "key::${cfg.signing.publicKey}";
-          GIT_CONFIG_KEY_1 = "gpg.format";
-          GIT_CONFIG_VALUE_1 = "ssh";
-          GIT_CONFIG_KEY_2 = "commit.gpgsign";
-          GIT_CONFIG_VALUE_2 = "true";
+        {
+          assertion = signingEnabled -> lib.elem "opencode" cfg.signing.agents;
+          message = "services.opencode-serve.signing.agents must include opencode.";
+        }
+      ];
+
+      systemd.services = lib.mkIf signingEnabled (lib.listToAttrs (map (name:
+        lib.nameValuePair "${name}-signing-agent" {
+          description = "ssh-agent holding only the ${name} commit-signing key";
+          wantedBy = ["multi-user.target"];
+          serviceConfig = {
+            ExecStart = signingAgentScript name;
+            Restart = "on-failure";
+            User = cfg.user;
+            Group = cfg.group;
+            LoadCredential = "signing-key:${cfg.signing.keyFile}";
+            RuntimeDirectory = "${name}-signing";
+            RuntimeDirectoryMode = "0700";
+          };
+        })
+      cfg.signing.agents));
+    }
+    {
+      systemd.services.opencode-serve = {
+        description = "opencode headless server";
+        wantedBy = ["multi-user.target"];
+        after = ["network.target"] ++ lib.optional signingEnabled "opencode-signing-agent.service";
+        requires = lib.optional signingEnabled "opencode-signing-agent.service";
+
+        environment =
+          {
+            PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
+            EDITOR = "nvim";
+          }
+          // lib.optionalAttrs signingEnabled {
+            # Only the signing agent: no login keys, so no SSH push either.
+            SSH_AUTH_SOCK = signingSocket;
+            # Env-level git config overrides ~/.config/git/config for every git
+            # run by opencode: sign with the dedicated key through the agent.
+            GIT_CONFIG_COUNT = "3";
+            GIT_CONFIG_KEY_0 = "user.signingkey";
+            GIT_CONFIG_VALUE_0 = "key::${cfg.signing.publicKey}";
+            GIT_CONFIG_KEY_1 = "gpg.format";
+            GIT_CONFIG_VALUE_1 = "ssh";
+            GIT_CONFIG_KEY_2 = "commit.gpgsign";
+            GIT_CONFIG_VALUE_2 = "true";
+          };
+
+        # Every opencode tool call (shell, read, edit, MCP) runs inside this
+        # process tree, so the unit sandbox is the OS-level boundary for all of
+        # them — not just bash like Claude Code's sandbox.
+        serviceConfig = {
+          ExecStart = startScript;
+          Restart = "on-failure";
+          RestartSec = 5;
+          User = cfg.user;
+          Group = cfg.group;
+          WorkingDirectory = home;
+          EnvironmentFile = lib.optional (cfg.password != "") envFile ++ cfg.environmentFiles;
+          LoadCredential = lib.mapAttrsToList (name: file: "${name}:${file}") cfg.credentialEnvironment;
+
+          # No root: sudo/setuid can't escalate, so nothing can switch the
+          # system (nixos-rebuild/nh os switch need root).
+          NoNewPrivileges = true;
+          RestrictSUIDSGID = true;
+          CapabilityBoundingSet = "";
+
+          ProtectSystem = "strict";
+          ReadWritePaths = cfg.readWritePaths;
+          # "-": don't fail the unit if a path doesn't exist.
+          InaccessiblePaths = map (p: "-${p}") (cfg.inaccessiblePaths ++ lib.optionals signingEnabled cfg.signing.credentials);
+          ProtectHome = lib.mkIf (cfg.homeBindPaths != []) "tmpfs";
+          BindPaths = cfg.homeBindPaths;
+          PrivateTmp = true;
+
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectKernelLogs = true;
+          ProtectControlGroups = true;
+          ProtectClock = true;
+          ProtectHostname = true;
+          LockPersonality = true;
+          RestrictRealtime = true;
+          # No MemoryDenyWriteExecute: bun's JIT needs W+X pages.
         };
-
-      # Every opencode tool call (shell, read, edit, MCP) runs inside this
-      # process tree, so the unit sandbox is the OS-level boundary for all of
-      # them — not just bash like Claude Code's sandbox.
-      serviceConfig = {
-        ExecStart = startScript;
-        Restart = "on-failure";
-        RestartSec = 5;
-        User = cfg.user;
-        Group = "users";
-        WorkingDirectory = home;
-        EnvironmentFile = lib.optional (cfg.password != "") envFile ++ cfg.environmentFiles;
-        LoadCredential = lib.mapAttrsToList (name: file: "${name}:${file}") cfg.credentialEnvironment;
-
-        # No root: sudo/setuid can't escalate, so nothing can switch the
-        # system (nixos-rebuild/nh os switch need root).
-        NoNewPrivileges = true;
-        RestrictSUIDSGID = true;
-        CapabilityBoundingSet = "";
-
-        ProtectSystem = "strict";
-        ReadWritePaths = cfg.readWritePaths;
-        # "-": don't fail the unit if a path doesn't exist.
-        InaccessiblePaths = map (p: "-${p}") cfg.inaccessiblePaths;
-        PrivateTmp = true;
-
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectKernelLogs = true;
-        ProtectControlGroups = true;
-        ProtectClock = true;
-        ProtectHostname = true;
-        LockPersonality = true;
-        RestrictRealtime = true;
-        # No MemoryDenyWriteExecute: bun's JIT needs W+X pages.
       };
-    };
 
-    # Expose the server URL as an environment variable for clients.
-    environment.sessionVariables =
-      {
-        OPENCODE_SERVER_URL = "http://${cfg.hostname}:${toString cfg.port}";
-        OPENCODE_SERVER_PORT = toString cfg.port;
-      }
-      // lib.optionalAttrs (cfg.password != "") {
-        OPENCODE_SERVER_PASSWORD = cfg.password;
-      };
-  };
+      # Expose the server URL as an environment variable for clients.
+      environment.sessionVariables =
+        {
+          OPENCODE_SERVER_URL = "http://${cfg.hostname}:${toString cfg.port}";
+          OPENCODE_SERVER_PORT = toString cfg.port;
+        }
+        // lib.optionalAttrs (cfg.password != "") {
+          OPENCODE_SERVER_PASSWORD = cfg.password;
+        };
+    }
+  ]);
 }
