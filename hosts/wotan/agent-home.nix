@@ -1,7 +1,12 @@
-{osConfig, ...}: {
+{
+  osConfig,
+  pkgs,
+  ...
+}: {
   # home-manager for `agent`, the account Claude Code and opencode run as
   # (modules/wotan/agent-user.nix). Only what the harnesses need: their
-  # config, direnv for the dev shells, and a git identity.
+  # config, direnv for the dev shells, node for the plugins, and a git
+  # identity.
   imports = [
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
@@ -12,6 +17,10 @@
   home.stateVersion = "24.11";
 
   opencode.enable = true;
+
+  # The context-mode Claude plugin runs its hooks and MCP server with node,
+  # by absolute path: ~/.nix-profile/bin/node.
+  home.packages = [pkgs.nodejs];
 
   # agent-run loads the directory's .envrc before starting the harness.
   programs.direnv = {
