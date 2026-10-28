@@ -112,17 +112,18 @@ to, so the rollback steps below are moot.
   so `unifi.homelab.{internal,local}` resolve as before) in `lib/hosts.nix`
   (2026-10-28). Not in `fleet`, so no colmena target. Needs
   `just colmena-apply-host dns`.
-- [ ] TLS front for `unifi.homelab.internal`: Caddy **on the VM itself**
+- [x] TLS front for `unifi.homelab.internal` (2026-10-28, `200 0` from wotan): Caddy **on the VM itself**
   (`dnf install caddy`), step-ca ACME, reverse-proxying to `127.0.0.1:11443`
   with `tls_insecure_skip_verify` (UniFi OS's cert is self-signed). On the VM
   rather than on `containers` so the name keeps pointing at the controller
   (devices that inform by name reach :8080 there). Trust the step-ca root in
   `/etc/pki/ca-trust/source/anchors/` + `update-ca-trust`. If Caddy returns
   502, SELinux: `setsebool -P httpd_can_network_connect 1`.
-- [ ] Monitoring: a blackbox probe of the UI in `hosts/otel/blackbox.nix`, and a
-  `unifi-node` scrape job if the node exporter is installed.
-- [ ] The UniFi link in `hosts/containers/homelab-dashboard/default.nix` and a
-  row in `infra/README.md`'s host inventory.
+- [x] Monitoring: `unifi.homelab.internal` in `certSubjects` in
+  `hosts/otel/blackbox.nix` (2026-10-28).
+- [ ] Optional: a node exporter on the VM and a `unifi-node` scrape job.
+- [x] The UniFi link in `hosts/containers/homelab-dashboard/default.nix` and a
+  row in `infra/README.md`'s host inventory (2026-10-28).
 - [ ] Add the VM to the PBS backup job.
 - [ ] Run `just fmt` and evaluate the touched hosts.
 

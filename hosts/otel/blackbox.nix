@@ -125,6 +125,12 @@
     pve-gigabyte = [
       "pve-gigabyte.homelab.internal"
     ];
+    # UniFi OS Server, a Fedora VM with no node exporter, so the probe is the
+    # only check of the host. Caddy on the VM (todo/unifi-os-server-vm.md).
+    # verify=0 on 2026-10-28.
+    unifi = [
+      "unifi.homelab.internal"
+    ];
   };
 
   certTargets = lib.concatLists (lib.mapAttrsToList (instance: names:

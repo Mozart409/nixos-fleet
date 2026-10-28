@@ -54,6 +54,7 @@ what each host was. `zeroclaw` stays under `hosts/`, wired to nothing.
 |------|------|------|
 | `cache` | 192.168.2.175 | Garage S3 + Attic Nix binary cache. VM and `nixosConfigurations.cache` exist; the `colmenaHive` entry is commented out, so it is not deployed by `colmena apply`. |
 | `scratchpad` | 192.168.2.185 | Fedora 44 cloud VM for ad-hoc testing. Not NixOS — no flake entry, no Colmena node. |
+| `unifi` | 192.168.2.142 | Fedora 44 VM running UniFi OS Server (installed by hand, podman); its own Caddy serves `unifi.homelab.internal` with a step-ca cert. Not NixOS. See `todo/unifi-os-server-vm.md`. |
 
 ### Dormant configs (present in the repo, not deployed)
 

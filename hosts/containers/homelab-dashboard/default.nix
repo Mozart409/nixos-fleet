@@ -86,6 +86,12 @@
           url = "https://pve-gigabyte.homelab.internal/";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg";
         }
+        {
+          name = "UniFi";
+          # UniFi OS Server; Caddy with step-ca on the VM (todo/unifi-os-server-vm.md).
+          url = "https://unifi.homelab.internal/";
+          icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ubiquiti-unifi.svg";
+        }
       ];
       health_checks = [
         {
