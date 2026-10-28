@@ -81,6 +81,11 @@
       # standalone Symbols Nerd Font (pkgs.nerd-fonts.symbols-only).
       symbol_map = "U+23FB-U+23FE,U+2665,U+26A1,U+2B58,U+E000-U+E00A,U+E0A0-U+E0A3,U+E0B0-U+E0C8,U+E0CA,U+E0CC-U+E0D7,U+E200-U+E2A9,U+E300-U+E3E3,U+E5FA-U+E6B5,U+E700-U+E7C5,U+EA60-U+EC1E,U+ED00-U+EFCE,U+F000-U+F2FF,U+F300-U+F381,U+F400-U+F533,U+F0001-U+F1AF0 Symbols Nerd Font";
 
+      # Clipboard -- Claude Code copies via OSC 52. kitty's default already
+      # allows writes, but its append extension concatenates successive OSC 52
+      # writes, so a copy can land on (or behind) the old clipboard content.
+      clipboard_control = "write-clipboard write-primary read-clipboard-ask read-primary-ask no-append";
+
       # Misc
       update_check_interval = 0;
       background_opacity = "1.0";
