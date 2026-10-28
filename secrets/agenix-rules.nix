@@ -106,7 +106,6 @@ in {
   "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "opencode-server-password.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_SERVER_PASSWORD=...
-  "opencode-zen-env.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_API_KEY=... (OpenCode Zen) for pi, an agent-run credential
   "otel-push-token.age".publicKeys = users; # bare token; every host's fluent-bit pushes to loki with it (write-only side)
   "otel-query-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel hostMcp]; # bare token; read side of the otel vhosts (prom/loki/tempo/alertmanager MCP servers)
   "pbs-mcp-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
@@ -116,6 +115,7 @@ in {
   "pg-mcp-romm-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "pg-mcp-terraform-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "pgmcp-role-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
+  "pi-env.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_API_KEY=... for pi, an agent-run credential
   "postgres-superuser-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
   "romm-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase];
   "romm-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];

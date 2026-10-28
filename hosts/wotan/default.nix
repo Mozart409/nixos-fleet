@@ -11,8 +11,8 @@
   # A flake only sees git-tracked files: `git add` the .age file or this stays
   # false and llama-server runs without a key (a warning says so).
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
-  # pi's OpenCode Zen key (secrets/opencode-zen-env.age), gated the same way.
-  opencodeZenKey = builtins.pathExists ../../secrets/opencode-zen-env.age;
+  # pi's API key (secrets/pi-env.age), gated the same way.
+  piEnv = builtins.pathExists ../../secrets/pi-env.age;
 
   # The AI units the quickshell panel can switch on and off. One list for both
   # halves: home-manager renders the panel from it
@@ -323,9 +323,9 @@ in {
         axon-gateway = config.age.secrets.axon-gateway-env.path;
         ventara-gateway = config.age.secrets.ventara-gateway-env.path;
       }
-      # OPENCODE_API_KEY for pi's `opencode` (Zen) provider.
-      // lib.optionalAttrs opencodeZenKey {
-        opencode-zen = config.age.secrets.opencode-zen-env.path;
+      # OPENCODE_API_KEY for pi.
+      // lib.optionalAttrs piEnv {
+        pi = config.age.secrets.pi-env.path;
       };
     # Private networks are closed to the agents; these are the hosts they
     # use: axon-gateway (MCP, Hindsight), Forgejo (git over ssh :2222) and
@@ -640,11 +640,11 @@ in {
     # Format inside the file: VENTARA_GATEWAY_TOKEN=ABC123
   };
 
-  # OpenCode Zen key for pi, one line: OPENCODE_API_KEY=... Owner-only: read
-  # (as root) by agent-run's LoadCredential. Gated until the .age file exists
-  # (`agenix -e opencode-zen-env.age`).
-  age.secrets.opencode-zen-env = lib.mkIf opencodeZenKey {
-    file = ../../secrets/opencode-zen-env.age;
+  # pi's API key, one line: OPENCODE_API_KEY=... Owner-only: read (as root) by
+  # agent-run's LoadCredential. Gated until the .age file exists
+  # (`agenix -e pi-env.age`).
+  age.secrets.pi-env = lib.mkIf piEnv {
+    file = ../../secrets/pi-env.age;
     mode = "400";
     owner = username;
   };

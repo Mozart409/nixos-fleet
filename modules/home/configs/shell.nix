@@ -223,7 +223,7 @@
       }
 
       # pi (pi-coding-agent) runs as the agent account like claude; agent-run
-      # hands it OPENCODE_API_KEY for the OpenCode Zen provider.
+      # hands it OPENCODE_API_KEY (secrets/pi-env.age).
       pi() {
         if [[ -x $_agent_run ]]; then
           sudo "$_agent_run" pi "$@"

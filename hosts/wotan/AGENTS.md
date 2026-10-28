@@ -64,7 +64,7 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   run `sudo agent-run claude|opencode|pi …`. `agent-run` is the only thing
   amadeus may sudo to without a password. It refuses to start outside `~/code`,
   passes the MCP gateway tokens (and pi's `OPENCODE_API_KEY`, from
-  `secrets/opencode-zen-env.age`) in as systemd credentials, and loads the directory's
+  `secrets/pi-env.age`) in as systemd credentials, and loads the directory's
   `.envrc` (the agent's own `direnv allow`). Interactive `opencode` is a client
   of `opencode-serve`, which runs as `agent` in the same confinement.
 - **State lives in `/home/agent`:** `~/.claude`, `~/.claude.json`,
