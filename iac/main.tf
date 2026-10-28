@@ -24,8 +24,9 @@ provider "proxmox" {
   endpoint = var.endpoint
   username = var.username
   password = var.password
-  # Proxmox's own web cert on :8006 is self-signed; true regardless of
-  # whether endpoint is the LAN IP or the Tailscale MagicDNS name.
+  # endpoint is https://pve-gigabyte.homelab.internal:8006/ (since 2026-10-28;
+  # the MagicDNS name broke with the move off Tailscale). pveproxy's own cert
+  # on :8006 is self-signed, hence insecure; the step-ca cert is on Caddy's :443.
   insecure = true
   ssh {
     agent = true

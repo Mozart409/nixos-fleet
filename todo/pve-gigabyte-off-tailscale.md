@@ -109,10 +109,10 @@ Tailscale must move to the LAN first.
 
 - [ ] **B.1 Repo references** (`git grep -n -E 'pve-gigabyte|dropbear-butterfly'`):
   - dashboard link: done in Phase A.
-  - `TF_VAR_endpoint` (`just iac-secrets`): set to
-    `https://pve-gigabyte.homelab.internal:8006/` if it is the MagicDNS name,
-    then `just iac-plan` to confirm the provider connects. Update the
-    `insecure = true` comment in `iac/main.tf`.
+  - [x] `TF_VAR_endpoint` set to `https://pve-gigabyte.homelab.internal:8006/`
+    (2026-10-28, after Caddy's ts.net vhost started failing TLS with
+    `tls: internal error`); `just iac-apply` worked through it. The
+    `insecure = true` comment in `iac/main.tf` updated.
   - The PVE vault note: the `tailscale0` line and the apt repo list.
 - [ ] **B.2 Resolver.** If `/etc/resolv.conf` is `100.100.100.100`, point the
   host at `dns` (`192.168.2.145`) via `/etc/network/interfaces`

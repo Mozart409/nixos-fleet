@@ -69,8 +69,8 @@ to, so the rollback steps below are moot.
 ## Phase 1 — Provision and install
 
 - [x] `unifi_vm` in `iac/main.tf` (2026-10-28).
-- [ ] `just iac-plan` (expect only `unifi_vm` to add, plus the output change),
-  then `just iac-apply`. `ssh amadeus@192.168.2.142`.
+- [x] `just iac-plan` / `just iac-apply`; `ssh amadeus@192.168.2.142` works
+  (2026-10-28).
 - [ ] In the VM: `dnf upgrade`, `dnf install podman slirp4netns
   qemu-guest-agent dnf-automatic` (enable `dnf-automatic-install.timer`), and
   optionally the node exporter. Keep SELinux enforcing; check the installer
