@@ -24,6 +24,10 @@ in {
       set -g mouse on
       set -g renumber-windows on
       set-option -g allow-passthrough on
+      # Forward applications' OSC 52 copies to the outer terminal. The default
+      # (external) drops them, and Claude Code under agent-run has no $TMUX,
+      # so it sends a bare OSC 52 instead of wrapping it for passthrough.
+      set -g set-clipboard on
 
       unbind C-b
       set -g prefix C-Space
