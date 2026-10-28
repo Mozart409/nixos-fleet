@@ -109,6 +109,20 @@
       '';
     };
 
+    # Home Assistant. A HAOS VM on Proxmox, not in this repo, so Caddy proxies
+    # to it over the LAN. HA answers 400 to forwarded requests unless its
+    # configuration.yaml lists this host under http.trusted_proxies (with
+    # use_x_forwarded_for: true).
+    virtualHosts."ha.homelab.internal" = {
+      extraConfig = ''
+        tls {
+          ca https://ca.homelab.internal:8443/acme/acme/directory
+        }
+
+        reverse_proxy ${(import ../../lib/hosts.nix).hosts.homeassistant.ip}:8123
+      '';
+    };
+
     # (The FUTO Notes vhost lived here until 2026-09-09, when the service was
     # retired as unused. hosts/containers/futo-notes/ is kept on disk, imported
     # nowhere -- same convention as hosts/cache/.)

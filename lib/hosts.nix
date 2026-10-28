@@ -62,6 +62,8 @@ let
       aliases = {
         countdown = internalOnly;
         dashboard = {};
+        # Home Assistant (the HAOS VM below) behind this host's Caddy.
+        ha = internalOnly;
         hindsight = internalOnly;
         hindsight-ui = internalOnly;
         mailpit = internalOnly;
