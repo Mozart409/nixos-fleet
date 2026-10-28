@@ -82,7 +82,8 @@
         }
         {
           name = "Proxmox";
-          url = "https://pve-gigabyte.dropbear-butterfly.ts.net/";
+          # step-ca cert via Caddy on the host (todo/pve-gigabyte-off-tailscale.md).
+          url = "https://pve-gigabyte.homelab.internal/";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg";
         }
       ];
