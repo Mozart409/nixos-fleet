@@ -21,6 +21,13 @@
     ["/run/agenix" "/run/agenix.d"]
     ++ config.services.opencode-serve.signing.credentials;
 
+  # Private networks are closed except network.allow; the internet stays
+  # open (the model APIs, flake inputs). systemd checks Allow before Deny, so
+  # an allowed address inside a denied range gets through. Loopback is always
+  # allowed: resolved's stub at 127.0.0.53 and opencode-serve live there.
+  ipAllow = ["127.0.0.0/8" "::1/128"] ++ cfg.network.allow;
+  ipDeny = cfg.network.deny;
+
   sandboxProperties =
     [
       "ProtectHome=tmpfs"
@@ -34,6 +41,8 @@
       "ProtectControlGroups=yes"
       "ProtectClock=yes"
       "LockPersonality=yes"
+      "IPAddressAllow=${lib.concatStringsSep " " ipAllow}"
+      "IPAddressDeny=${lib.concatStringsSep " " ipDeny}"
     ]
     ++ map (p: "BindPaths=${p}") bindPaths
     ++ map (p: "ReadWritePaths=${p}") bindPaths
@@ -127,6 +136,52 @@ in {
       '';
     };
 
+    network = {
+      allow = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        example = ["192.168.2.178"];
+        description = ''
+          Addresses or prefixes inside network.deny the agents may still
+          reach (the git forge, the MCP gateway). Loopback is always allowed.
+        '';
+      };
+
+      deny = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [
+          "10.0.0.0/8"
+          "172.16.0.0/12"
+          "192.168.0.0/16"
+          "100.64.0.0/10" # tailnet (CGNAT)
+          "fc00::/7" # ULA, tailnet IPv6 included
+          # Link-local and multicast as prefixes: systemd-run's transient
+          # properties reject the symbolic names unit files accept.
+          "169.254.0.0/16"
+          "fe80::/10"
+          "224.0.0.0/4"
+          "ff00::/8"
+        ];
+        description = ''
+          What every agent unit (agent-run sessions and opencode-serve) may
+          not connect to, as systemd IPAddressDeny= entries. Anything not
+          listed, i.e. the internet, stays reachable.
+        '';
+      };
+    };
+
+    flakeRepos = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      example = ["/home/amadeus/code/yggdrasil"];
+      description = ''
+        Repos in codeDir the agents evaluate as flakes. nix's libgit2 ignores
+        the `codeDir/*` safe.directory wildcard that git honors, so each one
+        needs its exact path or `nix eval` refuses it as not owned by the
+        agent.
+      '';
+    };
+
     package = lib.mkOption {
       type = lib.types.package;
       readOnly = true;
@@ -174,7 +229,13 @@ in {
     # refuses to work in the other user's ("dubious ownership").
     programs.git = {
       enable = true;
-      config.safe.directory = ["${cfg.codeDir}/*"];
+      config.safe.directory = ["${cfg.codeDir}/*"] ++ cfg.flakeRepos;
+    };
+
+    # opencode-serve is the other agent process; it gets the same network.
+    systemd.services.opencode-serve.serviceConfig = lib.mkIf (config.services.opencode-serve.enable && config.services.opencode-serve.user == cfg.user) {
+      IPAddressAllow = ipAllow;
+      IPAddressDeny = ipDeny;
     };
   };
 }

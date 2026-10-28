@@ -320,6 +320,13 @@ in {
       axon-gateway = config.age.secrets.axon-gateway-env.path;
       ventara-gateway = config.age.secrets.ventara-gateway-env.path;
     };
+    # Private networks are closed to the agents; these are the hosts they
+    # use: axon-gateway (MCP, Hindsight), Forgejo (git over ssh :2222) and
+    # the ventara gateway axon.int.oyabu.cc on nebula-amartum.
+    network.allow = let
+      inherit ((import ../../lib/hosts.nix).hosts) mcp forgejo;
+    in [mcp.ip forgejo.ip "172.16.10.10"];
+    flakeRepos = ["${config.wotan.agentUser.codeDir}/yggdrasil"];
   };
   # The server loads plugins and config from ~/.config/opencode once, at
   # startup. home-manager rewrites those files without touching this unit, so

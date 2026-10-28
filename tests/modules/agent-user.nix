@@ -138,5 +138,14 @@ in
           machine.wait_for_unit("opencode-serve.service")
           machine.wait_for_file("/home/agent/serve-probe")
           assert machine.succeed("cat /home/agent/serve-probe").split() == ["agent", "code"]
+
+      with subtest("private networks are closed, loopback is open"):
+          machine.succeed("systemd-run --unit=tcp-probe ${pkgs.socat}/bin/socat TCP-LISTEN:7777,fork,reuseaddr SYSTEM:true")
+          machine.wait_for_open_port(7777)
+          lan = machine.succeed("ip -4 -o addr show eth1 | awk '{print $4}' | cut -d/ -f1").strip()
+          agent("bash -c 'exec 3<>/dev/tcp/127.0.0.1/7777'")
+          agent_fails(f"bash -c 'exec 3<>/dev/tcp/{lan}/7777'")
+          machine.succeed(f"runuser -u agent -- bash -c 'exec 3<>/dev/tcp/{lan}/7777'")
+          assert "192.168.0.0/16" in machine.succeed("systemctl show -p IPAddressDeny opencode-serve.service")
     '';
   }
