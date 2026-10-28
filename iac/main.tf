@@ -67,7 +67,7 @@ resource "proxmox_virtual_environment_download_file" "fedora_cloud_image" {
 #   2 ca        -- every Caddy fetches its ACME cert from step-ca
 #   3 database  -- Postgres for forgejo, multica, hindsight, the pg MCPs
 #   4 otel      -- up before the services that ship logs and metrics to it
-#   5 forgejo, containers, mcp, jellyfin
+#   5 forgejo, containers, mcp, jellyfin, unifi
 #   6 agents    -- clones from forgejo, its daemons talk to multica on containers
 # VMs sharing an order start by vm_id, each up_delay seconds after the previous.
 
@@ -829,6 +829,92 @@ resource "proxmox_virtual_environment_vm" "agents_vm" {
   }
 }
 
+# UniFi OS Server (todo/unifi-os-server-vm.md). Not a NixOS guest: Fedora from
+# the cloud image, UniFi OS Server installed by hand on podman. Reuses the old
+# NixOS controller's vm_id and address, both freed when that VM was deleted.
+resource "proxmox_virtual_environment_vm" "unifi_vm" {
+  name        = "unifi"
+  description = "UniFi OS Server - Fedora, installed by hand (podman)"
+  tags        = ["terraform", "fedora", "unifi"]
+
+  node_name = "pve-gigabyte"
+  vm_id     = 4327
+
+  bios = "seabios"
+
+  keyboard_layout = "de"
+
+  cpu {
+    cores = 2
+    type  = "host"
+  }
+
+  # Pinned, no ballooning. UniFi's own profile is 4 GB. Checked 2026-10-28
+  # (node exporter, 7 days): MemAvailable 12.7 GiB now, 8.3 GiB minimum, ARC
+  # at its 8 GiB cap with ~6 GiB reclaimable, swap unused.
+  memory {
+    dedicated = 4096
+    floating  = 4096
+  }
+
+  # zfs_pool like otel: importing a cloud image onto ssd_pool fails (see
+  # dns_vm). Move it later with `qm disk move` if the controller's I/O needs it.
+  disk {
+    datastore_id = "zfs_pool"
+    file_id      = proxmox_virtual_environment_download_file.fedora_cloud_image.id
+    interface    = "scsi0"
+    size         = 32
+  }
+
+  network_device {
+    bridge = "vmbr0"
+  }
+
+  operating_system {
+    type = "l26"
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    # The old controller's address, so the devices' inform host still points
+    # here after the backup is restored.
+    ip_config {
+      ipv4 {
+        address = "192.168.2.142/24"
+        gateway = "192.168.2.1"
+      }
+    }
+
+    # A static ip_config gets no resolver from DHCP: the dns host, then the
+    # router as fallback.
+    dns {
+      domain  = "homelab.internal"
+      servers = ["192.168.2.145", "192.168.2.1"]
+    }
+
+    user_account {
+      username = "amadeus"
+      keys     = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHv1USrKf6yIjg8dZolm37xGysGfj18ol1KUKqsVuQHa amadeus@wotan"]
+    }
+  }
+
+  serial_device {}
+
+  agent {
+    enabled = true
+    timeout = "60s"
+  }
+
+  started = true
+
+  on_boot = true
+
+  startup {
+    order = 5
+  }
+}
+
 
 output "vm_ipv4_addresses" {
   description = "Primary IPv4 addresses per VM"
@@ -842,6 +928,7 @@ output "vm_ipv4_addresses" {
     forgejo   = proxmox_virtual_environment_vm.forgejo_vm.ipv4_addresses
     jellyfin  = proxmox_virtual_environment_vm.jellyfin_vm.ipv4_addresses
     agents    = proxmox_virtual_environment_vm.agents_vm.ipv4_addresses
+    unifi     = proxmox_virtual_environment_vm.unifi_vm.ipv4_addresses
   }
 }
 

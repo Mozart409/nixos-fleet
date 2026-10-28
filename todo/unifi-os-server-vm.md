@@ -1,7 +1,7 @@
-# Replace the NixOS UniFi controller with UniFi OS Server in a Debian VM
+# Replace the NixOS UniFi controller with UniFi OS Server in a Fedora VM
 
 Replace the deprecated NixOS-hosted UniFi Network Application on `unifi`
-(`192.168.2.142`) with UniFi OS Server, installed by hand in a small Debian 13
+(`192.168.2.142`) with UniFi OS Server, installed by hand in a small Fedora 44
 VM. UniFi OS Server is a multi-service appliance stack on podman; keep it in
 its supported environment rather than trying to model it as NixOS services.
 
@@ -16,13 +16,14 @@ controller VM was decommissioned in the repo on 2026-10-21 (config in
 `docs/archive/unifi/`; registry entry, DNS records, monitoring, dashboard
 link, README row and the `unifi_vm` tofu resource removed), and the VM itself
 (Proxmox vm 4327) has since been deleted in Proxmox. The controller config was
-backed up before the VM was destroyed. Next: create the Debian VM, install
+backed up before the VM was destroyed. Next: create the Fedora VM, install
 UniFi OS Server, restore that backup. There is no old controller to fall back
 to, so the rollback steps below are moot.
 
 ## Target and decisions
 
-- **Decided 2026-10-28: a Debian 13 VM with a hand install, not the Proxmox
+- **Decided 2026-10-28: a Fedora 44 VM with a hand install (first planned as
+  Debian 13), not the Proxmox
   Community Scripts `unifi-os-server` LXC.** A review of that script (ProxmoxVE
   `502bd98c`, community-scripts/core `a14f2d45`) found:
   - It always creates a **privileged** CT.
@@ -33,15 +34,15 @@ to, so the rollback steps below are moot.
 
   A VM gives a real trust boundary, and podman runs there without nesting or
   device workarounds.
-- Size: 2 vCPU, 4096 MB RAM, ~32 GB disk (UniFi's own profile is 2/4 GB/20 GB).
-  Check headroom first:
+- Size: 2 vCPU, 4096 MB pinned RAM, 32 GB disk on `zfs_pool` (UniFi's own
+  profile is 2/4 GB/20 GB). Headroom checked 2026-10-28 from the node
+  exporter: MemAvailable 12.7 GiB, 8.3 GiB at the 7-day low, ARC at its 8 GiB
+  cap with ~6 GiB reclaimable, swap unused. See also
   [`pve-gigabyte-memory-oversubscription.md`](./pve-gigabyte-memory-oversubscription.md).
-  The old VM's 2560 MB is freed.
-- Declare the VM in `iac/main.tf` like the other guests (cloud-init
-  `user_account` with the wotan key, `vmbr0`, guest agent, `startup` order 5).
-  `debian_cloud_image` is still bookworm. Add a trixie (Debian 13) generic
-  cloud image download with its sha512 instead of bumping the shared one,
-  because the NixOS guests were installed from it.
+- Declared in `iac/main.tf` as `unifi_vm` (vm_id 4327, the old controller's):
+  the existing `fedora_cloud_image` (Fedora 44 Cloud Base), cloud-init
+  `user_account` amadeus with the wotan key, static `192.168.2.142/24` with
+  `dns` + the router as resolvers, guest agent, `startup` order 5.
 - `192.168.2.142` is free now that the VM is gone. Reusing it (and
   `unifi.homelab.internal`) keeps the devices' inform host stable, so devices
   reconnect without `set-inform`.
@@ -56,22 +57,24 @@ to, so the rollback steps below are moot.
 
 ## Phase 0 — Prepare
 
-- [ ] Check Proxmox memory/storage headroom for a 4 GB guest.
+- [x] Check Proxmox memory headroom for a 4 GB guest (2026-10-28, see above).
 - [x] Take a backup of the UniFi Network Application before the VM was
   destroyed (done before 2026-10-28).
 - [x] ~~Decide how to retain the old controller as a rollback~~ moot: the VM
   is deleted; the backup is the only rollback.
-- [ ] Choose monitoring for a non-NixOS guest: `prometheus-node-exporter` from
-  Debian apt plus a scrape job, and/or only a blackbox probe of the UI.
+- [ ] Choose monitoring for a non-NixOS guest: `node-exporter` from Fedora
+  (`golang-github-prometheus-node-exporter`) plus a scrape job, and/or only a
+  blackbox probe of the UI.
 
 ## Phase 1 — Provision and install
 
-- [ ] Add the trixie cloud image and a `unifi_vm` resource to `iac/main.tf`.
-  Use a static `ip_config` of `192.168.2.142/24` (or a DHCP reservation), then
-  `just iac-plan` and `just iac-apply`.
-- [ ] In the VM: `apt install podman slirp4netns uidmap`, plus
-  `qemu-guest-agent`, `unattended-upgrades` and (optionally)
-  `prometheus-node-exporter`. Give root a password; SSH key-only.
+- [x] `unifi_vm` in `iac/main.tf` (2026-10-28).
+- [ ] `just iac-plan` (expect only `unifi_vm` to add, plus the output change),
+  then `just iac-apply`. `ssh amadeus@192.168.2.142`.
+- [ ] In the VM: `dnf upgrade`, `dnf install podman slirp4netns
+  qemu-guest-agent dnf-automatic` (enable `dnf-automatic-install.timer`), and
+  optionally the node exporter. Keep SELinux enforcing; check the installer
+  copes with it before reaching for permissive. SSH key-only.
 - [ ] Download the UniFi OS Server installer for `linux-x64` from Ubiquiti
   (`https://fw-update.ui.com/api/firmware-latest`, product
   `unifi-os-server`). **Verify its `sha256_checksum` from that API before
@@ -79,7 +82,7 @@ to, so the rollback steps below are moot.
   `f6111e9396a42c74016f5dde9b01fbef486a6fe69efe137935e6e38b7c22f94d`. Then run
   it as root and answer its prompt by hand.
 - [ ] Confirm its services survive a VM reboot.
-- [ ] Host firewall (nftables, or the PVE firewall on net0): allow the UI,
+- [ ] Host firewall (firewalld, or the PVE firewall on net0): allow the UI,
   inform, STUN and discovery ports from the LAN/device networks only.
 - [ ] Confirm the UI is reachable at `https://192.168.2.142:11443` from the LAN.
 
