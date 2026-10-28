@@ -222,6 +222,16 @@
           command claude "$@"
       }
 
+      # pi (pi-coding-agent) runs as the agent account like claude; agent-run
+      # hands it OPENCODE_API_KEY for the OpenCode Zen provider.
+      pi() {
+        if [[ -x $_agent_run ]]; then
+          sudo "$_agent_run" pi "$@"
+          return
+        fi
+        command pi "$@"
+      }
+
       # `tk` kills the current directory's `t`, `tc` and `to` sessions (run from
       # shell). `=` makes the target an exact match, not a name prefix.
       tk() {

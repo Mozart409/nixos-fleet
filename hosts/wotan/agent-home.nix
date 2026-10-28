@@ -19,8 +19,9 @@
   opencode.enable = true;
 
   # The context-mode Claude plugin runs its hooks and MCP server with node,
-  # by absolute path: ~/.nix-profile/bin/node.
-  home.packages = [pkgs.nodejs];
+  # by absolute path: ~/.nix-profile/bin/node. pi is the third harness
+  # (`agent-run pi`); its OpenCode Zen key comes in as an agent-run credential.
+  home.packages = [pkgs.nodejs pkgs.pi-coding-agent];
 
   # agent-run loads the directory's .envrc before starting the harness.
   programs.direnv = {

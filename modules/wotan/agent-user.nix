@@ -6,7 +6,7 @@
 }: let
   cfg = config.wotan.agentUser;
 
-  # Every agent process (interactive claude/opencode via agent-run, and
+  # Every agent process (interactive claude/opencode/pi via agent-run, and
   # opencode-serve) runs in a mount namespace where /home and /run/user are
   # empty tmpfs mounts and only these two paths are bound back in, at their
   # real paths. The separate uid keeps the agent out of the owner's processes
@@ -69,14 +69,15 @@
     lib.mapAttrsToList (name: path: "--property=LoadCredential=${name}:${path}") cfg.credentials;
 
   # Root-owned launcher, the only command the owner may sudo to without a
-  # password. Starts claude or opencode as the agent in a transient unit with
-  # the sandbox above, in the caller's directory, which must be under codeDir.
+  # password. Starts claude, opencode or pi as the agent in a transient unit
+  # with the sandbox above, in the caller's directory, which must be under
+  # codeDir.
   agentRun = pkgs.writeShellScriptBin "agent-run" ''
     set -eu
     case "''${1:-}" in
-      claude | opencode) ;;
+      claude | opencode | pi) ;;
       *)
-        echo "usage: agent-run claude|opencode [args...]" >&2
+        echo "usage: agent-run claude|opencode|pi [args...]" >&2
         exit 64
         ;;
     esac
@@ -196,7 +197,7 @@ in {
       isNormalUser = true;
       inherit (cfg) home;
       group = cfg.user;
-      description = "Coding agents (Claude Code, opencode)";
+      description = "Coding agents (Claude Code, opencode, pi)";
       shell = pkgs.bashInteractive;
     };
 
