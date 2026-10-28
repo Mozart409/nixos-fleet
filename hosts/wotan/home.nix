@@ -95,7 +95,7 @@
 
     homeAssistant = {
       enable = true;
-      url = "https://homeassistant.dropbear-butterfly.ts.net";
+      url = "https://ha.homelab.internal";
       # age.secrets.ha-token in default.nix: raw long-lived token, no KEY=.
       tokenFile = "/run/agenix/ha-token";
       # Büro lights plus the kitchen. HA has no Büro area -- the Büro ones all

@@ -57,7 +57,7 @@
         }
         {
           name = "Home Assistant";
-          url = "https://homeassistant.dropbear-butterfly.ts.net/lovelace/0";
+          url = "https://ha.homelab.internal/lovelace/0";
           icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg";
         }
         {

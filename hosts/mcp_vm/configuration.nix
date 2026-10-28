@@ -185,7 +185,7 @@ in {
       hamcp-server = {
         enable = true;
         package = mcpPackages.hamcp-server;
-        host = "https://homeassistant.dropbear-butterfly.ts.net";
+        host = "https://ha.homelab.internal";
         tokenFile = config.age.secrets.homeassistant-token.path;
         bind = "127.0.0.1:8084";
         allowedHosts = loopbackOnly;
