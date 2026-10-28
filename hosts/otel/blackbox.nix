@@ -120,6 +120,11 @@
       "axon.homelab.local"
       "axon.homelab.internal"
     ];
+    # The Proxmox UI through the host's own Caddy (step-ca, not managed by this
+    # repo; todo/pve-gigabyte-off-tailscale.md). verify=0 on 2026-10-28.
+    pve-gigabyte = [
+      "pve-gigabyte.homelab.internal"
+    ];
   };
 
   certTargets = lib.concatLists (lib.mapAttrsToList (instance: names:

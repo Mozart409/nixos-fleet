@@ -5,9 +5,12 @@ not in this repo) off Tailscale. Phase A gives its web UI a step-ca
 certificate on `pve-gigabyte.homelab.internal` while Tailscale keeps running
 next to it. Phase B removes Tailscale from the host.
 
-**Status 2026-10-28: Phase A repo side done, host side not started.** The
-dashboard's Proxmox link points at `https://pve-gigabyte.homelab.internal/`,
-which works once A.1–A.4 below have run on the host.
+**Status 2026-10-28: Phase A done except the renewal check (A.4).** Caddy on
+the host serves `https://pve-gigabyte.homelab.internal/` with a step-ca cert
+(`200 0` from wotan), next to the old ts.net vhost. The dashboard links there
+and otel probes the cert. Inventory: Caddy (apt) on :80/:443, pveproxy on
+:8006, no `tailscale serve`, and `/etc/resolv.conf` is Tailscale's MagicDNS
+(`100.100.100.100`), so B.2 is required before Phase B.
 
 ## What exists
 
@@ -46,7 +49,7 @@ daily renewals or a second step-ca ACME provisioner with a 90-day
 
 ## Phase A — step-ca cert alongside Tailscale (on the host)
 
-- [ ] **A.0 Inventory.** What serves :443 today, and does the host resolve
+- [x] **A.0 Inventory.** What serves :443 today, and does the host resolve
   `.homelab.internal`?
 
       ss -tlnp | grep -E ':(80|443|8006)\b'
@@ -57,14 +60,14 @@ daily renewals or a second step-ca ACME provisioner with a 90-day
 
   If `ca.homelab.internal` does not resolve (MagicDNS-only resolver, see
   [`dns-tailscale-spof.md`](./dns-tailscale-spof.md)), fix that first (B.2).
-- [ ] **A.1 Trust the step-ca root.** Copy the PEM from
+- [x] **A.1 Trust the step-ca root.** Copy the PEM from
   `modules/step-ca-trust.nix` (unindented) to the host:
 
       install -m 0644 homelab-root-ca.crt /usr/local/share/ca-certificates/homelab-root-ca.crt
       update-ca-certificates
       curl -sS https://ca.homelab.internal:8443/health   # {"status":"ok"}
 
-- [ ] **A.2 Add the vhost** to `/etc/caddy/Caddyfile`, next to the existing
+- [x] **A.2 Add the vhost** to `/etc/caddy/Caddyfile`, next to the existing
   ts.net block (leave that one alone):
 
       pve-gigabyte.homelab.internal {
@@ -86,14 +89,14 @@ daily renewals or a second step-ca ACME provisioner with a 90-day
       caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy
       journalctl -u caddy -n 50 | grep -i -E 'obtain|certificate|error'
 
-- [ ] **A.3 Verify** from wotan (trusts the root):
+- [x] **A.3 Verify** from wotan (trusts the root):
 
       curl -sS -o /dev/null -w '%{http_code} %{ssl_verify_result}\n' https://pve-gigabyte.homelab.internal/
       # expect 200 0; the noVNC console must work too (websockets through Caddy)
 
 - [ ] **A.4 Renewal.** ~20 days after A.2, confirm Caddy renewed
   (`journalctl -u caddy | grep -i renew`, or the cert's notBefore).
-- [ ] **A.5 Repo follow-up (after A.3 is green):** add
+- [x] **A.5 Repo follow-up (after A.3 is green):** add
   `pve-gigabyte = ["pve-gigabyte.homelab.internal"];` to `certSubjects` in
   `hosts/otel/blackbox.nix` (instance `pve-gigabyte`, so it dedups against
   `pve-node`). Held back until now: the file's rule is curl-verify first, and
