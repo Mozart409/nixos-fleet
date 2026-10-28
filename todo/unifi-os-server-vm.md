@@ -71,18 +71,25 @@ to, so the rollback steps below are moot.
 - [x] `unifi_vm` in `iac/main.tf` (2026-10-28).
 - [x] `just iac-plan` / `just iac-apply`; `ssh amadeus@192.168.2.142` works
   (2026-10-28).
-- [ ] In the VM: `dnf upgrade`, `dnf install podman slirp4netns
-  qemu-guest-agent dnf-automatic` (enable `dnf-automatic-install.timer`), and
-  optionally the node exporter. Keep SELinux enforcing; check the installer
-  copes with it before reaching for permissive. SSH key-only.
-- [ ] Download the UniFi OS Server installer for `linux-x64` from Ubiquiti
+- [x] In the VM (2026-10-28): cloud-init's first-boot `dnf -y upgrade` (Proxmox
+  enables it by default; `cloud-init status --wait`), `dnf install podman
+  slirp4netns jq qemu-guest-agent dnf5-plugin-automatic`, `apply_updates = yes`
+  in `/etc/dnf/automatic.conf`, `dnf5-automatic.timer` enabled (dnf5: the old
+  `dnf-automatic-install.timer` does not exist). qemu-guest-agent is
+  udev-started on Fedora. SELinux left enforcing.
+- [x] Download the UniFi OS Server installer for `linux-x64` from Ubiquiti
   (`https://fw-update.ui.com/api/firmware-latest`, product
   `unifi-os-server`). **Verify its `sha256_checksum` from that API before
   running it.** v5.1.42 x64 is
   `f6111e9396a42c74016f5dde9b01fbef486a6fe69efe137935e6e38b7c22f94d`. Then run
-  it as root and answer its prompt by hand.
+  it as root and answer its prompt by hand. Done 2026-10-28: v5.1.42,
+  `sha256sum -c` OK. Listening afterwards (podman/pasta): TCP 11443 (UI), 8080
+  (inform), 8443-8444/8880-8882 (portal), 6789 (speed test), 5671, 9543,
+  28082; UDP 3478 (STUN), 10001/10003 (discovery), 5514 (syslog).
 - [ ] Confirm its services survive a VM reboot.
-- [ ] Host firewall (firewalld, or the PVE firewall on net0): allow the UI,
+- [ ] Host firewall: firewalld is inactive on the Fedora Cloud image, so every
+  port above is open to the LAN. Optional: firewalld or the PVE firewall on
+  net0, allowing the UI,
   inform, STUN and discovery ports from the LAN/device networks only.
 - [ ] Confirm the UI is reachable at `https://192.168.2.142:11443` from the LAN.
 
@@ -101,13 +108,17 @@ to, so the rollback steps below are moot.
 
 ## After the VM is up — repo work
 
-- [ ] Re-add a `unifi` entry (`ip = "192.168.2.142"`,
-  `zones = ["homelab.internal"]`) to `infra/lib/hosts.nix`, which brings back
-  the `unifi.homelab.internal` A/PTR records on `dns`. It has no NixOS config,
-  so keep it out of `hostAddrs` and `colmenaHive`, like `pocketid`.
-- [ ] A TLS front for `unifi.homelab.internal`: Caddy with a step-ca cert on an
-  existing NixOS host, reverse-proxying to the VM's `:11443` (UniFi OS's own
-  cert is self-signed, so `tls_insecure_skip_verify` on the upstream).
+- [x] `unifi` entry (`192.168.2.142`, default zones like the old controller,
+  so `unifi.homelab.{internal,local}` resolve as before) in `lib/hosts.nix`
+  (2026-10-28). Not in `fleet`, so no colmena target. Needs
+  `just colmena-apply-host dns`.
+- [ ] TLS front for `unifi.homelab.internal`: Caddy **on the VM itself**
+  (`dnf install caddy`), step-ca ACME, reverse-proxying to `127.0.0.1:11443`
+  with `tls_insecure_skip_verify` (UniFi OS's cert is self-signed). On the VM
+  rather than on `containers` so the name keeps pointing at the controller
+  (devices that inform by name reach :8080 there). Trust the step-ca root in
+  `/etc/pki/ca-trust/source/anchors/` + `update-ca-trust`. If Caddy returns
+  502, SELinux: `setsebool -P httpd_can_network_connect 1`.
 - [ ] Monitoring: a blackbox probe of the UI in `hosts/otel/blackbox.nix`, and a
   `unifi-node` scrape job if the node exporter is installed.
 - [ ] The UniFi link in `hosts/containers/homelab-dashboard/default.nix` and a

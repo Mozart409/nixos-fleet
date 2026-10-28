@@ -31,7 +31,7 @@
 #              virtio NIC).
 #
 # Machines outside this repo (pocketid LXC, the Proxmox hypervisor, Home
-# Assistant) and wotan are listed only for their DNS records. The Raspberry Pi
+# Assistant, the UniFi OS VM) and wotan are listed only for their DNS records. The Raspberry Pi
 # fleet takes DHCP leases and lives in lib/pi-fleet.nix.
 let
   network = {
@@ -130,6 +130,13 @@ let
     };
     scratchpad = {
       ip = "192.168.2.185";
+    };
+    # UniFi OS Server, a Fedora VM (iac/main.tf unifi_vm), installed by hand,
+    # not NixOS. Same name, address and zones as the retired NixOS controller,
+    # so a device that informs by name still finds it. Its own Caddy serves
+    # the UI on :443 (todo/unifi-os-server-vm.md).
+    unifi = {
+      ip = "192.168.2.142";
     };
     wotan = {
       ip = "192.168.2.71";
