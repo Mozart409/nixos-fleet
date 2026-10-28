@@ -229,7 +229,7 @@
     networking.nameservers = ["192.168.2.145" "192.168.2.1"];
 
     # Debug access from the agents host only (10.42.0.0/24 is not routed
-    # anywhere else): `ssh -J agents.homelab.internal root@10.42.0.<index>`.
+    # anywhere else): `ssh -J amadeus@agents.homelab.internal root@10.42.0.<index>`.
     services.openssh = {
       enable = true;
       settings.PasswordAuthentication = false;
@@ -304,13 +304,16 @@
       firewallFilter = "-p tcp -s ${hostAddr} -m tcp --dport 9100";
     };
 
-    # Self-heal if the store share goes stale again: only a fresh mount (a
-    # reboot; qemu runs -no-reboot and microvm@ restarts it) clears ESTALE.
-    # Other errors exit 0, so a missing file never reboot-loops the VM; if the
-    # store is too broken to even exec this script, the unit fails and that
-    # reboots too.
+    # Self-heal if the store share breaks: only a fresh mount (a reboot; qemu
+    # runs -no-reboot and microvm@ restarts it) recovers. This used to act on
+    # ESTALE alone; on 2026-10-28 the assistant guest had been broken for a
+    # while without it firing (sshd refused root's key, Hermes exited at
+    # start) until a manual restart of microvm@assistant. So any error reading
+    # these paths counts now: all of them exist on a healthy guest, and
+    # OnBootSec bounds a reboot loop to one reboot per 15 min. If the store is
+    # too broken to even exec this script, the unit fails and that reboots too.
     systemd.services.store-watchdog = {
-      description = "Reboot when the /nix/store share returns ESTALE";
+      description = "Reboot when the /nix/store share is unreadable";
       serviceConfig = {
         Type = "oneshot";
         FailureAction = "reboot";
@@ -318,14 +321,12 @@
       script = ''
         err=$({
           ls -L /run/current-system/sw/bin
-          cat /etc/static/nsswitch.conf /etc/group
+          cat /etc/static/nsswitch.conf /etc/group /etc/ssh/authorized_keys.d/root
         } 2>&1 >/dev/null) || true
-        case "$err" in
-          *"Stale file handle"*)
-            echo "store share is stale: $err" >&2
-            exit 1
-            ;;
-        esac
+        if [ -n "$err" ]; then
+          echo "store share is broken: $err" >&2
+          exit 1
+        fi
       '';
     };
     systemd.timers.store-watchdog = {
