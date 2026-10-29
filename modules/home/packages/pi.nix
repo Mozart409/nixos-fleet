@@ -38,14 +38,14 @@
           "axon-gateway": {
             "url": "https://axon.homelab.internal/mcp",
             "headers": {
-              "Authorization": "Bearer $${AXON_GATEWAY_TOKEN}"
+              "Authorization": "Bearer ''${AXON_GATEWAY_TOKEN}"
             },
             "description": "Self-hosted gateway aggregating the homelab fleet's MCP servers into one endpoint; tools are prefixed with their backend name"
           },
           "ventara-gateway": {
             "url": "https://axon.int.oyabu.cc/mcp",
             "headers": {
-              "Authorization": "Bearer $${VENTARA_GATEWAY_TOKEN}"
+              "Authorization": "Bearer ''${VENTARA_GATEWAY_TOKEN}"
             },
             "description": "The Ventara deployment's separate axon-gateway instance, aggregating that deployment's own MCP backends (Prometheus, Loki, the internal dashboard)"
           }
