@@ -10,6 +10,7 @@
   imports = [
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
+    ../../modules/home/packages/pi.nix
   ];
 
   home.username = osConfig.wotan.agentUser.user;
@@ -17,6 +18,7 @@
   home.stateVersion = "24.11";
 
   opencode.enable = true;
+  pi.enable = true;
 
   # The context-mode Claude plugin runs its hooks and MCP server with node,
   # by absolute path: ~/.nix-profile/bin/node. pi is the third harness
