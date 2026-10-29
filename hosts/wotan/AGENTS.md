@@ -75,7 +75,8 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   files inherit that (tmpfiles keeps it on `~/code` itself). A file created
   with a narrow mode (e.g. 0644 by a tool that ignores umask) gets a narrow
   ACL mask; `just agent-acl` repairs the whole tree. `safe.directory` in
-  `/etc/gitconfig` lets git work in repos the other user owns.
+  `/etc/gitconfig` lets git work in repos the other user owns; nix's libgit2
+  ignores that wildcard, so `agent`'s own git config trusts `*` for flakes.
 - **Commit signing:** each harness has its own ssh-agent holding the bot key
   `~amadeus/.ssh/id_ed25519_signing` (bot-signing@wotan):
   `opencode-signing-agent` and `claude-signing-agent`

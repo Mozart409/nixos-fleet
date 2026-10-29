@@ -171,18 +171,6 @@ in {
       };
     };
 
-    flakeRepos = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      example = ["/home/amadeus/code/yggdrasil"];
-      description = ''
-        Repos in codeDir the agents evaluate as flakes. nix's libgit2 ignores
-        the `codeDir/*` safe.directory wildcard that git honors, so each one
-        needs its exact path or `nix eval` refuses it as not owned by the
-        agent.
-      '';
-    };
-
     package = lib.mkOption {
       type = lib.types.package;
       readOnly = true;
@@ -227,10 +215,12 @@ in {
     ];
 
     # Repos in codeDir belong to whichever user created them; without this git
-    # refuses to work in the other user's ("dubious ownership").
+    # refuses to work in the other user's ("dubious ownership"). nix's libgit2
+    # ignores this wildcard, so the agent's home-manager config trusts `*`
+    # (hosts/wotan/agent-home.nix).
     programs.git = {
       enable = true;
-      config.safe.directory = ["${cfg.codeDir}/*"] ++ cfg.flakeRepos;
+      config.safe.directory = "${cfg.codeDir}/*";
     };
 
     # opencode-serve is the other agent process; it gets the same network.

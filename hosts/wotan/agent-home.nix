@@ -33,11 +33,18 @@
 
   # Commits keep amadeus as author, as before the move; they are signed with
   # the bot signing key (GIT_CONFIG_* from claude.nix / opencode-serve).
+  # nix's libgit2 ignores the `codeDir/*` safe.directory in /etc/gitconfig,
+  # so `nix develop` refused every flake in a repo amadeus owns. libgit2 does
+  # honor a bare `*`. Trusting every repo gives this user nothing new: it can
+  # already write all of codeDir, where the repos live.
   programs.git = {
     enable = true;
-    settings.user = {
-      name = "Amadeus Mader";
-      email = "amadeus@mozart409.com";
+    settings = {
+      user = {
+        name = "Amadeus Mader";
+        email = "amadeus@mozart409.com";
+      };
+      safe.directory = "*";
     };
   };
 }

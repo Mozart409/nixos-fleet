@@ -333,7 +333,6 @@ in {
     network.allow = let
       inherit ((import ../../lib/hosts.nix).hosts) mcp forgejo;
     in [mcp.ip forgejo.ip "172.16.10.10"];
-    flakeRepos = ["${config.wotan.agentUser.codeDir}/yggdrasil"];
   };
   # The server loads plugins and config from ~/.config/opencode once, at
   # startup. home-manager rewrites those files without touching this unit, so
