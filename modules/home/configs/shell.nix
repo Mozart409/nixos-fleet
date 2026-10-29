@@ -159,7 +159,8 @@
         tmux new-session -A -s "$name"
       }
 
-      # `tc` / `to`: like `t`, but window 1 runs claude / opencode, window 2 is
+      # `tc` / `tp` / `to`: like `t`, but window 1 runs claude / pi / opencode,
+      # window 2 is
       # a plain shell and window 3 runs lazygit. Session "<dir>-claude" /
       # "<dir>-opencode", which the tmux session-created hook skips (no nvim).
       _tai() {
@@ -175,6 +176,7 @@
         tmux attach-session -t "=$name"
       }
       tc() { _tai claude claude; }
+      tp() { _tai pi pi; }
       to() { _tai opencode opencode; }
 
       # Interactive `opencode` (no args, or only flags like -c/-s) connects to
@@ -232,11 +234,11 @@
         command pi "$@"
       }
 
-      # `tk` kills the current directory's `t`, `tc` and `to` sessions (run from
-      # shell). `=` makes the target an exact match, not a name prefix.
+      # `tk` kills the current directory's `t`, `tc`, `tp` and `to` sessions
+      # (run from shell). `=` makes the target an exact match, not a name prefix.
       tk() {
         local base="''${''${PWD:t}//[.:]/_}" name killed=0
-        for name in "$base" "$base-claude" "$base-opencode"; do
+        for name in "$base" "$base-claude" "$base-opencode" "$base-pi"; do
           tmux kill-session -t "=$name" 2>/dev/null \
             && echo "killed tmux session: $name" && killed=1
         done
