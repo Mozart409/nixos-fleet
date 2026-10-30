@@ -23,7 +23,16 @@
   # The context-mode Claude plugin runs its hooks and MCP server with node,
   # by absolute path: ~/.nix-profile/bin/node. pi is the third harness
   # (`agent-run pi`); its OPENCODE_API_KEY comes in as an agent-run credential.
-  home.packages = [pkgs.nodejs pkgs.pi-coding-agent];
+  # python3 is for the scripts the agents write and run; ripgrep and jq are
+  # the everyday Bash tools no dev shell here provides (the harnesses' own
+  # Grep tools bundle their ripgrep, but `rg` on PATH was missing).
+  home.packages = with pkgs; [
+    jq
+    nodejs
+    pi-coding-agent
+    python3
+    ripgrep
+  ];
 
   # agent-run loads the directory's .envrc before starting the harness.
   programs.direnv = {
