@@ -13,6 +13,7 @@
     mpv
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
+    qbittorrent
     rpcs3
     # keep-sorted end
   ];
