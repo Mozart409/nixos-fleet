@@ -13,6 +13,7 @@
     mpv
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
+    rpcs3
     # keep-sorted end
   ];
 }
