@@ -83,23 +83,38 @@
   #      there for why the guard is required).
   # Every package here installs lib/lib<pname>.so.
   plugins = with pkgs.hyprlandPlugins; [
-    hyprtasking
-    # nixpkgs' snapshot (2026-07-21) compiles against 0.56.2 but refuses to
-    # load ("unexpected function signature"): 0.56.2 added a bool parameter to
-    # CPointerManager::renderSoftwareCursorsFor. Pinned to the commit upstream
-    # maps to Hyprland v0.56.2 in its hyprpm.toml commit_pins. Drop the
-    # override once nixpkgs ships a newer snapshot.
+    # Does not compile against Hyprland 0.57 (KeybindManager.hpp is gone).
+    # Upstream support is the unmerged PR raybbian/hyprtasking#140; re-enable
+    # once it lands and nixpkgs picks it up.
+    # hyprtasking
+    # nixpkgs' snapshot does not compile against Hyprland 0.57
+    # (managers/EventManager.hpp is gone). Pinned to upstream main, which
+    # moved to the 0.57 render contexts ("fix: use new render contexts").
+    # hyprpm.toml has no 0.57 commit pin yet. Drop the override once nixpkgs
+    # ships a newer snapshot.
     (hypr-dynamic-cursors.overrideAttrs {
-      version = "0-unstable-2026-08-06";
+      version = "0-unstable-2026-10-05";
       src = pkgs.fetchFromGitHub {
         owner = "VirtCode";
         repo = "hypr-dynamic-cursors";
-        rev = "5a224284872208b5324759d535d65061043725de";
-        hash = "sha256-BQjuQplkQFA30/7evDxmEAvr2ArIG09JffEBQhuzo80=";
+        rev = "2a8d0b735328d874a78ca93b2f201649f712a74a";
+        hash = "sha256-PSt/SRtemvsoGYNFJ7YLiXGxT8EJe3AhmGwt5Vt79aA=";
       };
     })
     # hyprfocus
-    hypr-darkwindow
+    # nixpkgs builds tag v0.56.2, which includes config/legacy/ConfigManager.hpp,
+    # gone in Hyprland 0.57. Pinned to upstream main, which builds against the
+    # 0.57 headers; there is no 0.57 tag or commit pin yet. Drop the override
+    # once nixpkgs ships a 0.57-compatible version.
+    (hypr-darkwindow.overrideAttrs {
+      version = "0-unstable-2026-10-05";
+      src = pkgs.fetchFromGitHub {
+        owner = "micha4w";
+        repo = "Hypr-DarkWindow";
+        rev = "54ceb0c9e3436daaf4586d3a016bbf37398cbd3c";
+        hash = "sha256-2256IlWT3vqre90MuS50Fh/mI6lY9Z7YupDKjFSch4s=";
+      };
+    })
     hyprbars
   ];
 
