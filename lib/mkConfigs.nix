@@ -26,6 +26,9 @@ in {
         {
           nixpkgs.hostPlatform = system;
           nixpkgs.config = sharedNixpkgsConfig;
+          # Upstream opencode (the flake's `opencode` input) instead of nixpkgs'
+          # lagging build; the fleet gets the same overlay via flake.nix.
+          nixpkgs.overlays = [inputs.self.overlays.opencode];
         }
         inputs.home-manager.nixosModules.home-manager
         ({pkgs, ...}: {
