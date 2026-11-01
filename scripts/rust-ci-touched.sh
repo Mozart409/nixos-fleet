@@ -53,6 +53,7 @@ ci() {
     countdown-rs) just countdown-ci ;;
     fafnir) just fafnir-ci ;;
     homelab-dashboard) just hdash-ci ;;
+    # Brings up its own Postgres for the run and stops it again.
     internal-dashboard) just dashboard-ci ;;
     lanternd) just lanternd-ci ;;
     pglab) just pglab-ci ;;
