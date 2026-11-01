@@ -4,6 +4,12 @@
 # them (export-github.sh), so this is the last place a fmt, clippy or test
 # failure is caught before GitHub CI reports it.
 #
+# The touched projects run in parallel (each has its own Cargo workspace and
+# target/), each into its own log, printed whole when that project finishes so
+# the output does not interleave. RUST_CI_JOBS=<n> caps how many run at once
+# (default: all of them), e.g. for a `just update` push that touches every
+# project and would otherwise compile all of them together.
+#
 # Usage: rust-ci-touched.sh --push                 (pre-push: git's refs on stdin)
 #        rust-ci-touched.sh <changed file>...      (check for these files)
 #        rust-ci-touched.sh --projects <name>...   (check these rust/<name> directly)
@@ -73,12 +79,39 @@ ci() {
   esac
 }
 
+logs=$(mktemp -d)
+trap 'rm -rf "$logs"' EXIT
+
+max=${RUST_CI_JOBS:-0}
+declare -A running=() started=()
 failed=()
-for p in $(printf '%s\n' "${!projects[@]}" | sort); do
-  echo "rust-ci: $p"
-  if ! ci "$p"; then
+
+# Wait for whichever project finishes next and print its log.
+reap() {
+  local pid p status=0
+  wait -n -p pid "${!running[@]}" || status=$?
+  p=${running[$pid]}
+  unset "running[$pid]"
+  echo "rust-ci: --- $p ($((SECONDS - started[$p])) s) ---"
+  cat "$logs/$p.log"
+  if ((status)); then
+    echo "rust-ci: $p FAILED"
     failed+=("$p")
   fi
+}
+
+for p in $(printf '%s\n' "${!projects[@]}" | sort); do
+  if ((max > 0 && ${#running[@]} >= max)); then
+    reap
+  fi
+  echo "rust-ci: $p started"
+  started[$p]=$SECONDS
+  ci "$p" >"$logs/$p.log" 2>&1 &
+  running[$!]=$p
+done
+
+while ((${#running[@]})); do
+  reap
 done
 
 if ((${#failed[@]})); then
