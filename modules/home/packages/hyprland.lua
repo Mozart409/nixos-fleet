@@ -369,10 +369,14 @@ hl.window_rule({
 -- nvtop side by side (dwindle splits the wide monitor horizontally); later
 -- toggles just show/hide them. Which side each lands on follows the cursor
 -- (dwindle splits toward it).
-hl.workspace_rule({
-    workspace = "special:scratch",
-    on_created_empty = "kitty --class dashboard btop & sleep 0.3; kitty --class dashboard nvtop",
-})
+--
+-- These used to be on_created_empty workspace rules, deprecated in 0.57: the
+-- commands are collected here and run by the workspace.created handler below.
+-- That event fires once the workspace is ready, so is_empty is still true for
+-- a toggled-open special workspace but false when a window is moved into it.
+local createdEmptyCmds = {
+    ["special:scratch"] = "kitty --class dashboard btop & sleep 0.3; kitty --class dashboard nvtop",
+}
 
 -- Red border on scratchpad (any special workspace) windows, so it is obvious
 -- the overlay is up rather than a regular workspace
@@ -386,10 +390,17 @@ hl.window_rule({
 -- fresh last line, insert mode, autosaves on focus loss / leaving insert /
 -- edits); later toggles just show/hide it. Plain nvim on purpose, so it uses
 -- the normal config and loses no basics.
-hl.workspace_rule({
-    workspace = "special:scratchwindow",
-    on_created_empty = [[kitty --class scratchwindow sh -c "mkdir -p $HOME/notes; exec nvim -c 'autocmd FocusLost,InsertLeave,TextChanged * silent! write' -c 'normal! Go' -c startinsert $HOME/notes/dump.md"]],
-})
+createdEmptyCmds["special:scratchwindow"] =
+    [[kitty --class scratchwindow sh -c "mkdir -p $HOME/notes; exec nvim -c 'autocmd FocusLost,InsertLeave,TextChanged * silent! write' -c 'normal! Go' -c startinsert $HOME/notes/dump.md"]]
+
+-- Spawn into the workspace itself, as on_created_empty did, so the windows
+-- land there even if focus moved on before they map.
+hl.on("workspace.created", function(ws)
+    local cmd = createdEmptyCmds[ws.addressable_name]
+    if cmd and ws.is_empty then
+        hl.exec_cmd(cmd, { workspace = ws.addressable_name })
+    end
+end)
 
 -- Mauve border (theme "special" colour) for the scratchwindow. Declared after
 -- scratchpad-border so it wins over the red one on the same window.
