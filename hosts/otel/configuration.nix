@@ -647,6 +647,23 @@ in {
 
   services.grafana = {
     enable = true;
+    # Grafana 13.2 moved the prometheus, loki and tempo datasources out of core
+    # into plugins it downloads at startup, which left the provisioned
+    # datasources "plugin not installed". Pin them from nixpkgs instead; this
+    # also turns off the background installer (plugins.preinstall_disabled),
+    # so the Drilldown apps it used to preinstall are listed here too.
+    # Infinity charts JSON/CSV APIs (PBS, Home Assistant, Forgejo) without an
+    # exporter; polystat draws the per-host probe grid.
+    declarativePlugins = with pkgs.grafanaPlugins; [
+      grafana-exploretraces-app
+      grafana-lokiexplore-app
+      grafana-metricsdrilldown-app
+      grafana-polystat-panel
+      loki
+      prometheus
+      tempo
+      yesoreyeram-infinity-datasource
+    ];
     settings = {
       server = {
         http_addr = "127.0.0.1";
@@ -704,6 +721,10 @@ in {
             name = "Tempo";
             orgId = 1;
           }
+          {
+            name = "Alertmanager";
+            orgId = 1;
+          }
         ];
         datasources = [
           {
@@ -757,6 +778,18 @@ in {
               lokiSearch = {
                 datasourceUid = "loki";
               };
+            };
+          }
+          {
+            # Shows and silences the alerts from alerting.nix. Grafana-managed
+            # alerts are not sent here; the rules all live in Prometheus.
+            name = "Alertmanager";
+            type = "alertmanager";
+            uid = "alertmanager";
+            url = "http://127.0.0.1:${toString config.services.prometheus.alertmanager.port}";
+            jsonData = {
+              implementation = "prometheus";
+              handleGrafanaManagedAlerts = false;
             };
           }
         ];
