@@ -120,7 +120,8 @@
           "Bash(bash *switch.sh*)"
           "Bash(sh *switch.sh*)"
           "Bash(*cleanup.sh*)"
-          "Bash(just test*)"
+          # test-wotan only: a bare `just test*` also caught every project's suite.
+          "Bash(just test-wotan*)"
           # Never push: wotan's pushes go through the user's switch.
           "Bash(git push*)"
         ];

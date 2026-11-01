@@ -198,7 +198,7 @@
               "*switch.sh*": "deny",
               "*cleanup.sh*": "deny",
               "just switch*": "deny",
-              "just test*": "deny",
+              "just test-wotan*": "deny",
               "nix profile *": "deny",
               "nix-env *": "deny",
               "nh clean*": "deny",
