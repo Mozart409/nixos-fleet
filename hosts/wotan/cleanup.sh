@@ -125,9 +125,9 @@ clean_rust_targets() {
 }
 
 # Rust build artifacts: every project's own Cargo workspace in the monorepo
-# (rust/*, services/, nested ones like hofvarpnir's patches), plus the
-# standalone repos still under ~/code. The monorepo usually sits in ~/code
-# itself; scan it separately only when it does not.
+# (rust/*, nested ones like rust/services/services and hofvarpnir's
+# patches), plus the standalone repos still under ~/code. The monorepo
+# usually sits in ~/code itself; scan it separately only when it does not.
 echo 'Cleaning Rust build artifacts...'
 cleanup_task rust clean_rust_targets "$HOME/code" || true
 case "$repo/" in
