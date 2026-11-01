@@ -64,16 +64,17 @@ ci() {
     lanternd) just lanternd-ci ;;
     pglab) just pglab-ci ;;
     services) just services-ci ;;
-    # Its own justfile. The Nix test check is what nix-checks.yml runs; the
-    # real-Postgres suite stays `just test`.
+    # Its own justfile. The Nix test check is what nix-checks.yml runs; it runs
+    # the real-Postgres suite against a throwaway tmpfs cluster (scripts/test-pg.sh,
+    # a unix socket, no port), the same one `just test` uses.
     homelab-mcp-servers)
       just -f rust/homelab-mcp-servers/justfile lint-ci &&
         (cd rust/homelab-mcp-servers && nix build --no-link -L .#checks.x86_64-linux.test)
       ;;
-    # Its pinned nightly, as its ci.yml runs it. The tests need Postgres.
+    # Its pinned nightly, as its ci.yml runs it: fmt, clippy and the tests, the
+    # tests against a test Postgres (5435) that lives only for the run.
     hofvarpnir)
-      (cd rust/hofvarpnir && nix develop .#default -c sh -c \
-        'cargo fmt --all -- --check && SQLX_OFFLINE=true cargo clippy --workspace --all-targets --all-features -- -D warnings')
+      (cd rust/hofvarpnir && nix develop .#default -c just with-db ci-gate)
       ;;
     *) echo "rust-ci: no CI mapped for rust/$1, skipping" ;;
   esac
