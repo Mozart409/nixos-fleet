@@ -534,14 +534,6 @@ if hl.plugin.hyprfocus then
     })
 end
 
--- hypr-darkwindow: SUPER+I toggles colour inversion on the active window,
--- a forced dark mode for apps that only have a light theme. Pressing it again
--- removes the shader.
-if hl.plugin.darkwindow then
-    hl.config({ plugin = { darkwindow = { load_shaders = "invert" } } })
-    hl.bind(mainMod .. " + I", hl.plugin.darkwindow.dsp_shade({ shader = "invert" }))
-end
-
 -- hyprbars: title bars with a close and a maximize button; double-click the
 -- bar to maximize. Button actions are shell commands, and `hyprctl dispatch`
 -- takes Lua since 0.56, hence the hl.dsp strings.

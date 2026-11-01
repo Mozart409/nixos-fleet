@@ -102,19 +102,6 @@
       };
     })
     # hyprfocus
-    # nixpkgs builds tag v0.56.2, which includes config/legacy/ConfigManager.hpp,
-    # gone in Hyprland 0.57. Pinned to upstream main, which builds against the
-    # 0.57 headers; there is no 0.57 tag or commit pin yet. Drop the override
-    # once nixpkgs ships a 0.57-compatible version.
-    (hypr-darkwindow.overrideAttrs {
-      version = "0-unstable-2026-10-05";
-      src = pkgs.fetchFromGitHub {
-        owner = "micha4w";
-        repo = "Hypr-DarkWindow";
-        rev = "54ceb0c9e3436daaf4586d3a016bbf37398cbd3c";
-        hash = "sha256-2256IlWT3vqre90MuS50Fh/mI6lY9Z7YupDKjFSch4s=";
-      };
-    })
     hyprbars
   ];
 
