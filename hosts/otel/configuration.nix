@@ -693,14 +693,13 @@ in {
       # …/grafana/api/…` from a host that can decrypt the secret) when Pocket
       # ID is down, and with a random 32-char password it is no longer the
       # hole it was with "admin".
-      auth = {
-        disable_login_form = true;
-        oauth_auto_login = true;
-      };
+      auth.disable_login_form = true;
       users.allow_sign_up = false;
       "auth.generic_oauth" = {
         enabled = true;
         name = "Pocket-ID";
+        # Per-provider replacement for the deprecated [auth] oauth_auto_login.
+        auto_login = true;
         # Existing Grafana accounts only. A Pocket ID user without a Grafana
         # account is refused; create it in the Grafana UI first (or flip this
         # for one login and back).
