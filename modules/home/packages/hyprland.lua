@@ -99,9 +99,12 @@ hl.config({
         disable_hyprland_logo = true,
         disable_splash_rendering = true,
         focus_on_activate = true,
-        -- VRR only for fullscreen windows: always-on VRR flickers on NVIDIA
-        -- with a mostly static desktop. 2 = fullscreen (Lua rejects the name)
-        vrr = 2,
+        -- VRR off. The KTC panels report no adaptive sync, so 2 (fullscreen
+        -- only) never enabled it -- it only made Hyprland retry a failing
+        -- modeset ("No Adaptive sync support for output"), which was the last
+        -- thing logged before the 0.57 + NVIDIA 595 deaths on DPMS-on and
+        -- resume (2026-11-01). 2 = fullscreen-only if the panels ever do.
+        vrr = 0,
     },
 
     decoration = {
