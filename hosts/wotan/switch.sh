@@ -98,21 +98,29 @@ fi
 
 echo ''
 echo 'Pushing to all remotes'
+origin_pushed=true
 for remote in $(git remote); do
   echo "  -> pushing to $remote"
   if git push "$remote"; then
     echo "     ✓ $remote"
   else
     echo "     ✗ failed to push to $remote (continuing)" >&2
+    if [[ $remote == origin ]]; then
+      origin_pushed=false
+    fi
   fi
 done
 
 # Publishes the exports.toml prefixes (infra/ and the public Rust projects) to
 # their GitHub repos. The monorepo itself has no GitHub remote: adding one
-# would push the vault through the loop above.
+# would push the vault through the loop above. Only after Forgejo took the
+# push: its pre-push gate (rust-ci, host-eval) is what checks these commits,
+# and the export's own pushes see split paths that gate does not map.
 echo ''
 echo 'Exporting public subtrees to GitHub'
-if ! infra/scripts/export-github.sh; then
+if ! $origin_pushed; then
+  echo "  ✗ skipped: the push to origin failed, so GitHub would get commits Forgejo does not have" >&2
+elif ! infra/scripts/export-github.sh; then
   echo "  ✗ warning: GitHub export failed (continuing)" >&2
 fi
 
