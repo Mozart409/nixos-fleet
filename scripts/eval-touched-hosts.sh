@@ -4,7 +4,7 @@
 # OOM-killed. Logic carried over from the archived Woodpecker pipeline
 # (docs/archive/woodpecker/pve/nix.yml).
 #
-# Usage: eval-touched-hosts.sh --push              (pre-push: git's refs on stdin)
+# Usage: eval-touched-hosts.sh --push              (pre-push: the saved refs)
 #        eval-touched-hosts.sh <changed file>...   (evaluate for these files)
 #        eval-touched-hosts.sh --hosts <host>...   (evaluate these hosts directly)
 # Skip once: LEFTHOOK_EXCLUDE=host-eval git push
@@ -15,7 +15,11 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 if [[ ${1:-} == --push ]]; then
-  mapfile -t files < <(infra/scripts/pushed-files.sh)
+  # --saved: lefthook runs the gates in parallel, so the push-refs job saved
+  # git's refs first (its stdin cache cannot feed two jobs at once).
+  files=()
+  pushed=$(infra/scripts/pushed-files.sh --saved) || exit 1
+  [[ -z $pushed ]] || mapfile -t files <<<"$pushed"
   set -- "${files[@]}"
 fi
 

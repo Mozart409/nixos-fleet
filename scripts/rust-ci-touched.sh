@@ -10,7 +10,7 @@
 # (default: all of them), e.g. for a `just update` push that touches every
 # project and would otherwise compile all of them together.
 #
-# Usage: rust-ci-touched.sh --push                 (pre-push: git's refs on stdin)
+# Usage: rust-ci-touched.sh --push                 (pre-push: the saved refs)
 #        rust-ci-touched.sh <changed file>...      (check for these files)
 #        rust-ci-touched.sh --projects <name>...   (check these rust/<name> directly)
 # Skip once: LEFTHOOK_EXCLUDE=rust-ci git push
@@ -19,7 +19,11 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 if [[ ${1:-} == --push ]]; then
-  mapfile -t files < <(infra/scripts/pushed-files.sh)
+  # --saved: lefthook runs the gates in parallel, so the push-refs job saved
+  # git's refs first (its stdin cache cannot feed two jobs at once).
+  files=()
+  pushed=$(infra/scripts/pushed-files.sh --saved) || exit 1
+  [[ -z $pushed ]] || mapfile -t files <<<"$pushed"
   set -- "${files[@]}"
 fi
 
