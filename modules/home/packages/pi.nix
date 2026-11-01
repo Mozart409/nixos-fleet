@@ -52,5 +52,11 @@
         }
       }
     '';
+
+    # `/exit` as an alias for `/quit`. pi cannot alias a built-in command, so an
+    # extension registers one more name and calls ctx.shutdown(), the same
+    # orderly exit `/quit` performs (session_shutdown, resume hint, process
+    # exit). See pi-exit.ts.
+    home.file.".pi/agent/extensions/exit.ts".source = ./pi-exit.ts;
   };
 }
