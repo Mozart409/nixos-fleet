@@ -144,7 +144,8 @@ in {
   # of block-cut / compaction / scheduler-poll chatter, and on this
   # IO-starved host every one of those lines was a journald write, a
   # fluent-bit read, an HTTPS push to the local Caddy and a Loki ingest.
-  # Nothing else on otel ships to Loki; if Tempo misbehaves again, re-add
+  # Only Grafana ships to Loki (next to services.grafana); if Tempo misbehaves
+  # again, re-add
   #   services.loki-logs.units = [ { unit = "tempo.service"; job = "tempo"; } ];
   # here (modules/fluent-bit.nix enables the shipper fleet-wide, the units
   # list merges across modules).
@@ -644,6 +645,16 @@ in {
     owner = "grafana";
     group = "grafana";
   };
+
+  # Ship Grafana's journal to Loki: its plugin loader and provisioning errors
+  # were otherwise only visible over SSH. Router logging is off by default, so
+  # this is startup, plugin and error lines, not one line per HTTP request.
+  services.loki-logs.units = [
+    {
+      unit = "grafana.service";
+      job = "grafana";
+    }
+  ];
 
   services.grafana = {
     enable = true;
