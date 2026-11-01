@@ -56,6 +56,7 @@ ci() {
     internal-dashboard) just dashboard-ci ;;
     lanternd) just lanternd-ci ;;
     pglab) just pglab-ci ;;
+    services) just services-ci ;;
     # Its own justfile. The Nix test check is what nix-checks.yml runs; the
     # real-Postgres suite stays `just test`.
     homelab-mcp-servers)
