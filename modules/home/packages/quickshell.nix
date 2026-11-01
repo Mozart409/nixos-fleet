@@ -298,7 +298,7 @@
 
   quickshellConfig = pkgs.runCommand "quickshell-config" {} ''
     mkdir -p $out
-    cp ${./quickshell}/*.qml $out/
+    cp ${./quickshell}/*.qml ${./quickshell}/*.js $out/
   '';
 in {
   imports = [

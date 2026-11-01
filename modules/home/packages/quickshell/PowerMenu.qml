@@ -1,47 +1,16 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "PowerActions.js" as PowerActions
 
-// Session actions behind one button. The commands are deliberately the same
-// ones the Hyprland keybinds use, so the menu and the keyboard never disagree
-// about what "lock" means.
+// Session actions behind one button. The entries live in PowerActions.js,
+// where they are tested.
 BarModule {
   id: root
 
   property bool menuOpen: false
 
-  readonly property var actions: [
-    {
-      icon: "󰌾",
-      label: "Lock",
-      colour: Theme.accent,
-      exec: ["loginctl", "lock-session"]
-    },
-    {
-      icon: "󰤄",
-      label: "Suspend",
-      colour: Theme.special,
-      exec: ["systemctl", "suspend"]
-    },
-    {
-      icon: "󰗽",
-      label: "Log out",
-      colour: Theme.peach,
-      exec: ["hyprctl", "dispatch", "exit"]
-    },
-    {
-      icon: "󰜉",
-      label: "Reboot",
-      colour: Theme.warn,
-      exec: ["systemctl", "reboot"]
-    },
-    {
-      icon: "󰐥",
-      label: "Shut down",
-      colour: Theme.crit,
-      exec: ["systemctl", "poweroff"]
-    }
-  ]
+  readonly property var actions: PowerActions.actions
 
   icon: "󰐥"
   accent: menuOpen ? Theme.crit : Theme.subtext
@@ -93,7 +62,7 @@ BarModule {
             Layout.fillWidth: true
             implicitHeight: 30
             radius: 6
-            color: entryArea.containsMouse ? Qt.alpha(modelData.colour, 0.18) : "transparent"
+            color: entryArea.containsMouse ? Qt.alpha(Theme[modelData.colour], 0.18) : "transparent"
 
             Behavior on color {
               ColorAnimation {
@@ -109,7 +78,7 @@ BarModule {
 
               Text {
                 text: entry.modelData.icon
-                color: entry.modelData.colour
+                color: Theme[entry.modelData.colour]
                 font.family: Theme.iconFont
                 font.pixelSize: Theme.iconSize
               }
