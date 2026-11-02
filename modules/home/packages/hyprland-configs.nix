@@ -300,7 +300,10 @@ in {
       Service = {
         Type = "simple";
         ExecStart = "${hyprsunsetPkg}/bin/hyprsunset";
-        Restart = "on-failure";
+        # always, not on-failure: when Hyprland goes away (a crash, or the
+        # nvidia resume sigkill) hyprsunset can exit cleanly and would then
+        # stay dead, taking the mod+H / mod+B binds and the bar pill with it.
+        Restart = "always";
         RestartSec = 2;
       };
       Install.WantedBy = ["graphical-session.target"];
