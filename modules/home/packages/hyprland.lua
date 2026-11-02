@@ -99,12 +99,22 @@ hl.config({
         disable_hyprland_logo = true,
         disable_splash_rendering = true,
         focus_on_activate = true,
-        -- VRR off. The KTC panels report no adaptive sync, so 2 (fullscreen
-        -- only) never enabled it -- it only made Hyprland retry a failing
-        -- modeset ("No Adaptive sync support for output"), which was the last
-        -- thing logged before the 0.57 + NVIDIA 595 deaths on DPMS-on and
-        -- resume (2026-11-01). 2 = fullscreen-only if the panels ever do.
+        -- VRR off. Only DP-2 is VRR-capable (aquamarine: "crtc is capable of
+        -- vrr"); DP-3 is not, so 2 (fullscreen only) made Hyprland retry a
+        -- failing test there ("No Adaptive sync support for output"), the
+        -- last thing logged before the 0.57 + NVIDIA 595 deaths on DPMS-on
+        -- and resume (2026-11-01).
         vrr = 0,
+    },
+
+    render = {
+        -- No auto HDR. Brave tags fullscreen video as HDR/scRGB, so the
+        -- default (1) switched the panel into HDR and back on every
+        -- fullscreen toggle: a modeset that blanked it for ~5 s each way.
+        -- Do not flip it at runtime: turning it off while a monitor is in
+        -- auto HDR strands that monitor in BT2020 (washed-out grey) until
+        -- Hyprland restarts.
+        cm_auto_hdr = 0,
     },
 
     decoration = {
