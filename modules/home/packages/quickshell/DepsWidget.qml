@@ -24,284 +24,302 @@ import Quickshell.Wayland
 // Only direct inputs are considered. Transitive nodes (`systems`,
 // `flake-utils`) are pinned by other flakes, are years old by design, and are
 // not something this machine can act on.
-Variants {
-  model: Quickshell.screens
+Scope {
+  id: root
 
-  PanelWindow {
-    id: panel
-    required property var modelData
-    screen: modelData
+  // The data lives out here, once: each screen gets its own panel but they all
+  // draw the same flake-drift run.
+  property string flakePath: "/home/amadeus/code/yggdrasil"
 
-    property string flakePath: "/home/amadeus/code/yggdrasil"
+  property var inputs: []
+  property bool ok: true
+  property bool everRan: false
 
-    property var inputs: []
-    property bool ok: true
-    property bool everRan: false
+  property real graceDays: 3
 
-    property real graceDays: 3
+  // What the board is about: moved upstream and the lock is old enough that
+  // pulling it in is worth a rebuild.
+  readonly property var stale: inputs.filter(i => i.stale === true)
+  // Moved upstream, but you are already within graceDays of it. Reported,
+  // not escalated.
+  readonly property var drifting: inputs.filter(i => i.behind === true && i.stale !== true)
+  readonly property var unknown: inputs.filter(i => i.unreachable === true)
+  readonly property int current: inputs.filter(i => i.behind === false).length
 
-    // What the board is about: moved upstream and the lock is old enough that
-    // pulling it in is worth a rebuild.
-    readonly property var stale: inputs.filter(i => i.stale === true)
-    // Moved upstream, but you are already within graceDays of it. Reported,
-    // not escalated.
-    readonly property var drifting: inputs.filter(i => i.behind === true && i.stale !== true)
-    readonly property var unknown: inputs.filter(i => i.unreachable === true)
-    readonly property int current: inputs.filter(i => i.behind === false).length
+  Process {
+    id: driftProc
+    command: ["flake-drift", root.flakePath]
+    running: true
 
-    anchors {
-      bottom: true
-      right: true
-    }
-    margins {
-      bottom: 18
-      right: 18
-    }
-
-    implicitWidth: 400
-    implicitHeight: card.implicitHeight
-    color: "transparent"
-
-    exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.layer: WlrLayer.Bottom
-    WlrLayershell.namespace: "quickshell-deps"
-    mask: Region {}
-
-    Process {
-      id: driftProc
-      command: ["flake-drift", panel.flakePath]
-      running: true
-
-      stdout: StdioCollector {
-        onStreamFinished: {
-          const raw = this.text.trim();
-          if (raw === "") {
-            panel.ok = false;
-            panel.everRan = true;
-            return;
-          }
-          try {
-            const parsed = JSON.parse(raw);
-            panel.ok = parsed.ok === true;
-            panel.inputs = parsed.inputs ?? [];
-            panel.graceDays = parsed.graceDays ?? panel.graceDays;
-          } catch (e) {
-            panel.ok = false;
-          }
-          panel.everRan = true;
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const raw = this.text.trim();
+        if (raw === "") {
+          root.ok = false;
+          root.everRan = true;
+          return;
         }
+        try {
+          const parsed = JSON.parse(raw);
+          root.ok = parsed.ok === true;
+          root.inputs = parsed.inputs ?? [];
+          root.graceDays = parsed.graceDays ?? root.graceDays;
+        } catch (e) {
+          root.ok = false;
+        }
+        root.everRan = true;
       }
     }
+  }
 
-    // Every run fans out a dozen network round trips, so this is a slow poll on
-    // purpose -- upstream moving five minutes ago is not news you need within
-    // five minutes.
-    Timer {
-      interval: 45 * 60 * 1000
-      running: true
-      repeat: true
-      onTriggered: driftProc.running = true
-    }
+  // Every run fans out a dozen network round trips, so this is a slow poll on
+  // purpose -- upstream moving five minutes ago is not news you need within
+  // five minutes.
+  Timer {
+    interval: 45 * 60 * 1000
+    running: true
+    repeat: true
+    onTriggered: driftProc.running = true
+  }
 
-    function ageText(days) {
-      if (days === null || days === undefined)
-        return "";
-      if (days < 1)
-        return "today";
-      if (days < 60)
-        return Math.round(days) + "d";
-      return (days / 30).toFixed(0) + "mo";
-    }
+  // A `nix flake update` (or any lock edit) changes the answer at once, so
+  // rerun on it rather than waiting out the 45 minutes. The watch follows the
+  // directory too, so a lock replaced by rename is still seen.
+  FileView {
+    path: root.flakePath + "/flake.lock"
+    watchChanges: true
+    onFileChanged: if (!driftProc.running)
+      driftProc.running = true
+  }
 
-    Rectangle {
-      id: card
-      width: parent.width
-      implicitHeight: body.implicitHeight + 28
-      radius: 12
-      color: Qt.alpha(Theme.surface, 0.82)
-      border.width: 1
-      border.color: {
-        if (!panel.ok)
-          return Qt.alpha(Theme.muted, 0.5);
-        if (panel.stale.length > 0)
-          return Qt.alpha(Theme.warn, 0.5);
-        return Qt.alpha(Theme.good, 0.35);
+  Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+      id: panel
+      required property var modelData
+      screen: modelData
+
+
+
+      anchors {
+        bottom: true
+        right: true
+      }
+      margins {
+        bottom: 18
+        right: 18
       }
 
-      Behavior on border.color {
-        ColorAnimation {
-          duration: Theme.animSlow
-        }
+      implicitWidth: 400
+      implicitHeight: card.implicitHeight
+      color: "transparent"
+
+      exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.layer: WlrLayer.Bottom
+      WlrLayershell.namespace: "quickshell-deps"
+      mask: Region {}
+
+      function ageText(days) {
+        if (days === null || days === undefined)
+          return "";
+        if (days < 1)
+          return "today";
+        if (days < 60)
+          return Math.round(days) + "d";
+        return (days / 30).toFixed(0) + "mo";
       }
 
-      ColumnLayout {
-        id: body
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 14
-        spacing: 10
+      Rectangle {
+        id: card
+        width: parent.width
+        implicitHeight: body.implicitHeight + 28
+        radius: 12
+        color: Qt.alpha(Theme.surface, 0.82)
+        border.width: 1
+        border.color: {
+          if (!root.ok)
+            return Qt.alpha(Theme.muted, 0.5);
+          if (root.stale.length > 0)
+            return Qt.alpha(Theme.warn, 0.5);
+          return Qt.alpha(Theme.good, 0.35);
+        }
 
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: 8
-
-          Text {
-            text: "󰚰"
-            color: Theme.accent
-            font.family: Theme.iconFont
-            font.pixelSize: Theme.deskSize + 3
-          }
-
-          Text {
-            text: "FLAKE INPUTS"
-            color: Theme.text
-            font.family: Theme.font
-            font.pixelSize: Theme.deskSmall
-            font.bold: true
-          }
-
-          Item {
-            Layout.fillWidth: true
-          }
-
-          Text {
-            text: {
-              if (!panel.everRan)
-                return "checking";
-              if (!panel.ok)
-                return "check failed";
-              return panel.stale.length > 0 ? `${panel.stale.length} behind` : "all current";
-            }
-            color: {
-              if (!panel.everRan || !panel.ok)
-                return Theme.muted;
-              return panel.stale.length > 0 ? Theme.warn : Theme.good;
-            }
-            font.family: Theme.font
-            font.pixelSize: Theme.deskSmall
-            font.bold: true
+        Behavior on border.color {
+          ColorAnimation {
+            duration: Theme.animSlow
           }
         }
 
-        Rectangle {
-          Layout.fillWidth: true
-          height: 1
-          color: Qt.alpha(Theme.text, 0.1)
-          visible: panel.stale.length > 0 || panel.drifting.length > 0 || panel.unknown.length > 0
-        }
-
-        // Only inputs with something to do get a row. Everything sitting at
-        // upstream HEAD collapses into the one-line count below.
         ColumnLayout {
-          Layout.fillWidth: true
-          spacing: 5
-          visible: panel.stale.length > 0
+          id: body
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          anchors.margins: 14
+          spacing: 10
 
-          Repeater {
-            model: panel.stale
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
 
-            RowLayout {
-              id: behindRow
-              required property var modelData
+            Text {
+              text: "󰚰"
+              color: Theme.accent
+              font.family: Theme.iconFont
+              font.pixelSize: Theme.deskSize + 3
+            }
+
+            Text {
+              text: "FLAKE INPUTS"
+              color: Theme.text
+              font.family: Theme.font
+              font.pixelSize: Theme.deskSmall
+              font.bold: true
+            }
+
+            Item {
               Layout.fillWidth: true
-              spacing: 6
+            }
 
-              Rectangle {
-                width: 7
-                height: 7
-                radius: 3.5
-                color: Theme.warn
+            Text {
+              text: {
+                if (!root.everRan)
+                  return "checking";
+                if (!root.ok)
+                  return "check failed";
+                return root.stale.length > 0 ? `${root.stale.length} behind` : "all current";
               }
+              color: {
+                if (!root.everRan || !root.ok)
+                  return Theme.muted;
+                return root.stale.length > 0 ? Theme.warn : Theme.good;
+              }
+              font.family: Theme.font
+              font.pixelSize: Theme.deskSmall
+              font.bold: true
+            }
+          }
 
-              Text {
+          Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: Qt.alpha(Theme.text, 0.1)
+            visible: root.stale.length > 0 || root.drifting.length > 0 || root.unknown.length > 0
+          }
+
+          // Only inputs with something to do get a row. Everything sitting at
+          // upstream HEAD collapses into the one-line count below.
+          ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 5
+            visible: root.stale.length > 0
+
+            Repeater {
+              model: root.stale
+
+              RowLayout {
+                id: behindRow
+                required property var modelData
                 Layout.fillWidth: true
-                text: behindRow.modelData.name
-                color: Theme.text
-                font.family: Theme.font
-                font.pixelSize: Theme.deskSmall
-                elide: Text.ElideRight
-              }
+                spacing: 6
 
-              Text {
-                // How old *your lock* is, which is the useful number once you
-                // already know the input has moved: it says how much you are
-                // about to pull in.
-                text: panel.ageText(behindRow.modelData.lockedAge)
-                color: Theme.muted
-                font.family: Theme.font
-                font.pixelSize: Theme.deskMeta
+                Rectangle {
+                  width: 7
+                  height: 7
+                  radius: 3.5
+                  color: Theme.warn
+                }
+
+                Text {
+                  Layout.fillWidth: true
+                  text: behindRow.modelData.name
+                  color: Theme.text
+                  font.family: Theme.font
+                  font.pixelSize: Theme.deskSmall
+                  elide: Text.ElideRight
+                }
+
+                Text {
+                  // How old *your lock* is, which is the useful number once you
+                  // already know the input has moved: it says how much you are
+                  // about to pull in.
+                  text: panel.ageText(behindRow.modelData.lockedAge)
+                  color: Theme.muted
+                  font.family: Theme.font
+                  font.pixelSize: Theme.deskMeta
+                }
               }
             }
           }
-        }
 
-        // Inputs that moved but whose lock is still inside the grace window.
-        // Named rather than hidden -- the point of the window is to stop this
-        // demanding action, not to pretend it did not happen.
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: 6
-          visible: panel.drifting.length > 0
+          // Inputs that moved but whose lock is still inside the grace window.
+          // Named rather than hidden -- the point of the window is to stop this
+          // demanding action, not to pretend it did not happen.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+            visible: root.drifting.length > 0
 
-          Rectangle {
-            width: 7
-            height: 7
-            radius: 3.5
-            color: Qt.alpha(Theme.muted, 0.7)
+            Rectangle {
+              width: 7
+              height: 7
+              radius: 3.5
+              color: Qt.alpha(Theme.muted, 0.7)
+            }
+
+            Text {
+              Layout.fillWidth: true
+              text: root.drifting.map(i => i.name).join(", ") + " moved, lock still fresh"
+              color: Theme.muted
+              font.family: Theme.font
+              font.pixelSize: Theme.deskMeta
+              elide: Text.ElideRight
+            }
+          }
+
+          // Inputs we could not reach are called out separately -- reporting them
+          // as current would be the one answer that makes this widget lie.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+            visible: root.unknown.length > 0
+
+            Rectangle {
+              width: 7
+              height: 7
+              radius: 3.5
+              color: Theme.muted
+            }
+
+            Text {
+              Layout.fillWidth: true
+              text: `${root.unknown.length} unreachable`
+              color: Theme.muted
+              font.family: Theme.font
+              font.pixelSize: Theme.deskMeta
+              elide: Text.ElideRight
+            }
           }
 
           Text {
             Layout.fillWidth: true
-            text: panel.drifting.map(i => i.name).join(", ") + " moved, lock still fresh"
-            color: Theme.muted
+            text: {
+              if (!root.everRan)
+                return "checking upstream…";
+              if (!root.ok)
+                return "flake-drift failed";
+              if (root.stale.length === 0 && root.drifting.length === 0)
+                return `all ${root.current} inputs at upstream HEAD`;
+              if (root.stale.length === 0)
+                return `${root.current} inputs at upstream HEAD · nothing older than ${root.graceDays}d`;
+              return `${root.current} others current`;
+            }
+            color: root.ok && root.stale.length === 0 ? Theme.good : Theme.muted
             font.family: Theme.font
             font.pixelSize: Theme.deskMeta
-            elide: Text.ElideRight
+            wrapMode: Text.WordWrap
           }
-        }
-
-        // Inputs we could not reach are called out separately -- reporting them
-        // as current would be the one answer that makes this widget lie.
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: 6
-          visible: panel.unknown.length > 0
-
-          Rectangle {
-            width: 7
-            height: 7
-            radius: 3.5
-            color: Theme.muted
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: `${panel.unknown.length} unreachable`
-            color: Theme.muted
-            font.family: Theme.font
-            font.pixelSize: Theme.deskMeta
-            elide: Text.ElideRight
-          }
-        }
-
-        Text {
-          Layout.fillWidth: true
-          text: {
-            if (!panel.everRan)
-              return "checking upstream…";
-            if (!panel.ok)
-              return "flake-drift failed";
-            if (panel.stale.length === 0 && panel.drifting.length === 0)
-              return `all ${panel.current} inputs at upstream HEAD`;
-            if (panel.stale.length === 0)
-              return `${panel.current} inputs at upstream HEAD · nothing older than ${panel.graceDays}d`;
-            return `${panel.current} others current`;
-          }
-          color: panel.ok && panel.stale.length === 0 ? Theme.good : Theme.muted
-          font.family: Theme.font
-          font.pixelSize: Theme.deskMeta
-          wrapMode: Text.WordWrap
         }
       }
     }

@@ -206,11 +206,22 @@ Variants {
 
     // `systemctl show` is a local D-Bus call; this only catches changes made
     // outside the panel (a CLI start, a crash).
+    // Polls only while an empty workspace on the primary screen shows the
+    // panel (see Desktop.qml), and refreshes the moment one does.
     Timer {
       interval: 10000
-      running: true
+      running: Desktop.primaryVisible
       repeat: true
       onTriggered: panel.refresh()
+    }
+
+    Connections {
+      target: Desktop
+
+      function onPrimaryVisibleChanged() {
+        if (Desktop.primaryVisible)
+          panel.refresh();
+      }
     }
 
     Timer {

@@ -153,11 +153,22 @@ Variants {
       onTriggered: panel.refresh()
     }
 
+    // Polls only while an empty workspace on the primary screen shows the
+    // panel (see Desktop.qml), and refreshes the moment one does.
     Timer {
       interval: 20000
-      running: true
+      running: Desktop.primaryVisible
       repeat: true
       onTriggered: panel.refresh()
+    }
+
+    Connections {
+      target: Desktop
+
+      function onPrimaryVisibleChanged() {
+        if (Desktop.primaryVisible)
+          panel.refresh();
+      }
     }
 
     Rectangle {
