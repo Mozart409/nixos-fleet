@@ -118,8 +118,10 @@
     # User services
     systemd.user = {
       services = {
-        # Network manager applet
-        nm-applet = {
+        # Network manager applet. Not on Hyprland: the quickshell bar has no
+        # tray (SystemTrayWidget is disabled), so the applet had nowhere to
+        # show and only sat in a restart loop when the compositor went away.
+        nm-applet = lib.mkIf (config.desktop.environment != "hyprland") {
           unitConfig = {
             Description = "Network Manager Applet";
             PartOf = ["graphical-session.target"];
