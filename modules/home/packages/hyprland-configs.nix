@@ -338,6 +338,12 @@ in {
     # fixed `sleep 1`, then sets a wallpaper, so a restarted daemon gets one
     # too. next-wallpaper is installed system-wide by
     # modules/desktop/next-wallpaper.nix.
+    #
+    # ExecStartPre first stops any awww-daemon this unit does not own (one
+    # started by hand, or by the old hl.exec_cmd in a session that predates
+    # the unit). Otherwise the unit's daemon exits on the taken socket while
+    # ExecStartPost's `awww query` succeeds against the other one, so every
+    # restart, two seconds apart, set a new wallpaper.
     systemd.user.services.awww-daemon = let
       awww = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
     in {
@@ -349,6 +355,7 @@ in {
         StartLimitIntervalSec = 0;
       };
       Service = {
+        ExecStartPre = "-${pkgs.procps}/bin/pkill -u %u -x awww-daemon";
         ExecStart = "${awww}/bin/awww-daemon";
         ExecStartPost = "${pkgs.bash}/bin/bash -c 'for _ in $(seq 50); do ${awww}/bin/awww query >/dev/null 2>&1 && break; sleep 0.1; done; /run/current-system/sw/bin/next-wallpaper --transition-type random --transition-fps 60'";
         Restart = "always";
