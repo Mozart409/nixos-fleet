@@ -1,4 +1,6 @@
 import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
 import Generated
 
 // If SystemTrayWidget is ever re-enabled in Bar.qml, `//@ pragma
@@ -48,10 +50,17 @@ ShellRoot {
   // board above however tall that grows.
   DepsWidget {}
 
-  // Desktop widgets, off by default -- the bar covers the same ground.
-  // SystemMonitorWidget {}
-  // WeatherWidget {}
+  // `qs ipc call hyprland refresh`: re-read monitors, workspaces and windows
+  // from Hyprland. hyprland.lua's monitor-swap bind relabels workspaces with
+  // change_id, which sends no event quickshell handles, so the bar would keep
+  // counting windows on their pre-swap buttons until told.
+  IpcHandler {
+    target: "hyprland"
 
-  // App dock (bottom centre).
-  // DockWidget {}
+    function refresh(): void {
+      Hyprland.refreshMonitors();
+      Hyprland.refreshWorkspaces();
+      Hyprland.refreshToplevels();
+    }
+  }
 }
