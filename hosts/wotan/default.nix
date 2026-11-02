@@ -187,6 +187,12 @@ in {
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+  # systemd >= 256 freezes user.slice across suspend and thaws it before
+  # nvidia-resume.service has restored the GPU, so Hyprland ran for ~2 s
+  # against a suspended driver and died on wakeup (start-hyprland then came
+  # up in safe mode). Don't freeze user sessions; see AGENTS.md pitfall #15.
+  systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
+
   # Enable NVIDIA Container Toolkit so Podman can pass GPUs to containers
   # via CDI (--device nvidia.com/gpu=all).
   hardware.nvidia-container-toolkit.enable = true;
