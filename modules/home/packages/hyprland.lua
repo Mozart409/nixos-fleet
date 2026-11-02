@@ -314,10 +314,14 @@ hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
 
--- Hyprsunset temperature adjustment (+/- 500K)
-hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("hyprctl hyprsunset temperature +500"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("hyprctl hyprsunset temperature -500"))
-hl.bind(mainMod .. " + SHIFT + H", hl.dsp.exec_cmd("pkill hyprsunset; hyprsunset -i"))
+-- Hyprsunset temperature adjustment (+/- 500K). The `qs ipc call` tells the
+-- bar's HyprsunsetWidget to re-read at once; hyprsunset itself announces
+-- nothing. SHIFT+H switches the filter off over IPC rather than by replacing
+-- the daemon: the systemd unit restarts a killed hyprsunset, and a second
+-- one would fight it for the socket. mod+H / mod+B switch it back on.
+hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("hyprctl hyprsunset temperature +500 && qs ipc call hyprsunset refresh"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("hyprctl hyprsunset temperature -500 && qs ipc call hyprsunset refresh"))
+hl.bind(mainMod .. " + SHIFT + H", hl.dsp.exec_cmd("hyprctl hyprsunset identity && qs ipc call hyprsunset refresh"))
 
 -- Window grouping (tabbed layout)
 hl.bind(mainMod .. " + G", hl.dsp.group.toggle())

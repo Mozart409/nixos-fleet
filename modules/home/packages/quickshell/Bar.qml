@@ -77,6 +77,10 @@ Scope {
           scanPath: "/home/amadeus/code"
         }
 
+        HyprsunsetWidget {
+          visible: panel.isPrimary
+        }
+
         // Focused window title. Available but not wired up -- see
         // ActiveWindowWidget.qml.
         // ActiveWindowWidget { monitor: panel.hyprMonitor }
