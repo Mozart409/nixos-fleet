@@ -4,12 +4,15 @@
 # changed path once.
 #
 # Usage: pushed-files.sh < <git pre-push stdin>
-#        pushed-files.sh --save    (save git's refs, print nothing)
-#        pushed-files.sh --saved   (read the refs --save saved)
+#        pushed-files.sh --save           (save git's refs, print nothing)
+#        pushed-files.sh --exec <cmd>...  (run cmd with the saved refs' files
+#                                          as its last arguments)
 #
 # The pre-push gates run in parallel (lefthook group), and lefthook hands every
 # use_stdin job the same cached reader: two of them reading it at once would
 # split the refs between them. So one job saves them, the gates read the file.
+# --save removes the previous push's file first, so a save that fails leaves
+# none and the gates fail instead of checking an old range.
 #
 # Not lefthook's {push_files}: for a branch without an upstream (every agent
 # branch) it is `git diff HEAD origin/main`, a two-dot diff that also counts
@@ -23,10 +26,12 @@ refs_file=$(git rev-parse --git-path lefthook-push-refs)
 
 case "${1:-}" in
   --save)
-    cat >"$refs_file"
+    rm -f "$refs_file"
+    cat >"$refs_file.tmp"
+    mv "$refs_file.tmp" "$refs_file"
     exit 0
     ;;
-  --saved)
+  --exec)
     [[ -e $refs_file ]] || {
       echo "pushed-files: $refs_file missing, not a pre-push run" >&2
       exit 1
@@ -52,4 +57,10 @@ pushed_files() {
   done
 }
 
+if [[ ${1:-} == --exec ]]; then
+  files=()
+  pushed=$(pushed_files | sort -u)
+  [[ -z $pushed ]] || mapfile -t files <<<"$pushed"
+  exec "${@:2}" "${files[@]}"
+fi
 pushed_files | sort -u

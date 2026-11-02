@@ -19,12 +19,9 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 if [[ ${1:-} == --push ]]; then
-  # --saved: lefthook runs the gates in parallel, so the push-refs job saved
-  # git's refs first (its stdin cache cannot feed two jobs at once).
-  files=()
-  pushed=$(infra/scripts/pushed-files.sh --saved) || exit 1
-  [[ -z $pushed ]] || mapfile -t files <<<"$pushed"
-  set -- "${files[@]}"
+  # Rerun with the files of the refs the push-refs job saved (lefthook runs
+  # the gates in parallel, and its stdin cache cannot feed two jobs at once).
+  exec infra/scripts/pushed-files.sh --exec "${BASH_SOURCE[0]}"
 fi
 
 declare -A projects=()
