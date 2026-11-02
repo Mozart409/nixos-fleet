@@ -282,7 +282,7 @@ in {
     # hyprsunset daemon. The package ships a systemd user unit, but it is only
     # linked (never enabled/WantedBy the session), so nothing started it and the
     # `.hyprsunset.sock` was never created -> `hyprctl hyprsunset ...` (the mod+H
-    # keybind and the quickshell SysInfoWidget) failed with a socket error.
+    # keybind and the quickshell HyprsunsetWidget) failed with a socket error.
     # Managing it here wires it into graphical-session.target and applies the
     # time-based profiles from hyprsunset.conf on login.
     systemd.user.services.hyprsunset = {
@@ -304,6 +304,72 @@ in {
         # nvidia resume sigkill) hyprsunset can exit cleanly and would then
         # stay dead, taking the mod+H / mod+B binds and the bar pill with it.
         Restart = "always";
+        RestartSec = 2;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
+
+    # The session daemons below used to be hl.exec_cmd calls in hyprland.lua's
+    # hyprland.start hook: started once, never restarted, so a crash took
+    # idle-locking or the wallpaper away until the next login. As units they
+    # restart, and they start with the session because Hyprland itself imports
+    # its environment and starts hyprland-session.target (which binds
+    # graphical-session.target) on launch.
+
+    # Idle dim / screen off / lock / suspend. A dead hypridle means the screen
+    # never locks, so it restarts on any exit.
+    systemd.user.services.hypridle = {
+      Unit = {
+        Description = "hypridle idle daemon";
+        PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
+        ConditionEnvironment = "WAYLAND_DISPLAY";
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        ExecStart = "${pkgs.hypridle}/bin/hypridle";
+        Restart = "always";
+        RestartSec = 2;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
+
+    # Wallpaper daemon. ExecStartPost waits for its socket instead of the old
+    # fixed `sleep 1`, then sets a wallpaper, so a restarted daemon gets one
+    # too. next-wallpaper is installed system-wide by
+    # modules/desktop/next-wallpaper.nix.
+    systemd.user.services.awww-daemon = let
+      awww = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
+    in {
+      Unit = {
+        Description = "awww wallpaper daemon";
+        PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
+        ConditionEnvironment = "WAYLAND_DISPLAY";
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        ExecStart = "${awww}/bin/awww-daemon";
+        ExecStartPost = "${pkgs.bash}/bin/bash -c 'for _ in $(seq 50); do ${awww}/bin/awww query >/dev/null 2>&1 && break; sleep 0.1; done; /run/current-system/sw/bin/next-wallpaper --transition-type random --transition-fps 60'";
+        Restart = "always";
+        RestartSec = 2;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
+
+    # Handy (offline speech-to-text, tray app; transcripts are typed with
+    # wtype). on-failure, not always: quitting it from its tray menu is a
+    # clean exit and should stick.
+    systemd.user.services.handy = {
+      Unit = {
+        Description = "Handy speech-to-text";
+        PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
+        ConditionEnvironment = "WAYLAND_DISPLAY";
+      };
+      Service = {
+        ExecStart = "${pkgs.handy}/bin/handy";
+        Restart = "on-failure";
         RestartSec = 2;
       };
       Install.WantedBy = ["graphical-session.target"];

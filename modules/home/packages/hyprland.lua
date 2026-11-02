@@ -147,18 +147,14 @@ hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "snappy"
 ---- ENVIRONMENT VARIABLES ----
 -------------------------------
 
-hl.on("hyprland.start", function()
-    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland")
-    hl.exec_cmd("systemctl --user start hyprland-session.target")
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("sleep 1 && next-wallpaper --transition-type random --transition-fps 60")
-    -- hyprsunset runs via its systemd user service (hyprsunset.service), see
-    -- modules/home/packages/hyprland-configs.nix for why.
-    hl.exec_cmd("hypridle")
-    -- Handy (offline speech-to-text) lives in the tray; transcripts are typed with wtype.
-    hl.exec_cmd("handy")
-end)
+-- Nothing to start here. Hyprland 0.57 itself runs `systemctl --user
+-- import-environment` (WAYLAND_DISPLAY, HYPRLAND_INSTANCE_SIGNATURE, PATH, ...)
+-- plus dbus-update-activation-environment, then starts
+-- hyprland-session.target. Doing it here as well raced: hl.exec_cmd calls run
+-- in parallel, so the target could start before the import and units with
+-- ConditionEnvironment=WAYLAND_DISPLAY were skipped. The session daemons
+-- (hypridle, awww-daemon + wallpaper, handy, hyprsunset) are systemd user
+-- units in modules/home/packages/hyprland-configs.nix so they restart.
 
 ---------------------
 ---- KEYBINDINGS ----
