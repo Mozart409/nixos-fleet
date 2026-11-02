@@ -187,12 +187,6 @@ in {
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  # systemd >= 256 freezes user.slice across suspend and thaws it before
-  # nvidia-resume.service has restored the GPU, so Hyprland ran for ~2 s
-  # against a suspended driver and died on wakeup (start-hyprland then came
-  # up in safe mode). Don't freeze user sessions; see AGENTS.md pitfall #15.
-  systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
-
   # Enable NVIDIA Container Toolkit so Podman can pass GPUs to containers
   # via CDI (--device nvidia.com/gpu=all).
   hardware.nvidia-container-toolkit.enable = true;
@@ -700,6 +694,12 @@ in {
     NVD_BACKEND = "direct";
     # Electron/Chromium apps - use Wayland
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
+
+    # Hyprland >= 0.57 puts its main thread on SCHED_RR via rtkit under a
+    # 200 ms RLIMIT_RTTIME. On resume the thread spins in the NVIDIA driver
+    # past that budget and the kernel SIGKILLs it (no crash report, no
+    # coredump; start-hyprland comes back in safe mode). Stay SCHED_OTHER.
+    HYPRLAND_NO_RT = "1";
 
     # Aquamarine (Hyprland renderer) NVIDIA fixes
     # Disable forcing linear modifiers - can help with scroll lag on NVIDIA
