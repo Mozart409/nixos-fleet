@@ -14,8 +14,16 @@ import Generated
 Scope {
   id: root
 
+  // Quickshell's SystemClock. Minute precision: the bar shows HH:mm and the
+  // date, so a per-second tick only redrew both bars for nothing.
   SystemClock {
     id: clock
+    precision: SystemClock.Minutes
+  }
+
+  // CPU / memory / GPU / disk, sampled once for every screen's bar.
+  ResourceStats {
+    id: stats
   }
 
   Variants {
@@ -72,18 +80,24 @@ Scope {
           monitor: panel.hyprMonitor
         }
 
-        GitStatusWidget {
-          visible: panel.isPrimary
-          scanPath: "/home/amadeus/code"
+        // Primary-only pills are created on the primary bar only. Hiding them
+        // with `visible` left the copy on every other screen running its
+        // polls (a zinc_oxide scan of ~/code every minute) for nothing.
+        Loader {
+          active: panel.isPrimary
+          visible: item?.visible ?? false
+
+          sourceComponent: GitStatusWidget {
+            scanPath: "/home/amadeus/code"
+          }
         }
 
-        HyprsunsetWidget {
-          visible: panel.isPrimary
-        }
+        Loader {
+          active: panel.isPrimary
+          visible: item?.visible ?? false
 
-        // Focused window title. Available but not wired up -- see
-        // ActiveWindowWidget.qml.
-        // ActiveWindowWidget { monitor: panel.hyprMonitor }
+          sourceComponent: HyprsunsetWidget {}
+        }
       }
 
       // Centre ----------------------------------------------------------
@@ -114,8 +128,7 @@ Scope {
         // SystemTrayWidget {}
 
         // Bluetooth and audio share a pill so the bar doesn't read as a row of
-        // disconnected numbers. Nothing in the bar reports network state now
-        // -- NetworkWidget.qml is still here if that turns out to be missed.
+        // disconnected numbers. Nothing in the bar reports network state.
         ModuleGroup {
           BluetoothWidget {
             filled: false
@@ -126,42 +139,32 @@ Scope {
           }
         }
 
-        // Resource cluster. Each entry polls its own command on its own
-        // cadence -- disk barely moves, GPU does.
+        // Resource cluster, drawn from the shared ResourceStats readings.
         ModuleGroup {
           itemSpacing: 6
 
           ResourceWidget {
             icon: "󰻠"
-            interval: 2000
-            counterMode: true
-            command: "awk '/^cpu /{idle=$5+$6; total=0; for (i=2; i<=NF; i++) total+=$i; print idle, total; exit}' /proc/stat"
-            // hwmon numbers are handed out in probe order and move between
-            // boots, so find the AMD CPU sensor by name rather than by index.
-            subCommand: "for h in /sys/class/hwmon/*; do [ \"$(cat $h/name 2>/dev/null)\" = k10temp ] && awk '{printf \"%d\", $1/1000}' \"$h/temp1_input\" && break; done"
+            reading: stats.cpu
             subUnit: "°"
           }
 
           ResourceWidget {
             icon: ""
-            interval: 5000
-            command: "free | awk '/Mem:/ {printf \"%.0f\", $3/$2 * 100}'"
+            reading: stats.mem
           }
 
           ResourceWidget {
             icon: "󰢮"
-            interval: 2000
-            command: "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | head -1"
-            subCommand: "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | head -1"
+            reading: stats.gpu
             subUnit: "°"
           }
 
           ResourceWidget {
             icon: "󰋊"
-            interval: 60000
+            reading: stats.diskFree
             graph: false
             higherIsWorse: false
-            command: "df -P / | awk 'NR==2 {gsub(/%/, \"\", $5); printf \"%d\", 100 - $5}'"
           }
         }
 

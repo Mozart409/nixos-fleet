@@ -40,14 +40,13 @@ BarModule {
       return;
     const sign = wheel.angleDelta.y > 0 ? "+" : "-";
     Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", sign + root.step]);
-    refresh.restart();
+    reread.restart();
   }
 
-  // The bar has one of these per screen but only the primary one is visible;
-  // only that one may own the IPC target.
+  // Bar.qml creates this on the primary screen only, so there is exactly one
+  // handler for the target.
   IpcHandler {
     target: "hyprsunset"
-    enabled: root.visible
 
     function refresh(): void {
       readProc.running = true;
@@ -57,7 +56,7 @@ BarModule {
   Process {
     id: readProc
     command: ["sh", "-c", "hyprctl hyprsunset identity get; hyprctl hyprsunset temperature"]
-    running: root.visible
+    running: true
 
     stdout: StdioCollector {
       onStreamFinished: {
@@ -75,12 +74,12 @@ BarModule {
     id: restartProc
     command: ["systemctl", "--user", "restart", "hyprsunset.service"]
     running: false
-    onExited: refresh.restart()
+    onExited: reread.restart()
   }
 
   Timer {
     interval: 60000
-    running: root.visible
+    running: true
     repeat: true
     onTriggered: readProc.running = true
   }
@@ -88,7 +87,7 @@ BarModule {
   // One-shot re-read shortly after a scroll or restart, so the number follows
   // the change without waiting for the next poll.
   Timer {
-    id: refresh
+    id: reread
     interval: 300
     onTriggered: readProc.running = true
   }

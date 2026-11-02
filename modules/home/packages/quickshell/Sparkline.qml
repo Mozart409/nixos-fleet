@@ -1,7 +1,8 @@
 import QtQuick
 
-// A tiny filled history graph. Push a fresh sample in with `push(value)` and
-// it scrolls left, keeping the last `samples` points.
+// A tiny filled history graph. Push a fresh sample in with `push(value)`, or
+// bind `values` to a history array; it scrolls left, keeping the last
+// `samples` points.
 //
 // The vertical scale auto-fits the window's own peak rather than pinning to
 // `maxValue`, because a machine idling at 8% would otherwise draw a flat line
@@ -27,8 +28,10 @@ Item {
     while (next.length > samples)
       next.shift();
     values = next;
-    canvas.requestPaint();
   }
+
+  // `values` may also be bound to a history kept elsewhere (ResourceStats).
+  onValuesChanged: canvas.requestPaint()
 
   // Faint plot area, so the graph reads as a graph even while it is flat.
   Rectangle {
