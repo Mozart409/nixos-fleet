@@ -90,14 +90,14 @@
       update_check_interval = 0;
       background_opacity = "1.0";
 
-      # Open in ~/code via a session file. kitty has no "working_directory"
+      # Open in ~/code/yggdrasil via a session file. kitty has no "working_directory"
       # key (that is an Alacritty/Ghostty option and is silently ignored).
       startup_session = "${config.xdg.configHome}/kitty/startup.session";
     };
   };
 
   xdg.configFile."kitty/startup.session".text = ''
-    cd ${config.home.homeDirectory}/code
+    cd ${config.home.homeDirectory}/code/yggdrasil
     launch
   '';
 

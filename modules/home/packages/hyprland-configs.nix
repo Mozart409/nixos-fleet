@@ -366,7 +366,8 @@ in {
 
     # Handy (offline speech-to-text, tray app; transcripts are typed with
     # wtype). on-failure, not always: quitting it from its tray menu is a
-    # clean exit and should stick.
+    # clean exit and should stick. Not started with the session: start it
+    # with `systemctl --user start handy` when needed.
     systemd.user.services.handy = {
       Unit = {
         Description = "Handy speech-to-text";
@@ -379,7 +380,6 @@ in {
         Restart = "on-failure";
         RestartSec = 2;
       };
-      Install.WantedBy = ["graphical-session.target"];
     };
 
     # Clipboard history store (wl-paste --watch cliphist store); picker is the

@@ -153,8 +153,9 @@ hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "snappy"
 -- hyprland-session.target. Doing it here as well raced: hl.exec_cmd calls run
 -- in parallel, so the target could start before the import and units with
 -- ConditionEnvironment=WAYLAND_DISPLAY were skipped. The session daemons
--- (hypridle, awww-daemon + wallpaper, handy, hyprsunset) are systemd user
--- units in modules/home/packages/hyprland-configs.nix so they restart.
+-- (hypridle, awww-daemon + wallpaper, hyprsunset) are systemd user units in
+-- modules/home/packages/hyprland-configs.nix so they restart. handy has a
+-- unit there too but is not started with the session.
 
 ---------------------
 ---- KEYBINDINGS ----
