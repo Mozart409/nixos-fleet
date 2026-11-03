@@ -52,7 +52,6 @@
 
         # Printer/scanner tools
         simple-scan
-        xsane
 
         # Camera tools
         cheese

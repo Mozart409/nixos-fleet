@@ -25,7 +25,6 @@
     ../../modules/home/packages/hyprland-configs.nix
     ../../modules/home/packages/images.nix
     ../../modules/home/packages/kubernetes.nix
-    ../../modules/home/packages/onlyoffice.nix
     ../../modules/home/packages/opencode.nix
     ../../modules/home/packages/podman.nix
     ../../modules/home/packages/quickshell.nix
