@@ -136,6 +136,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     homepage = "https://opencode.ai";
     license = lib.licenses.mit;
     mainProgram = "opencode";
-    platforms = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
+    platforms = ["x86_64-linux" "aarch64-linux"];
   };
 })
