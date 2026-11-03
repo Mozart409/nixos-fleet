@@ -41,6 +41,13 @@
     exit 2
   '';
 
+  # Points every session at the delegate-implementation skill below, so the
+  # model loads it for implementation work instead of relying on the
+  # description match alone.
+  delegateHook = pkgs.writeShellScript "claude-delegate-hint" ''
+    echo 'Standing instruction: before changing any code (Nix files included, any language), config or docs beyond a one- or two-line edit, load the `delegate-implementation` skill and follow it (Haiku/Sonnet subagents implement without running tests/lints/fmt; you run the final fmt, lint and test pass).'
+  '';
+
   # Settings shared with the agents host's zones (modules/claude-settings-common.nix).
   common = import ../../claude-settings-common.nix;
 
@@ -170,7 +177,18 @@
       common.env
       // {EDITOR = "nvim";}
       // signingEnv;
-    hooks.SessionStart = memory.claudeHooks.SessionStart;
+    hooks.SessionStart =
+      memory.claudeHooks.SessionStart
+      ++ [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "${delegateHook}";
+            }
+          ];
+        }
+      ];
     hooks.PreToolUse = [
       {
         matcher = "Bash";
@@ -261,4 +279,5 @@ in {
     force = true;
   };
   home.file.".claude/skills/commits/SKILL.md".text = commitSkill;
+  home.file.".claude/skills/delegate-implementation/SKILL.md".source = ./claude-skills/delegate-implementation/SKILL.md;
 }
