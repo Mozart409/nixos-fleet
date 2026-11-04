@@ -98,6 +98,8 @@
     enable = true;
     nix-direnv.enable = true;
     enableZshIntegration = true;
+    # Keeps the long `export +VAR ...` list out of the prompt on each load.
+    config.global.hide_env_diff = true;
   };
 
   programs.zsh = {
