@@ -85,7 +85,7 @@ Scope {
         // polls (a zinc_oxide scan of ~/code every minute) for nothing.
         Loader {
           active: panel.isPrimary
-          visible: item?.visible ?? false
+          visible: !!item && item.available && item.dirtyCount >= 0
 
           sourceComponent: GitStatusWidget {
             scanPath: "/home/amadeus/code"
@@ -94,7 +94,7 @@ Scope {
 
         Loader {
           active: panel.isPrimary
-          visible: item?.visible ?? false
+          visible: active
 
           sourceComponent: HyprsunsetWidget {}
         }
