@@ -3,6 +3,7 @@
   inputs,
   lib,
   pkgs,
+  username,
   ...
 }: let
   cfg = config.wotan.minecraft;
@@ -11,6 +12,9 @@
   # sets in config/voicechat/voicechat-server.properties.
   gamePort = 25565;
   voiceChatPort = 24454;
+
+  # nix-minecraft's default socket for the server below.
+  consoleSocket = "/run/minecraft/automation.sock";
 
   # The pack pins its loader in modrinth.index.json: keep the NeoForge version
   # in `package` below in step with it when bumping.
@@ -58,8 +62,25 @@ in {
         # Copied, not symlinked: mods rewrite their configs at startup. The copy
         # is reset from the pack on every start.
         files.config = "${modpack}/config";
+
+        # The tmux config's plugins are bash scripts that call tmux.
+        path = [pkgs.bash pkgs.tmux];
+        # Loads the user's tmux config, from the store because the unit cannot
+        # read /home. Sourced once the session exists, so the config's
+        # session-created hook does not type `nvim .` into the server console.
+        # A bad config must not fail the unit and take the server down.
+        extraStartPost = ''
+          ${pkgs.tmux}/bin/tmux -S ${consoleSocket} source-file ${config.home-manager.users.${username}.xdg.configFile."tmux/tmux.conf".source} \
+            || echo "could not load the tmux config" >&2
+        '';
       };
     };
+
+    # The tmux socket is only accessible to this group.
+    homelab.users.${username}.extraGroups = ["minecraft"];
+
+    # Clears TMUX so that it also attaches from inside another tmux session.
+    home-manager.users.${username}.home.shellAliases.mc = "env -u TMUX tmux -S ${consoleSocket} attach";
 
     # LAN only. Not openFirewall, which would also expose the server on the
     # tailscale and nebula interfaces.

@@ -6,8 +6,8 @@ import Quickshell.Wayland
 import Generated
 
 // On/off switches for a few system units -- on wotan the on-demand AI
-// services (llama.cpp, ComfyUI, SillyTavern). Built like the Home Assistant
-// panel: same card, same rows, same switch.
+// services (llama.cpp, ComfyUI, SillyTavern) and the Minecraft server. Built
+// like the Home Assistant panel: same card, same rows, same switch.
 //
 // Everything goes through the `quickshell-units` script from quickshell.nix.
 // The unit list lives in Nix (desktop.quickshell.serviceToggles.units); the
@@ -259,7 +259,7 @@ Variants {
           spacing: 8
 
           Text {
-            text: "󰚩"
+            text: "󰒓"
             color: Theme.accent
             font.family: Theme.iconFont
             font.pixelSize: Theme.deskSize + 3

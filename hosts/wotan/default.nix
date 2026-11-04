@@ -14,11 +14,12 @@
   # pi's API key (secrets/pi-env.age), gated the same way.
   piEnv = builtins.pathExists ../../secrets/pi-env.age;
 
-  # The AI units the quickshell panel can switch on and off. One list for both
-  # halves: home-manager renders the panel from it
-  # (desktop.quickshell.serviceToggles) and the polkit rule below lets the user
-  # start/stop/restart exactly these units. Adding a unit here does both.
-  aiServiceToggles = [
+  # The units the quickshell panel can switch on and off: the on-demand AI
+  # services and the Minecraft server. One list for both halves: home-manager
+  # renders the panel from it (desktop.quickshell.serviceToggles) and the polkit
+  # rule below lets the user start/stop/restart exactly these units. Adding a
+  # unit here does both.
+  serviceToggles = [
     {
       unit = "llama-cpp.service";
       label = "llama.cpp";
@@ -35,6 +36,11 @@
       unit = "sillytavern.service";
       label = "SillyTavern";
       note = "chat UI";
+    }
+    {
+      unit = "minecraft-server-automation.service";
+      label = "Minecraft";
+      note = "~6 GiB RAM";
     }
   ];
 in {
@@ -447,7 +453,7 @@ in {
     configFile = "${config.services.sillytavern.package}/lib/node_modules/sillytavern/default/config.yaml";
   };
   systemd.services.sillytavern = {
-    # Not started at boot: start/stop via the Quickshell AI toggles or manually.
+    # Not started at boot: start/stop via the Quickshell service toggles or manually.
     wantedBy = lib.mkForce [];
     # config.yaml keys can be overridden by SILLYTAVERN_<KEY> env vars
     # (src/util.js keyToEnv). No browser to open from a system service.
@@ -541,13 +547,12 @@ in {
   # the regular CUDA kernels instead.
   systemd.services.comfyui.environment.TORCH_DISABLE_NATIVE_JIT = "1";
 
-  # Quickshell toggles for the AI units (aiServiceToggles at the top):
+  # Quickshell toggles for the units in serviceToggles at the top:
   # ServiceTogglesWidget.qml, bottom-left on an empty workspace, driven by the
   # quickshell-units script (modules/home/packages/quickshell.nix).
   home-manager.users.${username}.desktop.quickshell.serviceToggles = {
     enable = true;
-    title = "AI";
-    units = aiServiceToggles;
+    units = serviceToggles;
   };
   # ...and the polkit rule that makes those clicks work without sudo or a
   # password prompt: the user may start, stop and restart exactly these units,
@@ -557,13 +562,13 @@ in {
   # rules in modules/desktop/user-experience.nix (security.polkit.enable is set
   # in modules/desktop/default.nix).
   security.polkit.extraConfig = ''
-    // aiServiceToggles (hosts/wotan/default.nix): quickshell service toggles
+    // serviceToggles (hosts/wotan/default.nix): quickshell service toggles
     polkit.addRule(function(action, subject) {
       if (action.id != "org.freedesktop.systemd1.manage-units" ||
           subject.user != ${builtins.toJSON username}) {
         return polkit.Result.NOT_HANDLED;
       }
-      var units = ${builtins.toJSON (map (t: t.unit) aiServiceToggles)};
+      var units = ${builtins.toJSON (map (t: t.unit) serviceToggles)};
       var verbs = ["start", "stop", "restart"];
       if (units.indexOf(action.lookup("unit")) >= 0 &&
           verbs.indexOf(action.lookup("verb")) >= 0) {

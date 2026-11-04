@@ -122,13 +122,13 @@
   '';
 
   # Backs ServiceTogglesWidget.qml: state and start/stop for a short, declared
-  # list of *system* units (wotan: the on-demand AI services). It runs as the
-  # user; the privilege comes from a polkit rule the host generates from the
-  # same list (hosts/wotan/default.nix), not from sudo. `--no-ask-password`
-  # keeps it from ever popping the polkit agent: a unit the rule does not
-  # cover fails with "Access denied" instead of prompting. `set` refuses
-  # undeclared units on top of that, so the panel cannot drive anything else
-  # even on a host with a looser rule.
+  # list of *system* units (wotan: the on-demand AI services and the Minecraft
+  # server). It runs as the user; the privilege comes from a polkit rule the
+  # host generates from the same list (hosts/wotan/default.nix), not from sudo.
+  # `--no-ask-password` keeps it from ever popping the polkit agent: a unit the
+  # rule does not cover fails with "Access denied" instead of prompting. `set`
+  # refuses undeclared units on top of that, so the panel cannot drive anything
+  # else even on a host with a looser rule.
   #
   #   quickshell-units states        -> {"units":[{unit,label,note,gpu,load,active,sub}]} | {"error":".."}
   #   quickshell-units set <unit> on|off -> systemctl start|stop --no-block
