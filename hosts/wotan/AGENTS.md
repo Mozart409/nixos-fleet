@@ -381,6 +381,16 @@ llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[am
 - **Models:** `/var/lib/comfyui-models/<folder>` (`checkpoints`, `diffusion_models`, `text_encoders`, `vae`, `loras`, `clip_vision`, `controlnet`, `upscale_models`, `embeddings`), owned by `amadeus` via tmpfiles, so downloads need no sudo; wired in with a generated `--extra-model-paths-config`. Add a folder there and in the YAML for other model types. Files ComfyUI writes (outputs, inputs, custom nodes, `user/comfyui.db`) live in its state dir `/var/lib/comfyui` (0700 `comfyui`).
 - **Custom nodes:** ComfyUI-Manager is not enabled; it pip-installs node dependencies, which cannot land in the Nix Python env. Add Python deps through `services.comfyui.extraPackages` instead.
 
+## ⛏️ Minecraft Server
+
+`wotan.minecraft.enable` (`modules/wotan/minecraft.nix`, using the `nix-minecraft` flake input) runs the [Automation](https://modrinth.com/modpack/automation) modpack on NeoForge 1.21.1 as **`minecraft-server-automation.service`**, started at boot. Players install the same pack version on their clients.
+
+- **Network:** LAN only, by firewall rules on `enp38s0`: TCP 25565 (game) and UDP 24454 (Simple Voice Chat). Do not set `openFirewall`, which also opens the tailscale and nebula interfaces.
+- **Data:** the world and other mutable state are in `/srv/minecraft/automation`. `mods` is a read-only symlink into the store, and `config` is copied from the pack on every start, so edits to it there are lost. Change config declaratively.
+- **Console:** `sudo tmux -S /run/minecraft/automation.sock attach` (detach with `Ctrl-b d`).
+- **Update the pack:** change `version`, `url` and `packHash` together, and keep the NeoForge version in `package` equal to the one in the pack's `modrinth.index.json`.
+- **Client-only mods:** the server excludes Controlify (`serverMods` in the module), because the pack marks it as required on the server and it crashes mod loading there. After a pack update, boot the server once and check for other mods that fail with `invalid dist DEDICATED_SERVER`.
+
 ## 🎛️ AI Service Toggles (Quickshell + polkit)
 
 A Quickshell panel switches `llama-cpp`, `comfyui` and `sillytavern` on and off without sudo. It is built like the Home Assistant light panel: same card, rows and switches, bottom-left on the primary screen, visible on an empty workspace (`WlrLayer.Bottom`).

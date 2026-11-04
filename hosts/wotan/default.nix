@@ -110,6 +110,9 @@ in {
   # Desktop environment configuration
   desktop.enable = true;
 
+  # Automation modpack Minecraft server, LAN only (modules/wotan/minecraft.nix)
+  wotan.minecraft.enable = true;
+
   # Security hardening
   security.hardening = {
     enable = true;
@@ -195,6 +198,7 @@ in {
   environment.systemPackages = with pkgs; [
     steam
     heroic
+    prismlauncher
     mangohud
     bcachefs-tools
   ];

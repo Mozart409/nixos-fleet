@@ -10,6 +10,7 @@
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
   #   wotan.agentUser.enable          -> agent-user.nix
+  #   wotan.minecraft.enable          -> minecraft.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
@@ -18,6 +19,7 @@
     ./claude-code.nix
     ./security.nix
     ./moza.nix
+    ./minecraft.nix
     ./opencode-serve.nix
     ../desktop/default.nix
     ../desktop/hyprland.nix
