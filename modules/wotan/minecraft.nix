@@ -48,6 +48,7 @@ in {
 
       servers.automation = {
         enable = true;
+        autoStart = false;
         # Minecraft 1.21.1 targets Java 21; the package defaults to a newer one.
         package = pkgs.neoforgeServers.neoforge-1_21_1-21_1_265.override {
           jre_headless = pkgs.jdk21_headless;
