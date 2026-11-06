@@ -707,9 +707,9 @@ in {
         client_id = "dba3e94b-d22d-444d-82ce-723e433e3d67";
         client_secret = "$__file{${config.age.secrets.grafana-oidc-secret.path}}";
         scopes = "openid email profile groups";
-        auth_url = "https://pocketid.dropbear-butterfly.ts.net/authorize";
-        token_url = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/token";
-        api_url = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/userinfo";
+        auth_url = "https://pocketid.homelab.internal/authorize";
+        token_url = "https://pocketid.homelab.internal/api/oidc/token";
+        api_url = "https://pocketid.homelab.internal/api/oidc/userinfo";
         use_pkce = true;
         role_attribute_path = "contains(groups[*], 'admins') && 'Admin' || 'Viewer'";
       };

@@ -12,7 +12,7 @@
 
   # Pocket ID, the same issuer as forgejo / grafana / romm. The app discovers
   # its endpoints from <issuer>/.well-known/openid-configuration at startup.
-  oidcIssuer = "https://pocketid.dropbear-butterfly.ts.net";
+  oidcIssuer = "https://pocketid.homelab.internal";
 
   # Postgres is the `countdown` database on the database host. It is addressed
   # by name because the server cert is issued for database.homelab.internal and
@@ -43,10 +43,11 @@ in {
   systemd.services.countdown = {
     description = "countdown (offline-first countdown PWA)";
     wantedBy = ["multi-user.target"];
-    # OIDC discovery runs at startup and exits if it fails, so wait for the
-    # network and the tailnet name of the issuer, and retry if it still loses.
+    # OIDC discovery runs at startup against the Pocket ID vhost on this same
+    # host and exits if it fails, so it waits for the network, and Restart
+    # retries if it still loses.
     wants = ["network-online.target"];
-    after = ["network-online.target" "tailscaled.service"];
+    after = ["network-online.target"];
     # A re-encrypted secret lands at the same /run/agenix path and changes
     # nothing in this unit; the .file store paths do.
     restartTriggers = [
@@ -57,6 +58,8 @@ in {
       BIND_ADDR = "127.0.0.1:${toString port}";
       PUBLIC_URL = "https://${host}";
       OIDC_ISSUER_URL = oidcIssuer;
+      # The issuer has a step-ca cert, not a public one.
+      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
       # Must match the callback registered in Pocket ID.
       OIDC_REDIRECT_URL = "https://${host}/auth/callback";
       VAPID_SUBJECT = "https://${host}";
