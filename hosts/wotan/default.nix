@@ -285,6 +285,8 @@ in {
     user = config.wotan.agentUser.user;
     group = config.wotan.agentUser.user;
     homeBindPaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
+    # Every shell command opencode runs goes through the bubblewrap wrapper.
+    shell = config.wotan.agentUser.opencodeShell;
     # password = "";  # Set for auth; empty = no basic-auth.
     # The server process (not the attaching shell) connects to MCP servers, so
     # secrets referenced via {env:VAR} in opencode.json must be in the

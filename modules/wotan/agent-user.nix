@@ -65,6 +65,51 @@
     ' agent-run "$@"
   '';
 
+  # Home-directory secrets opencode's shell commands must not read; mirrors the
+  # home-directory Read(...) denies in modules/claude-deny-core.nix.
+  hiddenPaths = map (p: "${cfg.home}/${p}") [
+    ".ssh"
+    ".gnupg"
+    ".claude/.credentials.json"
+    ".local/share/opencode/auth.json"
+    ".config/sops/age"
+    ".config/age"
+  ];
+
+  # opencode runs every shell command as `$SHELL -c`, so this is its SHELL. It
+  # confines shell commands only: opencode's read/edit tools and MCP stay in
+  # the server process. Writes are limited to codeDir, ~/.cache and /tmp, and
+  # the secret files above are masked. There is no fresh /proc, as
+  # ProtectKernelTunables masks it, so no PID namespace: the server's
+  # environment stays readable through /proc. Only paths that exist are
+  # masked, as bwrap would create the missing ones in the real filesystem.
+  opencodeShell = pkgs.writeShellScript "opencode-shell" ''
+    set -eu
+    mask=()
+    for p in ${lib.escapeShellArgs hiddenPaths}; do
+      if [ -d "$p" ]; then
+        mask+=(--tmpfs "$p")
+      elif [ -e "$p" ]; then
+        mask+=(--ro-bind /dev/null "$p")
+      fi
+    done
+    if [ -n "''${CREDENTIALS_DIRECTORY:-}" ]; then
+      mask+=(--tmpfs "$CREDENTIALS_DIRECTORY")
+    fi
+    ${pkgs.coreutils}/bin/mkdir -p ${cfg.home}/.cache
+    exec ${pkgs.bubblewrap}/bin/bwrap \
+      --ro-bind / / \
+      --dev /dev \
+      --ro-bind /proc /proc \
+      --bind ${cfg.codeDir} ${cfg.codeDir} \
+      --bind ${cfg.home}/.cache ${cfg.home}/.cache \
+      --bind /tmp /tmp \
+      "''${mask[@]}" \
+      --setenv CARGO_HOME ${cfg.home}/.cache/cargo \
+      --die-with-parent \
+      -- ${pkgs.bashInteractive}/bin/bash "$@"
+  '';
+
   credentialArgs =
     lib.mapAttrsToList (name: path: "--property=LoadCredential=${name}:${path}") cfg.credentials;
 
@@ -94,6 +139,7 @@
     extra=()
     if [ "$1" = opencode ]; then
       extra+=(--property=InaccessiblePaths=-${cfg.home}/.claude/.credentials.json)
+      extra+=(--setenv=SHELL=${opencodeShell})
       ${lib.optionalString (cfg.serverPasswordFile != null) ''
       if [ "''${2:-}" = --server ]; then
         extra+=(--property=LoadCredential=opencode-server-password:${cfg.serverPasswordFile})
@@ -200,6 +246,13 @@ in {
       readOnly = true;
       default = agentRun;
       description = "The agent-run launcher.";
+    };
+
+    opencodeShell = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      default = "${opencodeShell}";
+      description = "The bubblewrap shell wrapper; use it as services.opencode-serve.shell.";
     };
   };
 

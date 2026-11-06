@@ -7,12 +7,40 @@
   # Stand-ins for the harnesses. `claude` runs its arguments, so the test can
   # probe the sandbox from inside an agent-run session.
   fakeClaude = pkgs.writeShellScriptBin "claude" ''exec "$@"'';
-  # `opencode serve` records what the server's sandbox shows, then idles. Any
-  # other call runs in an agent-run session and prints what that session gets.
+  # Run through opencode's $SHELL (the bubblewrap wrapper): one labelled
+  # `name=value` line per check, so a failing command does not stop the rest.
+  # $1 tags the files it writes.
+  shellProbe = pkgs.writeShellScript "shell-probe" ''
+    tag="$1"
+    if echo wrapped > "/home/amadeus/code/probe-$tag" 2>/dev/null; then echo code-write=ok; else echo code-write=fail; fi
+    if echo wrapped > "/tmp/probe-$tag" 2>/dev/null; then echo tmp-write=ok; else echo tmp-write=fail; fi
+    if echo wrapped > "/home/agent/.cache/probe-$tag" 2>/dev/null; then echo cache-write=ok; else echo cache-write=fail; fi
+    if echo wrapped > "/home/agent/probe-$tag" 2>/dev/null; then echo home-write=ok; else echo home-write=fail; fi
+    echo "ssh-cat=$(${pkgs.coreutils}/bin/cat /home/agent/.ssh/id_probe 2>&1 || true)"
+    echo "auth-cat=$(${pkgs.coreutils}/bin/cat /home/agent/.local/share/opencode/auth.json 2>&1 || true)"
+    echo "sign-keys=$(SSH_AUTH_SOCK=/run/opencode-signing/agent.sock ${pkgs.openssh}/bin/ssh-add -L 2>&1 || true)"
+    if ${pkgs.nix}/bin/nix-store -q --hash /run/current-system >/dev/null 2>&1; then echo nix-daemon=ok; else echo nix-daemon=fail; fi
+    echo "cargo-home=$CARGO_HOME"
+    echo "cred=$(${pkgs.coreutils}/bin/cat "''${CREDENTIALS_DIRECTORY:-/nonexistent}"/test 2>&1 || true)"
+  '';
+  # `opencode serve` records what the server's sandbox shows, then idles; once
+  # ~/run-shell-probe exists (~/code is only set up later by the test) it also
+  # runs the probe through $SHELL. Any other call runs in an agent-run session
+  # and prints what that session gets; `shell-probe` runs its arguments through
+  # $SHELL, as opencode's shell tool does.
   fakeOpencode = pkgs.writeShellScriptBin "opencode" ''
     if [ "''${1:-}" = serve ]; then
       { id -un; ls -A /home/amadeus; } > "$HOME/serve-probe"
+      (
+        while [ ! -e "$HOME/run-shell-probe" ]; do sleep 1; done
+        "$SHELL" -c "${shellProbe} serve" > "$HOME/serve-shell-probe.tmp" 2>&1
+        mv "$HOME/serve-shell-probe.tmp" "$HOME/serve-shell-probe"
+      ) &
       exec sleep infinity
+    fi
+    if [ "''${1:-}" = shell-probe ]; then
+      shift
+      exec "$SHELL" -c "$*"
     fi
     echo "user=$(id -un) password=''${OPENCODE_SERVER_PASSWORD:-none}"
     # InaccessiblePaths leaves an unreadable file in place, so test for -r.
@@ -23,7 +51,7 @@ in
   pkgs.testers.runNixOSTest {
     name = "agent-user";
 
-    nodes.machine = {
+    nodes.machine = {config, ...}: {
       imports = [
         ../../modules/wotan/agent-user.nix
         ../../modules/wotan/opencode-serve.nix
@@ -66,6 +94,7 @@ in
         group = "agent";
         homeBindPaths = ["/home/amadeus/code" "/home/agent"];
         readWritePaths = ["/home/amadeus/code" "/home/agent"];
+        shell = config.wotan.agentUser.opencodeShell;
         signing = {
           keyFile = "/home/amadeus/.ssh/id_ed25519_signing";
           publicKey = "ssh-ed25519 unused";
@@ -162,6 +191,40 @@ in
           assert agent("sh -c 'echo ''${OPENCODE_SERVER_PASSWORD:-none}'") == "none"
           # Claude's login stays visible to claude sessions, not to opencode's.
           agent("test -r /home/agent/.claude/.credentials.json")
+
+      with subtest("opencode's shell commands run in bubblewrap"):
+          machine.succeed("install -d -o agent -g agent /home/agent/.ssh /home/agent/.local /home/agent/.local/share /home/agent/.local/share/opencode")
+          machine.succeed("install -o agent -g agent -m 0600 /dev/null /home/agent/.ssh/id_probe")
+          machine.succeed("install -o agent -g agent -m 0600 /dev/null /home/agent/.local/share/opencode/auth.json")
+          machine.succeed("echo probe-secret | tee /home/agent/.ssh/id_probe /home/agent/.local/share/opencode/auth.json")
+          machine.wait_for_unit("opencode-serve.service")
+          machine.succeed("runuser -u agent -- touch /home/agent/run-shell-probe")
+          machine.wait_for_file("/home/agent/serve-shell-probe")
+          serve_out = machine.succeed("cat /home/agent/serve-shell-probe")
+          run_out = run("opencode shell-probe ${shellProbe} run")
+
+          def parse(out):
+              return dict(l.split("=", 1) for l in out.splitlines() if "=" in l)
+
+          for tag, out in [("run", run_out), ("serve", serve_out)]:
+              res = parse(out)
+              assert res.get("code-write") == "ok", (tag, out)
+              machine.succeed(f"grep -qx wrapped /home/amadeus/code/probe-{tag}")
+              assert res.get("tmp-write") == "ok", (tag, out)
+              assert res.get("cache-write") == "ok", (tag, out)
+              assert res.get("home-write") == "fail", (tag, out)
+              machine.fail(f"test -e /home/agent/probe-{tag}")
+              assert "probe-secret" not in res.get("ssh-cat", "probe-secret"), (tag, out)
+              assert "probe-secret" not in res.get("auth-cat", "probe-secret"), (tag, out)
+              assert pub in res.get("sign-keys", ""), (tag, out)
+              assert res.get("nix-daemon") == "ok", (tag, out)
+              assert res.get("cargo-home") == "/home/agent/.cache/cargo", (tag, out)
+          assert "s3cret" not in parse(run_out).get("cred", "s3cret"), run_out
+          # The masks are per command: the real files are untouched.
+          machine.succeed("grep -qx probe-secret /home/agent/.ssh/id_probe")
+          machine.succeed("grep -qx probe-secret /home/agent/.local/share/opencode/auth.json")
+          # Claude and pi sessions keep their own shell.
+          assert "opencode-shell" not in agent("sh -c 'echo shell=$SHELL'")
 
       with subtest("private networks are closed, loopback is open"):
           machine.succeed("systemd-run --unit=tcp-probe ${pkgs.socat}/bin/socat TCP-LISTEN:7777,fork,reuseaddr SYSTEM:true")

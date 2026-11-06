@@ -223,6 +223,12 @@ in {
       };
     };
 
+    shell = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Value of SHELL for the server, which runs every shell command through it.";
+    };
+
     inaccessiblePaths = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
@@ -272,6 +278,7 @@ in {
             PATH = lib.mkForce (lib.concatStringsSep ":" cfg.path);
             EDITOR = "nvim";
           }
+          // lib.optionalAttrs (cfg.shell != null) {SHELL = cfg.shell;}
           // lib.optionalAttrs signingEnabled {
             # Only the signing agent: no login keys, so no SSH push either.
             SSH_AUTH_SOCK = signingSocket;

@@ -75,9 +75,16 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   same floor. A shell command on no list prompts in opencode, which has no
   classifier like Claude's auto mode, and is rejected in `opencode run`. The
   `deny-floor` plugin enforces the deny list again, because a project's
-  `opencode.json` can override global rules but not a global plugin. opencode has no
-  equivalent of Claude's bubblewrap Bash sandbox or its network allowlist; for it
-  the unit sandbox is the only OS-level boundary.
+  `opencode.json` can override global rules but not a global plugin. opencode's
+  shell commands run through a bubblewrap wrapper set as `$SHELL`
+  (`opencodeShell` in `modules/wotan/agent-user.nix`), which limits writes to
+  `~/code`, `~/.cache` and `/tmp` and hides the home-directory secret files. It
+  has no PID namespace (ProtectKernelTunables blocks a fresh `/proc`), so
+  commands can still read the server's environment through `/proc`. It does not
+  cover opencode's read/edit tools, MCP or plugins, and there is no network
+  allowlist, so for those the unit sandbox is the OS-level boundary. A tool that
+  writes elsewhere under the agent's home fails there with a read-only error; add
+  its path to the wrapper.
 - **State lives in `/home/agent`:** `~/.claude`, `~/.claude.json`,
   `~/.config/opencode`, `~/.local/share/opencode`. A Claude permission rule for
   a file in the repo needs the absolute form (`Read(//home/amadeus/code/…)`):
