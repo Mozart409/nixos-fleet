@@ -19,6 +19,7 @@ in {
     # apply`. See todo/dns-ssd-xfs-migration.md.
     ../../modules/disko-xfs.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/caddy-http3.nix
   ];
@@ -26,6 +27,13 @@ in {
   networking.hostName = "homelab-dns";
 
   networking.nameservers = ["127.0.0.1" "192.168.2.1"]; # Override: DNS server uses localhost
+
+  homelab.nebula = {
+    enable = true;
+    node = "dns";
+    allowedTCPPorts = [22 53 443];
+    allowedUDPPorts = [53];
+  };
 
   # Unbound DNS resolver with systemd integration
   services.unbound = {
@@ -48,7 +56,10 @@ in {
           # split-DNS lookups from remote clients aren't silently dropped.
           "100.64.0.0/10 allow"
           "fd7a:115c:a1e0::/48 allow"
+          # Clients on the mozart409 Nebula overlay (see the view below).
+          "172.16.20.0/24 allow"
         ];
+        access-control-view = ["172.16.20.0/24 overlay"];
 
         # Performance and caching settings
         num-threads = 2;
@@ -104,6 +115,21 @@ in {
         local-data = hosts.dns.localData;
         local-data-ptr = hosts.dns.localDataPtr;
       };
+
+      # Overlay clients get overlay addresses for hosts on the overlay. With
+      # view-first every other name falls through to the global records and
+      # normal recursion. One static zone per name (not one for the whole
+      # homelab.internal) was tested on unbound 1.26.1 and keeps an AAAA query
+      # for such a name from returning anything else. LAN clients are
+      # untouched, so fleet-to-fleet traffic stays on the LAN.
+      view = [
+        {
+          name = "overlay";
+          view-first = true;
+          local-zone = hosts.dns.overlayLocalZone;
+          local-data = hosts.dns.overlayLocalData;
+        }
+      ];
 
       # Forward zone for upstream DNS (using DNS over TLS)
       forward-zone = [

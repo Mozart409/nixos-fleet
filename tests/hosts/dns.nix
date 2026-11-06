@@ -36,6 +36,23 @@ harness.mkHostTest {
         "dig @127.0.0.1 -p 53 -x 192.168.2.190 +short | grep -q 'agents.homelab.internal'"
     )
 
+    # Overlay view: a client in 172.16.20.0/24 gets overlay addresses for
+    # hosts on the overlay and the normal records for everything else. Query
+    # the address itself so the source is in the overlay range: unbound binds
+    # the wildcard and replies from the routed source, so `@127.0.0.1 -b` would
+    # answer from the wrong address and dig would discard it.
+    machine.succeed("ip addr add 172.16.20.250/32 dev lo")
+    machine.succeed(
+        "dig @172.16.20.250 -p 53 dns.homelab.internal +short | grep -q '^172.16.20.4$'"
+    )
+    machine.succeed(
+        "dig @172.16.20.250 -p 53 database.homelab.internal +short | grep -q '^192.168.2.134$'"
+    )
+    # LAN clients (source 127.0.0.1) still see the LAN address.
+    machine.succeed(
+        "dig @127.0.0.1 -p 53 dns.homelab.internal +short | grep -q '^192.168.2.145$'"
+    )
+
     # NOT asserted on, intentionally: tailscaled-autoconnect (needs a real
     # tailscale-auth-key secret and a real control-plane connection)
     # and caddy's ACME cert issuance against ca.homelab.internal (no route to it in

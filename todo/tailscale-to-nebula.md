@@ -83,8 +83,9 @@ which sits under the 03:00 backups.
 
 ## Phase C: shared Nebula module
 
-Write `modules/nebula.nix`, generalised from `hosts/wotan/nebula.nix`, and
-keep wotan's own file for its second network. Each joining host needs:
+Done: `modules/nebula.nix` (`homelab.nebula`) is generalised from
+`hosts/wotan/nebula.nix`; wotan keeps its own file for its second network.
+Host certs go in `modules/nebula/`. Each joining host needs:
 
 1. An entry in `services/nebula/tenants.nix` (lighthouse repo) in the
    `.4`-`.99` server range.
@@ -122,6 +123,9 @@ Must-haves:
 ## Phase D: pilot on `dns`
 
 `dns` joins first, since every client needs its resolver.
+
+Code for items 3 and 4 is in (`dns` is `172.16.20.4`). The host does not join
+until its key and cert exist, and items 1 and 5 are still open.
 
 1. Join `dns` per Phase C. Prove wotan to `dns` over `mozart409` with real
    traffic (SSH, a DNS query), and check direct versus relayed in the

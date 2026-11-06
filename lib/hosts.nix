@@ -27,6 +27,9 @@
 #   deployByIp colmena reaches the host by raw IP, not by name (the resolver
 #              itself: you cannot deploy a fix for a broken unbound through
 #              unbound).
+#   overlay    mozart409 Nebula overlay address; must match
+#              services/nebula/tenants.nix in ~/code/nixos-ventara-ai. Only
+#              hosts on the overlay have one.
 #   interface  NIC that staticNetwork configures (default "ens18", the Proxmox
 #              virtio NIC).
 #
@@ -80,6 +83,7 @@ let
     };
     dns = {
       ip = "192.168.2.145";
+      overlay = "172.16.20.4";
       tailscale = "homelab-dns";
       deployByIp = true;
     };
@@ -141,6 +145,7 @@ let
     entry = name: e: {
       inherit name;
       inherit (h) ip;
+      overlay = h.overlay or null;
       zones = e.zones or legacyAndInternal;
       ptr = e.ptr or ["homelab.local"];
     };
@@ -157,6 +162,9 @@ let
       value = n;
     })
     names);
+
+  # Names with an overlay address that are served in homelab.internal.
+  overlayNames = builtins.filter (n: n.overlay != null && builtins.elem "homelab.internal" n.zones) names;
 
   # Primary DNS name of a host or alias: <name>.<first zone>.
   fqdn = name: "${name}.${builtins.head byName.${name}.zones}";
@@ -181,6 +189,15 @@ in {
     localDataPtr = sortStrings (builtins.concatMap (n:
       map (zone: ''"${n.ip} ${n.name}.${zone}"'') n.ptr)
     names);
+
+    # The same names for clients on the mozart409 overlay (unbound view
+    # "overlay"): only hosts with an overlay address, in homelab.internal.
+    overlayLocalZone =
+      sortStrings (map (n: ''"${n.name}.homelab.internal." static'')
+        overlayNames);
+    overlayLocalData =
+      sortStrings (map (n: ''"${n.name}.homelab.internal. A ${n.overlay}"'')
+        overlayNames);
   };
 
   # NixOS module: static address on the host's NIC plus the default gateway.
