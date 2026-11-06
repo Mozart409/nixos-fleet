@@ -294,7 +294,7 @@ in {
       config.age.secrets.axon-gateway-env.path
       config.age.secrets.ventara-gateway-env.path
       # Basic auth; the server reads OPENCODE_SERVER_PASSWORD from this env
-      # file, and clients pass the same value as OPENCODE_PASSWORD (home.nix).
+      # file; the TUI gets the same file through agent-run (serverPasswordFile).
       config.age.secrets.opencode-server-password.path
     ];
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
@@ -328,6 +328,8 @@ in {
   wotan.agentUser = {
     enable = true;
     owner = username;
+    # The opencode TUI runs as the agent too and logs in with this.
+    serverPasswordFile = config.age.secrets.opencode-server-password.path;
     credentials =
       {
         axon-gateway = config.age.secrets.axon-gateway-env.path;
@@ -668,9 +670,6 @@ in {
 
   age.secrets.opencode-server-password = {
     file = ../../secrets/opencode-server-password.age;
-    mode = "440";
-    owner = username;
-    group = "users";
     # Format inside the file: OPENCODE_SERVER_PASSWORD=xxxx
   };
 
@@ -697,7 +696,6 @@ in {
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
     AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-gateway-env.path;
     VENTARA_GATEWAY_TOKEN_FILE = config.age.secrets.ventara-gateway-env.path;
-    OPENCODE_SERVER_PASSWORD_FILE = config.age.secrets.opencode-server-password.path;
 
     # NVIDIA Wayland environment variables for better compatibility
     GBM_BACKEND = "nvidia-drm";

@@ -89,6 +89,17 @@
         exit 1
         ;;
     esac
+    # opencode can't see Claude's login, as opencode-serve can't; only its TUI
+    # client gets the server password.
+    extra=()
+    if [ "$1" = opencode ]; then
+      extra+=(--property=InaccessiblePaths=-${cfg.home}/.claude/.credentials.json)
+      ${lib.optionalString (cfg.serverPasswordFile != null) ''
+      if [ "''${2:-}" = --server ]; then
+        extra+=(--property=LoadCredential=opencode-server-password:${cfg.serverPasswordFile})
+      fi
+    ''}
+    fi
     exec ${config.systemd.package}/bin/systemd-run \
       --quiet --pty --wait --collect --service-type=exec \
       --uid=${cfg.user} --gid=${cfg.user} \
@@ -96,6 +107,7 @@
       --setenv=TERM="''${TERM:-xterm-256color}" \
       ''${COLORTERM:+--setenv=COLORTERM="$COLORTERM"} \
       ${lib.escapeShellArgs (map (p: "--property=${p}") sandboxProperties ++ credentialArgs)} \
+      "''${extra[@]}" \
       ${inner} "$@"
   '';
 in {
@@ -134,6 +146,18 @@ in {
       description = ''
         KEY=value env files read by systemd (as root) and exported into every
         agent-run session, for the MCP gateway tokens.
+      '';
+    };
+
+    serverPasswordFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/run/agenix/opencode-server-password";
+      description = ''
+        KEY=value env file with OPENCODE_SERVER_PASSWORD, read by systemd (as
+        root) and exported only into opencode TUI sessions (`agent-run opencode
+        --server ...`). Claude and pi sessions never get it, so they cannot use
+        the server to get around their own sandbox.
       '';
     };
 

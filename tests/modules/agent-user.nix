@@ -7,10 +7,17 @@
   # Stand-ins for the harnesses. `claude` runs its arguments, so the test can
   # probe the sandbox from inside an agent-run session.
   fakeClaude = pkgs.writeShellScriptBin "claude" ''exec "$@"'';
-  # `opencode serve` records what the server's sandbox shows, then idles.
+  # `opencode serve` records what the server's sandbox shows, then idles. Any
+  # other call runs in an agent-run session and prints what that session gets.
   fakeOpencode = pkgs.writeShellScriptBin "opencode" ''
-    { id -un; ls -A /home/amadeus; } > "$HOME/serve-probe"
-    exec sleep infinity
+    if [ "''${1:-}" = serve ]; then
+      { id -un; ls -A /home/amadeus; } > "$HOME/serve-probe"
+      exec sleep infinity
+    fi
+    echo "user=$(id -un) password=''${OPENCODE_SERVER_PASSWORD:-none}"
+    # InaccessiblePaths leaves an unreadable file in place, so test for -r.
+    [ -r "$HOME/.claude/.credentials.json" ] && echo claude-login-visible
+    exit 0
   '';
 in
   pkgs.testers.runNixOSTest {
@@ -23,9 +30,13 @@ in
       ];
 
       users.users.amadeus.isNormalUser = true;
-      environment.systemPackages = [fakeClaude pkgs.util-linux];
+      environment.systemPackages = [fakeClaude fakeOpencode pkgs.util-linux];
       environment.etc."agent-test-cred" = {
         text = "TEST_TOKEN=s3cret\n";
+        mode = "0400";
+      };
+      environment.etc."agent-test-server-password" = {
+        text = "OPENCODE_SERVER_PASSWORD=serverpw\n";
         mode = "0400";
       };
 
@@ -45,6 +56,7 @@ in
         enable = true;
         owner = "amadeus";
         credentials.test = "/etc/agent-test-cred";
+        serverPasswordFile = "/etc/agent-test-server-password";
       };
 
       services.opencode-serve = {
@@ -138,6 +150,18 @@ in
           machine.wait_for_unit("opencode-serve.service")
           machine.wait_for_file("/home/agent/serve-probe")
           assert machine.succeed("cat /home/agent/serve-probe").split() == ["agent", "code"]
+
+      with subtest("the server password reaches only the opencode TUI"):
+          machine.succeed("install -d -o agent -g agent /home/agent/.claude")
+          machine.succeed("install -o agent -g agent -m 0600 /dev/null /home/agent/.claude/.credentials.json")
+          def run(args):
+              inner = f"sudo /run/current-system/sw/bin/agent-run {args}"
+              return owner(f"cd /home/amadeus/code && script -qec {shlex.quote(inner)} /dev/null").replace("\r", "").strip()
+          assert run("opencode --server http://127.0.0.1:4096") == "user=agent password=serverpw"
+          assert run("opencode run hello") == "user=agent password=none"
+          assert agent("sh -c 'echo ''${OPENCODE_SERVER_PASSWORD:-none}'") == "none"
+          # Claude's login stays visible to claude sessions, not to opencode's.
+          agent("test -r /home/agent/.claude/.credentials.json")
 
       with subtest("private networks are closed, loopback is open"):
           machine.succeed("systemd-run --unit=tcp-probe ${pkgs.socat}/bin/socat TCP-LISTEN:7777,fork,reuseaddr SYSTEM:true")

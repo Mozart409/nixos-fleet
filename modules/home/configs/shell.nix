@@ -188,23 +188,27 @@
       # server. opencode v2 removed the `attach <url> --dir <dir>` form: a server
       # is selected with `--server <url>` and the working directory is a trailing
       # positional argument. Subcommands (`opencode run`, `opencode models`, ...)
-      # pass through. The basic-auth password is read from the agenix file per
-      # call and only given to this one process — never exported, so other shell
-      # children (e.g. sandboxed agents) can't use the server to escape their
-      # sandbox.
+      # pass through. On wotan both run as the agent account, confined to ~/code
+      # (modules/wotan/agent-user.nix); agent-run gives the TUI the server
+      # password and subcommands the gateway tokens. Elsewhere the password is
+      # read from the agenix file per call and only given to this one process,
+      # never exported, so other shell children (e.g. sandboxed agents) can't use
+      # the server to escape their sandbox.
       # Only this exact path may be sudo'd without a password.
       _agent_run=/run/current-system/sw/bin/agent-run
 
       opencode() {
-        if (( $# == 0 )) || [[ $1 == -* ]]; then
+        local url="''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}"
+        if [[ -x $_agent_run ]]; then
+          if (( $# == 0 )) || [[ $1 == -* ]]; then
+            sudo "$_agent_run" opencode --server "$url" "$@" "$PWD"
+          else
+            sudo "$_agent_run" opencode "$@"
+          fi
+        elif (( $# == 0 )) || [[ $1 == -* ]]; then
           local pwfile="''${OPENCODE_SERVER_PASSWORD_FILE:-/run/agenix/opencode-server-password}"
           OPENCODE_PASSWORD="$(sed 's/^OPENCODE_SERVER_PASSWORD=//' "$pwfile")" \
-            command opencode --server "''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}" "$@" "$PWD"
-        elif [[ -x $_agent_run ]]; then
-          # Subcommands run locally, not on the server: as the agent account,
-          # which gets the gateway tokens from agent-run (`opencode mcp list`
-          # got a 401 from axon without them).
-          sudo "$_agent_run" opencode "$@"
+            command opencode --server "$url" "$@" "$PWD"
         else
           AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
           VENTARA_GATEWAY_TOKEN="$(sed -n 's/^VENTARA_GATEWAY_TOKEN=//p' "''${VENTARA_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \

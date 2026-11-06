@@ -213,8 +213,9 @@ export default {
       const tool = String(event.tool || "").toLowerCase();
       const args = event.input || {};
 
-      if (tool === "bash") {
-        const cmd = String(args.command || "");
+      // v2 renamed the bash tool to shell.
+      if (tool === "bash" || tool === "shell") {
+        const cmd = String(args.command ?? args.cmd ?? "");
         if (SECRET_CMD.test(cmd)) block(tool, "command reveals environment/secrets");
         if (isSecretPath(cmd)) block(tool, "command touches a secret file");
         return;

@@ -3,7 +3,193 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  home = config.home.homeDirectory;
+
+  # wotan's rules in Claude's syntax (agent-permissions.nix), translated below.
+  shared = import ./agent-permissions.nix;
+
+  # `Bash(x)` -> "x" for kind "Bash"; null for rules of another kind
+  # (WebSearch, mcp__x, ...).
+  ruleArg = kind: rule: let
+    m = builtins.match "${kind}\\((.*)\\)" rule;
+  in
+    if m == null
+    then null
+    else builtins.head m;
+  args = kind: rules: builtins.filter (a: a != null) (map (ruleArg kind) rules);
+
+  # Claude path -> opencode globs. `~/x` is the home dir, a leading `//` is an
+  # absolute path, `**` is `*` (opencode's `*` already crosses `/`). A leading
+  # `**/` also yields the bare relative form, so `**/.env*` matches `.env` too.
+  claudeGlobs = arg: let
+    path =
+      if lib.hasPrefix "~/" arg
+      then "${home}/${lib.removePrefix "~/" arg}"
+      else if lib.hasPrefix "//" arg
+      then lib.removePrefix "/" arg
+      else arg;
+    glob = lib.replaceStrings ["**"] ["*"] path;
+  in
+    [glob] ++ lib.optional (lib.hasPrefix "**/" arg) (lib.removePrefix "*/" glob);
+
+  rule = action: effect: resource: {inherit action resource effect;};
+  rules = action: effect: map (rule action effect);
+
+  readOnlyShell = [
+    "cd *"
+    "ls *"
+    "cat *"
+    "head *"
+    "tail *"
+    "wc *"
+    "pwd"
+    "which *"
+    "file *"
+    "stat *"
+    "rg *"
+    "grep *"
+    "tree *"
+    "echo *"
+    "sort *"
+    "uniq *"
+    "cut *"
+    "true"
+    "date *"
+  ];
+
+  # Commands whose purpose is to reveal secrets, whatever file they touch.
+  secretShell = [
+    "* .env*"
+    "*/.env*"
+    "* .envrc*"
+    "printenv*"
+    "env"
+    "env |*"
+    "env >*"
+    "export -p*"
+    "declare -x*"
+    "*agenix* -d *"
+    "*agenix* --decrypt *"
+    "sops -d*"
+    "sops --decrypt*"
+    "age -d*"
+    "age --decrypt*"
+    "gh auth token*"
+    "op read*"
+    "op item get*"
+    "pass show*"
+    "gpg -d*"
+    "gpg --decrypt*"
+    "* ~/.ssh/*"
+    "* ~/.aws/*"
+    "* ~/.gnupg/*"
+    "* $HOME/.ssh/*"
+    "* $HOME/.aws/*"
+    "* /proc/*/environ*"
+  ];
+
+  secretFiles = [
+    "*.env"
+    "*.env.*"
+    "*/.env*"
+    "*.pem"
+    "*.key"
+    "*/.ssh/*"
+    "*/.aws/*"
+    "*/.gnupg/*"
+    "*/.kube/*"
+    "*credentials*"
+    "*.tfstate*"
+  ];
+  templateFiles = [
+    "*.env.example"
+    "*.env.sample"
+    "*.env.template"
+  ];
+
+  # The deny floor: Claude's deny list, as opencode resources.
+  floorShell = args "Bash" shared.deny;
+  floorFiles = lib.concatMap claudeGlobs (args "Read" shared.deny);
+
+  # Order matters: the LAST matching rule wins. Broad asks and allows come
+  # first, narrower denies after them, and the Claude-derived floor is last so
+  # no allow above it can win over a floor deny. A project's opencode.json
+  # loads after this file and can still append rules, which is why the
+  # deny-floor plugin repeats the shell half of the floor.
+  permissions =
+    [(rule "shell" "ask" "*")]
+    ++ rules "shell" "allow" (args "Bash" shared.allow ++ readOnlyShell)
+    ++ rules "shell" "deny" secretShell
+    ++ [(rule "read" "allow" "*")]
+    ++ rules "read" "deny" (secretFiles
+      ++ [
+        "*.envrc"
+        "*.p12"
+        "*.pfx"
+        "*id_rsa*"
+        "*id_ed25519*"
+        "*id_ecdsa*"
+        "*/.docker/config.json"
+        "*/.netrc"
+        "*/.pgpass"
+        "*/.git-credentials"
+        "*/.config/gh/hosts.yml"
+        "*/.local/share/opencode/auth.json"
+        "*/.config/sops/age/*"
+        "*/.config/age/*"
+        "/run/agenix/*"
+        "/etc/ssh/ssh_host_*"
+      ])
+    ++ rules "read" "allow" (templateFiles ++ ["*.pub"])
+    ++ [(rule "edit" "allow" "*")]
+    ++ rules "edit" "deny" secretFiles
+    ++ rules "edit" "allow" templateFiles
+    ++ [(rule "external_directory" "ask" "*")]
+    ++ rules "external_directory" "allow" [
+      "/nix/store/*"
+      "/tmp/*"
+      "${home}/.config/opencode/*"
+      "${home}/.local/share/opencode/tool-output/*"
+    ]
+    ++ rules "edit" "deny" [
+      "${home}/.config/opencode/*"
+      "${home}/.claude/*"
+    ]
+    ++ rules "shell" "deny" floorShell
+    ++ rules "read" "deny" floorFiles
+    ++ rules "edit" "deny" floorFiles;
+
+  mcp = {
+    axon-gateway = {
+      type = "remote";
+      url = "https://axon.homelab.internal/mcp";
+      transport = "http";
+      oauth = false;
+      headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
+      enabled = true;
+    };
+    ventara-gateway = {
+      type = "remote";
+      url = "https://axon.int.oyabu.cc/mcp";
+      transport = "http";
+      oauth = false;
+      headers.Authorization = "Bearer {env:VENTARA_GATEWAY_TOKEN}";
+      enabled = true;
+    };
+    gh_grep = {
+      type = "remote";
+      url = "https://mcp.grep.app";
+    };
+    context7 = {
+      type = "remote";
+      url = "https://mcp.context7.com/mcp";
+      headers = {
+        CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
+      };
+    };
+  };
+in {
   options.opencode = {
     enable = lib.mkOption {
       type = lib.types.bool;
@@ -31,7 +217,8 @@
         a plugin that blocks tool calls touching .env files, private keys,
         credential stores and decrypt/reveal commands (and redacts
         secret-looking values from tool output), plus matching deny rules in
-        the permission config. See opencode-secret-guard.js for the rationale.
+        the permission config (opencode.json) and a deny-floor plugin that
+        mirrors Claude's deny list. See opencode-secret-guard.js for the rationale.
       '';
     };
   };
@@ -51,216 +238,27 @@
       # from the config dir (symlinks included) at startup.
       home.file.".config/opencode/plugins/secret-guard.js".source = ./opencode-secret-guard.js;
 
-      # Permission rules = belt and suspenders. opencode merges config.json,
-      # then opencode.json, then opencode.jsonc (later files win), so these are
-      # the baseline and can still be overridden per-file / per-project.
-      # Written as literal JSON, not builtins.toJSON: attribute order is
-      # significant ("last matching rule wins") and toJSON sorts keys.
-      home.file.".config/opencode/config.json".text = ''
-        {
-          "$schema": "https://opencode.ai/config.json",
-          "permission": {
-            "read": {
-              "*": "allow",
-              "*.env": "deny",
-              "*.env.*": "deny",
-              "*/.env*": "deny",
-              "*.envrc": "deny",
-              "*.pem": "deny",
-              "*.key": "deny",
-              "*.p12": "deny",
-              "*.pfx": "deny",
-              "*id_rsa*": "deny",
-              "*id_ed25519*": "deny",
-              "*id_ecdsa*": "deny",
-              "*/.ssh/*": "deny",
-              "*/.aws/*": "deny",
-              "*/.gnupg/*": "deny",
-              "*/.kube/*": "deny",
-              "*/.docker/config.json": "deny",
-              "*/.netrc": "deny",
-              "*/.pgpass": "deny",
-              "*/.git-credentials": "deny",
-              "*/.config/gh/hosts.yml": "deny",
-              "*/.local/share/opencode/auth.json": "deny",
-              "*/.config/sops/age/*": "deny",
-              "*/.config/age/*": "deny",
-              "/run/agenix/*": "deny",
-              "/etc/ssh/ssh_host_*": "deny",
-              "*credentials*": "deny",
-              "*.tfstate*": "deny",
-              "*.env.example": "allow",
-              "*.env.sample": "allow",
-              "*.env.template": "allow",
-              "*.pub": "allow"
-            },
-            "edit": {
-              "*": "allow",
-              "*.env": "deny",
-              "*.env.*": "deny",
-              "*/.env*": "deny",
-              "*.pem": "deny",
-              "*.key": "deny",
-              "*/.ssh/*": "deny",
-              "*/.aws/*": "deny",
-              "*/.gnupg/*": "deny",
-              "*/.kube/*": "deny",
-              "*credentials*": "deny",
-              "*.tfstate*": "deny",
-              "*.env.example": "allow",
-              "*.env.sample": "allow",
-              "*.env.template": "allow"
-            },
-            "bash": {
-              "*": "allow",
-              "* .env*": "deny",
-              "*/.env*": "deny",
-              "* .envrc*": "deny",
-              "printenv*": "deny",
-              "env": "deny",
-              "env |*": "deny",
-              "env >*": "deny",
-              "export -p*": "deny",
-              "declare -x*": "deny",
-              "*agenix* -d *": "deny",
-              "*agenix* --decrypt *": "deny",
-              "sops -d*": "deny",
-              "sops --decrypt*": "deny",
-              "age -d*": "deny",
-              "age --decrypt*": "deny",
-              "gh auth token*": "deny",
-              "op read*": "deny",
-              "op item get*": "deny",
-              "pass show*": "deny",
-              "gpg -d*": "deny",
-              "gpg --decrypt*": "deny",
-              "* ~/.ssh/*": "deny",
-              "* ~/.aws/*": "deny",
-              "* ~/.gnupg/*": "deny",
-              "* $HOME/.ssh/*": "deny",
-              "* $HOME/.aws/*": "deny",
-              "* /proc/*/environ*": "deny",
-              "* .env.example*": "allow",
+      # Same deny floor as Claude's, enforced in a plugin because a project's
+      # .opencode/opencode.json loads after this config and can override its
+      # permission rules; a plugin it cannot remove.
+      home.file.".config/opencode/plugins/deny-floor.js".text =
+        "const DENY = ${builtins.toJSON floorShell};\n" + builtins.readFile ./opencode-deny-floor.js;
+    })
 
-              "git *": "ask",
-              "git status*": "allow",
-              "git diff*": "allow",
-              "git log*": "allow",
-              "git show*": "allow",
-              "git blame*": "allow",
-              "git rev-parse*": "allow",
-              "git ls-files*": "allow",
-              "git grep*": "allow",
-              "git branch*": "allow",
-              "git switch*": "allow",
-              "git fetch*": "allow",
-              "git stash*": "allow",
-              "git add *": "allow",
-              "git commit *": "allow",
-
-              "nix *": "ask",
-              "nix build *": "allow",
-              "nix eval *": "allow",
-              "nix flake *": "allow",
-              "nix search *": "allow",
-              "nix log *": "allow",
-              "nix path-info *": "allow",
-              "nix why-depends *": "allow",
-              "nh *": "ask",
-              "nh search *": "allow",
-              "nh os build*": "allow",
-              "nh home build*": "allow",
-              "nixos-rebuild *": "ask",
-              "nixos-rebuild build*": "allow",
-              "nixos-rebuild dry-build*": "allow",
-
-              "curl *": "ask",
-              "wget *": "ask",
-              "curl *.homelab.internal*": "allow",
-              "curl *.homelab.internal*": "allow",
-              "curl *localhost*": "allow",
-              "curl *127.0.0.1*": "allow",
-              "wget *.homelab.internal*": "allow",
-              "wget *.homelab.internal*": "allow",
-              "wget *localhost*": "allow",
-              "wget *127.0.0.1*": "allow",
-
-              "sudo *": "deny",
-              "*nixos-rebuild*switch*": "deny",
-              "*nixos-rebuild*boot*": "deny",
-              "*nixos-rebuild*test*": "deny",
-              "*os switch*": "deny",
-              "*os boot*": "deny",
-              "*os test*": "deny",
-              "*home switch*": "deny",
-              "*home-manager*switch*": "deny",
-              "*switch-to-configuration*": "deny",
-              "*switch.sh*": "deny",
-              "*cleanup.sh*": "deny",
-              "just switch*": "deny",
-              "just test-wotan*": "deny",
-              "nix profile *": "deny",
-              "nix-env *": "deny",
-              "nh clean*": "deny",
-
-              "git push*": "deny",
-              "just sync-remotes*": "deny",
-              "git *--no-verify*": "deny",
-              "git commit -n*": "deny",
-              "git commit * -n*": "deny",
-              "git *--no-gpg-sign*": "deny",
-              "git *commit.gpgsign*": "deny",
-              "git *core.hooksPath*": "deny",
-              "*LEFTHOOK*": "deny",
-              "*GIT_CONFIG_*": "deny",
-              "git reset *--hard*": "deny",
-              "git clean*": "deny",
-              "git checkout -- *": "deny",
-              "git checkout .*": "deny",
-              "git restore .*": "deny"
-            }
-          }
-        }
-      '';
+    # One opencode.json: the permission rules (guardrails) and the MCP servers.
+    # v2 reads only opencode.json(c), so a config.json would be ignored.
+    (lib.mkIf (config.opencode.enable || config.opencode.guardrails.enable) {
+      home.file.".config/opencode/opencode.json" = {
+        force = true;
+        text = builtins.toJSON (
+          {"$schema" = "https://opencode.ai/config.json";}
+          // lib.optionalAttrs config.opencode.guardrails.enable {inherit permissions;}
+          // lib.optionalAttrs config.opencode.enable {inherit mcp;}
+        );
+      };
     })
 
     (lib.mkIf config.opencode.enable {
-      home.file.".config/opencode/opencode.json" = {
-        force = true;
-        text = builtins.toJSON {
-          "$schema" = "https://opencode.ai/config.json";
-          mcp = {
-            axon-gateway = {
-              type = "remote";
-              url = "https://axon.homelab.internal/mcp";
-              transport = "http";
-              oauth = false;
-              headers.Authorization = "Bearer {env:AXON_GATEWAY_TOKEN}";
-              enabled = true;
-            };
-            ventara-gateway = {
-              type = "remote";
-              url = "https://axon.int.oyabu.cc/mcp";
-              transport = "http";
-              oauth = false;
-              headers.Authorization = "Bearer {env:VENTARA_GATEWAY_TOKEN}";
-              enabled = true;
-            };
-            gh_grep = {
-              type = "remote";
-              url = "https://mcp.grep.app";
-            };
-            context7 = {
-              type = "remote";
-              url = "https://mcp.context7.com/mcp";
-              headers = {
-                CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
-              };
-            };
-          };
-        };
-      };
-
       # v2 TUI settings. Read-only from the store, so `/settings` changes in
       # the TUI no longer persist: change them here instead.
       home.file.".config/opencode/cli.json" = {
