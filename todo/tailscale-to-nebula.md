@@ -8,15 +8,17 @@ never carries homelab traffic; wotan stays on both and its `amartum` uses
 do not change.
 
 **Status 2026-11-06: planned, not started.** Point-in-time observation from
-a Tailscale snapshot and Prometheus, same day. Nothing below has run.
+a Tailscale snapshot and Prometheus, same day. Nothing below has run, except
+Phase G, which was done separately.
 
 ## What exists
 
 - Tailscale SaaS. Members: wotan, iPhone, MacBook (offline 36 days, key
   expired), homeassistant, 9 fleet hosts (agents, ca, containers, database,
-  dns, forgejo, jellyfin, mcp, otel), pve-gigabyte, immich, pbs, pocketid,
+  dns, forgejo, jellyfin, mcp, otel), pve-gigabyte, immich, pbs,
   homelab-unifi (offline 15 days). No exit nodes, no shared nodes, no
-  Serve/Funnel on wotan.
+  Serve/Funnel on wotan. The snapshot also lists a `pocketid` node: its LXC
+  (CT 102) was destroyed on 2026-11-06 and deleting the node is still open.
 - Subnet route `192.168.2.0/24`: the repo says `dns` advertises it
   (`hosts/dns/configuration.nix`, `extraUpFlags`; root `flake.nix`, comment
   above `hostRegistry`), but the snapshot shows **Home Assistant** as the
@@ -33,15 +35,19 @@ a Tailscale snapshot and Prometheus, same day. Nothing below has run.
   database, dns, forgejo, jellyfin, mcp_vm, otel). wotan does not: it sets
   `services.tailscale.enable = true` in `hosts/wotan/default.nix`.
 - Tailnet traffic is very low.
+- Pocket ID runs on `containers` (`hosts/containers/pocket-id/default.nix`)
+  with its database on `database`, and its issuer is
+  `https://pocketid.homelab.internal` ([runbook](./pocket-id-lxc-to-nixos.md)).
 - wotan's `agent` user cannot reach private ranges: verify as `amadeus`.
 
 ## Decisions (made)
 
 - **Target is `mozart409`**, the user's personal network, for their own
   clients only.
-- **Fleet hosts, pve-gigabyte, immich and Pocket-ID join** with a per-host
-  cert. **One narrow gateway serves Home Assistant only** (Phase F), not the
-  whole LAN. Consequence: anything else not joined becomes unreachable
+- **Fleet hosts, pve-gigabyte and immich join** with a per-host cert.
+  Pocket ID has no cert of its own: it arrives with `containers`.
+  **Home Assistant is reached through Caddy on `containers`** (Phase F), with
+  no gateway. Consequence: anything else not joined becomes unreachable
   off-site once Tailscale's `192.168.2.0/24` route goes.
 - Nebula is UDP-only, on those ports. There is no HTTPS relay fallback like
   Tailscale's DERP, so networks that block UDP 4343 cannot connect.
@@ -129,6 +135,11 @@ Must-haves:
    overlay answers for `*.homelab.internal` to overlay clients through an
    unbound view keyed on source `172.16.20.0/24`. LAN clients keep
    `192.168.2.x`. Fleet-to-fleet and wotan-at-home traffic stays on the LAN.
+   The view must cover aliases too (`pocketid`, `ha` and the others in
+   `lib/hosts.nix`), since those are the names off-site clients use. Fleet hosts must keep
+   querying `dns` over the LAN: Pocket ID connects to
+   `database.homelab.internal`, `pg_hba` has no `172.16/12` entry, and an
+   overlay answer there would break every login.
 5. step-ca issuance and validation stay on the LAN. Check that ACME still
    works after the view is live (a renewal on one host).
 
@@ -154,52 +165,28 @@ so choose them before signing.
 
 Decided 2026-11-06:
 
-- **Join with their own cert:** pve-gigabyte, immich and the pocketid LXC.
-  Pocket-ID must be reachable by every OIDC client; Phase G depends on it.
-- **Gateway:** Home Assistant. HAOS can only run Nebula through an unofficial
-  add-on (`mr-ransel/addon-nebula`: manual install, no releases, Nebula version
-  unconfirmed, and `mozart409` certs are v2), so it does not join.
+- **Join with their own cert:** pve-gigabyte and immich.
+- **Home Assistant, through `containers`:** Caddy there already proxies
+  `ha.homelab.internal` to port 8123 (`hosts/containers/configuration.nix`),
+  so the overlay answer for `ha` (D.4) is enough. No gateway and no
+  `unsafe_routes`. HAOS does not join: it could only run Nebula through an
+  unofficial add-on (`mr-ransel/addon-nebula`: manual install, no releases,
+  Nebula version unconfirmed, and `mozart409` certs are v2).
 - **LAN-only:** pbs, homelab-unifi
   ([`unifi-os-server-vm.md`](./unifi-os-server-vm.md)) and other LAN devices.
 
-Home Assistant gateway:
+Off-site, Home Assistant is reachable only as `ha.homelab.internal` on port
+8123, and only while `containers` is up. This path is untested off-site
+(Phase H tests it).
 
-1. Pick one NixOS fleet host during Phase E. Keep it off the hosts whose
-   Nebula config changes often: a change restarts the unit.
-2. Sign its cert with `-unsafe-networks <Home Assistant IP>/32`, the one
-   address, not the LAN. Check whether `just nebula-sign` supports that flag;
-   nothing here has used `unsafe_routes` yet.
-3. On the gateway: IP forwarding, masquerade towards the LAN, and a Nebula
-   inbound rule with `local_cidr` for that /32 and group `mobile`.
-4. On each client: an `unsafe_routes` entry for that /32 via the gateway's
-   overlay IP.
-5. The unbound view (D.4) keeps Home Assistant's LAN answer, since clients
-   route that address through the gateway.
+## Phase G: Pocket-ID issuer (done 2026-11-06)
 
-The gateway is a single point of failure for this one path only.
-
-## Phase G: Pocket-ID issuer (hardest item)
-
-The issuer `https://pocketid.dropbear-butterfly.ts.net` must become
-`https://pocketid.homelab.internal`. `lib/hosts.nix` (comment above the
-pocketid entry) says the issuer URL is part of token identity, so this is a
-migration, not a rename. It needs:
-
-1. A new Pocket-ID cert valid for the `.homelab.internal` name (step-ca).
-2. The 5 consumers changed:
-   - `hosts/containers/countdown/default.nix` (`oidcIssuer`)
-   - `hosts/containers/hindsight/default.nix` (`oidcIssuerUrl`, `loginURL`,
-     `redeemURL`, `profileURL`, `oidc-jwks-url`)
-   - `hosts/containers/romm/default.nix` (`OIDC_SERVER_APPLICATION_URL`)
-   - `hosts/otel/configuration.nix` (`auth_url`, `token_url`, `api_url`)
-   - `hosts/jellyfin/hofvarpnir.nix` (`OIDC_ISSUER`)
-3. Mutable clients redone by hand: the Forgejo auth source, and Jellyfin SSO
-   (its settings live in mutable state, `AGENTS.md`, "OpenID Endpoint").
-4. A login-linking test per service: an existing account must link, not
-   duplicate.
-
-Must complete before the phone cuts over: `.ts.net` will not resolve
-without Tailscale.
+The issuer moved to `https://pocketid.homelab.internal` with the service, and
+every consumer was switched, so this no longer blocks anything here. Details
+and the remaining open items are in
+[`pocket-id-lxc-to-nixos.md`](./pocket-id-lxc-to-nixos.md). Passkeys are bound
+to that name, so moving to Nebula does not invalidate them as long as the name
+stays.
 
 ## Phase H: iPhone
 
@@ -212,8 +199,7 @@ apps and toggle during the test, with On Demand off.
    Lighthouses at `lighthouse-{a,b,c}.oyabu.cc:4343`. `relay.relays` and
    `punchy.respond` have no UI and need YAML.
 3. Set `mobile_nebula.dns_resolvers` to `dns`'s overlay IP and
-   `match_domains: ["homelab.internal"]`. DNS lookup mode: Both. Add the Home
-   Assistant `unsafe_routes` entry (Phase F).
+   `match_domains: ["homelab.internal"]`. DNS lookup mode: Both.
 4. Share the public key out and stay on that screen until the cert is
    loaded: the keypair is regenerated when the config page reopens.
 5. Register `.101` in `tenants.nix` (free on 2026-11-06), then sign it
@@ -225,9 +211,11 @@ apps and toggle during the test, with On Demand off.
 
 6. The phone's inbound is ICMP only. Servers must allow group `mobile`.
    The phone needs the step-ca root installed and trusted.
-7. Test on cellular early. mobile_nebula issue #355 reports that
-   "Connected" reflects only the OS process, not a working tunnel
-   (https://github.com/DefinedNet/mobile_nebula/issues/355).
+7. Test on cellular early, including a Pocket ID login and Home Assistant
+   (web UI and iOS app, whose server URL must be `https://ha.homelab.internal`).
+   Both need `containers` on the overlay and the D.4 view. mobile_nebula
+   issue #355 reports that "Connected" reflects only the OS process, not a
+   working tunnel (https://github.com/DefinedNet/mobile_nebula/issues/355).
 
 Known limits, from reading the source; **not tested on a device**:
 disconnecting in the app turns Always-on off and reconnecting does not
@@ -250,7 +238,8 @@ Per host: deploy over LAN, reboot once, then the next host.
    (`access-control`), `hosts/database/configuration.nix` (`pg_hba`),
    `modules/wotan/agent-user.nix` (tailnet CGNAT entry).
 4. `trustedInterfaces = ["tailscale0"]` on 8 hosts (dns, ca, containers,
-   database, forgejo, jellyfin, mcp_vm, otel; not agents or wotan).
+   database, forgejo, jellyfin, mcp_vm, otel; not agents or wotan). Also
+   drop the `tailscale0` remark above `ACTORS_HOST` in `hosts/containers/pocket-id/default.nix`.
 5. step-ca's `.ts.net` dnsName (`hosts/ca/configuration.nix`).
 6. Caddy ordering on `tailscaled.service`: `hosts/mcp_vm/configuration.nix`
    (`after`/`wants`), `hosts/containers/countdown/default.nix` (`after`).
@@ -270,7 +259,7 @@ Per host: deploy over LAN, reboot once, then the next host.
     (`modules/server.nix`, `programs.mosh`) on the overlay interface and
     rewrite its comment.
 12. Nodes outside this repo, by hand: pve-gigabyte (Phase B of its todo),
-    pbs, the pocketid LXC, immich, homelab-unifi, Home Assistant (the active
+    pbs, immich, homelab-unifi, Home Assistant (the active
     subnet router, so off-site LAN access ends here), the iPhone and the
     MacBook.
 13. Retire `tailscale-auth-key.age` and its rule in
@@ -283,6 +272,9 @@ Per host: deploy over LAN, reboot once, then the next host.
 - **Shared lighthouses.** Shared with the business network and managed in
   another repo. A separate CA means no trust crossover, but maintenance
   there affects new connections here.
+- **`containers` carries off-site logins and Home Assistant.** Pocket ID and
+  the `ha` proxy both run there, and Pocket ID needs `database` over the LAN.
+  A Nebula restart on `containers` interrupts both for off-site clients.
 - **Cert expiry.** Nothing tracks it; add alerts (see
   [`nebula-clients.md`](./nebula-clients.md)). Revocation means
   `pki.blocklist` on every host.
