@@ -30,7 +30,7 @@
 #   interface  NIC that staticNetwork configures (default "ens18", the Proxmox
 #              virtio NIC).
 #
-# Machines outside this repo (pocketid LXC, the Proxmox hypervisor, Home
+# Machines outside this repo (the Proxmox hypervisor, Home
 # Assistant, the UniFi OS VM) and wotan are listed only for their DNS records. The Raspberry Pi
 # fleet takes DHCP leases and lives in lib/pi-fleet.nix.
 let
@@ -68,6 +68,8 @@ let
         hindsight-ui = internalOnly;
         mailpit = internalOnly;
         multica = internalOnly;
+        # Moved from the CT 102 LXC.
+        pocketid = internalOnly;
         romm = {};
         searxng = {};
       };
@@ -112,16 +114,6 @@ let
         prometheus = {};
         tempo = {};
       };
-    };
-    # Pocket-ID (OIDC provider for forgejo, romm, grafana). An LXC on
-    # pve-gigabyte, not a NixOS guest in this repo. The tailnet name
-    # pocketid.dropbear-butterfly.ts.net stays the issuer every consumer is
-    # configured with -- the issuer URL is part of token identity, so these
-    # records ADD a LAN path, they do not replace it. A client that switches
-    # to the .internal name also needs Pocket-ID to serve a certificate valid
-    # for it.
-    pocketid = {
-      ip = "192.168.2.102";
     };
     pve-gigabyte = {
       ip = "192.168.2.46";

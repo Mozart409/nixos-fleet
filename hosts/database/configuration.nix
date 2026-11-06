@@ -174,6 +174,15 @@ in {
     group = "postgres";
   };
 
+  # Pocket ID database password. The containers host carries the same password
+  # inside pocketid-env.age (DB_CONNECTION_STRING), so rotating it means
+  # re-encrypting both.
+  age.secrets.pocketid-db-password = {
+    file = ../../secrets/pocketid-db-password.age;
+    owner = "postgres";
+    group = "postgres";
+  };
+
   # Password for the read-only `mcp` role consumed by the pgmcp MCP servers on
   # the mcp host. The same password is embedded in each pg-mcp-<db>-url.age
   # secret over there — rotating it means re-encrypting all of them.
@@ -364,7 +373,7 @@ in {
     # `attic` removed 2026-09-09 with the cache VM (iac/main.tf). Dropping it
     # here also drops its nightly dump, because services.postgresqlBackup below
     # derives its database list from this one.
-    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight" "countdown"];
+    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight" "countdown" "pocketid"];
 
     # Initial users
     ensureUsers = [
@@ -394,6 +403,10 @@ in {
       }
       {
         name = "countdown";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "pocketid";
         ensureDBOwnership = true;
       }
       # Read-only role for the pgmcp MCP servers. No ensureDBOwnership: it owns
@@ -522,6 +535,15 @@ in {
     role = "countdown";
     description = "Set countdown PostgreSQL user password";
     secret = config.age.secrets.countdown-db-password;
+    timeouts = migrationRoleTimeouts;
+  };
+
+  # Pocket ID runs its schema migrations on start, so it gets the same
+  # exemptions as the other migrating roles.
+  systemd.services.postgresql-pocketid-password = mkRolePasswordUnit {
+    role = "pocketid";
+    description = "Set Pocket ID PostgreSQL user password";
+    secret = config.age.secrets.pocketid-db-password;
     timeouts = migrationRoleTimeouts;
   };
 
