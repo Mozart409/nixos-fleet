@@ -23,6 +23,7 @@
     ./homelab-dashboard
     ./romm
     ./mailpit
+    ./pocket-id
   ];
 
   homelab.multica.server.enable = true;
