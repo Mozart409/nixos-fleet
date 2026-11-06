@@ -96,7 +96,9 @@ Host certs go in `modules/nebula/`. Each joining host needs:
    Groups are fixed at signing.
 3. `secrets/nebula-mozart409-<host>.age` plus a rule in
    `secrets/agenix-rules.nix`.
-4. The CA and the host cert committed (public), as for wotan.
+4. The CA and the host cert committed (public), as for wotan. Copy the cert
+   with `install -m 664`: a `cp` can leave it unreadable to other users, and
+   the agent user's flake evals then fail for every host.
 
 Must-haves:
 
