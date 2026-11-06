@@ -2,8 +2,9 @@
 
 > **Status: done on 2026-11-06.** Data imported, all seven logins verified, CT 102
 > destroyed the same day without the suggested soak, so rollback to the LXC is gone.
-> Still open: check that the `containers` backups cover `/var/lib/pocket-id`, delete
-> the `pocketid` tailnet node, and check dashboard links and bookmarks for the old URL.
+> Still open: delete the `pocketid` tailnet node, and check dashboard links and
+> bookmarks for the old URL. `/var/lib/pocket-id` is covered: the whole `containers`
+> VM is backed up.
 
 From: CT 102 on `pve-gigabyte` (192.168.2.102), docker-compose, image
 `ghcr.io/pocket-id/pocket-id:v2.19.0`, SQLite, issuer
@@ -223,7 +224,7 @@ sudo -u postgres psql -d hofvarpnir -c "UPDATE oidc_identities SET issuer = 'htt
 
 ## 11. Decommission after a soak (suggest a week)
 
-- [ ] Check that `/var/lib/pocket-id` (uploads) is covered by the backups of
+- [x] Check that `/var/lib/pocket-id` (uploads) is covered by the backups of
   `containers`. The nightly Postgres dump covers only the database.
 - [ ] Check dashboard links and bookmarks for the old URL.
 - [ ] Stop the compose stack, then stop CT 102 and keep it stopped through one more soak.
