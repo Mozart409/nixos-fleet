@@ -132,17 +132,19 @@ in {
   # on, oauth2-proxy fetches the issuer's /.well-known/openid-configuration at
   # startup; on a fresh boot the tailnet/MagicDNS name is not resolvable yet, so
   # the process exits, trips systemd's start limit and parks in `failed`. That
-  # is exactly what happened on 2026-10-17: the containers VM rebooted, Caddy
-  # answered the UI vhost 502 while the API stayed healthy. Pinning the four
-  # endpoints removes the startup network dependency altogether (Grafana in
-  # hosts/otel does the same). Endpoints are Pocket ID's discovery document.
+  # is exactly what happened on 2026-10-17, when the issuer was still addressed
+  # by its tailnet name: the containers VM rebooted, Caddy answered the UI vhost
+  # 502 while the API stayed healthy. Pocket ID now runs on this same host, but
+  # the endpoints stay pinned so oauth2-proxy has no startup dependency on Pocket
+  # ID at all (Grafana in hosts/otel does the same). Endpoints are Pocket ID's
+  # discovery document.
   services.oauth2-proxy = {
     enable = true;
     provider = "oidc";
-    oidcIssuerUrl = "https://pocketid.dropbear-butterfly.ts.net";
-    loginURL = "https://pocketid.dropbear-butterfly.ts.net/authorize";
-    redeemURL = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/token";
-    profileURL = "https://pocketid.dropbear-butterfly.ts.net/api/oidc/userinfo";
+    oidcIssuerUrl = "https://pocketid.homelab.internal";
+    loginURL = "https://pocketid.homelab.internal/authorize";
+    redeemURL = "https://pocketid.homelab.internal/api/oidc/token";
+    profileURL = "https://pocketid.homelab.internal/api/oidc/userinfo";
     keyFile = config.age.secrets.hindsight-env.path;
     redirectURL = "https://${uiHost}/oauth2/callback";
     httpAddress = "http://127.0.0.1:${toString uiAuthPort}";
@@ -156,7 +158,7 @@ in {
       skip-provider-button = true;
       # Required alongside skip-oidc-discovery for provider=oidc.
       skip-oidc-discovery = true;
-      oidc-jwks-url = "https://pocketid.dropbear-butterfly.ts.net/.well-known/jwks.json";
+      oidc-jwks-url = "https://pocketid.homelab.internal/.well-known/jwks.json";
     };
   };
 

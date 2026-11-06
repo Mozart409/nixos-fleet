@@ -113,8 +113,8 @@ in {
       # come from the agenix env file below (the client is registered in the
       # Pocket ID admin UI, which mints those two values).
       #
-      # Issuer = Pocket ID's ts.net name (same one romm uses from a container;
-      # its cert is publicly trusted so discovery works over rustls or native-tls).
+      # Issuer = Pocket ID's .homelab.internal name. Its cert is from step-ca and
+      # is verified through the mounted host bundle and SSL_CERT_FILE above.
       # from_env() enables OIDC only when ISSUER + CLIENT_ID + CLIENT_SECRET are
       # all present. redirect_uri() ignores API_BASE_URL and uses ONLY
       # OIDC_REDIRECT_BASE_URL, so it must be set — the callback the app builds
@@ -122,7 +122,7 @@ in {
       #   https://hofvarpnir.homelab.internal/auth/oidc/callback
       # First OIDC login links to the existing user whose email matches the
       # Pocket ID email claim (get_user_by_email), preserving that account.
-      OIDC_ISSUER = "https://pocketid.dropbear-butterfly.ts.net";
+      OIDC_ISSUER = "https://pocketid.homelab.internal";
       OIDC_SCOPES = "openid,profile,email";
       OIDC_AUTO_PROVISION = "true";
       OIDC_REDIRECT_BASE_URL = "https://hofvarpnir.homelab.internal";

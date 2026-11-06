@@ -99,7 +99,11 @@ in {
       OIDC_ENABLED = "true";
       OIDC_PROVIDER = "pocket-id";
       OIDC_REDIRECT_URI = "https://romm.homelab.internal/api/oauth/openid";
-      OIDC_SERVER_APPLICATION_URL = "https://pocketid.dropbear-butterfly.ts.net";
+      OIDC_SERVER_APPLICATION_URL = "https://pocketid.homelab.internal";
+      # The issuer has a step-ca cert. Python's HTTP clients default to certifi,
+      # so both variables point them at the mounted host bundle.
+      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+      REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
       ROMM_BASE_URL = "https://romm.homelab.internal";
       # Served only over HTTPS via Caddy.
       ROMM_SESSION_SECURE_COOKIE = "true";
