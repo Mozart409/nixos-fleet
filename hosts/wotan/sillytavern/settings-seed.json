@@ -9,6 +9,7 @@
       "overrideResponseLength": 800
     },
     "vectors": {
+      "source": "transformers",
       "enabled_chats": true,
       "insert": 8,
       "protect": 10
