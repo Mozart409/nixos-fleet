@@ -300,9 +300,13 @@
       enable = true;
       listenAddress = guestAddr zone;
       enabledCollectors = ["systemd" "processes"];
-      openFirewall = true;
-      firewallFilter = "-p tcp -s ${hostAddr} -m tcp --dport 9100";
     };
+    # Not the exporter's openFirewall/firewallFilter: it applies the filter to
+    # ip6tables too, which rejects the IPv4 source, and firewall-start then
+    # aborts before it ever hooks nixos-fw into INPUT, leaving the guest open.
+    networking.firewall.extraCommands = ''
+      iptables -w -A nixos-fw -p tcp -s ${hostAddr} -m tcp --dport 9100 -m comment --comment node-exporter -j nixos-fw-accept
+    '';
 
     # Self-heal if the store share breaks: only a fresh mount (a reboot; qemu
     # runs -no-reboot and microvm@ restarts it) recovers. This used to act on
