@@ -100,6 +100,8 @@
     enableZshIntegration = true;
     # Keeps the long `export +VAR ...` list out of the prompt on each load.
     config.global.hide_env_diff = true;
+    # Slow flake evaluations stay quiet until they pass 10 s (default 5 s).
+    config.global.warn_timeout = "10s";
   };
 
   programs.zsh = {
