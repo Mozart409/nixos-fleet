@@ -130,8 +130,8 @@ Done on 2026-11-07 except item 5: `dns` is `172.16.20.4`, and wotan reaches it
 directly over the LAN (0.4 ms, handshake from `192.168.2.145:4343`). That needed
 a fixed, open UDP port on the host: with the ephemeral default the handshake was
 dropped and the tunnel was relayed through a lighthouse (15 ms). The home NAT
-showed a different public port per lighthouse, so expect off-site clients to
-stay relayed unless a test with the iPhone shows otherwise.
+showed a different public port per lighthouse, and the iPhone on cellular does
+reach `dns` only through a lighthouse relay (direct from `192.168.2.31` on Wi-Fi).
 
 1. Join `dns` per Phase C. Prove wotan to `dns` over `mozart409` with real
    traffic (SSH, a DNS query), and check direct versus relayed in the
