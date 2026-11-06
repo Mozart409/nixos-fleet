@@ -473,7 +473,7 @@ in {
     serviceConfig.LoadCredential = lib.mkIf llamaCppApiKey "llama-cpp-api-key:${config.age.secrets.llama-cpp-api-key.path}";
     restartTriggers =
       lib.optionals llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file]
-      ++ [./sillytavern/ZImage_Turbo_Workflow.json];
+      ++ [./sillytavern/ZImage_Turbo_Workflow.json ./sillytavern/settings-seed.json];
     # Seed the ComfyUI workflow from the repo: it is mutable state the UI owns,
     # so a reprovision would otherwise lose it. Runs on every start, so a UI
     # edit to the file is overwritten.
@@ -481,6 +481,13 @@ in {
       ''
         dir=/var/lib/SillyTavern/data/default-user
         install -Dm644 ${./sillytavern/ZImage_Turbo_Workflow.json} "$dir/user/workflows/ZImage_Turbo_Workflow.json"
+        # Deep-merge the repo's settings over the browser-written settings.json.
+        # Skipped until SillyTavern has created the file from its defaults,
+        # since a partial file would stop it from doing so.
+        s="$dir/settings.json"
+        if [ -s "$s" ]; then
+          ${lib.getExe pkgs.jq} -s '.[0] * .[1]' "$s" ${./sillytavern/settings-seed.json} > "$s.tmp" && mv "$s.tmp" "$s"
+        fi
       ''
       + lib.optionalString llamaCppApiKey ''
         f="$dir/secrets.json"

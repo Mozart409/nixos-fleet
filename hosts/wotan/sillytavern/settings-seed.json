@@ -1,0 +1,17 @@
+{
+  "world_info_settings": {
+    "world_info_depth": 5
+  },
+  "extension_settings": {
+    "memory": {
+      "source": "main",
+      "promptWords": 400,
+      "overrideResponseLength": 800
+    },
+    "vectors": {
+      "enabled_chats": true,
+      "insert": 8,
+      "protect": 10
+    }
+  }
+}
