@@ -126,8 +126,12 @@ Must-haves:
 
 `dns` joins first, since every client needs its resolver.
 
-Code for items 3 and 4 is in (`dns` is `172.16.20.4`). The host does not join
-until its key and cert exist, and items 1 and 5 are still open.
+Done on 2026-11-07 except item 5: `dns` is `172.16.20.4`, and wotan reaches it
+directly over the LAN (0.4 ms, handshake from `192.168.2.145:4343`). That needed
+a fixed, open UDP port on the host: with the ephemeral default the handshake was
+dropped and the tunnel was relayed through a lighthouse (15 ms). The home NAT
+showed a different public port per lighthouse, so expect off-site clients to
+stay relayed unless a test with the iPhone shows otherwise.
 
 1. Join `dns` per Phase C. Prove wotan to `dns` over `mozart409` with real
    traffic (SSH, a DNS query), and check direct versus relayed in the
