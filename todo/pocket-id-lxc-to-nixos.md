@@ -1,9 +1,9 @@
 # Pocket ID: move from the CT 102 LXC to NixOS on Postgres
 
-> **Status: prepared on branch `worktree-pocket-id-nixos`, not deployed.** The
-> upstream facts below were read from Pocket ID v2.19.1 source and docs. Nothing
-> here has been run end to end, and upstream labels the export/import feature
-> experimental. Treat every "Verify" line as a real check, not a formality.
+> **Status: done on 2026-11-06.** Data imported, all seven logins verified, CT 102
+> destroyed the same day without the suggested soak, so rollback to the LXC is gone.
+> Still open: check that the `containers` backups cover `/var/lib/pocket-id`, delete
+> the `pocketid` tailnet node, and check dashboard links and bookmarks for the old URL.
 
 From: CT 102 on `pve-gigabyte` (192.168.2.102), docker-compose, image
 `ghcr.io/pocket-id/pocket-id:v2.19.0`, SQLite, issuer
@@ -23,6 +23,19 @@ disks on `zfs_pool` (HDD).
   connection string carries the password (same precedent as the pgmcp URL
   secrets), while the `database` host needs it as a bare file. Rotating means
   re-encrypting both `pocketid-db-password.age` and `pocketid-env.age`.
+
+## What the cutover turned up
+
+For the next migration of this kind:
+
+- The service auto-started on the empty database at step 4 and had to be stopped by
+  hand. Keep a service off its `wantedBy` for the first deploy instead. Stopping it
+  during startup leaves the unit `failed`, not `inactive`; `reset-failed` clears it.
+- Caddy could not get the certificate until DNS moved, and needed a restart after step 6.
+- Clients cached the old address: wotan needed `sudo resolvectl flush-caches`. Check each
+  consumer host with curl before switching it.
+- Pocket ID also listens on UDP 1414 (`ACTORS_PORT`) for replica traffic, on `0.0.0.0` by
+  default. It is now bound to loopback with `ACTORS_HOST`.
 
 ## Facts this relies on
 

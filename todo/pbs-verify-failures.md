@@ -157,8 +157,8 @@ and it is a `Run Now` concern, not a steady-state one.
       a backup is *restorable* — verification proves chunks are readable, and
       this datastore has already lied in both directions (false failures at 16
       threads, a hollow `TASK OK` in 1 second with Skip Verified). Restore
-      `ct/102` (pocketid, ~1.9 GB, the cheapest) to a scratch guest and confirm
-      it boots.
+      the smallest remaining guest to a scratch guest and confirm it boots
+      (`ct/102`, the previous choice, was deleted on 2026-11-06).
 - [ ] **A second, HA-independent target.** `ha-push` is the only channel and it
       dies exactly when the homelab does — as it did today. PBS's native **SMTP**
       endpoint needs only an A record and credentials, so it dodges both the MX
@@ -385,8 +385,9 @@ broken.
       This is a two-minute change in the PVE backup job and it buys a fallback.
 - [ ] **Do one real restore.** Still open — tracked in
       [Still open](#still-open) above. Nothing in this document proves a backup
-      is restorable. Restore `ct/102` (pocketid, 1.9 GB — the cheapest) to a
-      scratch guest and confirm it boots. Verification passing is not the same
+      is restorable. Restore the smallest remaining guest to a
+      scratch guest and confirm it boots (`ct/102`, the previous choice, was
+      deleted on 2026-11-06). Verification passing is not the same
       as a restore working, and as of 2026-08-09 verification has been
       demonstrated but a restore has not.
 
