@@ -65,6 +65,12 @@ in {
   virtualisation.oci-containers.containers.romm = {
     image = "ghcr.io/rommapp/romm:5.3";
     autoStart = true;
+    # Set SSL_CERT_FILE here, not in `environment`: the image's entrypoint turns
+    # every *_FILE variable into one holding the file's contents, and the CA
+    # bundle is too large for one (every later exec fails, "Argument list too
+    # long"). It also unsets the *_FILE variable. Past the entrypoint, the image's
+    # default command /init sees it as a plain path.
+    cmd = ["/usr/bin/env" "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt" "/init"];
     ports = ["127.0.0.1:8095:8080"];
     volumes = [
       "romm_resources:/romm/resources"
@@ -101,8 +107,7 @@ in {
       OIDC_REDIRECT_URI = "https://romm.homelab.internal/api/oauth/openid";
       OIDC_SERVER_APPLICATION_URL = "https://pocketid.homelab.internal";
       # The issuer has a step-ca cert. Python's HTTP clients default to certifi,
-      # so both variables point them at the mounted host bundle.
-      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+      # so this and SSL_CERT_FILE (in `cmd` above) point them at the host bundle.
       REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
       ROMM_BASE_URL = "https://romm.homelab.internal";
       # Served only over HTTPS via Caddy.
