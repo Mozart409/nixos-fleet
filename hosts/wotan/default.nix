@@ -467,29 +467,38 @@ in {
     # Same parsing as llama-server: the first non-empty line not starting
     # with #.
     serviceConfig.LoadCredential = lib.mkIf llamaCppApiKey "llama-cpp-api-key:${config.age.secrets.llama-cpp-api-key.path}";
-    restartTriggers = lib.mkIf llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file];
-    preStart = lib.mkIf llamaCppApiKey ''
-      dir=/var/lib/SillyTavern/data/default-user
-      f="$dir/secrets.json"
-      umask 077
-      mkdir -p "$dir"
-      [ -s "$f" ] || echo '{}' > "$f"
-      # Old flat files ({"key": "value"}) are migrated by SillyTavern
-      # itself, but only while no value is an array, so leave those alone.
-      if ${lib.getExe pkgs.jq} -e 'any(.[]; type == "string")' "$f" > /dev/null; then
-        echo "secrets.json is in the old flat format; not seeding the llama.cpp key" >&2
-        exit 0
-      fi
-      ${lib.getExe pkgs.jq} --rawfile raw "$CREDENTIALS_DIRECTORY/llama-cpp-api-key" '
-        ($raw | split("\n") | map(select(length > 0 and (startswith("#") | not))) | first) as $key
-        | if $key == null then error("llama-cpp-api-key credential is empty") else . end
-        | .api_key_llamacpp = (
-            [(.api_key_llamacpp // [])[] | select(.id != "agenix") | .active = false]
-            + [{id: "agenix", value: $key, label: "agenix", active: true}]
-          )
-      ' "$f" > "$f.tmp"
-      mv "$f.tmp" "$f"
-    '';
+    restartTriggers =
+      lib.optionals llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file]
+      ++ [./sillytavern/ZImage_Turbo_Workflow.json];
+    # Seed the ComfyUI workflow from the repo: it is mutable state the UI owns,
+    # so a reprovision would otherwise lose it. Runs on every start, so a UI
+    # edit to the file is overwritten.
+    preStart =
+      ''
+        dir=/var/lib/SillyTavern/data/default-user
+        install -Dm644 ${./sillytavern/ZImage_Turbo_Workflow.json} "$dir/user/workflows/ZImage_Turbo_Workflow.json"
+      ''
+      + lib.optionalString llamaCppApiKey ''
+        f="$dir/secrets.json"
+        umask 077
+        mkdir -p "$dir"
+        [ -s "$f" ] || echo '{}' > "$f"
+        # Old flat files ({"key": "value"}) are migrated by SillyTavern
+        # itself, but only while no value is an array, so leave those alone.
+        if ${lib.getExe pkgs.jq} -e 'any(.[]; type == "string")' "$f" > /dev/null; then
+          echo "secrets.json is in the old flat format; not seeding the llama.cpp key" >&2
+          exit 0
+        fi
+        ${lib.getExe pkgs.jq} --rawfile raw "$CREDENTIALS_DIRECTORY/llama-cpp-api-key" '
+          ($raw | split("\n") | map(select(length > 0 and (startswith("#") | not))) | first) as $key
+          | if $key == null then error("llama-cpp-api-key credential is empty") else . end
+          | .api_key_llamacpp = (
+              [(.api_key_llamacpp // [])[] | select(.id != "agenix") | .active = false]
+              + [{id: "agenix", value: $key, label: "agenix", active: true}]
+            )
+        ' "$f" > "$f.tmp"
+        mv "$f.tmp" "$f"
+      '';
   };
 
   # ComfyUI (stock nixpkgs module): web UI and API on http://127.0.0.1:8188,
