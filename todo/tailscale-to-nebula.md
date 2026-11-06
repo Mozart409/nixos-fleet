@@ -200,6 +200,10 @@ stays.
 
 ## Phase H: iPhone
 
+Joined on 2026-11-07 as `.101`: wotan pings it, and it reaches `dns` by name
+over HTTPS. Step 7 is still open beyond `dns`, since the other hosts must join
+first.
+
 The MacBook is the user's call (offline, key expired). iOS runs one VPN at
 a time, so the phone cannot use Tailscale and Nebula together. Keep both
 apps and toggle during the test, with On Demand off.
