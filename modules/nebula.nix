@@ -116,9 +116,13 @@ in {
         # Accept traffic relayed by the lighthouses when hole punching fails.
         relays = ["${overlay}.1" "${overlay}.2" "${overlay}.3"];
 
-        # Client behind home NAT: dual-stack bind, ephemeral port (module
-        # default for non-lighthouses), punch through.
-        listen.host = "::";
+        # Dual-stack bind on a fixed port, open in the host firewall below.
+        # With the module's ephemeral default a LAN peer's handshake is dropped
+        # and the tunnel falls back to a lighthouse relay (15 ms, not 0.25 ms).
+        listen = {
+          host = "::";
+          inherit port;
+        };
         tun.device = device;
 
         # ICMP, TCP and DNS only -- NO general UDP. Tailscale advertises every
@@ -186,6 +190,9 @@ in {
           };
         };
       };
+
+      # Nebula's underlay port, so peers on the LAN can reach this host directly.
+      networking.firewall.allowedUDPPorts = [port];
 
       # Both layers must allow a port: nebula's inbound rules above and the
       # host firewall here. One option list feeds both, so they cannot drift.
