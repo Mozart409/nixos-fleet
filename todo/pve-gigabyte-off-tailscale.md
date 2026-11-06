@@ -139,9 +139,8 @@ Tailscale must move to the LAN first.
       apt purge tailscale && rm /etc/apt/sources.list.d/tailscale.list
       # Tailscale admin console: delete the pve-gigabyte machine
 
-  Guests with their own tailscaled (e.g. the pocketid LXC, whose ts.net name
-  is the OIDC issuer) are not affected; check their `/dev/net/tun` passthrough
-  still works after the purge.
+  Guests with their own tailscaled are not affected; check their `/dev/net/tun`
+  passthrough still works after the purge.
 
 ## Verification
 
