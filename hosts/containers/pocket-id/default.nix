@@ -30,6 +30,9 @@ in {
       # Loopback only; Caddy is the way in.
       HOST = "127.0.0.1";
       PORT = toString port;
+      # The peer port for several replicas (UDP 1414), on 0.0.0.0 by default.
+      # This is the only replica, and tailscale0 is a trusted interface here.
+      ACTORS_HOST = "127.0.0.1";
     };
   };
 
