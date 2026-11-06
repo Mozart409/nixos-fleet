@@ -1,6 +1,6 @@
 # Homelab off Tailscale, onto the Nebula network mozart409
 
-Move every homelab host and the user's own clients from Tailscale to the
+Move the homelab hosts and the user's own clients from Tailscale to the
 Nebula network `mozart409` (172.16.20.0/24, UDP 4343, its own CA), then
 delete the tailnet. Nothing here is deployed; this is the plan. The
 `amartum` network (172.16.10.0/24, UDP 4242, separate CA) is business and
@@ -20,7 +20,7 @@ a Tailscale snapshot and Prometheus, same day. Nothing below has run.
 - Subnet route `192.168.2.0/24`: the repo says `dns` advertises it
   (`hosts/dns/configuration.nix`, `extraUpFlags`; root `flake.nix`, comment
   above `hostRegistry`), but the snapshot shows **Home Assistant** as the
-  active router. Whether `dns` is an approved standby is unknown (A.4).
+  active router. Whether `dns` is an approved standby is unknown (A.2).
 - `mozart409` has lighthouses `.1`-`.3` (`lighthouse-{a,b,c}.oyabu.cc`) and
   wotan `.100`. All lighthouses answer ping from wotan's `amadeus` user. No
   homelab traffic has ever used it, so it is unproven.
@@ -32,16 +32,16 @@ a Tailscale snapshot and Prometheus, same day. Nothing below has run.
 - Fleet hosts import `modules/tailscale.nix` (agents, ca, containers,
   database, dns, forgejo, jellyfin, mcp_vm, otel). wotan does not: it sets
   `services.tailscale.enable = true` in `hosts/wotan/default.nix`.
-- Tailnet traffic is very low. otel received about 155 MB over `tailscale0`
-  in 7 days from a source not yet identified (A.3).
+- Tailnet traffic is very low.
 - wotan's `agent` user cannot reach private ranges: verify as `amadeus`.
 
 ## Decisions (made)
 
 - **Target is `mozart409`**, the user's personal network, for their own
   clients only.
-- **All hosts join** with a per-host cert. There is **no `unsafe_routes`
-  LAN gateway.** Consequence: anything not joined becomes unreachable
+- **Fleet hosts, pve-gigabyte, immich and Pocket-ID join** with a per-host
+  cert. **One narrow gateway serves Home Assistant only** (Phase F), not the
+  whole LAN. Consequence: anything else not joined becomes unreachable
   off-site once Tailscale's `192.168.2.0/24` route goes.
 - Nebula is UDP-only, on those ports. There is no HTTPS relay fallback like
   Tailscale's DERP, so networks that block UDP 4343 cannot connect.
@@ -55,13 +55,9 @@ a Tailscale snapshot and Prometheus, same day. Nothing below has run.
 
 ## Phase A: now, independent of the migration
 
-1. The iPhone's Tailscale key expires **2026-11-15**. Renew it or disable
-   expiry in the admin console, so the phone stays usable until Phase H.
-2. Export the policy from the external `tailscale-acls` repo: the only
-   record of who may reach what, including the mosh UDP grant.
-3. Identify the otel traffic source (~155 MB over `tailscale0` in 7 days)
-   before removal (conntrack on otel, match peers against the member list).
-4. Confirm the subnet router state: which node is approved for
+1. The iPhone's Tailscale key expires **2026-11-15**. Log back in with GitHub
+   to refresh it, so the phone stays usable until Phase H.
+2. Confirm the subnet router state: which node is approved for
    `192.168.2.0/24`, and whether `dns` is a standby.
 
 ## Phase B: resolvers first
@@ -69,11 +65,13 @@ a Tailscale snapshot and Prometheus, same day. Nothing below has run.
 PBS and pve-gigabyte reportedly resolve only through `100.100.100.100`,
 which sits under the 03:00 backups.
 
-1. Do B.2 of the existing todos: point both at `dns` (`192.168.2.145`) with
-   a public fallback. Steps in
+1. On both, run `tailscale set --accept-dns=false` first, or Tailscale keeps
+   rewriting `/etc/resolv.conf`. `*.ts.net` names stop resolving there.
+2. In each web UI, set DNS to `dns` (`192.168.2.145`) with a public fallback.
+   Details in
    [`pve-gigabyte-off-tailscale.md`](./pve-gigabyte-off-tailscale.md) and
    [`dns-tailscale-spof.md`](./dns-tailscale-spof.md); not repeated here.
-2. Move the MCP PBS URL off `.ts.net`: `hosts/mcp_vm/configuration.nix`,
+3. Move the MCP PBS URL off `.ts.net`: `hosts/mcp_vm/configuration.nix`,
    `host = "https://pbs.dropbear-butterfly.ts.net/"`, to the PBS
    `.homelab.internal` name (it needs a step-ca cert there; check first).
 
@@ -84,8 +82,10 @@ keep wotan's own file for its second network. Each joining host needs:
 
 1. An entry in `services/nebula/tenants.nix` (lighthouse repo) in the
    `.4`-`.99` server range.
-2. A cert signed offline with group `servers`
-   (`nebula-cert sign -name <host> -networks 172.16.20.N/24 -groups servers`).
+2. A cert with group `servers`, signed from the lighthouse repo:
+   `just nebula-sign mozart409 <host> servers <pubkey>`, passing the host's
+   public key so its private key stays in this repo's agenix. Members that
+   flake does not build use `just nebula-onboard mozart409 <host> servers`.
    Groups are fixed at signing.
 3. `secrets/nebula-mozart409-<host>.age` plus a rule in
    `secrets/agenix-rules.nix`.
@@ -150,18 +150,33 @@ entry: it lists `10.0.0.0/8`, `192.168.0.0/16` and `100.64.0.0/10`. Add one
 only if off-site Postgres is wanted. Membership groups are fixed at signing,
 so choose them before signing.
 
-## Phase F: non-fleet nodes (open decision for the user)
+## Phase F: non-fleet nodes
 
-Decide each individually: join with its own cert, or accept LAN-only.
+Decided 2026-11-06:
 
-- pve-gigabyte, pbs, the pocketid LXC, immich, homelab-unifi
-  ([`unifi-os-server-vm.md`](./unifi-os-server-vm.md)), Home Assistant.
-- Running Nebula on HAOS is unverified.
-- Other LAN devices become LAN-only.
-- Pocket-ID must be reachable by every OIDC client, so it must join or be
-  otherwise reachable. That constrains Phase G.
+- **Join with their own cert:** pve-gigabyte, immich and the pocketid LXC.
+  Pocket-ID must be reachable by every OIDC client; Phase G depends on it.
+- **Gateway:** Home Assistant. HAOS can only run Nebula through an unofficial
+  add-on (`mr-ransel/addon-nebula`: manual install, no releases, Nebula version
+  unconfirmed, and `mozart409` certs are v2), so it does not join.
+- **LAN-only:** pbs, homelab-unifi
+  ([`unifi-os-server-vm.md`](./unifi-os-server-vm.md)) and other LAN devices.
 
-No recommendation beyond: join what must be reachable off-site.
+Home Assistant gateway:
+
+1. Pick one NixOS fleet host during Phase E. Keep it off the hosts whose
+   Nebula config changes often: a change restarts the unit.
+2. Sign its cert with `-unsafe-networks <Home Assistant IP>/32`, the one
+   address, not the LAN. Check whether `just nebula-sign` supports that flag;
+   nothing here has used `unsafe_routes` yet.
+3. On the gateway: IP forwarding, masquerade towards the LAN, and a Nebula
+   inbound rule with `local_cidr` for that /32 and group `mobile`.
+4. On each client: an `unsafe_routes` entry for that /32 via the gateway's
+   overlay IP.
+5. The unbound view (D.4) keeps Home Assistant's LAN answer, since clients
+   route that address through the gateway.
+
+The gateway is a single point of failure for this one path only.
 
 ## Phase G: Pocket-ID issuer (hardest item)
 
@@ -197,11 +212,12 @@ apps and toggle during the test, with On Demand off.
    Lighthouses at `lighthouse-{a,b,c}.oyabu.cc:4343`. `relay.relays` and
    `punchy.respond` have no UI and need YAML.
 3. Set `mobile_nebula.dns_resolvers` to `dns`'s overlay IP and
-   `match_domains: ["homelab.internal"]`. DNS lookup mode: Both.
+   `match_domains: ["homelab.internal"]`. DNS lookup mode: Both. Add the Home
+   Assistant `unsafe_routes` entry (Phase F).
 4. Share the public key out and stay on that screen until the cert is
    loaded: the keypair is regenerated when the config page reopens.
-5. Sign it (`.101` to be checked against `tenants.nix`; `-ip` is
-   deprecated; guide:
+5. Register `.101` in `tenants.nix` (free on 2026-11-06), then sign it
+   (`-ip` is deprecated; guide:
    https://nebula.defined.net/docs/guides/sign-certificates-with-public-keys/):
 
        nebula-cert sign -in-pub device.pub -name iphone \
