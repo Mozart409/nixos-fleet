@@ -118,10 +118,140 @@
 
     # forgejo-mcp from nixpkgs (a plain unit in ../configuration.nix, not a
     # homelab-mcp-servers instance); it carries its own Forgejo token.
+    #
+    # The token only has read/write for repository and issue data, but the
+    # forgejo-mcp surface is much wider. Restrict it to the repo, issue, pull,
+    # tracking, attachment, release and wiki tools (plus search_repos and the
+    # version probe), so org/team admin, Actions secrets and workflows,
+    # webhooks, packages and notifications never appear. Merge stays out even
+    # though it is a pull tool: that is the user's call. Branch protection is
+    # its own tool group and is left out entirely; the rules on yggdrasil are
+    # the backstop, not something agents operate.
+    #
+    # This is an exact-name allowlist (axon's backend filter has no globs), so
+    # a forgejo-mcp upgrade that adds tools needs this list updated too.
     [[backends]]
     name = "forgejo"
     url = "http://127.0.0.1:8093/mcp"
     transport = "http"
+    allowed_tools = [
+      # repo
+      "add_repo_topic",
+      "change_files",
+      "create_branch",
+      "create_file",
+      "create_repo",
+      "delete_branch",
+      "delete_file",
+      "delete_repo_topic",
+      "edit_repo",
+      "fork_repo",
+      "get_commit_statuses",
+      "get_file_content",
+      "get_repo",
+      "get_repo_tree",
+      "list_branches",
+      "list_my_repos",
+      "list_repo_commits",
+      "list_repo_contents",
+      "list_repo_topics",
+      "set_repo_topics",
+      "update_file",
+      # issue
+      "add_issue_dependency",
+      "add_issue_labels",
+      "create_issue",
+      "create_issue_comment",
+      "create_org_label",
+      "create_repo_label",
+      "delete_issue_comment",
+      "delete_org_label",
+      "delete_repo_label",
+      "edit_issue_comment",
+      "edit_org_label",
+      "edit_repo_label",
+      "get_issue_by_index",
+      "get_issue_comment",
+      "get_org_label",
+      "get_repo_label",
+      "issue_state_change",
+      "list_issue_comments",
+      "list_issue_dependencies",
+      "list_issue_dependents",
+      "list_org_labels",
+      "list_repo_issues",
+      "list_repo_labels",
+      "list_repo_milestones",
+      "remove_issue_dependency",
+      "remove_issue_labels",
+      "search_issues",
+      "update_issue",
+      # pull (merge_pull_request deliberately omitted)
+      "create_pull_request",
+      "create_pull_review",
+      "create_review_requests",
+      "delete_pull_review",
+      "delete_review_requests",
+      "dismiss_pull_review",
+      "get_pull_request_by_index",
+      "get_pull_request_diff",
+      "get_pull_review",
+      "list_pull_request_files",
+      "list_pull_review_comments",
+      "list_pull_reviews",
+      "list_repo_pull_requests",
+      "submit_pull_review",
+      "update_pull_request",
+      # tracking
+      "add_issue_time",
+      "cancel_issue_stopwatch",
+      "delete_issue_time_entry",
+      "list_issue_tracked_times",
+      "list_my_stopwatches",
+      "list_my_tracked_times",
+      "list_repo_tracked_times",
+      "reset_issue_time",
+      "start_issue_stopwatch",
+      "stop_issue_stopwatch",
+      # attachment
+      "create_comment_attachment",
+      "create_issue_attachment",
+      "delete_comment_attachment",
+      "delete_issue_attachment",
+      "download_comment_attachment",
+      "download_issue_attachment",
+      "edit_comment_attachment",
+      "edit_issue_attachment",
+      "get_comment_attachment",
+      "get_issue_attachment",
+      "list_comment_attachments",
+      "list_issue_attachments",
+      # release
+      "create_release",
+      "create_release_attachment",
+      "delete_release",
+      "delete_release_attachment",
+      "delete_release_by_tag",
+      "download_release_attachment",
+      "edit_release",
+      "edit_release_attachment",
+      "get_latest_release",
+      "get_release_attachment",
+      "get_release_by_id",
+      "get_release_by_tag",
+      "list_release_attachments",
+      "list_releases",
+      # wiki
+      "create_wiki_page",
+      "delete_wiki_page",
+      "get_wiki_page",
+      "get_wiki_revisions",
+      "list_wiki_pages",
+      "update_wiki_page",
+      # search/version
+      "search_repos",
+      "get_forgejo_mcp_server_version",
+    ]
     enabled = true
 
     [[backends]]
