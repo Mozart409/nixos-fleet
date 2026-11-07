@@ -14,6 +14,7 @@
     ../../modules/fluent-bit.nix
     ../../modules/caddy-http3.nix
     ../../modules/forgejo-bots.nix
+    ./postgres-mcp.nix
     ./qemu-ga-watchdog.nix
   ];
 
@@ -33,6 +34,7 @@
       # real data (128 tables, ~19 MB) lives here, and the `forgejo` database on
       # the database host is an empty leftover. Set `createDatabase = false` if
       # you ever actually want to centralise it (requires a pg_dump migration).
+      # ./postgres-mcp.nix exposes this local DB read-only to the mcp host.
       host = "192.168.2.134";
       port = 5432;
       name = "forgejo";
@@ -170,10 +172,17 @@
       '';
     };
 
-    # Redirect plain HTTP to HTTPS for the local hostname.
+    # Redirect plain HTTP to HTTPS for the local hostname. The HTTP-01 challenge
+    # for the postgres TLS cert (postgres-mcp.nix) is proxied to lego's
+    # responder first; 1360 is its acmeChallengePort, hardcoded here.
     virtualHosts."http://forgejo.homelab.internal http://forgejo.homelab.local" = {
       extraConfig = ''
-        redir https://{host}{uri} permanent
+        handle /.well-known/acme-challenge/* {
+          reverse_proxy 127.0.0.1:1360
+        }
+        handle {
+          redir https://{host}{uri} permanent
+        }
       '';
     };
   };

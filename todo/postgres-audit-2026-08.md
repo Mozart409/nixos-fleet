@@ -13,7 +13,7 @@ deploys.
 | Topic | Decision |
 |---|---|
 | `appuser` (DB still live, secret orphan in repo) | **Drop it.** Repo cleanup + live drop, with a dump first. |
-| `forgejo` (confirmed empty leftover) | **Keep.** Migration to this host is planned later; backend and DB stay. |
+| `forgejo` (confirmed empty leftover) | **Keep.** Migration to this host is planned later; backend and DB stay. Update 2026-11-07: this host's `forgejo` DB is still the empty leftover, but the `pgforgejo` tools now read the forgejo VM's live DB; a later migration only needs the URL changed. |
 | Redundant / unused indexes | **Research only.** Recorded here for verification later, not scheduled. |
 | Everything else | Documented as a backlog; no action committed. |
 
@@ -137,6 +137,10 @@ role is read-only by design.
   pgmcp instance and axon-gateway `pgforgejo` backend stay. Re-check after the
   migration lands whether this DB actually becomes the target (or whether the
   forgejo-host DB is moved here and this scaffold gets replaced).
+- **Update 2026-11-07:** the `pgforgejo` tools now read the forgejo VM's live
+  database over TLS, through a restricted read-only `mcp` role
+  (`hosts/forgejo/postgres-mcp.nix`). This scaffold is untouched; after a later
+  migration only the pgmcp URL secret needs changing.
 
 ### pgromm — RomM (database host, 10 MB, freshly provisioned)
 

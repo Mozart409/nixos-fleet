@@ -35,14 +35,16 @@
   # hosts/dns/configuration.nix and the blackbox mcp_probe job on otel.
   loopbackOnly = ["localhost" "127.0.0.1"];
 
-  # Postgres MCP servers on the `database` host: one instance per database.
+  # Postgres MCP servers, one instance per database. All are on the `database`
+  # host except `forgejo`, which is on the forgejo VM (hosts/forgejo/
+  # postgres-mcp.nix) with its own restricted `mcp` role.
   #
   # pgmcp builds a single connection pool from PG_DATABASE_URL and no tool takes
   # a database argument (`database_size` is literally `SELECT
   # current_database()`), so a Postgres connection's one-database scope is the
-  # server's scope too — reaching N databases means N instances. They all share
-  # the cluster-wide read-only `mcp` role defined on the database host; only the
-  # trailing /<db> of the connection URL differs.
+  # server's scope too — reaching N databases means N instances. Apart from
+  # `forgejo` they all share the cluster-wide read-only `mcp` role defined on the
+  # database host; only the trailing /<db> of the connection URL differs.
   #
   # `buildbot` is deliberately absent: its master/worker VMs are gone and the
   # database/role were dropped from the database host.
@@ -218,7 +220,8 @@ in {
         allowedHosts = loopbackOnly;
       };
     }
-    # One pgmcp instance per database on the `database` host. serverType pins the
+    # One pgmcp instance per database, on the `database` host except `forgejo`
+    # (forgejo VM, own restricted `mcp` role). serverType pins the
     # PG_* env prefix — without it the module would derive PGMCP-<DB>-SERVER from
     # the instance name and the server would find no config at all.
     // lib.mapAttrs' (db: port:
@@ -261,7 +264,8 @@ in {
     }
     # The pgmcp instances trigger on their own connection-URL secret instead:
     # the URL embeds the `mcp` role password, so rotating it on the database
-    # host re-encrypts all five and restarts exactly these five, with no nonce
+    # host re-encrypts those URLs and restarts just those instances (forgejo has
+    # its own password on the forgejo VM), with no nonce
     # bump and without bouncing the servers above.
     // lib.mapAttrs' (db: _:
       lib.nameValuePair (pgUnitName db) {
