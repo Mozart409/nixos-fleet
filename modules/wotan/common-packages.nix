@@ -16,6 +16,7 @@
     curl
     dig
     dust
+    forgejo-cli
     git
     opencode
     pinentry-curses

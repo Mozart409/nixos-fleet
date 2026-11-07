@@ -20,6 +20,8 @@
 
   networking.hostName = "homelab-forgejo";
 
+  environment.systemPackages = [config.services.forgejo.package pkgs.forgejo-cli];
+
   # Forgejo Git Forge
   services.forgejo = {
     enable = true;
