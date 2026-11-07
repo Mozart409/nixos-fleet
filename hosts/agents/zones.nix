@@ -128,6 +128,7 @@
 
   guest = name: zone: {
     imports = [
+      ../../modules/ca-distrust.nix
       ../../modules/multica-daemon.nix
       ../../modules/step-ca-trust.nix
     ];

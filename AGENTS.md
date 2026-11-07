@@ -333,6 +333,7 @@ workaround and this row; the user deploys (agents never do).
 | Workaround | Where | Exit condition (command) | Cleanup |
 | --- | --- | --- | --- |
 | `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | The locked `opencode` is not `2.2.5`, or its hash is the overlay's (check 1 below) | Build `opencode` once without the overlay, then delete the overlay and its three uses and eval `dns` and `wotan` <!-- markdownlint-disable-line MD013 --> |
+| `infra/modules/ca-distrust.nix` (distrust `emSign Root CA - G1`; beyond upstream, decided on OYA-104) | Imported from `infra/modules/base.nix` and the guest `imports` in `infra/hosts/agents/zones.nix` | `just trust-audit dns emsign` lists G1 only as a distrusted entry (no certificate block). Remove once NSS drops G1: the bundle build then fails with `Certs in blocklist but not in cert store` | Delete the module, its two imports and this row; build the `dns` bundle to confirm <!-- markdownlint-disable-line MD013 --> |
 
 Exit-condition checks, run from the repo root:
 
