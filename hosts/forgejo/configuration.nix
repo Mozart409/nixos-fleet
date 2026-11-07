@@ -61,6 +61,8 @@
         DISABLE_REGISTRATION = true;
         ALLOW_ONLY_EXTERNAL_REGISTRATION = true;
         ENABLE_NOTIFY_MAIL = false;
+        # Repos are public inside Forgejo, and yggdrasil holds the vault.
+        REQUIRE_SIGNIN_VIEW = true;
       };
 
       session = {
