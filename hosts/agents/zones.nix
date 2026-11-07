@@ -259,9 +259,9 @@
     # daily GC and their min-free/max-free -- never reaches them. A full
     # overlay silently breaks `nix develop` inside the zone until the VM is
     # restarted (preStart deletes the image), which is what otel's
-    # ZoneStoreOverlayFilling alert watches for. Two mechanisms, both mirroring
-    # nix-gc.nix but sized for these small volumes rather than its fleet-wide
-    # 5/10 GiB:
+    # ZoneStoreOverlayFilling alert watches for. Two mechanisms here, plus
+    # pressure and on-demand GC below, both mirroring nix-gc.nix but sized for
+    # these small volumes rather than its fleet-wide 5/10 GiB:
     #
     #   * Nix auto-GC: while something builds, once the overlay's free space
     #     drops below min-free Nix collects unreachable paths back up to
@@ -292,6 +292,57 @@
     systemd.services.nix-gc.serviceConfig = {
       Nice = 19;
       IOSchedulingClass = "idle";
+    };
+
+    # GC on pressure and on demand, on top of the daily run. The daily run
+    # alone was too slow on 2026-11-07: heimdahl's overlay went from 22 GiB to
+    # 3 GiB free in ~12 h of task builds, and Nix's auto-GC only fires below
+    # min-free (1/8) and only while something builds.
+    #
+    #   * nix-gc-pressure: every 15 min, start nix-gc when the overlay has less
+    #     than max-free (1/4) free. Not a blind hourly GC, which would drop the
+    #     last task's devShell every hour for the next task to fetch again.
+    #   * On demand: the zone's agents (multica-<zone>, the multica-daemon
+    #     module's default user) may start nix-gc.service through polkit, so
+    #     `systemctl start nix-gc.service` works without sudo. It runs the same
+    #     fixed root GC as the timer (Nice 19, idle I/O); a bare
+    #     nix-collect-garbage stays in the shared deny floor
+    #     (modules/claude-deny-core.nix).
+    #
+    # Either way GC only removes paths no root reaches: running builds hold
+    # temp roots, live devShell roots are kept, and the read-only lower store
+    # is not in the overlay's DB. The worst a needless run costs is a re-fetch.
+    systemd.services.nix-gc-pressure = {
+      description = "Start nix-gc when the writable store overlay runs low";
+      serviceConfig.Type = "oneshot";
+      path = [pkgs.coreutils pkgs.systemd];
+      script = ''
+        read -r avail size < <(df --output=avail,size -B1 /nix/.rw-store | tail -n 1)
+        if [ "$avail" -lt $((size / 4)) ]; then
+          echo "overlay has $avail of $size bytes free, starting nix-gc"
+          systemctl start --no-block nix-gc.service
+        fi
+      '';
+    };
+    systemd.timers.nix-gc-pressure = {
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnBootSec = "15min";
+        OnUnitActiveSec = "15min";
+      };
+    };
+    security.polkit = {
+      enable = true;
+      extraConfig = ''
+        polkit.addRule(function(action, subject) {
+          if (action.id == "org.freedesktop.systemd1.manage-units" &&
+              action.lookup("unit") == "nix-gc.service" &&
+              action.lookup("verb") == "start" &&
+              subject.user == "multica-${name}") {
+            return polkit.Result.YES;
+          }
+        });
+      '';
     };
 
     # Guest metrics for otel, reachable from the agents host only; the host

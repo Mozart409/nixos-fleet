@@ -295,9 +295,10 @@
         # from 95% to ~0% free over one day on 2026-10-19 -- and a full overlay
         # fails `nix develop` inside the zone. Since 2026-10-21 the zones carry
         # their own Nix auto-GC (min-free 1/8, max-free 1/4 of the overlay) plus
-        # a daily gc (hosts/agents/zones.nix), which fires at 1/8 free -- just
-        # above this rule's 10% -- so a reading that still reaches here means
-        # the space is pinned by GC roots, not ordinary build output. A reboot
+        # a daily gc (hosts/agents/zones.nix), and since 2026-11-07 a 15-min
+        # pressure check that runs it below 1/4 free. Auto-GC fires at 1/8 free
+        # -- just above this rule's 10% -- so a reading that still reaches here
+        # means the space is pinned by GC roots, not ordinary build output. A reboot
         # (which wipes the overlay) is the hard reset. /srv/work (the task
         # worktrees) and /var (the daemon's home and Hermes memory) are
         # ordinary volumes, covered by the disk-space rule.
@@ -310,7 +311,7 @@
             labels.severity = "warning";
             annotations = {
               summary = "{{ $labels.zone }} zone's writable store overlay is {{ $value | humanizePercentage }} free";
-              description = "The /nix/.rw-store overlay on {{ $labels.instance }} has been under 10% free for 30 minutes. A full overlay fails `nix develop` inside the zone. The zone's own Nix auto-GC (min-free = 1/8 of the overlay) should have collected before this fired, so space that stays here is pinned by GC roots -- a live devenv/nix-direnv root or a running build -- rather than freed by ordinary churn. `systemctl restart microvm@{{ $labels.zone }}` on the agents host wipes the overlay as the hard reset; if it refills immediately, raise the zone's storeSize.";
+              description = "The /nix/.rw-store overlay on {{ $labels.instance }} has been under 10% free for 30 minutes. A full overlay fails `nix develop` inside the zone. The zone's own Nix auto-GC (min-free = 1/8 of the overlay) should have collected before this fired, so space that stays here is pinned by GC roots -- a live devenv/nix-direnv root or a running build -- rather than freed by ordinary churn. Agents in the zone can run `systemctl start nix-gc.service` themselves (polkit allows it), and nix-gc-pressure starts it every 15 min below 1/4 free. `systemctl restart microvm@{{ $labels.zone }}` on the agents host wipes the overlay as the hard reset; if it refills immediately, raise the zone's storeSize.";
             };
           }
         ];
