@@ -23,14 +23,53 @@
   # challenge path here (the vhost in configuration.nix hardcodes this port).
   acmeChallengePort = 1360;
 
+  # Tables the role never reads: credentials, then personal data and content
+  # that has no useful metadata columns.
+  deniedTables = "token|secret|credential|oauth2|two_factor|webauthn|login_source|external_login|^session$|^task$|hook_task|webhook|mirror|action_variable|user_setting|^email_|abuse_report|^issue_content_history$|^action_task_output$|^dbfs_|^federated_user_activity$|^user_open_id$|gpg_key";
+  # Column names denied in every table. `is_private` and `keep_email_private`
+  # must stay readable, so bare `private` is not matched.
+  deniedColumns = "passw|salt|rands|token|secret|private_key|credential|authorization|cookie|remote_address|original_url|original_author";
+  # Per-table columns holding CI payloads, personal data or repo content. Names
+  # that are too generic for deniedColumns (`name`, `content`, `title`) go here.
+  # IDs, states, timestamps, sizes, logins, repo and branch names stay readable.
+  privateColumns = {
+    action = ["content"];
+    action_run = ["title" "event_payload" "pre_execution_error" "pre_execution_error_details"];
+    action_run_job = ["workflow_payload"];
+    action_schedule = ["title" "event_payload" "content"];
+    attachment = ["name" "external_url"];
+    branch = ["commit_message"];
+    comment = ["old_title" "new_title" "tree_path" "content" "patch"];
+    commit_status = ["target_url" "description"];
+    commit_status_summary = ["target_url"];
+    issue = ["name" "content"];
+    lfs_lock = ["path"];
+    milestone = ["name" "content"];
+    package_property = ["value"];
+    package_version = ["metadata_json"];
+    project = ["title" "description"];
+    project_board = ["title"];
+    pull_auto_merge = ["message"];
+    pull_request = ["conflicted_files" "changed_protected_files"];
+    release = ["title" "note"];
+    repo_unit = ["config"];
+    repository = ["description" "website"];
+    review = ["content"];
+    review_state = ["updated_files"];
+    team_invite = ["email"];
+    upload = ["name"];
+    user = ["full_name" "email" "login_name" "location" "website" "pronouns" "description" "avatar" "avatar_email"];
+  };
+  # Matched against `table:column`.
+  privateColumnsRegex = "^(${lib.concatStringsSep "|" (lib.mapAttrsToList (table: columns: "${table}:(${lib.concatStringsSep "|" columns})") privateColumns)})$";
+
   # Explicit per-table grants, not ALTER DEFAULT PRIVILEGES: a table added by a
   # Forgejo upgrade stays unreadable until this unit re-runs (fails closed). The
   # file's store path is in the unit's script, so changing either deny list
   # re-runs the unit on deploy.
   #
-  # Tables matching the first pattern are skipped whole; in the others the
-  # columns matching the second pattern are left out. `is_private` and
-  # `keep_email_private` must stay readable, so bare `private` is not matched.
+  # Tables matching deniedTables are skipped whole; in the others the columns
+  # matching deniedColumns or privateColumnsRegex are left out.
   # The REVOKE also clears column grants, so tightening a list converges.
   # `%I` quotes every identifier: `user` is a reserved word.
   grantsSql = pkgs.writeText "pgmcp-forgejo-grants.sql" ''
@@ -47,13 +86,13 @@
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public'
           AND table_type = 'BASE TABLE'
-          AND table_name !~* 'token|secret|credential|oauth2|two_factor|webauthn|login_source|external_login|^session$|^task$|hook_task|webhook|mirror|action_variable|user_setting'
+          AND table_name !~* '${deniedTables}'
       LOOP
         SELECT
           string_agg(format('%I', column_name), ', ' ORDER BY ordinal_position)
-            FILTER (WHERE column_name !~* 'passw|salt|rands|token|secret|private_key|credential|authorization|cookie|remote_address|original_url'),
+            FILTER (WHERE column_name !~* '${deniedColumns}' AND (tbl || ':' || column_name::text) !~* '${privateColumnsRegex}'),
           count(*)
-            FILTER (WHERE column_name ~* 'passw|salt|rands|token|secret|private_key|credential|authorization|cookie|remote_address|original_url')
+            FILTER (WHERE column_name ~* '${deniedColumns}' OR (tbl || ':' || column_name::text) ~* '${privateColumnsRegex}')
         INTO readable, excluded
         FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = tbl;
