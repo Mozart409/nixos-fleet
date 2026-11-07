@@ -14,6 +14,7 @@
     ../../modules/fluent-bit.nix
     ../../modules/caddy-http3.nix
     ../../modules/forgejo-bots.nix
+    ./qemu-ga-watchdog.nix
   ];
 
   networking.hostName = "homelab-forgejo";
