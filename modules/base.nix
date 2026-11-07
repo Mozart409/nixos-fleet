@@ -13,6 +13,11 @@
   # Timezone configuration
   time.timeZone = "Europe/Berlin";
 
+  # Distrust the eMudhra root: Mozilla only blocks the compromised
+  # intermediates through OneCRL, which curl/rustls/certifi never consult.
+  # (Zero Wire, "eMudhra certificate compromise", 2026-10-30.)
+  security.pki.caCertificateBlacklist = ["emSign Root CA - G1"];
+
   # Locale and keyboard settings
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
