@@ -332,18 +332,22 @@ workaround and this row; the user deploys (agents never do).
 
 | Workaround | Where | Exit condition (command) | Cleanup |
 | --- | --- | --- | --- |
-| `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | The locked nixpkgs hash equals the overlay's (check 1 below) | Delete the overlay and its three uses, then eval `dns` and `wotan` |
+| `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | The locked `opencode` is not `2.2.5`, or its hash is the overlay's (check 1 below) | Build `opencode` once without the overlay, then delete the overlay and its three uses and eval `dns` and `wotan` <!-- markdownlint-disable-line MD013 --> |
 
 Exit-condition checks, run from the repo root:
 
-1. `opencode` overlay. Prints the hash locked nixpkgs ships; once it equals the
-   `outputHash` in `overlays.opencode` (`flake.nix`) upstream has the fix, so
-   remove the overlay. Today it prints `sha256-xfOVcw1+waLVNhFDwzOtzxrUSQEogvn88YomydOlhwc=`,
-   the stale value, against the overlay's `sha256-prx9dX7kUvs/E3zopkaPk5LXh3xJAy5sZeum/W8L7cA=`.
+1. `opencode` overlay. The overlay's hash (`sha256-prx9dX7kUvs/E3zopkaPk5LXh3xJAy5sZeum/W8L7cA=`)
+   is only valid for `opencode` 2.2.5. Remove the overlay when the printed
+   version is not `2.2.5` (a bump brings its own hash, and the overlay would
+   then break the build), or when the printed hash is the overlay's `prx9…`.
+   Today it prints `2.2.5 sha256-xfOVcw1+waLVNhFDwzOtzxrUSQEogvn88YomydOlhwc=`,
+   so keep the overlay.
 
+   <!-- markdownlint-disable MD013 -->
    ```sh
-   nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.opencode.node_modules.outputHash'
+   nix eval --raw --impure --expr 'let p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.opencode; in "${p.version} ${p.node_modules.outputHash}\n"'
    ```
+   <!-- markdownlint-enable MD013 -->
 
 ## 6. Common Pitfalls
 
