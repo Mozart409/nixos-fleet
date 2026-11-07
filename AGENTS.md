@@ -332,7 +332,18 @@ workaround and this row; the user deploys (agents never do).
 
 | Workaround | Where | Exit condition (command) | Cleanup |
 | --- | --- | --- | --- |
-| `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | Locked nixpkgs contains `c399e1b7fb`: `gh api repos/NixOS/nixpkgs/compare/c399e1b7fb...$(nix eval --raw --impure --expr '(builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.nixpkgs.locked.rev') --jq .status` prints `ahead` or `identical` | Delete the overlay and its three uses, then `nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath` for `dns` and `wotan` |
+| `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | The locked nixpkgs hash equals the overlay's (check 1 below) | Delete the overlay and its three uses, then eval `dns` and `wotan` |
+
+Exit-condition checks, run from the repo root:
+
+1. `opencode` overlay. Prints the hash locked nixpkgs ships; once it equals the
+   `outputHash` in `overlays.opencode` (`flake.nix`) upstream has the fix, so
+   remove the overlay. Today it prints `sha256-xfOVcw1+waLVNhFDwzOtzxrUSQEogvn88YomydOlhwc=`,
+   the stale value, against the overlay's `sha256-prx9dX7kUvs/E3zopkaPk5LXh3xJAy5sZeum/W8L7cA=`.
+
+   ```sh
+   nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.opencode.node_modules.outputHash'
+   ```
 
 ## 6. Common Pitfalls
 
