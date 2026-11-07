@@ -323,6 +323,17 @@ When adding a new host to the homelab, ensure the following are updated:
    (`nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`;
    never a bare `nix flake check`)
 
+## Temporary workarounds
+
+Every workaround that exists only until upstream nixpkgs catches up gets one
+row here, with the commit that makes it obsolete and a command that prints the
+answer. When the exit condition holds, open a branch that removes the
+workaround and this row; the user deploys (agents never do).
+
+| Workaround | Where | Exit condition (command) | Cleanup |
+| --- | --- | --- | --- |
+| `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | Locked nixpkgs contains `c399e1b7fb`: `gh api repos/NixOS/nixpkgs/compare/c399e1b7fb...$(nix eval --raw --impure --expr '(builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.nixpkgs.locked.rev') --jq .status` prints `ahead` or `identical` | Delete the overlay and its three uses, then `nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath` for `dns` and `wotan` |
+
 ## 6. Common Pitfalls
 
 ### agenix: Bare Secret Names, Rules in `secrets/agenix-rules.nix`
