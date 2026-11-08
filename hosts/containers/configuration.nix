@@ -28,6 +28,62 @@
 
   homelab.multica.server.enable = true;
 
+  # Ship the services' journals to the central Loki. Until 2026-11-08 this host
+  # shipped nothing (only fluent-bit's own journal), so a 502 from the Hindsight
+  # UI could only be read over SSH. podman-* units carry the container's stdout
+  # (podman's journald log driver writes it under the service unit).
+  services.loki-logs = {
+    enable = true;
+    units = [
+      # keep-sorted start block=yes
+      {
+        unit = "caddy.service";
+        job = "caddy";
+      }
+      {
+        unit = "countdown.service";
+        job = "countdown";
+      }
+      {
+        unit = "homelab-dashboard.service";
+        job = "homelab-dashboard";
+      }
+      {
+        unit = "mailpit-default.service";
+        job = "mailpit";
+      }
+      {
+        unit = "oauth2-proxy.service";
+        job = "oauth2-proxy";
+      }
+      {
+        unit = "pocket-id.service";
+        job = "pocket-id";
+      }
+      {
+        unit = "podman-hindsight.service";
+        job = "hindsight";
+      }
+      {
+        unit = "podman-multica-backend.service";
+        job = "multica-backend";
+      }
+      {
+        unit = "podman-multica-web.service";
+        job = "multica-web";
+      }
+      {
+        unit = "podman-romm.service";
+        job = "romm";
+      }
+      {
+        unit = "searx.service";
+        job = "searx";
+      }
+      # keep-sorted end
+    ];
+  };
+
   networking.hostName = "homelab-containers";
 
   # Disable IPv6 - LXC container doesn't have proper IPv6 routing
