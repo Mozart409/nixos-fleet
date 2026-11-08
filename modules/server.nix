@@ -219,6 +219,34 @@
     wantedBy = ["multi-user.target"];
   };
 
+  # Turn a hung guest into a reboot instead of a silent outage: `agents` froze
+  # on 2026-11-07 with nothing in its journal and stayed down for 12 h.
+  #   * Kernel: panic on a soft lockup or on a task stuck in D state, and
+  #     reboot 10 s after any panic. watchdog_thresh 30 (soft lockup after
+  #     60 s) and a 600 s hung-task timeout leave room for vCPU steal on the
+  #     shared PVE host and for PBS backups' fs-freeze.
+  #   * console=ttyS0 sends kernel and panic text to the serial port
+  #     (`qm terminal <vmid>`); tty0 stays last, so it remains the console
+  #     userspace writes to and the one the Proxmox web UI shows.
+  #   * systemd pets the i6300esb watchdog (iac/main.tf, `watchdog` block) so a
+  #     guest that hangs without panicking is reset by QEMU after 30 s. On a VM
+  #     without that device systemd only logs that it found no watchdog.
+  boot.kernelParams = [
+    "console=ttyS0,115200"
+    "console=tty0"
+    "panic=10"
+    "softlockup_panic=1"
+    "hung_task_panic=1"
+  ];
+  boot.kernel.sysctl = {
+    "kernel.hung_task_timeout_secs" = 600;
+    "kernel.watchdog_thresh" = 30;
+  };
+  systemd.settings.Manager = {
+    RuntimeWatchdogSec = "30s";
+    RebootWatchdogSec = "10m";
+  };
+
   # Boot loader configuration is handled by disko module
   # See modules/disko-config.nix for partition and boot setup
 

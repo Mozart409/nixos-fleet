@@ -132,6 +132,14 @@ resource "proxmox_virtual_environment_vm" "database_vm" {
 
   serial_device {}
 
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
+
   # Enable QEMU Guest Agent
   agent {
     enabled = true
@@ -200,6 +208,14 @@ resource "proxmox_virtual_environment_vm" "otel_vm" {
   }
 
   serial_device {}
+
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
 
   # Enable QEMU Guest Agent
   agent {
@@ -315,6 +331,14 @@ resource "proxmox_virtual_environment_vm" "dns_vm" {
 
   serial_device {}
 
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
+
   # Enable QEMU Guest Agent
   agent {
     enabled = true
@@ -389,6 +413,14 @@ resource "proxmox_virtual_environment_vm" "containers_vm" {
 
   serial_device {}
 
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
+
   # Enable QEMU Guest Agent
   agent {
     enabled = true
@@ -456,6 +488,14 @@ resource "proxmox_virtual_environment_vm" "mcp_vm" {
   }
 
   serial_device {}
+
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
 
   # Enable QEMU Guest Agent
   agent {
@@ -558,6 +598,14 @@ resource "proxmox_virtual_environment_vm" "ca_vm" {
 
   serial_device {}
 
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
+
   # Enable QEMU Guest Agent
   agent {
     enabled = true
@@ -633,6 +681,14 @@ resource "proxmox_virtual_environment_vm" "forgejo_vm" {
   }
 
   serial_device {}
+
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
 
   agent {
     enabled = true
@@ -713,6 +769,14 @@ resource "proxmox_virtual_environment_vm" "jellyfin_vm" {
   }
 
   serial_device {}
+
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
 
   # Enable QEMU Guest Agent
   agent {
@@ -813,6 +877,14 @@ resource "proxmox_virtual_environment_vm" "agents_vm" {
   }
 
   serial_device {}
+
+  # i6300esb watchdog, armed by systemd in the guest (modules/server.nix,
+  # RuntimeWatchdogSec): a guest that hangs without panicking is reset.
+  watchdog {
+    enabled = true
+    model   = "i6300esb"
+    action  = "reset"
+  }
 
   agent {
     enabled = true
