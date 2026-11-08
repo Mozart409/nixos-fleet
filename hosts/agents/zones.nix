@@ -27,6 +27,12 @@
       # Claude Code logs in through CLAUDE_CODE_OAUTH_TOKEN in the zone env
       # (secrets/agenix-rules.nix), so there is no interactive /login.
       claude = true;
+      # Linked into ~/.claude/skills/<name> for every agent in the zone; the
+      # value is the directory holding SKILL.md. Skills added in Multica's UI
+      # live in its database instead.
+      claudeSkills = {
+        security-audit = "${securityAuditSkill}/skills/security-audit";
+      };
       # No OpenCode here, so the daemon registers no OpenCode runtime.
       opencode = false;
       # Forgejo account the zone's agents clone and push as, with its key
@@ -45,6 +51,7 @@
       storeSize = 8192;
       packages = [pkgs.opencode hermes];
       claude = false;
+      claudeSkills = {};
       opencode = true;
       forgejoBot = {
         name = "eve";
@@ -75,6 +82,14 @@
   };
 
   hermes = self.inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  # Upstream Claude Code skills, pinned (zones' claudeSkills).
+  securityAuditSkill = pkgs.fetchFromGitHub {
+    owner = "cloudflare";
+    repo = "security-audit-skill";
+    rev = "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8";
+    hash = "sha256-oVVACjotkHvllQGxEP8yWaEt4c3GxT0d909TUM5P3NM=";
+  };
 
   # ~/.claude/settings.json of a zone with Claude Code. The portable part is
   # shared with wotan (modules/claude-settings-common.nix) and the deny floor
@@ -447,7 +462,8 @@
     # zone env), but without hasCompletedOnboarding it would still stop at the
     # first-run wizard. settings.json is rewritten on every boot, like the
     # Hermes config; ~/.claude.json also holds Claude's live state, so only the
-    # onboarding keys are merged into it.
+    # onboarding keys are merged into it. It also links the zone's claudeSkills
+    # into ~/.claude/skills.
     systemd.services."claude-config-${name}" = lib.mkIf zone.claude {
       description = "Write the ${name} zone's Claude Code settings";
       wantedBy = ["multica-daemon-${name}.service"];
@@ -459,6 +475,11 @@
       script = ''
         install -D -m 0600 ${(pkgs.formats.json {}).generate "claude-${name}-settings.json" (claudeSettings name)} \
           /var/lib/multica-${name}/.claude/settings.json
+        skills=/var/lib/multica-${name}/.claude/skills
+        mkdir -p "$skills"
+        # Drop links to skills no longer declared, then link the declared ones.
+        find "$skills" -maxdepth 1 -type l -lname '/nix/store/*' -delete
+        ${lib.concatStringsSep "\n" (lib.mapAttrsToList (skill: dir: "ln -sfn ${dir} \"$skills\"/${lib.escapeShellArg skill}") zone.claudeSkills)}
         state=/var/lib/multica-${name}/.claude.json
         [ -f "$state" ] || (umask 077; echo '{}' > "$state")
         tmp="$(mktemp)"
