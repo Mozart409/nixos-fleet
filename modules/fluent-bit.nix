@@ -106,6 +106,13 @@
     tls = "on";
     "tls.verify" = "on";
     uri = "/loki/api/v1/push";
+    # net.io_timeout defaults to 0 (never). On 2026-11-08 the containers host
+    # pushed its startup batch, then one push got no response: the connection
+    # sat ESTABLISHED with empty queues, 41 tasks stayed "running" in the
+    # SIGCONT dump, nothing more reached Loki, and fluent-bit logged no error.
+    # A timeout turns that hang into a failed flush that is retried.
+    "net.io_timeout" = "30s";
+    retry_limit = 5;
     # Static host label + per-record job label. Journal fields (_SYSTEMD_UNIT,
     # PRIORITY, MESSAGE, ...) stay in the JSON body rather than becoming
     # per-message Loki labels — label cardinality is Loki's scarcest resource,
