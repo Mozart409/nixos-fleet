@@ -820,12 +820,15 @@ resource "proxmox_virtual_environment_vm" "agents_vm" {
 
   # Pinned, no ballooning (same reasoning as the hermes VM this replaces): the
   # microVMs reserve their RAM up front, and a balloon reclaiming it would
-  # starve them. 16 GB = heimdahl zone ~8 + assistant ~3 + host and its Nix
-  # store. Fits in the ~20 GB that retiring development (12) and hermes (8)
-  # freed on this oversubscribed node (todo/pve-gigabyte-memory-oversubscription.md).
+  # starve them. 20 GB = heimdahl zone 8 + assistant 3 + host, its Nix store
+  # and the page cache of the zone volumes. 16 GB froze the guest twice
+  # (2026-11-07 23:47, 2026-11-08 12:34): the zones' memfd-backed RAM (Shmem,
+  # not reclaimable) refilled to 8+ GiB after a restart and MemFree hit zero.
+  # Fits in the ~20 GB that retiring development (12) and hermes (8) freed on
+  # this oversubscribed node (todo/pve-gigabyte-memory-oversubscription.md).
   memory {
-    dedicated = 16384
-    floating  = 16384
+    dedicated = 20480
+    floating  = 20480
   }
 
   # ssd_pool + XFS (modules/disko-xfs.nix), blank disk + raw, like dns/ca: a
