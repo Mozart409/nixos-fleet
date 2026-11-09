@@ -66,15 +66,14 @@
       _JAVA_AWT_WM_NONREPARENTING = "1";
 
       # Default applications
-      BROWSER = "brave";
+      BROWSER = "helium";
       EDITOR = "nvim";
       TERMINAL = lib.mkIf (config.desktop.environment == "niri") "kitty";
     };
 
-    # Brave enterprise policies (https://support.brave.app/hc/en-us/articles/360039248271).
-    # Chromium policy names; Brave reads /etc/brave/policies/managed/*.json.
-    # Verify after switch: brave://policy
-    environment.etc."brave/policies/managed/default.json".text = builtins.toJSON {
+    # Chromium enterprise policies for Helium (and chromium), which read /etc/chromium/policies/managed/*.json.
+    # Verify after switch: helium://policy (or chrome://policy)
+    environment.etc."chromium/policies/managed/default.json".text = builtins.toJSON {
       # No password-save prompts; keep address autofill; no card autofill.
       PasswordManagerEnabled = false;
       AutofillAddressEnabled = true;
@@ -85,6 +84,8 @@
       SpellcheckEnabled = true;
       SpellcheckLanguage = ["de" "en-US"];
     };
+    # Brave (temporary, see browsers.nix) reads its own directory; same policies.
+    environment.etc."brave/policies/managed/default.json".text = config.environment.etc."chromium/policies/managed/default.json".text;
 
     # Auto-start applications configuration
     environment.etc."xdg/autostart".source = pkgs.runCommand "autostart" {} ''

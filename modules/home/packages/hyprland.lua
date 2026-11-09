@@ -108,9 +108,9 @@ hl.config({
     },
 
     render = {
-        -- No auto HDR. Brave tags fullscreen video as HDR/scRGB, so the
-        -- default (1) switched the panel into HDR and back on every
-        -- fullscreen toggle: a modeset that blanked it for ~5 s each way.
+        -- No auto HDR. Chromium browsers (Brave, Helium) tag fullscreen
+        -- video as HDR/scRGB, so the default (1) switched the panel into
+        -- HDR and back on every fullscreen toggle: a modeset that blanked it for ~5 s each way.
         -- Do not flip it at runtime: turning it off while a monitor is in
         -- auto HDR strands that monitor in BT2020 (washed-out grey) until
         -- Hyprland restarts.
@@ -179,7 +179,7 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("kitty"))
 
 -- Browser
-hl.bind(mainMod .. " + F", hl.dsp.exec_cmd("brave"))
+hl.bind(mainMod .. " + F", hl.dsp.exec_cmd("helium"))
 
 -- File manager
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))
@@ -335,10 +335,10 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
 
--- Force Brave windows to open tiled (it sometimes requests floating)
+-- Force Helium and Brave windows to open tiled (they sometimes request floating)
 hl.window_rule({
-    name = "brave-tile",
-    match = { class = "(?i)brave.*" },
+    name = "browser-tile",
+    match = { class = "(?i)(helium|brave).*" },
     tile = true,
 })
 
