@@ -104,7 +104,15 @@ in {
   "multica-zone-assistant-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # env-file for the assistant zone's agent CLIs: OPENCODE_ZEN_API_KEY=..., Hermes provider keys
   "multica-zone-heimdahl-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostAgents]; # env-file for the heimdahl zone's agent CLIs: OPENCODE_ZEN_API_KEY=..., CLAUDE_CODE_OAUTH_TOKEN=... (from `claude setup-token`, Claude Pro)
   "nebula-amartum-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
+  "nebula-mozart409-agents.age".publicKeys = [amadeus hostAgents]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-ca.age".publicKeys = [amadeus hostCa]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-containers.age".publicKeys = [amadeus hostContainers]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-database.age".publicKeys = [amadeus hostDatabase]; # nebula host key (PEM); cert in modules/nebula/
   "nebula-mozart409-dns.age".publicKeys = [amadeus hostDns]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-forgejo.age".publicKeys = [amadeus hostForgejo]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-jellyfin.age".publicKeys = [amadeus hostJellyfin]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-mcp.age".publicKeys = [amadeus hostMcp]; # nebula host key (PEM); cert in modules/nebula/
+  "nebula-mozart409-otel.age".publicKeys = [amadeus hostOtel]; # nebula host key (PEM); cert in modules/nebula/
   "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "opencode-server-password.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_SERVER_PASSWORD=...
