@@ -74,6 +74,13 @@
           {
             type = "ACME";
             name = "acme";
+            claims = {
+              # PVE/PBS only renew ACME certs when they expire within 30 days.
+              # The authority default (720h = 30 days) sits inside that window,
+              # so both would re-issue and mail every daily check; anything
+              # above 30 days makes renewal fire once, ~60 days out.
+              defaultTLSCertDuration = "2160h"; # 90 days
+            };
           }
         ];
 
