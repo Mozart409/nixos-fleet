@@ -163,8 +163,8 @@
         tmux new-session -A -s "$name"
       }
 
-      # `tc` / `tp` / `to`: like `t`, but window 1 runs claude / pi / opencode,
-      # window 2 is
+      # `tc` / `tp` / `to` / `ta`: like `t`, but window 1 runs claude / pi /
+      # opencode / autolith, window 2 is
       # a plain shell and window 3 runs lazygit. Session "<dir>-claude" /
       # "<dir>-opencode", which the tmux session-created hook skips (no nvim).
       _tai() {
@@ -181,6 +181,7 @@
       }
       tc() { _tai claude claude; }
       tp() { _tai pi pi; }
+      ta() { _tai autolith autolith; }
       to() { _tai opencode opencode; }
 
       # Interactive `opencode` (no args, or only flags like -c/-s) connects to
@@ -242,11 +243,23 @@
         command pi "$@"
       }
 
-      # `tk` kills the current directory's `t`, `tc`, `tp` and `to` sessions
-      # (run from shell). `=` makes the target an exact match, not a name prefix.
+      # autolith (its own flake: `nix run github:lambda-symbolics/autolith`)
+      # runs as the agent account too. agent-run hands it the gateway tokens
+      # and the autolith signing agent's socket.
+      autolith() {
+        if [[ -x $_agent_run ]]; then
+          sudo "$_agent_run" autolith "$@"
+          return
+        fi
+        command autolith "$@"
+      }
+
+      # `tk` kills the current directory's `t`, `tc`, `tp`, `ta` and `to`
+      # sessions (run from shell). `=` makes the target an exact match, not a
+      # name prefix.
       tk() {
         local base="''${''${PWD:t}//[.:]/_}" name killed=0
-        for name in "$base" "$base-claude" "$base-opencode" "$base-pi"; do
+        for name in "$base" "$base-claude" "$base-opencode" "$base-pi" "$base-autolith"; do
           tmux kill-session -t "=$name" 2>/dev/null \
             && echo "killed tmux session: $name" && killed=1
         done

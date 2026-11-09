@@ -59,6 +59,15 @@
       . "$cred"
       set +a
     done
+    # autolith's mcp.sexp takes a header value from one variable and wants the
+    # complete value ("Bearer <token>"), where the credential files hold the
+    # bare token for opencode's {env:} and pi's ''${VAR} interpolation.
+    if [ -n "''${AXON_GATEWAY_TOKEN:-}" ]; then
+      export AUTOLITH_MCP_AXON="Bearer $AXON_GATEWAY_TOKEN"
+    fi
+    if [ -n "''${VENTARA_GATEWAY_TOKEN:-}" ]; then
+      export AUTOLITH_MCP_VENTARA="Bearer $VENTARA_GATEWAY_TOKEN"
+    fi
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       exec "$@"
@@ -113,16 +122,37 @@
   credentialArgs =
     lib.mapAttrsToList (name: path: "--property=LoadCredential=${name}:${path}") cfg.credentials;
 
+  # Commit signing for autolith, the same way claude.nix gets it: its own
+  # ssh-agent socket plus GIT_CONFIG_* instead of the owner's ~/.gitconfig.
+  # agent-run sets these for autolith sessions only, so each harness keeps its
+  # own agent (signing.agents in hosts/wotan/default.nix).
+  autolithSigning = let
+    signing = config.services.opencode-serve.signing;
+  in
+    lib.optionalAttrs (signing.keyFile != null && signing.sockets ? autolith && signing.publicKey != null) {
+      SSH_AUTH_SOCK = signing.sockets.autolith;
+      GIT_CONFIG_COUNT = "3";
+      GIT_CONFIG_KEY_0 = "user.signingkey";
+      GIT_CONFIG_VALUE_0 = "key::${signing.publicKey}";
+      GIT_CONFIG_KEY_1 = "gpg.format";
+      GIT_CONFIG_VALUE_1 = "ssh";
+      GIT_CONFIG_KEY_2 = "commit.gpgsign";
+      GIT_CONFIG_VALUE_2 = "true";
+    };
+
+  autolithSigningArgs =
+    map (name: "--setenv=${name}=${autolithSigning.${name}}") (lib.attrNames autolithSigning);
+
   # Root-owned launcher, the only command the owner may sudo to without a
-  # password. Starts claude, opencode or pi as the agent in a transient unit
-  # with the sandbox above, in the caller's directory, which must be under
-  # codeDir.
+  # password. Starts claude, opencode, pi or autolith as the agent in a
+  # transient unit with the sandbox above, in the caller's directory, which
+  # must be under codeDir.
   agentRun = pkgs.writeShellScriptBin "agent-run" ''
     set -eu
     case "''${1:-}" in
-      claude | opencode | pi) ;;
+      claude | opencode | pi | autolith) ;;
       *)
-        echo "usage: agent-run claude|opencode|pi [args...]" >&2
+        echo "usage: agent-run claude|opencode|pi|autolith [args...]" >&2
         exit 64
         ;;
     esac
@@ -145,6 +175,11 @@
         extra+=(--property=LoadCredential=opencode-server-password:${cfg.serverPasswordFile})
       fi
     ''}
+    fi
+    # autolith signs its commits with its own agent (claude.nix does the same
+    # for claude); the other harnesses keep theirs.
+    if [ "$1" = autolith ]; then
+      extra+=(${lib.escapeShellArgs autolithSigningArgs})
     fi
     exec ${config.systemd.package}/bin/systemd-run \
       --quiet --pty --wait --collect --service-type=exec \
@@ -262,7 +297,7 @@ in {
       isNormalUser = true;
       inherit (cfg) home;
       group = cfg.user;
-      description = "Coding agents (Claude Code, opencode, pi)";
+      description = "Coding agents (Claude Code, opencode, pi, autolith)";
       shell = pkgs.bashInteractive;
     };
 

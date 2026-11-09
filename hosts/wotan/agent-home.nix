@@ -1,13 +1,19 @@
 {
+  inputs,
   osConfig,
   pkgs,
   ...
-}: {
-  # home-manager for `agent`, the account Claude Code and opencode run as
-  # (modules/wotan/agent-user.nix). Only what the harnesses need: their
-  # config, direnv for the dev shells, node for the plugins, and a git
-  # identity.
+}: let
+  # autolith comes from its own flake (root flake.nix), not nixpkgs, because
+  # its SBCL and Quicklisp set are generated against a pinned nixpkgs.
+  autolith = inputs.autolith.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in {
+  # home-manager for `agent`, the account Claude Code, opencode, pi and
+  # autolith run as (modules/wotan/agent-user.nix). Only what the harnesses
+  # need: their config, direnv for the dev shells, node for the plugins, and a
+  # git identity.
   imports = [
+    ../../modules/home/packages/autolith.nix
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
     ../../modules/home/packages/pi.nix
@@ -17,16 +23,19 @@
   home.homeDirectory = osConfig.wotan.agentUser.home;
   home.stateVersion = "24.11";
 
+  autolith.enable = true;
   opencode.enable = true;
   pi.enable = true;
 
   # The context-mode Claude plugin runs its hooks and MCP server with node,
   # by absolute path: ~/.nix-profile/bin/node. pi is the third harness
   # (`agent-run pi`); its OPENCODE_API_KEY comes in as an agent-run credential.
+  # autolith is the fourth (from its own flake input, see the let above).
   # python3 is for the scripts the agents write and run; ripgrep and jq are
   # the everyday Bash tools no dev shell here provides (the harnesses' own
   # Grep tools bundle their ripgrep, but `rg` on PATH was missing).
   home.packages = with pkgs; [
+    autolith
     jq
     nodejs
     pi-coding-agent
@@ -41,7 +50,8 @@
   };
 
   # Commits keep amadeus as author, as before the move; they are signed with
-  # the bot signing key (GIT_CONFIG_* from claude.nix / opencode-serve).
+  # the bot signing key (GIT_CONFIG_* from claude.nix, agent-run for autolith,
+  # opencode-serve for the server).
   # nix's libgit2 ignores the `codeDir/*` safe.directory in /etc/gitconfig,
   # so `nix develop` refused every flake in a repo amadeus owns. libgit2 does
   # honor a bare `*`. Trusting every repo gives this user nothing new: it can

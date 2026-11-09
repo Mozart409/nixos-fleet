@@ -303,14 +303,15 @@ in {
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
     readWritePaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
     # The bot signing key (not a login key anywhere), so the agents can sign
-    # commits but can't authenticate/push. One ssh-agent each for opencode and
-    # Claude Code (modules/home/packages/claude.nix). The key stays in
+    # commits but can't authenticate/push. One ssh-agent per harness: opencode,
+    # Claude Code (modules/home/packages/claude.nix) and autolith (agent-run
+    # sets its socket and GIT_CONFIG_* for autolith sessions). The key stays in
     # amadeus's ~/.ssh; systemd hands it to them as a credential that every
     # agent session has hidden.
     signing = {
       keyFile = "/home/${username}/.ssh/id_ed25519_signing";
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan";
-      agents = ["opencode" "claude"];
+      agents = ["opencode" "claude" "autolith"];
     };
     # systemd (PID 1) reads the secrets above before entering the sandbox, so
     # /run/agenix can be hidden from every tool. amadeus's home is already
@@ -322,10 +323,11 @@ in {
     ];
   };
 
-  # Claude Code and opencode run as `agent` (modules/wotan/agent-user.nix):
-  # no sudo, and every agent process sees only ~/code of amadeus's home.
-  # amadeus starts them with `sudo agent-run claude|opencode` (the `claude`
-  # zsh function does that); the gateway tokens reach them as credentials.
+  # Claude Code, opencode, pi and autolith run as `agent`
+  # (modules/wotan/agent-user.nix): no sudo, and every agent process sees only
+  # ~/code of amadeus's home. amadeus starts them with `sudo agent-run
+  # claude|opencode|pi|autolith` (the zsh functions do that); the gateway
+  # tokens reach them as credentials.
   home-manager.users.${config.wotan.agentUser.user} = import ./agent-home.nix;
   wotan.agentUser = {
     enable = true;
