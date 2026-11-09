@@ -13,6 +13,9 @@
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
   # pi's API key (secrets/pi-env.age), gated the same way.
   piEnv = builtins.pathExists ../../secrets/pi-env.age;
+  # autolith's own OpenCode Zen key (secrets/autolith-env.age), gated the same
+  # way.
+  autolithEnv = builtins.pathExists ../../secrets/autolith-env.age;
 
   # The units the quickshell panel can switch on and off: the on-demand AI
   # services and the Minecraft server. One list for both halves: home-manager
@@ -334,6 +337,8 @@ in {
     owner = username;
     # The opencode TUI runs as the agent too and logs in with this.
     serverPasswordFile = config.age.secrets.opencode-server-password.path;
+    # autolith's OPENCODE_ZEN_API_KEY, only in autolith sessions.
+    autolithEnvFile = lib.mkIf autolithEnv config.age.secrets.autolith-env.path;
     credentials =
       {
         axon-gateway = config.age.secrets.axon-gateway-env.path;
@@ -675,6 +680,15 @@ in {
   # (`agenix -e pi-env.age`).
   age.secrets.pi-env = lib.mkIf piEnv {
     file = ../../secrets/pi-env.age;
+    mode = "400";
+    owner = username;
+  };
+
+  # autolith's own key, one line: OPENCODE_ZEN_API_KEY=... Owner-only: read (as
+  # root) by agent-run's LoadCredential for autolith sessions only. Gated until
+  # the .age file exists (`agenix -e autolith-env.age`).
+  age.secrets.autolith-env = lib.mkIf autolithEnv {
+    file = ../../secrets/autolith-env.age;
     mode = "400";
     owner = username;
   };

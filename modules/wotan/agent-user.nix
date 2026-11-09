@@ -177,9 +177,13 @@
     ''}
     fi
     # autolith signs its commits with its own agent (claude.nix does the same
-    # for claude); the other harnesses keep theirs.
+    # for claude) and gets its own provider key; the other harnesses keep
+    # theirs.
     if [ "$1" = autolith ]; then
       extra+=(${lib.escapeShellArgs autolithSigningArgs})
+      ${lib.optionalString (cfg.autolithEnvFile != null) ''
+      extra+=(--property=LoadCredential=autolith-env:${cfg.autolithEnvFile})
+    ''}
     fi
     exec ${config.systemd.package}/bin/systemd-run \
       --quiet --pty --wait --collect --service-type=exec \
@@ -239,6 +243,18 @@ in {
         root) and exported only into opencode TUI sessions (`agent-run opencode
         --server ...`). Claude and pi sessions never get it, so they cannot use
         the server to get around their own sandbox.
+      '';
+    };
+
+    autolithEnvFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/run/agenix/autolith-env";
+      description = ''
+        KEY=value env file with autolith's provider keys (OPENCODE_ZEN_API_KEY),
+        read by systemd (as root) and exported only into autolith sessions
+        (`agent-run autolith ...`). claude, opencode and pi sessions never get
+        it.
       '';
     };
 

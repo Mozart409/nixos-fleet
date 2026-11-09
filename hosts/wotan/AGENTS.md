@@ -145,9 +145,12 @@ own config files).
   is no `directory-scopes.sexp`, a repo's own `.autolith/mcp.sexp` and
   `.autolith/init.lisp` are **not** trusted; add exact anchors there if that
   ever changes. State lives under `~/.local/{share,state}/autolith`.
-- **Auth:** `sudo agent-run autolith auth opencode` reuses `OPENCODE_API_KEY`
-  from the pi credential, so no new secret is needed. Other providers save their
-  own credential into autolith's private store as `agent`.
+- **Auth:** autolith's `opencode-zen` provider reads `OPENCODE_ZEN_API_KEY`, its
+  own key in `secrets/autolith-env.age`, which `agent-run` loads for autolith
+  sessions only (`wotan.agentUser.autolithEnvFile`). Its `opencode` provider is
+  OpenCode Go and reads `OPENCODE_API_KEY` (pi's credential, exported to every
+  session). Other providers save their own credential into autolith's private
+  store as `agent`.
 - **Signing:** `autolith-signing-agent.service` (its own socket and
   `GIT_CONFIG_*`, set by `agent-run` for autolith sessions only).
 - **Permissions:** autolith has no allow/deny list like Claude's, so

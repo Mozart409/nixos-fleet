@@ -55,6 +55,7 @@ in {
   "attic-db-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache]; # env-file: ATTIC_SERVER_DATABASE_URL=postgresql://...
   "attic-push-token-wotan.age".publicKeys = [amadeus hostWotan]; # raw attic token (no KEY=), read via token-file by wotan's ventara-attic push
   "attic-server-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache];
+  "autolith-env.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_ZEN_API_KEY=... autolith's own key, loaded by agent-run for autolith sessions only
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
   "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostOtel hostWotan];
   "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
