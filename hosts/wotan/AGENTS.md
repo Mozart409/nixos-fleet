@@ -121,12 +121,14 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
 
 `autolith` is a Common Lisp agent in a live image
 (github:lambda-symbolics/autolith). It is a root-flake input of that name, not
-nixpkgs (`nix-ai-tools` still has 0.41; upstream is past 0.67), and the input
-does **not** follow our nixpkgs: upstream pins its own, because its SBCL and
-generated Quicklisp set are built against it. Its package is in the agent's
-`home.packages` only (`hosts/wotan/agent-home.nix`), so amadeus's profile never
-sees it — `nix run github:lambda-symbolics/autolith` on the command line is what
-starts it outside `agent-run`.
+nixpkgs and not numtide's `llm-agents.nix` (formerly `nix-ai-tools`), which
+re-vendors upstream's package.nix and sits at 0.41.2 while upstream is at 0.67
+(`infra/todo/llm-agents-nix.md`). The input does **not** follow our nixpkgs:
+upstream pins its own, because its SBCL and generated Quicklisp set are built
+against it. Its package is in the agent's `home.packages` only
+(`hosts/wotan/agent-home.nix`), so amadeus's profile never sees it —
+`nix run github:lambda-symbolics/autolith` on the command line is what starts it
+outside `agent-run`.
 
 - **Launch:** `autolith` (zsh function, `sudo agent-run autolith`), or `ta` for
 the tmux session with a shell and lazygit beside it. It gets the gateway tokens
