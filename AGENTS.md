@@ -335,7 +335,6 @@ workaround and this row; the user deploys (agents never do).
 | `overlays.opencode` (stale `node_modules` hash) | `flake.nix`: the overlay, `mkHost`, `colmenaHive.meta.nixpkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | The locked `opencode` is not `2.2.5`, or its hash is the overlay's (check 1 below) | Build `opencode` once without the overlay, then delete the overlay and its three uses and eval `dns` and `wotan` <!-- markdownlint-disable-line MD013 --> |
 | `infra/modules/ca-distrust.nix` (distrust `emSign Root CA - G1`; beyond upstream, decided on OYA-104) | Imported from `infra/modules/base.nix` and the guest `imports` in `infra/hosts/agents/zones.nix` | `grep -c '^emSign Root CA - G1' "$(nix build --no-link --print-out-paths .#nixosConfigurations.dns.pkgs.cacert)/etc/ssl/certs/ca-bundle.crt"` prints `1` today; `0` means NSS dropped G1, so remove the module (the bundle build also fails with `Certs in blocklist but not in cert store`). After every nixpkgs bump also run `just trust-audit dns emsign`: `no certificate matches 'emsign'` is the expected output | Delete the module, its two imports and this row; build the `dns` bundle to confirm <!-- markdownlint-disable-line MD013 --> |
 | `nixpkgs-brave` input (Brave kept from the pre-removal nixpkgs) | `flake.nix` input; `infra/modules/home/packages/browsers.nix`; Brave policy line in `infra/modules/desktop/user-experience.nix`; `brave` in the Hyprland tile rule | The user has moved to Helium (ask them) | Delete the input, the `brave` binding and package, the `/etc/brave` policy line and `brave` from the tile rule; `nix flake lock`; eval `wotan` <!-- markdownlint-disable-line MD013 --> |
-| `overlays.rainfrog` (missing `sqlite` in `buildInputs`) | `flake.nix`: the overlay and the dev-shell `pkgs`; `infra/lib/mkConfigs.nix` (`mkDesktop`) | Check 2 below prints "drop the overlay" | Delete the overlay and its two uses, build `rainfrog` without it, eval `wotan` and `.#devShells.x86_64-linux.default` <!-- markdownlint-disable-line MD013 --> |
 
 Exit-condition checks, run from the repo root:
 
@@ -349,18 +348,6 @@ Exit-condition checks, run from the repo root:
    <!-- markdownlint-disable MD013 -->
    ```sh
    nix eval --raw --impure --expr 'let p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.opencode; in "${p.version} ${p.node_modules.outputHash}\n"'
-   ```
-   <!-- markdownlint-enable MD013 -->
-
-2. `rainfrog` overlay. Rust 1.99.1 in the pinned nixpkgs (up from 1.99.0 in the
-   last flake upgrade) links `sqlx-macros`' sqlite support, which the package
-   never asked for: `ld.bfd: cannot find -lsqlite3`. The package expression is
-   identical in both revs, so hand the linker `sqlite` until upstream does.
-   Prints `keep it` while the overlay is still needed.
-
-   <!-- markdownlint-disable MD013 -->
-   ```sh
-   nix eval --raw --impure --expr 'let p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.rainfrog; in if builtins.elem "sqlite" (map (d: d.name or "") p.buildInputs) then "drop the overlay" else "keep it"'
    ```
    <!-- markdownlint-enable MD013 -->
 

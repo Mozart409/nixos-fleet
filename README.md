@@ -83,7 +83,7 @@ Provides:
 - **IaC**: `opentofu`, `tofu-ls`, `colmena`, `nixos-anywhere`, `agenix`
 - **Containers**: `podman`, `podman-compose`, `podman-tui`, `dive`, `lazydocker`
 - **Kubernetes**: `timoni`
-- **Rust**: `cargo`, `cargo-workspaces`, `rustc`, `rust-analyzer`, `bacon`, `rainfrog`
+- **Rust**: `cargo`, `cargo-workspaces`, `rustc`, `rust-analyzer`, `bacon`
 - **Utilities**: `just`, `dprint`, `kics`, `keep-sorted`, `lefthook`, `cocogitto`, `shellcheck`, `pwgen`
 
 `lefthook install` runs from the shell hook, wiring the pre-commit

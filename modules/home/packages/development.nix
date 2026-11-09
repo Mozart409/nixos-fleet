@@ -33,7 +33,6 @@
     pwgen
     python3
     python314Packages.huggingface-hub
-    rainfrog
     rustscan
     tpi
     vale
