@@ -5,6 +5,14 @@
   ...
 }: let
   hosts = import ../../lib/hosts.nix;
+  # otelcol-contrib 0.155.0 fails on nixpkgs' default Go 1.27: its
+  # cockroachdb/swiss dependency has no runtime shims for 1.27 (undefined
+  # fastrand64/hashFn). Build it with Go 1.26 until upstream catches up.
+  otelcol-contrib =
+    (pkgs.opentelemetry-collector-releases.override {
+      buildGoModule = pkgs.buildGo126Module;
+      go = pkgs.go_1_26;
+    }).otelcol-contrib;
 in {
   imports = [
     # Static ens18 address + gateway from the host registry.
@@ -124,7 +132,7 @@ in {
     # same idiom as AGENTS.md §5's secretNonce / axon-gateway CONFIG_HASH.
     restartTriggers = [config.environment.etc."otelcol/config.yaml".source];
     serviceConfig = {
-      ExecStart = ''${pkgs.opentelemetry-collector-contrib}/bin/otelcol-contrib --config /etc/otelcol/config.yaml'';
+      ExecStart = ''${otelcol-contrib}/bin/otelcol-contrib --config /etc/otelcol/config.yaml'';
       User = "otelcol";
       Group = "otelcol";
       Restart = "on-failure";
@@ -976,7 +984,7 @@ in {
     ];
   };
 
-  environment.systemPackages = with pkgs; [
-    opentelemetry-collector-contrib
+  environment.systemPackages = [
+    otelcol-contrib
   ];
 }
