@@ -163,8 +163,8 @@ in {
       pbsmcp-server = {
         enable = true;
         package = mcpPackages.pbsmcp-server;
-        # TODO: still a tailnet name; point at PBS's LAN name/IP before Tailscale is switched off.
-        host = "https://pbs.dropbear-butterfly.ts.net/";
+        # PBS needs a step-ca certificate for this name; the MCP verifies TLS.
+        host = "https://pbs.homelab.internal:8007/";
         tokenFile = config.age.secrets.pbs-mcp-token.path;
         bind = "127.0.0.1:8080";
         allowedHosts = loopbackOnly;

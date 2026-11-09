@@ -127,6 +127,12 @@ let
         tempo = {};
       };
     };
+    # Proxmox Backup Server, not NixOS; the MCP reaches its API on :8007.
+    pbs = {
+      ip = "192.168.2.112";
+      zones = ["homelab.internal"];
+      ptr = [];
+    };
     pve-gigabyte = {
       ip = "192.168.2.46";
       zones = legacyAndInternal ++ ["local"];
