@@ -66,10 +66,11 @@ what each host was. `zeroclaw` stays under `hosts/`, wired to nothing.
 - `rpi`, `rpi4-1`, `k3s-cntrl-1` — archived in `docs/archive/rpi-k3s/`.
 - `minimal` — bootstrap config used by `just deploy-minimal`, not a host.
 
-All active hosts run Tailscale and a Caddy front end, serving both Tailscale TLS
-(`*.dropbear-butterfly.ts.net`) and step-ca certs for `*.homelab.internal`.
-Note that MagicDNS names do **not** resolve between homelab VMs — use
-`<host>.homelab.internal` for service-to-service URLs (see AGENTS.md §6).
+Active hosts run a Caddy front end serving step-ca certs for
+`*.homelab.internal` (`ca` runs only step-ca, on 8443). Tailscale is gone from
+the config (2026-11-09); the fleet is moving to the Nebula overlay `mozart409`
+(`modules/nebula.nix`, see `todo/tailscale-to-nebula.md`). Use
+`<host>.homelab.internal` for service-to-service URLs.
 
 ## Quick start
 
@@ -125,7 +126,7 @@ Use `just deploy <host> <ip>` directly for hosts with extra disks or a static IP
 (e.g. `jellyfin`) — disko only runs under nixos-anywhere, never under
 `colmena apply`. See AGENTS.md §6.
 
-Set `DEPLOY_NET=tailscale` to deploy over Tailscale hostnames instead of local IPs.
+Deploys go to `<host>.homelab.internal` (`dns` by raw IP) over the LAN.
 
 ### Secrets (agenix)
 
@@ -159,7 +160,7 @@ NixOS config, which can differ from the bootstrap address.
 - `../flake.nix` (repo root) – inputs, `hostAddrs`, `nixosConfigurations`, `colmenaHive`
 - `hosts/` – per-host configurations (fleet + `wotan`)
 - `modules/` – shared fleet modules (`common`, `disko-config`, `disko-jellyfin`,
-  `tailscale`, `step-ca-trust`, `podman`, `nix-gc`, `coding-harness`,
+  `nebula`, `step-ca-trust`, `podman`, `nix-gc`, `coding-harness`,
   `herdr`, `moshi-hook`); `modules/{wotan,desktop,home}/` are the desktop's
 - `lib/mkConfigs.nix` – `mkDesktop` for wotan
 - `pkgs/` – third-party packaging
@@ -179,7 +180,7 @@ NixOS config, which can differ from the bootstrap address.
 - Commits are single-line conventional commits, verified by `cog verify`; run
   `just fmt` before committing Nix changes (lefthook also enforces it).
 - Adding a host means an entry in `lib/hosts.nix` (the host registry: IP,
-  DNS names, tailnet name; A/PTR records, `hostAddrs` and the static address
+  DNS names, overlay IP, `colmena` marker; A/PTR records, `hostAddrs` and the static address
   derive from it), `flake.nix` (`nixosConfigurations`, `colmenaHive`),
   `iac/main.tf` (VM + output) and `hosts/otel/configuration.nix` (Prometheus
   scrape). Checklist in AGENTS.md §5.

@@ -284,8 +284,8 @@ The `just iac-*` recipes run inside `infra/iac` for you.
 
 When adding a new host to the homelab, ensure the following are updated:
 
-1. **Host Registry**: Add the host to `lib/hosts.nix` (`ip`, `tailscale`, and
-   `zones`/`aliases` if it differs from the defaults documented there; new
+1. **Host Registry**: Add the host to `lib/hosts.nix` (`ip`, `colmena = true`, `overlay`
+   (its Nebula IP, once it joins), and `zones`/`aliases` if it differs from the defaults documented there; new
    hosts should use `zones = ["homelab.internal"]`). That one entry generates
    its unbound A and PTR records (`hosts/dns/configuration.nix`), its
    `hostAddrs` deploy target in `flake.nix`, and the static ens18 address +
@@ -403,68 +403,24 @@ handle /loki* {
 }
 ```
 
-### Tailscale MagicDNS Does Not Resolve Between Homelab VMs
+### Nebula overlay: reaching a host
 
-The `*.dropbear-butterfly.ts.net` MagicDNS names do **not** resolve from the
-homelab VMs (e.g. `hermes` cannot resolve `homelab-mcp.dropbear-butterfly.ts.net`
-→ `Name or service not known`). For service-to-service URLs between hosts, use
-the local DNS names (`<host>.homelab.internal`, served by the `dns` host) instead.
-These carry step-ca TLS certs, which are trusted on any host importing
-`modules/step-ca-trust.nix`.
+A port is reachable over the `mozart409` overlay only when **both** layers
+allow it: the host's Nebula inbound rule (`homelab.nebula`,
+`modules/nebula.nix`) and the host firewall rule on the overlay interface
+(`networking.firewall.interfaces.<dev>.allowedTCPPorts`). A service that fails
+identically over the overlay IP while working over the LAN means one of the two
+is missing.
 
-- **WRONG** (in `services.hermes-agent.mcpServers`):
-  `url = "https://homelab-mcp.dropbear-butterfly.ts.net/mcp";`  # NXDOMAIN from hermes
-- **CORRECT**:
-  `url = "https://axon.homelab.internal/mcp";`  # resolves + step-ca TLS trusted (the gateway; the MCP backends themselves are loopback-only on `mcp` since 2026-09-14)
-
-### Tailscale ACLs Filter Ports Before the Host Firewall Ever Sees Them
-
-Every host trusts the `tailscale0` interface via
-`networking.firewall.trustedInterfaces`, which shows up as
-`-A nixos-fw -i tailscale0 -j nixos-fw-accept`. That rule is **not** evidence a
-port is reachable over Tailscale — the tailnet policy (ACLs) drops traffic
-*before* it is ever delivered to the host firewall. The policy lives in the
-Tailscale admin console, **not in this repo**, so nothing under `modules/` or
-`hosts/` will reveal it.
-
-**Signature:** a service fails *identically* over the Tailscale name, over
-`<host>.homelab.internal`, and over the raw LAN IP, while a different
-protocol/port to the same host keeps working. A tailnet ACL is
-address-independent, so it breaks every path at once; a host firewall rule is
-per-interface and cannot.
-
-This cost a long diagnosis on 2026-08-12: mosh from an iPhone to `development`
-failed on every path while SSH worked. The host was entirely healthy —
-`mosh-server` present, a UTF-8 locale (mosh refuses to start without one), a
-clean `MOSH CONNECT` handshake through a real SSH login, `tailscale0` trusted,
-and UDP 60000-61000 open in `nixos-fw`. The ACL was dropping mosh's UDP range.
-
-**Clear the host side first.** These two commands rule out every host-side
-theory at once:
-
-```bash
-ssh <host> -- mosh-server new -s -c 8 | head -1   # MOSH CONNECT must be line 1
-sudo iptables -S nixos-fw | grep -E 'udp|tailscale0'
-```
-
-The first is the exact bootstrap a mosh client runs, so it catches a missing
-binary, a non-UTF-8 locale, and any shell-init output that would corrupt the
-handshake. (It leaves a detached `mosh-server` that exits by itself after 60s
-with no client.) If it prints `MOSH CONNECT` and the firewall rules are present,
-**stop auditing the host and go read the tailnet ACLs.**
-
-The grant must cover the UDP range, not just TCP 22 — e.g.:
-
-```json
-{
-  "action": "accept",
-  "src":    ["autogroup:member"],
-  "dst":    ["tag:homelab:60000-61000"],
-  "proto":  "udp"
-}
-```
-
-Illustrative only — match it to this tailnet's actual tags and groups.
+- **Do not add a Nebula device to `trustedInterfaces`.** That accepts every
+  port from every peer and bypasses the per-host port lists. No host trusts any
+  overlay interface.
+- **mosh needs UDP 60000-61000.** `homelab.nebula.allowMosh` (default true)
+  opens that range on the overlay interface; SSH alone is not enough.
+- A host does not join until its cert (`modules/nebula/mozart409-<host>.crt`)
+  and key (`secrets/nebula-mozart409-<host>.age`) exist and are `git add`ed;
+  until then the module only warns. Status and the per-host steps:
+  `todo/tailscale-to-nebula.md`.
 
 ### Hermes Terminal/Code/File Backend Is `local` (Not Podman)
 
@@ -694,8 +650,7 @@ just get-host-key <ip>          # or: ssh-keyscan -t ed25519 <ip>
 # add `hostX = "ssh-ed25519 ...";` and include it in the relevant publicKeys
 just reencrypt                  # agenix -r: re-encrypts every secret to current recipients
 ```
-Every host runs Tailscale, so a new host almost always needs adding to the
-`users` list (recipients of `tailscale-auth-key.age`).
+A new host must be added as a recipient of every secret it consumes.
 
 ### nixosTest Integration Tests: Scope and Secret Fixtures
 
@@ -723,7 +678,7 @@ age identity (`tests/fixtures/test-age-identity.txt`) and points just those
 two secrets at dummy values encrypted to its public key
 (`tests/fixtures/secrets/*.age`). This makes agenix's real decrypt pipeline
 succeed for real inside the VM -- not a bypass, the legitimate mechanism.
-Everything else (tailscale-auth-key, axon-gateway-env,
+Everything else (axon-gateway-env,
 every database-host role password) is left to fail softly and is never
 asserted on. See `tests/fixtures/README.md` to regenerate.
 
@@ -736,7 +691,7 @@ auto-provisioned interface still comes up (needed for `network-online.target`,
 a real dependency of e.g. `unbound.service` on dns).
 
 **Network-dependent integrations are expected to be non-functional and are
-never asserted on**: tailscaled-autoconnect, comin's forgejo pull, Caddy's
+never asserted on**: comin's forgejo pull, Caddy's
 step-ca ACME cert issuance (`ca.homelab.internal` is unreachable),
 `services.loki-logs` shipping to `loki.homelab.internal`, the
 alertmanager-axon-bridge webhook relay. None of these block
@@ -761,8 +716,8 @@ More Jellyfin OIDC notes:
   symlink, so Jellyfin can rewrite `meta.json`). The plugin's `targetAbi` must
   match `services.jellyfin.package.version`.
 - The **OpenID Endpoint** is fetched **server-side by the VM**; verify the VM can
-  resolve/reach it (`curl …/.well-known/openid-configuration`) — MagicDNS
-  `*.ts.net` names don't always resolve between homelab VMs.
+  resolve/reach it (`curl …/.well-known/openid-configuration`); use the
+  `*.homelab.internal` name.
 - Plugin/OIDC settings, Known-proxies, and login-page branding live in Jellyfin's
   **mutable state**, not in Nix — they must be redone after a reprovision.
 

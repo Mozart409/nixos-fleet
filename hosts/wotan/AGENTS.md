@@ -15,7 +15,7 @@ wotan is one host in the `yggdrasil` monorepo (`~/code/yggdrasil`, Forgejo canon
 - `lib/mkConfigs.nix` - `mkDesktop` helper and the wotan-only nixpkgs config (CUDA)
 - `secrets/` + `secrets/agenix-rules.nix` - agenix secrets, **shared with the fleet**; wotan's rules are `[amadeus hostWotan]`
 
-**wotan deploys only itself.** It is not a `colmenaHive` node, has no inbound SSH (the firewall has no open TCP ports), and must never import the fleet's `modules/common.nix` or `modules/server.nix`, which turn sshd on. It imports `modules/base.nix` (timezone, locale, keymap, flakes, trusted-users, the `amadeus` account) and nothing else from the fleet; an assertion in `hosts/wotan/default.nix` fails evaluation if sshd, TCP 22 or Tailscale SSH ever gets enabled. Nothing in the fleet tooling reaches it.
+**wotan deploys only itself.** It is not a `colmenaHive` node, has no inbound SSH (the firewall has no open TCP ports), and must never import the fleet's `modules/common.nix` or `modules/server.nix`, which turn sshd on. It imports `modules/base.nix` (timezone, locale, keymap, flakes, trusted-users, the `amadeus` account) and nothing else from the fleet; an assertion in `hosts/wotan/default.nix` fails evaluation if sshd or TCP 22 ever gets enabled. Nothing in the fleet tooling reaches it.
 
 **Neovim:** The nixvim configuration lives in its own repo, consumed as the flake input `mozart409-nixvim` (`github:Mozart409/mozart409-nixvim`). Neovim changes happen there, then `nix flake update mozart409-nixvim` here.
 
@@ -40,8 +40,8 @@ What keeps that safe is **who deploys**, not who edits:
   hand-off what that diff should contain, so an unexpected package or service
   stands out.
 - **Evaluation guards still apply.** The pre-push gate evaluates wotan for any
-  push touching its files, and `hosts/wotan/default.nix` asserts that sshd,
-  TCP 22 and Tailscale SSH stay off. Never weaken those assertions to make a
+  push touching its files, and `hosts/wotan/default.nix` asserts that sshd
+  and TCP 22 stay off. Never weaken those assertions to make a
   change evaluate; that change is wrong.
 - **A switch publishes.** `switch.sh` pushes to Forgejo and then runs
   `just export-github`, which publishes the `exports.toml` prefixes (`infra/`
@@ -459,7 +459,7 @@ llama-server requires an API key from `secrets/llama-cpp-api-key.age` (rule `[am
 
 `wotan.minecraft.enable` (`modules/wotan/minecraft.nix`, using the `nix-minecraft` flake input) runs the [Automation](https://modrinth.com/modpack/automation) modpack on NeoForge 1.21.1 as **`minecraft-server-automation.service`**, which does not start at boot. Players install the same pack version on their clients.
 
-- **Network:** LAN only, by firewall rules on `enp38s0`: TCP 25565 (game) and UDP 24454 (Simple Voice Chat). Do not set `openFirewall`, which also opens the tailscale and nebula interfaces.
+- **Network:** LAN only, by firewall rules on `enp38s0`: TCP 25565 (game) and UDP 24454 (Simple Voice Chat). Do not set `openFirewall`, which also opens the nebula interfaces.
 - **Data:** the world and other mutable state are in `/srv/minecraft/automation`. `mods` is a read-only symlink into the store, and `config` is copied from the pack on every start, so edits to it there are lost. Change config declaratively.
 - **Console:** `mc` attaches to the server's tmux, from inside another tmux session too. It uses your tmux config (home-manager's `tmux.conf`, sourced by `extraStartPost` once the session exists), on the server's own tmux server and socket (`/run/minecraft/automation.sock`). Detach with `C-Space d`, or `C-Space C-Space d` when nested in another tmux session. Access comes from the `minecraft` group, so log in again after the first switch. New windows and floax popups there run as the `minecraft` user inside the unit's sandbox, without your shell config. `C-Space X` kills the session, which ends the server without a clean `stop`: stop it from the panel or with `systemctl stop` instead.
 - **Start and stop:** the `Minecraft` row in the Quickshell service panel (see **Service Toggles**), or `systemctl start|stop minecraft-server-automation` without sudo. Nothing starts it at boot. A green row only means the unit is up: the game takes longer to accept players. Changing the server's config restarts it on the next switch, which disconnects players.

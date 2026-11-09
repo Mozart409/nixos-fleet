@@ -2,14 +2,50 @@
 
 Move the homelab hosts and the user's own clients from Tailscale to the
 Nebula network `mozart409` (172.16.20.0/24, UDP 4343, its own CA), then
-delete the tailnet. Nothing here is deployed; this is the plan. The
+delete the tailnet. The repo side is done and not yet deployed (see the status
+line); the rest is the plan. The
 `amartum` network (172.16.10.0/24, UDP 4242, separate CA) is business and
 never carries homelab traffic; wotan stays on both and its `amartum` uses
 do not change.
 
-**Status 2026-11-06: planned, not started.** Point-in-time observation from
-a Tailscale snapshot and Prometheus, same day. Nothing below has run, except
-Phase G, which was done separately.
+**Status 2026-11-09: repo side done, nothing deployed, certs pending.** The
+"What exists" section below is a point-in-time observation from a Tailscale
+snapshot and Prometheus on 2026-11-06 and describes the state before this work.
+
+Done in the repo (commits `fdc48272`, `85e014f4`): Phase C (`modules/nebula.nix`),
+Phase D (`dns` is `.4`, live since 2026-11-07), Phase E repo side (the module is
+enabled on ca, database, forgejo, jellyfin, agents, mcp, otel, containers), Phase G
+(2026-11-06), and the repo side of Phase I (no Tailscale left in the config).
+Registry marker is now `colmena = true;` in `lib/hosts.nix`; deploys use
+`<host>.homelab.internal` (`dns` by raw IP) over the LAN; `DEPLOY_NET` is gone.
+
+**STILL OPEN:**
+
+- **(a) Certs and keys.** The user signs them with the CA key in
+  `~/code/nixos-ventara-ai`; the hosts do not join until
+  `modules/nebula/mozart409-<host>.crt` and `secrets/nebula-mozart409-<host>.age`
+  exist and are `git add`ed (the module only warns until then). Also add `.5`-`.12`
+  to `services/nebula/tenants.nix` there (hosts section, next to
+  `dns = "172.16.20.4"`). Steps: "Per host to finish" under Phase E.
+- **(b) Deploy order.** Tailscale is gone from the config, so the first deploy of
+  `85e014f4` to a host removes its tailnet path. Deploying before the certs exist
+  is fine, but only over LAN SSH, one host at a time, `dns` last but one, and
+  reboot once each (Phase I item 14 check afterwards).
+- **(c) PBS URL.** `hosts/mcp_vm/configuration.nix` still points at
+  `pbs.dropbear-butterfly.ts.net` (TODO comment there). PBS has no registry entry
+  or step-ca name: the user must give an address before `mcp` is deployed, or the
+  pbs MCP breaks.
+- **(d) Nodes outside the repo, by hand:** pve-gigabyte, pbs, immich,
+  homelab-unifi, Home Assistant (the subnet router: off-site LAN access ends),
+  iPhone, MacBook; then delete the tailnet.
+- **(e) Phase I item 14** (`ip rule`, table 52, `ts-*` iptables after a reboot).
+- **(f) The iPhone's Tailscale key expires 2026-11-15** (Phase A item 1).
+- **(g) Leftover `.ts.net` mentions:** the docstring of
+  `hosts/otel/alertmanager-axon-bridge.py` and the comment at
+  `hosts/otel/blackbox.nix:33`.
+
+Postgres stays LAN only (decided 2026-11-09): `database` allows 22 and 443 on the
+overlay, never 5432.
 
 ## What exists
 
@@ -155,6 +191,32 @@ reach `dns` only through a lighthouse relay (direct from `192.168.2.31` on Wi-Fi
 
 ## Phase E: roll out to the fleet
 
+**Repo side done 2026-11-09, certs pending.** `homelab.nebula` is enabled on ca
+(.5), database (.6), forgejo (.7), jellyfin (.8), agents (.9), mcp (.10), otel
+(.11) and containers (.12); the overlay IPs are in `lib/hosts.nix`. Inbound TCP
+as built: ca 22 8443; database 22 443 (never 5432); forgejo 22 443 2222;
+jellyfin 22 443 8096; agents 22; mcp, otel, containers 22 443. New option
+`allowMosh` (default true) opens UDP 60000-61000 on the overlay interface.
+Nebula outbound is fully open on the module and on wotan. The port list below is
+the original plan, kept as written.
+
+### Per host to finish
+
+For each of ca, database, forgejo, jellyfin, agents, mcp, otel, containers:
+
+1. In `~/code/nixos-ventara-ai`, add the host's overlay IP (`.5`-`.12`) to the
+   hosts section of `services/nebula/tenants.nix`, next to
+   `dns = "172.16.20.4"`.
+2. Add a rule `nebula-mozart409-<host>.age` to `secrets/agenix-rules.nix` here
+   (needed before the key can be minted and stored).
+3. Sign: `just nebula-sign mozart409 <host> servers <pubkey>`, or without the
+   pubkey to mint and store the key.
+4. Copy the cert to `modules/nebula/mozart409-<host>.crt` (`install -m 664`) and
+   the key to `secrets/nebula-mozart409-<host>.age`; `git add` both.
+5. Eval the host (`nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`),
+   then the user deploys over LAN SSH, one host at a time, and checks the
+   handshake and a port test from wotan.
+
 One host at a time: ca, database, forgejo, jellyfin, agents, mcp, otel,
 containers. Per host: Phase C, deploy over LAN SSH, confirm the handshake
 and a port test from wotan.
@@ -246,40 +308,54 @@ Per host: deploy over LAN, reboot once, then the next host.
    Caddy and its `*.homelab.internal` vhosts (inferred from systemd
    behaviour). Remove vhost and bind together. Includes the
    `homelab-mcp` vhost in `hosts/mcp_vm/axon-gateway/default.nix`.
+   Done 2026-11-09: vhosts, `BindPaths` and `permitCertUid` removed; `ca` no longer runs Caddy (only step-ca on 8443).
 2. The `ts.net.` forward in `modules/dns-client-cache.nix` (`name =
    "ts.net."`, `forward-addr`), plus `ts.net.` in `domain-insecure`.
+   Done 2026-11-09.
 3. `100.64.0.0/10` source ACLs: `hosts/dns/configuration.nix`
    (`access-control`), `hosts/database/configuration.nix` (`pg_hba`),
    `modules/wotan/agent-user.nix` (tailnet CGNAT entry).
+   Done 2026-11-09 (unbound, `pg_hba`, wotan agent-user).
 4. `trustedInterfaces = ["tailscale0"]` on 8 hosts (dns, ca, containers,
    database, forgejo, jellyfin, mcp_vm, otel; not agents or wotan). Also
    drop the `tailscale0` remark above `ACTORS_HOST` in `hosts/containers/pocket-id/default.nix`.
+   Done 2026-11-09: no host trusts `tailscale0` any more.
 5. step-ca's `.ts.net` dnsName (`hosts/ca/configuration.nix`).
+    Done 2026-11-09.
 6. Caddy ordering on `tailscaled.service`: `hosts/mcp_vm/configuration.nix`
    (`after`/`wants`), `hosts/containers/countdown/default.nix` (`after`).
+   Done 2026-11-09.
 7. agents' UDP port (`hosts/agents/configuration.nix`,
    `config.services.tailscale.port`).
+   Done 2026-11-09.
 8. The rewrite in `hosts/agents/zones.nix` (the two
    `homelab-forgejo.dropbear-butterfly.ts.net` entries).
+   Done 2026-11-09.
 9. The `deployNet == "tailscale"` branch in root `flake.nix`
    (`targetHost`, `hostAddrs`).
+   Done 2026-11-09: `DEPLOY_NET`/`deployNet` is gone from `flake.nix`.
 10. **The module, last, with a trap.** `lib/hosts.nix` defines `fleet` as
     the hosts with a `tailscale` attribute. Re-key that marker first (for
     example to a `colmena = true` flag), or every Colmena target fails
     evaluation.
+    Done 2026-11-09: the marker is `colmena = true;`; `modules/tailscale.nix` is deleted.
 11. wotan: drop the assertion (`hosts/wotan/default.nix`, "must not enable
     Tailscale SSH") and `services.tailscale.enable`. Widen wotan's Nebula
     outbound as its comment says. Open mosh UDP 60000-61000
     (`modules/server.nix`, `programs.mosh`) on the overlay interface and
     rewrite its comment.
+    Done 2026-11-09: wotan no longer runs Tailscale; its Nebula outbound is fully open; mosh UDP is `allowMosh` on the overlay interface.
 12. Nodes outside this repo, by hand: pve-gigabyte (Phase B of its todo),
     pbs, immich, homelab-unifi, Home Assistant (the active
     subnet router, so off-site LAN access ends here), the iPhone and the
     MacBook.
+    OPEN: by hand, see the status line (d).
 13. Retire `tailscale-auth-key.age` and its rule in
     `secrets/agenix-rules.nix`. Delete the tailnet last.
+    Config part done 2026-11-09 (`secrets/tailscale-auth-key.age` and its rule are deleted). OPEN: delete the tailnet last.
 14. After a reboot on each host, check `ip rule`, routing table 52 and the
     `ts-*` iptables chains are clean.
+    OPEN: after the first deploy and reboot of each host.
 
 ## Risks and gaps
 
@@ -307,10 +383,8 @@ Per host: deploy over LAN, reboot once, then the next host.
 
 - `docs/nebula-nixos-deployment.md`: proposes its own CA, `10.42.0.0/16` and
   its own lighthouse, and says not implemented.
-- `AGENTS.md`, "Tailscale MagicDNS Does Not Resolve Between Homelab VMs" and
-  the `trustedInterfaces`/ACL section (about lines 368-375 and 384-416).
-  Also "Adding New Hosts Checklist" (the `tailscale` registry attribute) and
-  the agenix pitfall that says every host runs Tailscale.
+- `infra/AGENTS.md`: done 2026-11-09 (the MagicDNS and ACL sections became
+  "Nebula overlay: reaching a host"; checklist and agenix pitfall fixed).
 - `todo/nebula-clients.md` (about line 151): the sample firewall block is
   `outbound any`, but the live config limits outbound.
 - Out of scope, already dead: Harbor image references in
