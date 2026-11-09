@@ -26,7 +26,7 @@ in {
         {
           nixpkgs.hostPlatform = system;
           nixpkgs.config = sharedNixpkgsConfig;
-          nixpkgs.overlays = [inputs.self.overlays.opencode];
+          nixpkgs.overlays = [inputs.self.overlays.opencode inputs.self.overlays.rainfrog];
         }
         inputs.home-manager.nixosModules.home-manager
         ({pkgs, ...}: {
