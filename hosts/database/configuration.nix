@@ -72,8 +72,8 @@
     # consumer moved to the new one. The secret's .file is its /nix/store
     # path, which changes on every re-encryption (age is non-deterministic),
     # so listing it here makes a rotation re-run the ALTER on the next apply.
-    # Same fix as modules/fluent-bit.nix and modules/tailscale.nix; a
-    # redundant re-run is harmless, every statement here is idempotent.
+    # Same fix as modules/fluent-bit.nix; a redundant re-run is harmless,
+    # every statement here is idempotent.
     restartTriggers = [secret.file];
     serviceConfig = {
       Type = "oneshot";
@@ -114,7 +114,6 @@ in {
     ((import ../../lib/hosts.nix).staticNetwork "database")
     ../../modules/common.nix
     ../../modules/disko-config.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
@@ -357,7 +356,7 @@ in {
     # Authentication configuration
     #
     # Everything that crosses the wire must be TLS (`hostssl`): a plain-text
-    # attempt from the LAN/tailnet is rejected before auth, so a client with a
+    # attempt from the LAN is rejected before auth, so a client with a
     # stale `sslmode=disable` URL fails loudly instead of sending its password
     # in the clear. Every remote client -- RomM, hofvarpnir, the five pgmcp
     # instances, the OpenTofu `pg` backend -- carries `sslmode=verify-full`
@@ -370,7 +369,6 @@ in {
       host    all             all             ::1/128                 scram-sha-256
       hostssl all             all             10.0.0.0/8              scram-sha-256
       hostssl all             all             192.168.0.0/16          scram-sha-256
-      hostssl all             all             100.64.0.0/10           scram-sha-256
     '';
 
     # Initial databases (names must match usernames when using ensureDBOwnership)
@@ -767,22 +765,9 @@ in {
     ];
   };
 
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy
   services.caddy = {
     enable = true;
-
-    # Tailscale hostname
-    virtualHosts."homelab-database.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        handle {
-          respond "OK" 200
-        }
-      '';
-    };
 
     # Local network hostname with step-ca certificate
     virtualHosts."database.homelab.internal database.homelab.local" = {
@@ -811,12 +796,6 @@ in {
       '';
     };
   };
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
 
   # step-ca leaf for postgres (see services.postgresql.settings.ssl). Caddy
   # gets its own certs through its built-in ACME client; postgres has none, so
@@ -883,7 +862,6 @@ in {
   # Firewall configuration
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       80 # HTTP (ACME HTTP-01 for the postgres cert; Caddy redirects the rest)

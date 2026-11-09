@@ -19,7 +19,6 @@ in {
     ((import ../../lib/hosts.nix).staticNetwork "otel")
     ../../modules/common.nix
     ../../modules/disko-config.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ./alerting.nix
@@ -825,8 +824,8 @@ in {
 
   # Bearer tokens that gate the push and log/trace-read paths on this host.
   # Until 2026-09-14 prometheus (remote-write receiver included), loki, tempo,
-  # alertmanager and the OTLP receiver were reachable by anyone on the LAN or
-  # tailnet with no credential at all -- and loki held the postgres role
+  # alertmanager and the OTLP receiver were reachable by anyone on the LAN
+  # with no credential at all -- and loki held the postgres role
   # passwords (see hosts/database, mkRolePasswordUnit). Two tokens, two blast
   # radii:
   #   push  -- every host's fluent-bit (modules/fluent-bit.nix) and OTLP
@@ -978,7 +977,6 @@ in {
 
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       443 # HTTPS (Caddy) -- the only way in; everything below it is token-gated

@@ -134,9 +134,7 @@ in {
   # on, so fail evaluation -- the pre-push gate and switch.sh both evaluate
   # wotan -- rather than trust that nobody re-enables it. security.hardening.ssh
   # only hardens sshd's settings; it does not start it.
-  assertions = let
-    sshFlag = lib.any (lib.hasPrefix "--ssh");
-  in [
+  assertions = [
     {
       assertion = !config.services.openssh.enable;
       message = "wotan must not run sshd (services.openssh.enable): it has no inbound SSH by design. Was modules/common.nix imported?";
@@ -144,10 +142,6 @@ in {
     {
       assertion = !(lib.elem 22 config.networking.firewall.allowedTCPPorts);
       message = "wotan must not open TCP 22 in networking.firewall.allowedTCPPorts.";
-    }
-    {
-      assertion = !(sshFlag config.services.tailscale.extraUpFlags || sshFlag config.services.tailscale.extraSetFlags);
-      message = "wotan must not enable Tailscale SSH (--ssh in services.tailscale.extra{Up,Set}Flags).";
     }
   ];
 
@@ -254,7 +248,6 @@ in {
     enable = true;
     capSysNice = false;
   };
-  services.tailscale.enable = true;
 
   # Trust Homelab CA root certificate (step-ca)
   security.pki.certificates = [

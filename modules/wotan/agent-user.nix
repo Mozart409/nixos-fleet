@@ -275,8 +275,8 @@ in {
           "10.0.0.0/8"
           "172.16.0.0/12"
           "192.168.0.0/16"
-          "100.64.0.0/10" # tailnet (CGNAT)
-          "fc00::/7" # ULA, tailnet IPv6 included
+          "100.64.0.0/10" # CGNAT (was the tailnet; stays denied)
+          "fc00::/7" # ULA
           # Link-local and multicast as prefixes: systemd-run's transient
           # properties reject the symbolic names unit files accept.
           "169.254.0.0/16"

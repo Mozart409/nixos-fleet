@@ -17,9 +17,9 @@ let
   hostMcp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGkfmvav5dWx4dAbDHcJSuKG32GSmdVdOK+uQ1xjCtse root@homelab-mcp";
   hostOtel = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGz4mCD5XyFkwVaSzzWHhral8WqMGo01nKZM3gAX2vzP amadeus@homelab-otel";
   hostWotan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB+ZFy9VtNhNzlpUg0tNqMPZFj3kCt50wvXD7aw88MZ root@wotan";
-  # Fleet-wide secrets (tailscale auth key, otel push token, fleet enrol
-  # secret) go to the humans plus every host that is currently deployed --
-  # and only those. A decommissioned VM's host key lives on in its PBS
+  # Fleet-wide secrets (otel push token, fleet enrol secret) go to the
+  # humans plus every host that is currently deployed -- and only those.
+  # A decommissioned VM's host key lives on in its PBS
   # backups and old disk images, so leaving it here keeps every fleet-wide
   # secret decryptable by an artefact nobody is watching. Decommissioned
   # hosts kept in the tree (hosts/{cache,development,hermes,zeroclaw},
@@ -125,7 +125,6 @@ in {
   "romm-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostDatabase];
   "romm-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "step-ca-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCa];
-  "tailscale-auth-key.age".publicKeys = users;
   "terraform-state-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
   "uptime-forge-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "ventara-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostWotan];

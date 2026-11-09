@@ -25,7 +25,7 @@
   # with host networking and dials them on 127.0.0.1 directly. Before that
   # every backend had its own *-mcp.homelab.local Caddy vhost with no
   # authentication at all -- the audit that day confirmed `initialize` +
-  # `run_query` / `call_service` worked from any LAN or tailnet address,
+  # `run_query` / `call_service` worked from any LAN address,
   # bypassing the gateway's bearer token entirely. Caddy on this host now
   # serves exactly one thing: the gateway.
   #
@@ -99,7 +99,6 @@ in {
     ((import ../../lib/hosts.nix).staticNetwork "mcp")
     ../../modules/common.nix
     ../../modules/disko-config.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
@@ -164,6 +163,7 @@ in {
       pbsmcp-server = {
         enable = true;
         package = mcpPackages.pbsmcp-server;
+        # TODO: still a tailnet name; point at PBS's LAN name/IP before Tailscale is switched off.
         host = "https://pbs.dropbear-butterfly.ts.net/";
         tokenFile = config.age.secrets.pbs-mcp-token.path;
         bind = "127.0.0.1:8080";
@@ -332,21 +332,10 @@ in {
           CapabilityBoundingSet = "";
         };
       };
-
-      # Give Caddy access to Tailscale socket for cert fetching
-      caddy = {
-        after = ["tailscaled.service"];
-        wants = ["tailscaled.service"];
-        serviceConfig.BindPaths = ["/run/tailscale/tailscaled.sock"];
-      };
     };
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
 
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       443 # HTTPS (Caddy)

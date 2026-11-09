@@ -27,11 +27,6 @@
   # pathExists on a flake source: an untracked file counts as missing.
   ready = builtins.pathExists secretFile && builtins.pathExists certFile;
 
-  tailscaleRanges = {
-    "100.64.0.0/10" = false;
-    "fd7a:115c:a1e0::/48" = false;
-  };
-
   # One inbound rule per group x port x protocol.
   inboundRules = lib.concatMap (group:
     (map (p: {
@@ -45,7 +40,12 @@
         proto = "udp";
         inherit group;
       })
-      cfg.allowedUDPPorts))
+      cfg.allowedUDPPorts)
+    ++ lib.optional cfg.allowMosh {
+      port = "60000-61000";
+      proto = "udp";
+      inherit group;
+    })
   cfg.allowedGroups;
 in {
   options.homelab.nebula = {
@@ -67,6 +67,12 @@ in {
       type = lib.types.listOf lib.types.port;
       default = [];
       description = "UDP ports overlay clients in allowedGroups may reach.";
+    };
+
+    allowMosh = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Allow mosh (UDP 60000-61000) from allowedGroups over the overlay.";
     };
 
     allowedGroups = lib.mkOption {
@@ -125,25 +131,11 @@ in {
         };
         tun.device = device;
 
-        # ICMP, TCP and DNS only -- NO general UDP. Tailscale advertises every
-        # local address as a WireGuard endpoint, so two hosts on both overlays
-        # route Tailscale THROUGH nebula; its packets exceed nebula's 1300 MTU
-        # and SSH over the tailnet stalls silently. Widen once Tailscale is
-        # gone.
+        # Outbound is open; inbound is the ACL.
         firewall.outbound = [
           {
             port = "any";
-            proto = "icmp";
-            host = "any";
-          }
-          {
-            port = "any";
-            proto = "tcp";
-            host = "any";
-          }
-          {
-            port = 53;
-            proto = "udp";
+            proto = "any";
             host = "any";
           }
         ];
@@ -172,21 +164,12 @@ in {
             punch = true;
             respond = true;
           };
-          # Never advertise or accept a Tailscale address (nebula over
-          # Tailscale breaks above its 1280 MTU), nor advertise a container
-          # bridge. Within one map every value must be the same.
-          lighthouse = {
-            local_allow_list =
-              tailscaleRanges
-              // {
-                interfaces = {
-                  "docker.*" = false;
-                  "podman.*" = false;
-                  "tailscale.*" = false;
-                  "nebula.*" = false;
-                };
-              };
-            remote_allow_list = tailscaleRanges;
+          # Never advertise a container bridge. Within one map every value
+          # must be the same.
+          lighthouse.local_allow_list.interfaces = {
+            "docker.*" = false;
+            "podman.*" = false;
+            "nebula.*" = false;
           };
         };
       };
@@ -198,10 +181,14 @@ in {
       # host firewall here. One option list feeds both, so they cannot drift.
       networking.firewall.interfaces.${device} = {
         inherit (cfg) allowedTCPPorts allowedUDPPorts;
+        allowedUDPPortRanges = lib.optional cfg.allowMosh {
+          from = 60000;
+          to = 61000;
+        };
       };
 
-      # Same value the Tailscale module sets today; set here too so removing
-      # that module later does not change it.
+      # Keeps the value the removed Tailscale module set, so reverse-path
+      # filtering on these hosts does not change.
       networking.firewall.checkReversePath = "loose";
 
       # The decrypted path is stable, so a rotated key would otherwise not

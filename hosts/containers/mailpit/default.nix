@@ -12,7 +12,7 @@ in {
   services.mailpit.instances.default = {
     # The Multica backend runs in a podman container, so it reaches the host
     # through the podman bridge, not loopback. The firewall opens the port on
-    # podman0 only (below); ens18 and tailscale stay closed to it.
+    # podman0 only (below); ens18 stays closed to it.
     smtp = "0.0.0.0:${toString smtpPort}";
     listen = "127.0.0.1:${toString uiPort}";
     # Login codes expire after 10 minutes; nothing here is worth keeping.

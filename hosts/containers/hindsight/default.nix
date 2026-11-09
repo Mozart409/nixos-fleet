@@ -130,10 +130,10 @@ in {
   #
   # Pocket ID's endpoints are pinned and OIDC discovery is off. With discovery
   # on, oauth2-proxy fetches the issuer's /.well-known/openid-configuration at
-  # startup; on a fresh boot the tailnet/MagicDNS name is not resolvable yet, so
+  # startup; on a fresh boot a MagicDNS name was not resolvable yet, so
   # the process exits, trips systemd's start limit and parks in `failed`. That
   # is exactly what happened on 2026-10-17, when the issuer was still addressed
-  # by its tailnet name: the containers VM rebooted, Caddy answered the UI vhost
+  # by a tailnet name: the containers VM rebooted, Caddy answered the UI vhost
   # 502 while the API stayed healthy. Pocket ID now runs on this same host, but
   # the endpoints stay pinned so oauth2-proxy has no startup dependency on Pocket
   # ID at all (Grafana in hosts/otel does the same). Endpoints are Pocket ID's

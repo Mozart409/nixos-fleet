@@ -54,26 +54,11 @@
     listen.host = "::";
     tun.device = v.device;
 
-    # ICMP, TCP and DNS only -- NO general UDP. Tailscale advertises every
-    # local address as a WireGuard endpoint, so two hosts on both overlays
-    # route Tailscale THROUGH nebula; its packets exceed nebula's 1300 MTU and
-    # SSH over the tailnet stalls silently. Same rule as ventara's
-    # `ventara.nebula.defaultOutbound` (its AGENTS.md §5). Widen once
-    # Tailscale is gone.
+    # Outbound is open; inbound is the ACL.
     firewall.outbound = [
       {
         port = "any";
-        proto = "icmp";
-        host = "any";
-      }
-      {
-        port = "any";
-        proto = "tcp";
-        host = "any";
-      }
-      {
-        port = 53;
-        proto = "udp";
+        proto = "any";
         host = "any";
       }
     ];
@@ -100,29 +85,14 @@
         punch = true;
         respond = true;
       };
-      # Never advertise or accept a Tailscale address (nebula over Tailscale
-      # breaks above its 1280 MTU), nor advertise a container bridge. Same as
-      # ventara's `underlayExclude` / `localExcludeInterfaces`. Within one
-      # map every value must be the same.
-      lighthouse = {
-        local_allow_list =
-          tailscaleRanges
-          // {
-            interfaces = {
-              "docker.*" = false;
-              "podman.*" = false;
-              "tailscale.*" = false;
-              "nebula.*" = false;
-            };
-          };
-        remote_allow_list = tailscaleRanges;
+      # Never advertise a container bridge. Same as ventara's
+      # `localExcludeInterfaces`. Within one map every value must be the same.
+      lighthouse.local_allow_list.interfaces = {
+        "docker.*" = false;
+        "podman.*" = false;
+        "nebula.*" = false;
       };
     };
-  };
-
-  tailscaleRanges = {
-    "100.64.0.0/10" = false;
-    "fd7a:115c:a1e0::/48" = false;
   };
 in {
   age.secrets = lib.mapAttrs' (t: _: lib.nameValuePair "nebula-${t}-wotan" (mkSecret t)) tenants;

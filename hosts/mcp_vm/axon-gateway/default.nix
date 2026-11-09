@@ -360,15 +360,6 @@ in {
   };
 
   services.caddy.virtualHosts = {
-    # Tailscale hostname. Used to front hamcp directly; now the gateway.
-    "homelab-mcp.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-        ${gatewayVhost}
-      '';
-    };
     # axon.homelab.internal moved here from the containers host on 2026-09-14;
     # every client (hermes, otel's alertmanager bridge, development, the
     # dashboard health check, prometheus) reaches it by that name, so for

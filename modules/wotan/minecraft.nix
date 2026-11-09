@@ -84,7 +84,7 @@ in {
     home-manager.users.${username}.home.shellAliases.mc = "env -u TMUX tmux -S ${consoleSocket} attach";
 
     # LAN only. Not openFirewall, which would also expose the server on the
-    # tailscale and nebula interfaces.
+    # nebula interfaces.
     networking.firewall.interfaces.enp38s0 = {
       allowedTCPPorts = [gamePort];
       allowedUDPPorts = [voiceChatPort];

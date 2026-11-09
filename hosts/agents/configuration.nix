@@ -17,7 +17,6 @@
     ../../modules/common.nix
     # XFS root on ssd_pool (iac/main.tf, agents_vm), same as dns/ca/hermes.
     ../../modules/disko-xfs.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ./zones.nix
@@ -41,17 +40,15 @@
   };
 
   # ── Firewall ──────────────────────────────────────────────────────────────
-  # Like hermes: no `trustedInterfaces = ["tailscale0"]`. This host runs agents
+  # Like hermes: no `trustedInterfaces`. This host runs agents
   # with shells, so nothing is open merely because of the interface a packet
-  # arrived on. Tailscale ACLs are a bonus, never the control.
+  # arrived on.
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [
       22 # ssh (also the mosh handshake; mosh's UDP range comes from server.nix)
       9100 # node exporter, scraped by otel
     ];
-    # tailscaled's own port, so sessions connect directly instead of via DERP.
-    allowedUDPPorts = [config.services.tailscale.port];
   };
 
   environment.systemPackages = with pkgs; [

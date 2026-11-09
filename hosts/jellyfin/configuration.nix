@@ -10,7 +10,6 @@
     ../../modules/common.nix
     # Dedicated disko layout: btrfs OS disk + optimized ZFS media pool.
     ../../modules/disko-jellyfin.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
@@ -96,7 +95,7 @@
     ];
   };
 
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy
   services.caddy = {
     enable = true;
 
@@ -106,17 +105,6 @@
     logFormat = ''
       level INFO
     '';
-
-    # Tailscale hostname
-    virtualHosts."homelab-jellyfin.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        reverse_proxy localhost:8096
-      '';
-    };
 
     # Local network hostname with step-ca certificate
     virtualHosts."jellyfin.homelab.internal jellyfin.homelab.local" = {
@@ -130,8 +118,7 @@
     };
 
     # hofvarpnir (OCI container on 127.0.0.1:3000) served with a step-ca cert.
-    # LAN-only: Tailscale can only cert/route this node's own name, so there is
-    # no ts.net vhost — reach it over Tailscale via split-DNS to the dns host.
+    # LAN-only: served on the step-ca name only, reached via the dns host.
     # App serves /metrics + /dashboard at root, so no path stripping.
     virtualHosts."hofvarpnir.homelab.internal hofvarpnir.homelab.local" = {
       extraConfig = ''
@@ -144,16 +131,9 @@
     };
   };
 
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
-
   # Firewall configuration
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       443 # HTTPS (Caddy)

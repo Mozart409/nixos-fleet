@@ -53,10 +53,8 @@ harness.mkHostTest {
         "dig @127.0.0.1 -p 53 dns.homelab.internal +short | grep -q '^192.168.2.145$'"
     )
 
-    # NOT asserted on, intentionally: tailscaled-autoconnect (needs a real
-    # tailscale-auth-key secret and a real control-plane connection)
-    # and caddy's ACME cert issuance against ca.homelab.internal (no route to it in
-    # the sandbox).
+    # NOT asserted on, intentionally: caddy's ACME cert issuance against
+    # ca.homelab.internal (no route to it in the sandbox).
     # All soft-fail without affecting the assertions above.
   '';
 }

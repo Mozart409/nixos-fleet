@@ -525,8 +525,6 @@
         # zones (no MagicDNS, and the dns host has no ts.net forward), so send
         # every spelling over SSH to the LAN name, with the bot's key.
         url."ssh://forgejo@forgejo.homelab.internal:2222/".insteadOf = [
-          "ssh://forgejo@homelab-forgejo.dropbear-butterfly.ts.net:2222/"
-          "https://homelab-forgejo.dropbear-butterfly.ts.net/"
           "ssh://forgejo@forgejo.homelab.local:2222/"
           "https://forgejo.homelab.local/"
           "https://forgejo.homelab.internal/"

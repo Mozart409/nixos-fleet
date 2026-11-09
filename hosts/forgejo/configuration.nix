@@ -9,7 +9,6 @@
     ((import ../../lib/hosts.nix).staticNetwork "forgejo")
     ../../modules/common.nix
     ../../modules/disko-config.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
@@ -154,22 +153,9 @@
     ];
   };
 
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy
   services.caddy = {
     enable = true;
-
-    # Tailscale hostname
-    virtualHosts."homelab-forgejo.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        handle {
-          reverse_proxy localhost:3000
-        }
-      '';
-    };
 
     # Local network hostname with step-ca certificate
     virtualHosts."forgejo.homelab.internal forgejo.homelab.local" = {
@@ -199,16 +185,9 @@
     };
   };
 
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
-
   # Firewall configuration
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       80 # HTTP (Caddy redirect to HTTPS)

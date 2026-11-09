@@ -12,10 +12,8 @@
     # 19 G root, the same state that wedged `dns`. Swapped 2026-09-09 alongside
     # the move to ssd_pool -- see todo/dns-cache-ssd-xfs-migration.md Part C.
     ../../modules/disko-xfs.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
-    ../../modules/caddy-http3.nix
   ];
 
   networking.hostName = "homelab-ca";
@@ -24,7 +22,7 @@
   homelab.nebula = {
     enable = true;
     node = "ca";
-    allowedTCPPorts = [22 443 8443];
+    allowedTCPPorts = [22 8443];
   };
 
   # step-ca Certificate Authority
@@ -51,7 +49,6 @@
         "ca.homelab.internal"
         "ca.homelab.local"
         "homelab-ca"
-        "homelab-ca.dropbear-butterfly.ts.net"
         "192.168.2.160"
         "localhost"
       ];
@@ -105,43 +102,10 @@
     wants = ["agenix.service"];
   };
 
-  # Caddy reverse proxy with Tailscale TLS for management interface
-  services.caddy = {
-    enable = true;
-    virtualHosts."homelab-ca.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        handle /health {
-          respond "CA Server OK" 200
-        }
-
-        # Proxy to step-ca for ACME directory
-        handle {
-          reverse_proxy localhost:8443 {
-            transport http {
-              tls_insecure_skip_verify
-            }
-          }
-        }
-      '';
-    };
-  };
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
-
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
-      443 # HTTPS (Caddy/Tailscale)
       8443 # step-ca ACME endpoint (also opened by openFirewall)
       9100 # Node exporter
     ];

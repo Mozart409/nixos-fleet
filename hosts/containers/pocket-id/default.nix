@@ -31,7 +31,7 @@ in {
       HOST = "127.0.0.1";
       PORT = toString port;
       # The peer port for several replicas (UDP 1414), on 0.0.0.0 by default.
-      # This is the only replica, and tailscale0 is a trusted interface here.
+      # This is the only replica, so nothing needs to reach it.
       ACTORS_HOST = "127.0.0.1";
     };
   };

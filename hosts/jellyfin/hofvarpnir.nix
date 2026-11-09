@@ -83,8 +83,7 @@ in {
       SESSION_TIMEOUT_HOURS = "720";
 
       # --- Observability ----------------------------------------------------
-      # Rewritten from the LXC's homelab-otel.*.ts.net (MagicDNS does NOT resolve
-      # between homelab VMs) to the step-ca *.homelab.internal names on the otel host.
+      # Points at the step-ca *.homelab.internal names on the otel host.
       METRICS_ENABLED = "true";
       # Both pipelines go through Caddy on otel's aggregate vhost, gated by the
       # fleet push token (headers rendered at container start, see preStart

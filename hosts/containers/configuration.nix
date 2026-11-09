@@ -9,7 +9,6 @@
     ((import ../../lib/hosts.nix).staticNetwork "containers")
     ../../modules/common.nix
     ../../modules/disko-config.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
@@ -95,7 +94,7 @@
   };
 
   # Disable IPv6 - LXC container doesn't have proper IPv6 routing
-  # which breaks Tailscale connections preferring IPv6
+  # which breaks connections preferring IPv6
   boot.kernel.sysctl = {
     "net.ipv6.conf.all.disable_ipv6" = 1;
     "net.ipv6.conf.default.disable_ipv6" = 1;
@@ -110,7 +109,7 @@
     enable = true;
 
     # (Open WebUI was served at the root of containers.homelab.{local,internal}
-    # and homelab-containers.dropbear-butterfly.ts.net until 2026-10-11, when
+    # and a tailnet name until 2026-10-11, when
     # it was retired; its config is in docs/archive/open-webui/.)
 
     # (Those vhosts carried a `handle /uptime-forge*` -> localhost:3000
@@ -196,7 +195,6 @@
   # Firewall configuration
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       80 # HTTP

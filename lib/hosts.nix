@@ -23,7 +23,7 @@
 #              ["homelab.local"] (PTRs were never mirrored into .internal).
 #   aliases    extra names on the same ip: name -> { zones?, ptr? } with the
 #              same defaults.
-#   tailscale  tailnet name; only colmena-deployed fleet hosts have one.
+#   colmena    true for hosts colmena deploys (the fleet).
 #   deployByIp colmena reaches the host by raw IP, not by name (the resolver
 #              itself: you cannot deploy a fix for a broken unbound through
 #              unbound).
@@ -54,17 +54,17 @@ let
       overlay = "172.16.20.9";
       zones = ["homelab.internal"];
       ptr = ["homelab.internal"];
-      tailscale = "homelab-agents";
+      colmena = true;
     };
     ca = {
       ip = "192.168.2.160";
       overlay = "172.16.20.5";
-      tailscale = "homelab-ca";
+      colmena = true;
     };
     containers = {
       ip = "192.168.2.149";
       overlay = "172.16.20.12";
-      tailscale = "homelab-containers";
+      colmena = true;
       aliases = {
         countdown = internalOnly;
         dashboard = {};
@@ -83,18 +83,18 @@ let
     database = {
       ip = "192.168.2.134";
       overlay = "172.16.20.6";
-      tailscale = "homelab-database";
+      colmena = true;
     };
     dns = {
       ip = "192.168.2.145";
       overlay = "172.16.20.4";
-      tailscale = "homelab-dns";
+      colmena = true;
       deployByIp = true;
     };
     forgejo = {
       ip = "192.168.2.178";
       overlay = "172.16.20.7";
-      tailscale = "homelab-forgejo";
+      colmena = true;
     };
     homeassistant = {
       ip = "192.168.2.208";
@@ -104,7 +104,7 @@ let
     jellyfin = {
       ip = "192.168.2.180";
       overlay = "172.16.20.8";
-      tailscale = "homelab-jellyfin";
+      colmena = true;
       aliases.hofvarpnir = {};
     };
     k3s-cntrl-1 = {
@@ -113,13 +113,13 @@ let
     mcp = {
       ip = "192.168.2.152";
       overlay = "172.16.20.10";
-      tailscale = "homelab-mcp";
+      colmena = true;
       aliases.axon = {};
     };
     otel = {
       ip = "192.168.2.135";
       overlay = "172.16.20.11";
-      tailscale = "homelab-otel";
+      colmena = true;
       aliases = {
         alertmanager = {};
         loki = {};
@@ -179,14 +179,14 @@ let
 in {
   inherit network hosts fqdn;
 
-  # What colmena's targetHost resolves to off the tailnet.
+  # What colmena's targetHost resolves to.
   deployAddr = name:
     if hosts.${name}.deployByIp or false
     then hosts.${name}.ip
     else fqdn name;
 
-  # The hosts colmena deploys (those with a tailnet name).
-  fleet = builtins.filter (n: hosts.${n} ? tailscale) (builtins.attrNames hosts);
+  # The hosts colmena deploys (those with colmena = true).
+  fleet = builtins.filter (n: hosts.${n}.colmena or false) (builtins.attrNames hosts);
 
   # unbound local-data / local-data-ptr, already quoted and sorted byte-wise
   # (the order keep-sorted kept the hand-written lists in).

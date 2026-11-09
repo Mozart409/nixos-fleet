@@ -18,7 +18,6 @@ in {
     # needs a nixos-anywhere reinstall -- disko never runs during `colmena
     # apply`. See todo/dns-ssd-xfs-migration.md.
     ../../modules/disko-xfs.nix
-    ../../modules/tailscale.nix
     ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/caddy-http3.nix
@@ -49,13 +48,6 @@ in {
           "127.0.0.0/8 allow"
           "192.168.2.0/24 allow"
           "::1/128 allow"
-          # Tailnet clients query this node's own LAN IP (192.168.2.145) via the
-          # subnet router. Traffic terminating on the router itself is NOT
-          # SNATed, so unbound sees the client's raw Tailscale CGNAT source
-          # address rather than a 192.168.2.x one. Allow the tailnet ranges so
-          # split-DNS lookups from remote clients aren't silently dropped.
-          "100.64.0.0/10 allow"
-          "fd7a:115c:a1e0::/48 allow"
           # Clients on the mozart409 Nebula overlay (see the view below).
           "172.16.20.0/24 allow"
         ];
@@ -106,7 +98,7 @@ in {
           "homelab.local. static"
           # Parallel private zone. Apple clients force *.local to mDNS/Bonjour and
           # never send it to a unicast resolver, so homelab.local is unreachable
-          # from macOS/iOS over Tailscale split DNS. homelab.internal (ICANN-
+          # from macOS/iOS through split DNS. homelab.internal (ICANN-
           # reserved private TLD) resolves normally. Both zones are served.
           "homelab.internal. static"
         ];
@@ -156,22 +148,9 @@ in {
     };
   };
 
-  # Caddy reverse proxy with Tailscale TLS for management interface
+  # Caddy reverse proxy for management interface
   services.caddy = {
     enable = true;
-
-    # Tailscale hostname
-    virtualHosts."homelab-dns.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        handle {
-          respond "DNS Server OK" 200
-        }
-      '';
-    };
 
     # Local network hostname with step-ca certificate
     virtualHosts."dns.homelab.internal dns.homelab.local" = {
@@ -187,26 +166,8 @@ in {
     };
   };
 
-  # Subnet router: advertise the LAN so tailnet clients (e.g. a laptop while
-  # away) can reach *.homelab.internal by their real 192.168.2.x addresses and hit
-  # the internal Caddy vhosts with genuine step-ca certs. "server" enables
-  # net.ipv4.ip_forward. Pair with a split-DNS entry (homelab.internal ->
-  # 192.168.2.145) in the Tailscale admin console.
-  # NOTE: tailscaled-autoconnect only runs `tailscale up` when not already
-  # connected, so on an already-authed node apply the route once by hand:
-  #   sudo tailscale set --advertise-routes=192.168.2.0/24
-  services.tailscale.useRoutingFeatures = "server";
-  services.tailscale.extraUpFlags = ["--advertise-routes=192.168.2.0/24"];
-
-  # Allow Caddy to get Tailscale certs
-  services.tailscale.permitCertUid = "caddy";
-
-  # Give Caddy access to Tailscale socket for cert fetching
-  systemd.services.caddy.serviceConfig.BindPaths = "/var/run/tailscale/tailscaled.sock";
-
   networking.firewall = {
     enable = true;
-    trustedInterfaces = ["tailscale0"];
     allowedTCPPorts = [
       22 # SSH
       53 # DNS
