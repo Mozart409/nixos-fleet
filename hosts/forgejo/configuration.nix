@@ -10,6 +10,7 @@
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
     ../../modules/caddy-http3.nix
@@ -19,6 +20,13 @@
   ];
 
   networking.hostName = "homelab-forgejo";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "forgejo";
+    allowedTCPPorts = [22 443 2222];
+  };
 
   environment.systemPackages = [config.services.forgejo.package pkgs.forgejo-cli];
 

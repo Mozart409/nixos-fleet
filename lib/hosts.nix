@@ -51,16 +51,19 @@ let
   hosts = {
     agents = {
       ip = "192.168.2.190";
+      overlay = "172.16.20.9";
       zones = ["homelab.internal"];
       ptr = ["homelab.internal"];
       tailscale = "homelab-agents";
     };
     ca = {
       ip = "192.168.2.160";
+      overlay = "172.16.20.5";
       tailscale = "homelab-ca";
     };
     containers = {
       ip = "192.168.2.149";
+      overlay = "172.16.20.12";
       tailscale = "homelab-containers";
       aliases = {
         countdown = internalOnly;
@@ -79,6 +82,7 @@ let
     };
     database = {
       ip = "192.168.2.134";
+      overlay = "172.16.20.6";
       tailscale = "homelab-database";
     };
     dns = {
@@ -89,6 +93,7 @@ let
     };
     forgejo = {
       ip = "192.168.2.178";
+      overlay = "172.16.20.7";
       tailscale = "homelab-forgejo";
     };
     homeassistant = {
@@ -98,6 +103,7 @@ let
     };
     jellyfin = {
       ip = "192.168.2.180";
+      overlay = "172.16.20.8";
       tailscale = "homelab-jellyfin";
       aliases.hofvarpnir = {};
     };
@@ -106,11 +112,13 @@ let
     };
     mcp = {
       ip = "192.168.2.152";
+      overlay = "172.16.20.10";
       tailscale = "homelab-mcp";
       aliases.axon = {};
     };
     otel = {
       ip = "192.168.2.135";
+      overlay = "172.16.20.11";
       tailscale = "homelab-otel";
       aliases = {
         alertmanager = {};

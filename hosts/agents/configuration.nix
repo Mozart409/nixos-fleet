@@ -18,11 +18,19 @@
     # XFS root on ssd_pool (iac/main.tf, agents_vm), same as dns/ca/hermes.
     ../../modules/disko-xfs.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ./zones.nix
   ];
 
   networking.hostName = "homelab-agents";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "agents";
+    allowedTCPPorts = [22];
+  };
 
   # Compressed RAM swap absorbs the spike of an agent CLI plus a cold devShell
   # before the disk swap is touched (same reasoning as hermes/development).

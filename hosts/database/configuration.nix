@@ -115,12 +115,20 @@ in {
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
     ../../modules/caddy-http3.nix
   ];
 
   networking.hostName = "homelab-database";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "database";
+    allowedTCPPorts = [22 443];
+  };
 
   # Terraform state database password
   age.secrets.terraform-state-db-password = {

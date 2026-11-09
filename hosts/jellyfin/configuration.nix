@@ -11,6 +11,7 @@
     # Dedicated disko layout: btrfs OS disk + optimized ZFS media pool.
     ../../modules/disko-jellyfin.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
     # Podman + oci-containers backend for the hofvarpnir container below.
@@ -25,6 +26,13 @@
   ];
 
   networking.hostName = "homelab-jellyfin";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "jellyfin";
+    allowedTCPPorts = [22 443 8096];
+  };
 
   # ZFS support
   boot.supportedFilesystems = ["zfs"];

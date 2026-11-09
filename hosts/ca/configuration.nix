@@ -13,11 +13,19 @@
     # the move to ssd_pool -- see todo/dns-cache-ssd-xfs-migration.md Part C.
     ../../modules/disko-xfs.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/caddy-http3.nix
   ];
 
   networking.hostName = "homelab-ca";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "ca";
+    allowedTCPPorts = [22 443 8443];
+  };
 
   # step-ca Certificate Authority
   # Password for the intermediate CA key (created via agenix)

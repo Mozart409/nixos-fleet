@@ -100,6 +100,7 @@ in {
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
     ../../modules/podman.nix
@@ -108,6 +109,13 @@ in {
   ];
 
   networking.hostName = "homelab-mcp";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "mcp";
+    allowedTCPPorts = [22 443];
+  };
 
   # Ship all homelab-mcp server journals to the central Loki.
   services.loki-logs = {

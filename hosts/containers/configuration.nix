@@ -10,6 +10,7 @@
     ../../modules/common.nix
     ../../modules/disko-config.nix
     ../../modules/tailscale.nix
+    ../../modules/nebula.nix
     ../../modules/step-ca-trust.nix
     ../../modules/fluent-bit.nix
     ../../modules/podman.nix
@@ -85,6 +86,13 @@
   };
 
   networking.hostName = "homelab-containers";
+
+  # mozart409 overlay; plan in todo/tailscale-to-nebula.md. The host joins once its cert and key exist (module warns until then).
+  homelab.nebula = {
+    enable = true;
+    node = "containers";
+    allowedTCPPorts = [22 443];
+  };
 
   # Disable IPv6 - LXC container doesn't have proper IPv6 routing
   # which breaks Tailscale connections preferring IPv6
