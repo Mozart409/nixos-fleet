@@ -2,46 +2,67 @@
 
 Move the homelab hosts and the user's own clients from Tailscale to the
 Nebula network `mozart409` (172.16.20.0/24, UDP 4343, its own CA), then
-delete the tailnet. The repo side is done and not yet deployed (see the status
-line); the rest is the plan. The
+delete the tailnet. The repo side is done and deployed; only immich and the tailnet
+deletion remain (see the status line). The
 `amartum` network (172.16.10.0/24, UDP 4242, separate CA) is business and
 never carries homelab traffic; wotan stays on both and its `amartum` uses
 do not change.
 
-**Status 2026-11-09: repo side done, nothing deployed, certs pending.** The
-"What exists" section below is a point-in-time observation from a Tailscale
-snapshot and Prometheus on 2026-11-06 and describes the state before this work.
+**Status 2026-11-10: repo side done and deployed; only immich and the tailnet
+deletion remain.** The "What exists" section below is a point-in-time observation
+from a Tailscale snapshot and Prometheus on 2026-11-06 and describes the state
+before this work.
 
-Done in the repo (commits `fdc48272`, `85e014f4`): Phase C (`modules/nebula.nix`),
-Phase D (`dns` is `.4`, live since 2026-11-07), Phase E repo side (the module is
-enabled on ca, database, forgejo, jellyfin, agents, mcp, otel, containers), Phase G
-(2026-11-06), and the repo side of Phase I (no Tailscale left in the config).
-Registry marker is now `colmena = true;` in `lib/hosts.nix`; deploys use
-`<host>.homelab.internal` (`dns` by raw IP) over the LAN; `DEPLOY_NET` is gone.
+DONE and deployed:
+
+- The repo side (commits `fdc48272`, `85e014f4`): Phase C (`modules/nebula.nix`),
+  Phase D (`dns` is `.4`, live since 2026-11-07), Phase E, Phase G (2026-11-06) and
+  Phase I (no Tailscale left in the config). Registry marker is `colmena = true;`
+  in `lib/hosts.nix`; deploys use `<host>.homelab.internal` (`dns` by raw IP) over
+  the LAN; `DEPLOY_NET` is gone.
+- Certs and keys for all 8 fleet hosts (commits `73bfdbdb`, `827ee079`;
+  `services/nebula/tenants.nix` in `~/code/nixos-ventara-ai` is committed too).
+  The fleet was deployed over LAN SSH, without reboots.
+- Prometheus shows `nebula@mozart409` active on all 9 hosts (`dns` plus the 8) and
+  `tailscale0` gone from every fleet host. The node_exporter textfile metrics
+  `tailscale_leftover_*` (`modules/tailscale-leftover-metrics.nix`, alert
+  `TailscaleLeftover` in `hosts/otel/alerting.nix`, commit `8d849c1b`) read 0 on all
+  9 hosts, so no reboot is needed to find leftover `ip rule` entries, table 52,
+  `ts-*` chains or `tailscale0` (this closes the old items (b) and (e)).
+- PBS URL: the `pbs` registry entry (192.168.2.112, `homelab.internal` only; commit
+  `bb777f6b`) and the MCP URL `https://pbs.homelab.internal:8007/`. Port 8007 is
+  kept on purpose: PBS serves its API there and nothing listens on 443.
+- PBS: off Tailscale (`tailscale logout`, `tailscaled` disabled), `resolv.conf`
+  points at the `dns` host 192.168.2.145 with 1.1.1.1 as fallback, its Caddy (it
+  had only a `.ts.net` vhost) is disabled so port 80 is free. The step-ca ACME
+  account is registered (directory
+  `https://ca.homelab.internal:8443/acme/acme/directory`, provisioner `acme`, no
+  EAB) and the cert for `pbs.homelab.internal` was issued with
+  `proxmox-backup-manager acme cert order --force` (the first order needs
+  `--force` because the old self-signed cert expires in centuries). It is valid to
+  2027-02-08 and renewed by PBS's daily timer. The `pbs_node_status` MCP call works
+  over verified TLS.
+- pve-gigabyte: off Tailscale, `resolv.conf` fixed the same way. Its Caddy now
+  serves only `pve-gigabyte.homelab.internal` on 443 with a step-ca cert it renews
+  itself (the `.ts.net` vhost was removed); no `pvenode` ACME account is used there.
+- Gotchas: unbound on `dns` needed `systemctl restart unbound` after the deploy
+  before the new `pbs` record answered. `curl -I` against PVE returns 501 because
+  pveproxy rejects HEAD; use a GET.
 
 **STILL OPEN:**
 
-- **(a) Certs and keys.** The user signs them with the CA key in
-  `~/code/nixos-ventara-ai`; the hosts do not join until
-  `modules/nebula/mozart409-<host>.crt` and `secrets/nebula-mozart409-<host>.age`
-  exist and are `git add`ed (the module only warns until then). Also add `.5`-`.12`
-  to `services/nebula/tenants.nix` there (hosts section, next to
-  `dns = "172.16.20.4"`). Steps: "Per host to finish" under Phase E.
-- **(b) Deploy order.** Tailscale is gone from the config, so the first deploy of
-  `85e014f4` to a host removes its tailnet path. Deploying before the certs exist
-  is fine, but only over LAN SSH, one host at a time, `dns` last but one, and
-  reboot once each (Phase I item 14 check afterwards).
-- **(c) PBS URL.** Done (`bb777f6b`): `pbs` is in the registry (192.168.2.112) and the
-  MCP uses `https://pbs.homelab.internal:8007/`. PBS still needs a step-ca
-  certificate for that name (the MCP verifies TLS), and `dns` deploys before `mcp`.
-- **(d) Nodes outside the repo, by hand:** pve-gigabyte, pbs, immich,
-  homelab-unifi, Home Assistant (the subnet router: off-site LAN access ends),
-  iPhone, MacBook; then delete the tailnet.
-- **(e) Phase I item 14** (`ip rule`, table 52, `ts-*` iptables after a reboot).
-- **(f) The iPhone's Tailscale key expires 2026-11-15** (Phase A item 1).
-- **(g) Leftover `.ts.net` mentions:** the docstring of
-  `hosts/otel/alertmanager-axon-bridge.py` and the comment at
-  `hosts/otel/blackbox.nix:33`.
+1. **immich** is still on the tailnet; the user moves it later.
+2. **homelab-unifi** stays LAN only, no overlay.
+3. **Home Assistant** no longer needs to be a tailnet node: off-site access goes
+   through the `containers` host (user decision).
+4. **Delete the tailnet last**, after immich. The iPhone is already off Tailscale
+   and the MacBook is sold, so there is nothing else to move (the 2026-11-15 key
+   expiry no longer matters).
+5. **Leftover `.ts.net` mentions:** the docstring of
+   `hosts/otel/alertmanager-axon-bridge.py` and the comment at
+   `hosts/otel/blackbox.nix:33`.
+6. **Dead `.ts.net` Caddy vhosts** in the `hosts/cache` and `hosts/zeroclaw`
+   configs. Both hosts are decommissioned and not in the fleet, so this is harmless.
 
 Postgres stays LAN only (decided 2026-11-09): `database` allows 22 and 443 on the
 overlay, never 5432.
@@ -112,8 +133,8 @@ which sits under the 03:00 backups.
    Details in
    [`pve-gigabyte-off-tailscale.md`](./pve-gigabyte-off-tailscale.md) and
    [`dns-tailscale-spof.md`](./dns-tailscale-spof.md); not repeated here.
-3. Done: the MCP PBS URL is `https://pbs.homelab.internal:8007/`; install a
-   step-ca cert for that name on PBS (ACME) before deploying `mcp`.
+3. Done: the MCP PBS URL is `https://pbs.homelab.internal:8007/`, and PBS has a
+   step-ca cert for that name (ACME, 2026-11-10).
 
 ## Phase C: shared Nebula module
 
@@ -347,7 +368,7 @@ Per host: deploy over LAN, reboot once, then the next host.
     pbs, immich, homelab-unifi, Home Assistant (the active
     subnet router, so off-site LAN access ends here), the iPhone and the
     MacBook.
-    OPEN: by hand, see the status line (d).
+    Done 2026-11-10 except immich (still on the tailnet) and the tailnet deletion, see the status line.
 13. Retire `tailscale-auth-key.age` and its rule in
     `secrets/agenix-rules.nix`. Delete the tailnet last.
     Config part done 2026-11-09 (`secrets/tailscale-auth-key.age` and its rule are deleted). OPEN: delete the tailnet last.
