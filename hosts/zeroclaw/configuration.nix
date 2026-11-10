@@ -54,16 +54,6 @@
   services.caddy = {
     enable = true;
 
-    virtualHosts."homelab-zeroclaw.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        reverse_proxy localhost:42617
-      '';
-    };
-
     virtualHosts."zeroclaw.homelab.internal zeroclaw.homelab.local" = {
       extraConfig = ''
         tls {

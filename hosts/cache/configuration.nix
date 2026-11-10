@@ -68,20 +68,9 @@ in {
   };
   networking.defaultGateway = "192.168.2.1";
 
-  # Caddy reverse proxy with Tailscale TLS
+  # Caddy reverse proxy
   services.caddy = {
     enable = true;
-
-    # Tailscale hostname
-    virtualHosts."homelab-cache.dropbear-butterfly.ts.net" = {
-      extraConfig = ''
-        tls {
-          get_certificate tailscale
-        }
-
-        ${cacheRouting}
-      '';
-    };
 
     # Local network hostname with step-ca certificate
     virtualHosts."cache.homelab.internal cache.homelab.local" = {

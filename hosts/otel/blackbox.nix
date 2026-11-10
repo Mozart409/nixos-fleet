@@ -30,10 +30,10 @@
   # probe_ssl_earliest_cert_expiry for free, which alerting.nix's
   # CertificateExpiringSoon now consumes -- but only for the exact SNI probed,
   # and Caddy manages a separate certificate per subject name. Counting every
-  # vhost across hosts/ and modules/ (excluding .ts.net, which uses Tailscale
-  # certs, and the http:// redirect vhosts): 72 step-ca subjects exist, 21 are
-  # probed, 51 are not. Every service is probed on exactly ONE of its two
-  # names, never both.
+  # vhost across hosts/ and modules/ (excluding the then-existing .ts.net
+  # Tailscale-cert vhosts, since removed, and the http:// redirect vhosts): 72
+  # step-ca subjects existed, 21 were probed, 51 were not. Every service is
+  # probed on exactly ONE of its two names, never both.
   #
   # That is not a cosmetic gap. hofvarpnir.homelab.internal is probed and was
   # green throughout 2026-09-04..07 while hofvarpnir.homelab.local -- same

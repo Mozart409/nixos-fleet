@@ -6,11 +6,10 @@ speaks MCP JSON-RPC (`tools/call`). Neither end is configurable enough to meet
 the other, so this sits between them.
 
 Why the gateway rather than posting to Home Assistant directly, which would need
-no bridge at all: Home Assistant has no *.homelab.internal record. Its only names
-are a MagicDNS ts.net name -- which does not resolve between homelab VMs, see
-AGENTS.md -- and a bare .local name, which is mDNS-reserved and which unbound
-therefore never gets asked about. axon.homelab.internal resolves, carries a step-ca
-cert this host already trusts, and is the exact path
+no bridge at all: Home Assistant has no *.homelab.internal record. Its only
+name is a bare .local one, which is mDNS-reserved and which unbound therefore
+never gets asked about. The gateway is reached via axon.homelab.internal, which
+resolves, carries a step-ca cert this host already trusts, and is the exact path
 modules/claude-settings-verify.nix already uses in production.
 
 Delivery is synchronous and the HTTP status back to Alertmanager reflects it: a
