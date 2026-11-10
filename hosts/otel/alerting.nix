@@ -128,6 +128,20 @@
               description = "node_exporter on {{ $labels.instance }} is rejecting a file in its textfile collector directory, so every metric in that file is silently missing. Run `promtool check metrics < /var/lib/node_exporter/textfile/*.prom` on the host.";
             };
           }
+          {
+            # Tailscale was removed from the config, but a host deployed
+            # without a reboot keeps tailscaled's runtime leftovers (ip rules,
+            # table 52, ts-* chains, tailscale0). modules/tailscale-leftover-metrics.nix
+            # counts them; a reboot clears them.
+            alert = "TailscaleLeftover";
+            expr = "tailscale_leftover_ip_rules + tailscale_leftover_routes_table52 + tailscale_leftover_firewall_chains + tailscale_leftover_interface > 0";
+            for = "10m";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.instance }} still has Tailscale networking leftovers and needs a reboot";
+              description = "{{ $labels.instance }} still carries Tailscale ip rules, routing table 52, ts-* firewall chains or a tailscale0 interface from before Tailscale was removed. Reboot it to clear them.";
+            };
+          }
         ];
       }
       {

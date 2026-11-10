@@ -25,6 +25,7 @@
     # unrelated module the way it hung off comin.nix (and briefly attic-push).
     ./fluent-bit.nix
     ./nixos-version-metrics.nix
+    ./tailscale-leftover-metrics.nix
     ./dns-client-cache.nix
   ];
 
