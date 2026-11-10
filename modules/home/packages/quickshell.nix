@@ -187,6 +187,122 @@
     esac
   '';
 
+  # Backs NebulaWidget.qml: a read-only status line per Nebula network on this
+  # desktop (wotan: amartum and mozart409). Nothing here changes state and it
+  # needs no privilege: `systemctl show`, `ip addr` and an unprivileged ping.
+  #
+  #   quickshell-nebula status -> {"networks":[{name,label,unit,device,active,ip,state,
+  #                                 lighthouses:[{name,ip,up,rtt}],hosts:[{name,ip,up,rtt}]}]}
+  #                               | {"error":".."}
+  #
+  # active is the unit's ActiveState; ip is the first IPv4 on the tun device
+  # (empty when the device is gone). state is "down" when the unit is not
+  # active or has no address (nothing is pinged then, everything reports
+  # up=false), "degraded" when any lighthouse or host does not answer, else
+  # "ok". rtt is in ms, null when there is no answer.
+  #
+  # Every probe of every network runs in parallel: the widget polls this, and
+  # 12 hosts x a 2 s timeout in sequence would take half a minute when the
+  # overlay is down. In parallel the worst case is one timeout.
+  nebulaNetworks = builtins.toJSON cfg.nebula.networks;
+  # A pinged overlay address: lighthouses and hosts share the shape.
+  nebulaTarget = lib.types.submodule {
+    options = {
+      name = lib.mkOption {
+        type = lib.types.str;
+        description = "Display name.";
+      };
+      ip = lib.mkOption {
+        type = lib.types.str;
+        description = "Overlay address that is pinged.";
+      };
+    };
+  };
+  quickshell-nebula = pkgs.writeShellScriptBin "quickshell-nebula" ''
+    set -euo pipefail
+    export PATH=${lib.makeBinPath [pkgs.systemd pkgs.jq pkgs.coreutils pkgs.iproute2 pkgs.iputils]}
+
+    nets=${lib.escapeShellArg nebulaNetworks}
+
+    fail() {
+      jq -cn --arg e "$1" '{error: $e}'
+      exit 1
+    }
+
+    case "''${1:-}" in
+      status)
+        tmp=$(mktemp -d)
+        trap 'rm -rf "$tmp"' EXIT
+        trap 'fail "unexpected failure at line $LINENO"' ERR
+
+        mapfile -t units < <(jq -r '.[].unit' <<<"$nets")
+        (( ''${#units[@]} > 0 )) || fail "no networks configured"
+
+        # One call for every unit, matched back by Id (see quickshell-units).
+        out=$(systemctl show --property=Id,ActiveState -- "''${units[@]}") \
+          || fail "systemctl show failed"
+        states=$(jq -Rsc '
+          [split("\n\n")[]
+            | [splits("\n") | select(. != "") | capture("^(?<key>[^=]+)=(?<value>.*)$")]
+            | from_entries | select(.Id)]
+          | map({key: .Id, value: .ActiveState}) | from_entries' <<<"$out")
+
+        # First pass: unit state and address per network, and start every
+        # probe of the networks that are up. A probe that answers leaves a file
+        # named after the target ip in the network's directory, holding the rtt.
+        active=()
+        addr=()
+        for i in "''${!units[@]}"; do
+          net=$(jq -c --argjson i "$i" '.[$i]' <<<"$nets")
+          active[i]=$(jq -r --arg u "''${units[i]}" '.[$u] // "unknown"' <<<"$states")
+          line=$(ip -4 -o addr show dev "$(jq -r '.device' <<<"$net")" 2>/dev/null | head -n1 || true)
+          # "<idx>: <dev> inet <addr>/<len> ..."
+          a=
+          read -r _ _ _ a _ <<<"$line" || true
+          addr[i]=''${a%%/*}
+          mkdir "$tmp/$i"
+          [[ ''${active[i]} == active && -n ''${addr[i]} ]] || continue
+          mapfile -t targets < <(jq -r '(.lighthouses + .hosts)[].ip' <<<"$net")
+          for t in "''${targets[@]}"; do
+            (
+              if res=$(ping -n -c1 -W2 "$t" 2>/dev/null); then
+                rtt=
+                if [[ $res =~ time=([0-9.]+) ]]; then rtt=''${BASH_REMATCH[1]}; fi
+                printf '%s' "$rtt" >"$tmp/$i/$t"
+              fi
+            ) &
+          done
+        done
+        wait
+
+        # Second pass: one JSON object per network, in configured order.
+        for i in "''${!units[@]}"; do
+          probes=$(
+            for f in "$tmp/$i"/*; do
+              [[ -e $f ]] || continue
+              printf '%s\t%s\n' "''${f##*/}" "$(<"$f")"
+            done | jq -Rnc '
+              [inputs | split("\t") | {key: .[0], value: (try (.[1] | tonumber) catch null)}]
+              | from_entries'
+          )
+          jq -c --argjson i "$i" --arg active "''${active[i]}" --arg ip "''${addr[i]}" \
+            --argjson p "$probes" '
+            def mark: map(. as $t | $t + {up: ($p | has($t.ip)), rtt: $p[$t.ip]});
+            .[$i] | {name, label, unit, device, active: $active, ip: $ip,
+                     lighthouses: (.lighthouses | mark), hosts: (.hosts | mark)}
+            | . + {state:
+                if $active != "active" or $ip == "" then "down"
+                elif any(.lighthouses[], .hosts[]; .up | not) then "degraded"
+                else "ok" end}' <<<"$nets"
+        done | jq -sc '{networks: .}'
+        ;;
+      *)
+        echo "usage: quickshell-nebula status" >&2
+        exit 2
+        ;;
+    esac
+  '';
+
   # Runtime dependencies for shell scripts and widgets. The resource widgets
   # shell out on a timer, so everything they call has to be on the service's
   # PATH -- a missing binary shows up as a permanently blank readout, not an
@@ -270,6 +386,9 @@
       // desktop.quickshell.serviceToggles -- same gate for quickshell-units.
       readonly property bool serviceToggles: ${lib.boolToString cfg.serviceToggles.enable}
       readonly property string serviceTogglesTitle: ${builtins.toJSON cfg.serviceToggles.title}
+
+      // desktop.quickshell.nebula -- same gate for quickshell-nebula.
+      readonly property bool nebula: ${lib.boolToString cfg.nebula.enable}
     }
   '';
 
@@ -428,6 +547,55 @@ in {
       };
     };
 
+    nebula = {
+      enable = lib.mkEnableOption ''
+        the read-only Nebula status widget (one line per overlay network:
+        unit state, address, lighthouse and host reachability)
+      '';
+
+      networks = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              example = "mozart409";
+              description = "Network name.";
+            };
+            label = lib.mkOption {
+              type = lib.types.str;
+              example = "mz409";
+              description = "Short display name.";
+            };
+            unit = lib.mkOption {
+              type = lib.types.strMatching "[A-Za-z0-9@_.:-]+\\.service";
+              example = "nebula@mozart409.service";
+              description = "Full system unit name, `.service` suffix included.";
+            };
+            device = lib.mkOption {
+              type = lib.types.str;
+              example = "nebula-mz409";
+              description = "Tun interface; its first IPv4 address is shown.";
+            };
+            lighthouses = lib.mkOption {
+              type = lib.types.listOf nebulaTarget;
+              default = [];
+              description = "Lighthouses of this network, pinged.";
+            };
+            hosts = lib.mkOption {
+              type = lib.types.listOf nebulaTarget;
+              default = [];
+              description = "Hosts of this network, pinged for the reachability grid.";
+            };
+          };
+        });
+        default = [];
+        description = ''
+          Networks shown, in order. Their hosts are pinged for the
+          reachability grid.
+        '';
+      };
+    };
+
     sourcePath = lib.mkOption {
       type = lib.types.str;
       default = "/home/amadeus/code/yggdrasil/infra/modules/home/packages/quickshell";
@@ -450,6 +618,9 @@ in {
       ]
       ++ lib.optionals cfg.serviceToggles.enable [
         quickshell-units # Backs the systemd service toggle panel
+      ]
+      ++ lib.optionals cfg.nebula.enable [
+        quickshell-nebula # Backs the Nebula bar widget
       ]
       ++ [
         pkgs.pwvucontrol # Modern PipeWire volume control GUI (bar: right-click volume)

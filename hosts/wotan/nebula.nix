@@ -6,20 +6,32 @@
 {
   config,
   lib,
+  username,
   ...
 }: let
   tenants = {
     amartum = {
       port = 4242;
       overlay = "172.16.10";
+      label = "am"; # short name in the bar widget
       device = "nebula-amartum"; # <= 15 chars (IFNAMSIZ)
     };
     mozart409 = {
       port = 4343;
       overlay = "172.16.20";
+      label = "mz409";
       device = "nebula-mz409"; # upstream default "nebula.mozart409" is 16 chars and fails eval
     };
   };
+
+  # Hosts of the mozart409 overlay for the bar widget's reachability grid:
+  # every registry host that has joined (has an `overlay` address).
+  mozartHosts =
+    lib.mapAttrsToList (name: h: {
+      inherit name;
+      ip = h.overlay;
+    }) (lib.filterAttrs (_: h: h ? overlay)
+      (import ../../lib/hosts.nix).hosts);
 
   mkSecret = t: {
     file = ../../secrets/nebula-${t}-wotan.age;
@@ -97,6 +109,29 @@
 in {
   age.secrets = lib.mapAttrs' (t: _: lib.nameValuePair "nebula-${t}-wotan" (mkSecret t)) tenants;
   services.nebula.networks = lib.mapAttrs mkNetwork tenants;
+
+  # Nebula status widget in the Quickshell bar (quickshell-nebula). Networks
+  # in bar order. amartum lists no hosts: they live in another, private repo
+  # and infra/ is public. mozart409's come from the host registry, sorted by
+  # name (attrset order).
+  home-manager.users.${username}.desktop.quickshell.nebula = {
+    enable = true;
+    networks = map (name: let
+      t = tenants.${name};
+    in {
+      inherit name;
+      inherit (t) label device;
+      unit = "nebula@${name}.service";
+      lighthouses = lib.imap1 (i: l: {
+        name = "lighthouse-${l}";
+        ip = "${t.overlay}.${toString i}";
+      }) ["a" "b" "c"];
+      hosts =
+        if name == "mozart409"
+        then mozartHosts
+        else [];
+    }) ["amartum" "mozart409"];
+  };
 
   # Split DNS for ~int.oyabu.cc needs resolved. mDNS stays with avahi (the
   # CUPS printer's .local URI), so resolved must not bind 5353 too. LLMNR is

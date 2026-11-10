@@ -127,6 +127,14 @@ Scope {
         // shell.qml, or every tray click fails silently.
         // SystemTrayWidget {}
 
+        // Nebula status, primary bar only so the poll and notifications run once.
+        Loader {
+          active: panel.isPrimary && Features.nebula
+          visible: active
+
+          sourceComponent: NebulaWidget {}
+        }
+
         // Bluetooth and audio share a pill so the bar doesn't read as a row of
         // disconnected numbers. Nothing in the bar reports network state.
         ModuleGroup {
