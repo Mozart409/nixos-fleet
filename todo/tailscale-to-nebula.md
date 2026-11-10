@@ -31,10 +31,9 @@ Registry marker is now `colmena = true;` in `lib/hosts.nix`; deploys use
   `85e014f4` to a host removes its tailnet path. Deploying before the certs exist
   is fine, but only over LAN SSH, one host at a time, `dns` last but one, and
   reboot once each (Phase I item 14 check afterwards).
-- **(c) PBS URL.** `hosts/mcp_vm/configuration.nix` still points at
-  `pbs.dropbear-butterfly.ts.net` (TODO comment there). PBS has no registry entry
-  or step-ca name: the user must give an address before `mcp` is deployed, or the
-  pbs MCP breaks.
+- **(c) PBS URL.** Done (`bb777f6b`): `pbs` is in the registry (192.168.2.112) and the
+  MCP uses `https://pbs.homelab.internal:8007/`. PBS still needs a step-ca
+  certificate for that name (the MCP verifies TLS), and `dns` deploys before `mcp`.
 - **(d) Nodes outside the repo, by hand:** pve-gigabyte, pbs, immich,
   homelab-unifi, Home Assistant (the subnet router: off-site LAN access ends),
   iPhone, MacBook; then delete the tailnet.
@@ -113,9 +112,8 @@ which sits under the 03:00 backups.
    Details in
    [`pve-gigabyte-off-tailscale.md`](./pve-gigabyte-off-tailscale.md) and
    [`dns-tailscale-spof.md`](./dns-tailscale-spof.md); not repeated here.
-3. Move the MCP PBS URL off `.ts.net`: `hosts/mcp_vm/configuration.nix`,
-   `host = "https://pbs.dropbear-butterfly.ts.net/"`, to the PBS
-   `.homelab.internal` name (it needs a step-ca cert there; check first).
+3. Done: the MCP PBS URL is `https://pbs.homelab.internal:8007/`; install a
+   step-ca cert for that name on PBS (ACME) before deploying `mcp`.
 
 ## Phase C: shared Nebula module
 
