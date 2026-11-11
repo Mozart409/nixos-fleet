@@ -101,6 +101,12 @@ let
       zones = ["local"];
       ptr = ["local"];
     };
+    # Hand-managed LXC (CT 104), not NixOS; LAN only, never on the overlay.
+    immich = {
+      ip = "192.168.2.104";
+      zones = ["homelab.internal"];
+      ptr = [];
+    };
     jellyfin = {
       ip = "192.168.2.180";
       overlay = "172.16.20.8";
