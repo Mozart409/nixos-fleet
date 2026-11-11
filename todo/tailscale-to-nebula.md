@@ -2,14 +2,13 @@
 
 Move the homelab hosts and the user's own clients from Tailscale to the
 Nebula network `mozart409` (172.16.20.0/24, UDP 4343, its own CA), then
-delete the tailnet. The repo side is done and deployed; only immich and the tailnet
-deletion remain (see the status line). The
+delete the tailnet. The repo side is done and deployed and every node is off
+Tailscale; only deleting the tailnet remains (see the status line). The
 `amartum` network (172.16.10.0/24, UDP 4242, separate CA) is business and
 never carries homelab traffic; wotan stays on both and its `amartum` uses
 do not change.
 
-**Status 2026-11-10: repo side done and deployed; only immich and the tailnet
-deletion remain.** The "What exists" section below is a point-in-time observation
+**Status 2026-11-11: done and deployed; only deleting the tailnet remains.** The "What exists" section below is a point-in-time observation
 from a Tailscale snapshot and Prometheus on 2026-11-06 and describes the state
 before this work.
 
@@ -51,18 +50,22 @@ DONE and deployed:
 
 **STILL OPEN:**
 
-1. **immich** is still on the tailnet; the user moves it later.
-2. **homelab-unifi** stays LAN only, no overlay.
-3. **Home Assistant** no longer needs to be a tailnet node: off-site access goes
-   through the `containers` host (user decision).
-4. **Delete the tailnet last**, after immich. The iPhone is already off Tailscale
-   and the MacBook is sold, so there is nothing else to move (the 2026-11-15 key
-   expiry no longer matters).
-5. **Leftover `.ts.net` mentions:** the docstring of
-   `hosts/otel/alertmanager-axon-bridge.py` and the comment at
-   `hosts/otel/blackbox.nix:33`.
-6. **Dead `.ts.net` Caddy vhosts** in the `hosts/cache` and `hosts/zeroclaw`
-   configs. Both hosts are decommissioned and not in the fleet, so this is harmless.
+1. **Delete the tailnet.** Every node is off it now (immich included), so check
+   the admin console shows no members, then delete it.
+
+Decided, no work left:
+
+- **homelab-unifi** stays LAN only, no overlay.
+- **Home Assistant** no longer needs to be a tailnet node: off-site access goes
+  through the `containers` host.
+- **immich** (CT 104, hand-managed LXC) is LAN only by choice: no Nebula client.
+  It is in the registry (`192.168.2.104`, `homelab.internal` only, commit
+  `63a74119`) and is served at `https://immich.homelab.internal` by its own Caddy
+  with a step-ca cert. Gotcha: a second Caddy unit, `caddy-api.service`
+  (`caddy run --resume`), was also holding port 80 and made the HTTP-01 challenge
+  hang; it is disabled.
+- The `.ts.net` leftovers in `hosts/otel` and the dead vhosts in `hosts/cache`
+  and `hosts/zeroclaw` are removed (commit `9011f310`).
 
 Postgres stays LAN only (decided 2026-11-09): `database` allows 22 and 443 on the
 overlay, never 5432.
