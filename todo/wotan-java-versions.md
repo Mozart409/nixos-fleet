@@ -84,10 +84,6 @@ Two nixpkgs revisions are in play, and both bundle a full set:
 - The same version can appear twice with different hashes (`25.0.5.0.3+1` as
   `59hn3l…` and `a50pz8…`): different nixpkgs, so different stdenv/deps. Not a
   second install source.
-- Do **not** be misled by the lock node named `nixpkgs` (`d482ef8`, 2026-08-10):
-  root's `nixpkgs` input points at `nixpkgs_7`; `d482ef8` is only
-  **autolith**'s pinned nixpkgs (it deliberately does not follow ours) and
-  would give `prismlauncher-11.0.3`, which no host builds.
 
 Side effect for the pending switch: the new rev moves the launcher's and the
 server's Java 21 from `21.0.12.1+1` to `21.0.13.0.2+1` (same Java 21, patch

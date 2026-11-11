@@ -53,7 +53,7 @@ What keeps that safe is **who deploys**, not who edits:
 
 ## 🔒 Local Agents Run as `agent` (2026-10-27)
 
-Claude Code, opencode, pi and autolith on wotan run as the no-sudo `agent`
+Claude Code, opencode and pi on wotan run as the no-sudo `agent`
 account (`modules/wotan/agent-user.nix`, home-manager in
 `hosts/wotan/agent-home.nix`),
 not as `amadeus`. Every agent process runs in a mount namespace where `/home`
@@ -61,9 +61,9 @@ and `/run/user` are empty except `/home/amadeus/code` and `/home/agent`, bound
 back in at their real paths. So the agents can't see the rest of amadeus's
 home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
 
-- **Launch:** `claude`, `pi`, `autolith` and `opencode <subcommand>` are zsh
+- **Launch:** `claude`, `pi` and `opencode <subcommand>` are zsh
   functions that
-  run `sudo agent-run claude|opencode|pi|autolith …`. `agent-run` is the only
+  run `sudo agent-run claude|opencode|pi …`. `agent-run` is the only
   thing
   amadeus may sudo to without a password. It refuses to start outside `~/code`,
   passes the MCP gateway tokens (and pi's `OPENCODE_API_KEY`, from
@@ -100,14 +100,13 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   ignores that wildcard, so `agent`'s own git config trusts `*` for flakes.
 - **Commit signing:** each harness has its own ssh-agent holding the bot key
   `~amadeus/.ssh/id_ed25519_signing` (bot-signing@wotan):
-  `opencode-signing-agent`, `claude-signing-agent` and
-  `autolith-signing-agent`
+  `opencode-signing-agent` and `claude-signing-agent`
   (`services.opencode-serve.signing.agents`). They run as `agent`, because
   ssh-agent refuses clients with another uid. systemd hands them the key as a
   credential, and that credential dir is hidden in every agent session, so
   the agents can sign but cannot read the key. Claude gets its socket and
   `GIT_CONFIG_*` from `modules/home/packages/claude.nix`, opencode from its
-  unit, autolith from `agent-run` (autolith sessions only).
+  unit.
 - **Gone for the agents:** clipboard and image paste, opening a browser,
   `sops exec-env`/gpg, podman, and pushing over SSH (they never pushed from
   wotan anyway).
@@ -116,54 +115,6 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
 - **First switch:** after `just switch-wotan`, run `just agent-acl` once, then
   `just agent-migrate` (copies the Claude/opencode logins, history, memory and
   direnv allows into `/home/agent` and restarts opencode-serve).
-
-### autolith (the fourth harness)
-
-`autolith` is a Common Lisp agent in a live image
-(github:lambda-symbolics/autolith). It is a root-flake input of that name, not
-nixpkgs and not numtide's `llm-agents.nix` (formerly `nix-ai-tools`), which
-re-vendors upstream's package.nix and sits at 0.41.2 while upstream is at 0.67
-(`infra/todo/llm-agents-nix.md`). The input does **not** follow our nixpkgs:
-upstream pins its own, because its SBCL and generated Quicklisp set are built
-against it. Its package is in the agent's `home.packages` only
-(`hosts/wotan/agent-home.nix`), so amadeus's profile never sees it —
-`nix run github:lambda-symbolics/autolith` on the command line is what starts it
-outside `agent-run`.
-
-- **Launch:** `autolith` (zsh function, `sudo agent-run autolith`), or `ta` for
-the tmux session with a shell and lazygit beside it. It gets the gateway tokens
-like the others, plus `AUTOLITH_MCP_AXON`/`AUTOLITH_MCP_VENTARA` — its MCP
-config takes a header's value from one variable, and the value must already be
-`Bearer <token>` (opencode's `{env:}` and pi's `${VAR}` add the prefix in their
-own config files).
-- **Config:** `modules/home/packages/autolith.nix` manages
-  `~/.config/autolith/mcp.sexp` (the two axon gateways, `:approval :prompt`,
-  `:required-p nil` so a gateway outage does not fail startup). Everything else
-  in that directory belongs to the agent and is mutable: `preferences.sexp`
-  (durable settings, rewritten from sessions), the credentials
-  `autolith auth <provider>` saves, and `directory-scopes.sexp`. Because there
-  is no `directory-scopes.sexp`, a repo's own `.autolith/mcp.sexp` and
-  `.autolith/init.lisp` are **not** trusted; add exact anchors there if that
-  ever changes. State lives under `~/.local/{share,state}/autolith`.
-- **Auth:** autolith's `opencode-zen` provider reads `OPENCODE_ZEN_API_KEY`, its
-  own key in `secrets/autolith-env.age`, which `agent-run` loads for autolith
-  sessions only (`wotan.agentUser.autolithEnvFile`). Its `opencode` provider is
-  OpenCode Go and reads `OPENCODE_API_KEY` (pi's credential, exported to every
-  session). Other providers save their own credential into autolith's private
-  store as `agent`.
-- **Signing:** `autolith-signing-agent.service` (its own socket and
-  `GIT_CONFIG_*`, set by `agent-run` for autolith sessions only).
-- **Permissions:** autolith has no allow/deny list like Claude's, so
-  `agent-permissions.nix` does not apply to it. It prompts per command in its
-  default `ask` mode, classifies in `auto`, and runs sandboxed commands through
-  its own bubblewrap; `--permissions ask|auto|sandbox|full` overrides per
-  session. The systemd unit stays the OS-level boundary either way (no sudo,
-  no agenix, no amadeus home beyond `~/code`).
-- **First launch builds images:** the Nix package is ~150 derivations from
-  source (SBCL, the Quicklisp set, the native shims), and the first start then
-  builds its Lisp runtime under `~/.local/share/autolith/nix/images`. `(update)`
-  and `autolith update` refuse for Nix installations; bump the input instead
-  (`just update`, which moves every input, or `nix flake update autolith`).
 
 ## ⚡ Build/Test/Lint Commands
 

@@ -13,9 +13,6 @@
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
   # pi's API key (secrets/pi-env.age), gated the same way.
   piEnv = builtins.pathExists ../../secrets/pi-env.age;
-  # autolith's own OpenCode Zen key (secrets/autolith-env.age), gated the same
-  # way.
-  autolithEnv = builtins.pathExists ../../secrets/autolith-env.age;
 
   # The units the quickshell panel can switch on and off: the on-demand AI
   # services and the Minecraft server. One list for both halves: home-manager
@@ -299,15 +296,14 @@ in {
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
     readWritePaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
     # The bot signing key (not a login key anywhere), so the agents can sign
-    # commits but can't authenticate/push. One ssh-agent per harness: opencode,
-    # Claude Code (modules/home/packages/claude.nix) and autolith (agent-run
-    # sets its socket and GIT_CONFIG_* for autolith sessions). The key stays in
+    # commits but can't authenticate/push. One ssh-agent per harness: opencode
+    # and Claude Code (modules/home/packages/claude.nix). The key stays in
     # amadeus's ~/.ssh; systemd hands it to them as a credential that every
     # agent session has hidden.
     signing = {
       keyFile = "/home/${username}/.ssh/id_ed25519_signing";
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII0yU9qnU/StErCjgpV/M5h68Por1yRC21uqdO0eF6M9 bot-signing@wotan";
-      agents = ["opencode" "claude" "autolith"];
+      agents = ["opencode" "claude"];
     };
     # systemd (PID 1) reads the secrets above before entering the sandbox, so
     # /run/agenix can be hidden from every tool. amadeus's home is already
@@ -319,10 +315,10 @@ in {
     ];
   };
 
-  # Claude Code, opencode, pi and autolith run as `agent`
+  # Claude Code, opencode and pi run as `agent`
   # (modules/wotan/agent-user.nix): no sudo, and every agent process sees only
   # ~/code of amadeus's home. amadeus starts them with `sudo agent-run
-  # claude|opencode|pi|autolith` (the zsh functions do that); the gateway
+  # claude|opencode|pi` (the zsh functions do that); the gateway
   # tokens reach them as credentials.
   home-manager.users.${config.wotan.agentUser.user} = import ./agent-home.nix;
   wotan.agentUser = {
@@ -330,8 +326,6 @@ in {
     owner = username;
     # The opencode TUI runs as the agent too and logs in with this.
     serverPasswordFile = config.age.secrets.opencode-server-password.path;
-    # autolith's OPENCODE_ZEN_API_KEY, only in autolith sessions.
-    autolithEnvFile = lib.mkIf autolithEnv config.age.secrets.autolith-env.path;
     credentials =
       {
         axon-gateway = config.age.secrets.axon-gateway-env.path;
@@ -673,15 +667,6 @@ in {
   # (`agenix -e pi-env.age`).
   age.secrets.pi-env = lib.mkIf piEnv {
     file = ../../secrets/pi-env.age;
-    mode = "400";
-    owner = username;
-  };
-
-  # autolith's own key, one line: OPENCODE_ZEN_API_KEY=... Owner-only: read (as
-  # root) by agent-run's LoadCredential for autolith sessions only. Gated until
-  # the .age file exists (`agenix -e autolith-env.age`).
-  age.secrets.autolith-env = lib.mkIf autolithEnv {
-    file = ../../secrets/autolith-env.age;
     mode = "400";
     owner = username;
   };

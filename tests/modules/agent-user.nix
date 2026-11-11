@@ -7,15 +7,6 @@
   # Stand-ins for the harnesses. `claude` runs its arguments, so the test can
   # probe the sandbox from inside an agent-run session.
   fakeClaude = pkgs.writeShellScriptBin "claude" ''exec "$@"'';
-  # autolith prints what agent-run gives it; claude (which runs its arguments)
-  # must not see the autolith signing environment.
-  fakeAutolith = pkgs.writeShellScriptBin "autolith" ''
-    echo "user=$(id -un)"
-    echo "sign=''${SSH_AUTH_SOCK:-none}"
-    echo "signkey=''${GIT_CONFIG_VALUE_0:-none}"
-    echo "sign-on=''${GIT_CONFIG_VALUE_2:-none}"
-    echo "mcp-axon=''${AUTOLITH_MCP_AXON:-unset}"
-  '';
   # Run through opencode's $SHELL (the bubblewrap wrapper): one labelled
   # `name=value` line per check, so a failing command does not stop the rest.
   # $1 tags the files it writes.
@@ -67,7 +58,7 @@ in
       ];
 
       users.users.amadeus.isNormalUser = true;
-      environment.systemPackages = [fakeAutolith fakeClaude fakeOpencode pkgs.util-linux];
+      environment.systemPackages = [fakeClaude fakeOpencode pkgs.util-linux];
       environment.etc."agent-test-cred" = {
         text = "TEST_TOKEN=s3cret\nAXON_GATEWAY_TOKEN=s3cret-tok\n";
         mode = "0400";
@@ -79,8 +70,8 @@ in
 
       # The bot signing key exists before the signing agents start, as on wotan.
       systemd.services.test-signing-key = {
-        requiredBy = ["opencode-signing-agent.service" "claude-signing-agent.service" "autolith-signing-agent.service"];
-        before = ["opencode-signing-agent.service" "claude-signing-agent.service" "autolith-signing-agent.service"];
+        requiredBy = ["opencode-signing-agent.service" "claude-signing-agent.service"];
+        before = ["opencode-signing-agent.service" "claude-signing-agent.service"];
         serviceConfig.Type = "oneshot";
         script = ''
           install -d -o amadeus -g users -m 0700 /home/amadeus/.ssh
@@ -107,7 +98,7 @@ in
         signing = {
           keyFile = "/home/amadeus/.ssh/id_ed25519_signing";
           publicKey = "ssh-ed25519 unused";
-          agents = ["opencode" "claude" "autolith"];
+          agents = ["opencode" "claude"];
         };
       };
     };
@@ -171,7 +162,7 @@ in
 
       with subtest("signing agents: one per harness, usable, key unreadable"):
           pub = machine.succeed("cut -d' ' -f2 /home/amadeus/.ssh/id_ed25519_signing.pub").strip()
-          for name in ["opencode", "claude", "autolith"]:
+          for name in ["opencode", "claude"]:
               machine.wait_for_unit(f"{name}-signing-agent.service")
               sock = f"/run/{name}-signing/agent.sock"
               machine.wait_until_succeeds(
@@ -234,19 +225,6 @@ in
           machine.succeed("grep -qx probe-secret /home/agent/.local/share/opencode/auth.json")
           # Claude and pi sessions keep their own shell.
           assert "opencode-shell" not in agent("sh -c 'echo shell=$SHELL'")
-
-      with subtest("autolith gets its own signing agent and gateway header"):
-          out = parse(run("autolith"))
-          assert out.get("user") == "agent", out
-          assert out.get("sign") == "/run/autolith-signing/agent.sock", out
-          assert out.get("sign-on") == "true", out
-          assert out.get("signkey", "").startswith("key::ssh-ed25519"), out
-          # The MCP header variable carries the whole value, not just the token.
-          assert out.get("mcp-axon") == "Bearer s3cret-tok", out
-          sock = "/run/autolith-signing/agent.sock"
-          assert pub in agent(f"env SSH_AUTH_SOCK={sock} ssh-add -L")
-          # claude keeps its own session: no autolith signing environment.
-          assert agent("sh -c 'echo ''${GIT_CONFIG_COUNT:-none}'") == "none"
 
       with subtest("private networks are closed, loopback is open"):
           machine.succeed("systemd-run --unit=tcp-probe ${pkgs.socat}/bin/socat TCP-LISTEN:7777,fork,reuseaddr SYSTEM:true")
