@@ -22,9 +22,12 @@
   # by absolute path: ~/.nix-profile/bin/node.
   # python3 is for the scripts the agents write and run; ripgrep and jq are
   # the everyday Bash tools no dev shell here provides (the harnesses' own
-  # Grep tools bundle their ripgrep, but `rg` on PATH was missing).
+  # Grep tools bundle their ripgrep, but `rg` on PATH was missing). just runs
+  # the repo's justfile recipes, which the dev shell otherwise hides from the
+  # agent's PATH.
   home.packages = with pkgs; [
     jq
+    just
     nodejs
     python3
     ripgrep
