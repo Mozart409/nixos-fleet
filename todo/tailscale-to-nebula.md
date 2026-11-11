@@ -8,7 +8,8 @@ Tailscale; only deleting the tailnet remains (see the status line). The
 never carries homelab traffic; wotan stays on both and its `amartum` uses
 do not change.
 
-**Status 2026-11-11: done and deployed; only deleting the tailnet remains.** The "What exists" section below is a point-in-time observation
+**Status 2026-11-11: complete. Every node is off Tailscale and the tailnet is
+deleted.** The "What exists" section below is a point-in-time observation
 from a Tailscale snapshot and Prometheus on 2026-11-06 and describes the state
 before this work.
 
@@ -50,8 +51,9 @@ DONE and deployed:
 
 **STILL OPEN:**
 
-1. **Delete the tailnet.** Every node is off it now (immich included), so check
-   the admin console shows no members, then delete it.
+1. Nothing. The tailnet was deleted on 2026-11-11. Optional later cleanup: remove
+   `modules/tailscale-leftover-metrics.nix` and the `TailscaleLeftover` alert once
+   every host has rebooted at least once, since a reboot clears what they count.
 
 Decided, no work left:
 
