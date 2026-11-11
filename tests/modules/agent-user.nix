@@ -223,7 +223,7 @@ in
           # The masks are per command: the real files are untouched.
           machine.succeed("grep -qx probe-secret /home/agent/.ssh/id_probe")
           machine.succeed("grep -qx probe-secret /home/agent/.local/share/opencode/auth.json")
-          # Claude and pi sessions keep their own shell.
+          # Claude sessions keep their own shell.
           assert "opencode-shell" not in agent("sh -c 'echo shell=$SHELL'")
 
       with subtest("private networks are closed, loopback is open"):

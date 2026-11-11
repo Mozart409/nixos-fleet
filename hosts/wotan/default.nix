@@ -11,8 +11,6 @@
   # A flake only sees git-tracked files: `git add` the .age file or this stays
   # false and llama-server runs without a key (a warning says so).
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
-  # pi's API key (secrets/pi-env.age), gated the same way.
-  piEnv = builtins.pathExists ../../secrets/pi-env.age;
 
   # The units the quickshell panel can switch on and off: the on-demand AI
   # services and the Minecraft server. One list for both halves: home-manager
@@ -315,10 +313,10 @@ in {
     ];
   };
 
-  # Claude Code, opencode and pi run as `agent`
+  # Claude Code and opencode run as `agent`
   # (modules/wotan/agent-user.nix): no sudo, and every agent process sees only
   # ~/code of amadeus's home. amadeus starts them with `sudo agent-run
-  # claude|opencode|pi` (the zsh functions do that); the gateway
+  # claude|opencode` (the zsh functions do that); the gateway
   # tokens reach them as credentials.
   home-manager.users.${config.wotan.agentUser.user} = import ./agent-home.nix;
   wotan.agentUser = {
@@ -326,15 +324,10 @@ in {
     owner = username;
     # The opencode TUI runs as the agent too and logs in with this.
     serverPasswordFile = config.age.secrets.opencode-server-password.path;
-    credentials =
-      {
-        axon-gateway = config.age.secrets.axon-gateway-env.path;
-        ventara-gateway = config.age.secrets.ventara-gateway-env.path;
-      }
-      # OPENCODE_API_KEY for pi.
-      // lib.optionalAttrs piEnv {
-        pi = config.age.secrets.pi-env.path;
-      };
+    credentials = {
+      axon-gateway = config.age.secrets.axon-gateway-env.path;
+      ventara-gateway = config.age.secrets.ventara-gateway-env.path;
+    };
     # Private networks are closed to the agents; these are the hosts they
     # use: axon-gateway (MCP, Hindsight), Forgejo (git over ssh :2222) and
     # the ventara gateway axon.int.oyabu.cc on nebula-amartum.
@@ -660,15 +653,6 @@ in {
     mode = "400";
     owner = username;
     # Format inside the file: VENTARA_GATEWAY_TOKEN=ABC123
-  };
-
-  # pi's API key, one line: OPENCODE_API_KEY=... Owner-only: read (as root) by
-  # agent-run's LoadCredential. Gated until the .age file exists
-  # (`agenix -e pi-env.age`).
-  age.secrets.pi-env = lib.mkIf piEnv {
-    file = ../../secrets/pi-env.age;
-    mode = "400";
-    owner = username;
   };
 
   age.secrets.opencode-server-password = {

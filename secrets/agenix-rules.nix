@@ -126,7 +126,6 @@ in {
   "pg-mcp-terraform-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "pgmcp-forgejo-role-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostForgejo];
   "pgmcp-role-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
-  "pi-env.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_API_KEY=... for pi, an agent-run credential
   "pocketid-db-password.age".publicKeys = [amadeus hostWotan hostDatabase];
   "pocketid-env.age".publicKeys = [amadeus hostWotan hostContainers];
   "postgres-superuser-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];

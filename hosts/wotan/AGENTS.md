@@ -53,7 +53,7 @@ What keeps that safe is **who deploys**, not who edits:
 
 ## 🔒 Local Agents Run as `agent` (2026-10-27)
 
-Claude Code, opencode and pi on wotan run as the no-sudo `agent`
+Claude Code and opencode on wotan run as the no-sudo `agent`
 account (`modules/wotan/agent-user.nix`, home-manager in
 `hosts/wotan/agent-home.nix`),
 not as `amadeus`. Every agent process runs in a mount namespace where `/home`
@@ -61,14 +61,13 @@ and `/run/user` are empty except `/home/amadeus/code` and `/home/agent`, bound
 back in at their real paths. So the agents can't see the rest of amadeus's
 home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
 
-- **Launch:** `claude`, `pi` and `opencode <subcommand>` are zsh
-  functions that
-  run `sudo agent-run claude|opencode|pi …`. `agent-run` is the only
+- **Launch:** `claude` and `opencode <subcommand>` are zsh functions that
+  run `sudo agent-run claude|opencode …`. `agent-run` is the only
   thing
   amadeus may sudo to without a password. It refuses to start outside `~/code`,
-  passes the MCP gateway tokens (and pi's `OPENCODE_API_KEY`, from
-  `secrets/pi-env.age`) in as systemd credentials, and loads the directory's
-  `.envrc` (the agent's own `direnv allow`). Interactive `opencode` is a client
+  passes the MCP gateway tokens in as systemd credentials, and loads the
+  directory's `.envrc` (the agent's own `direnv allow`). Interactive `opencode`
+  is a client
   of `opencode-serve`: the client goes through `agent-run` too, with the server
   password as a credential only that session gets, and the server runs as
   `agent` in the same confinement. So `opencode` outside `~/code` is refused.
