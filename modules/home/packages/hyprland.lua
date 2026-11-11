@@ -335,10 +335,10 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
 
--- Force Helium and Brave windows to open tiled (they sometimes request floating)
+-- Force Helium windows to open tiled (they sometimes request floating)
 hl.window_rule({
     name = "browser-tile",
-    match = { class = "(?i)(helium|brave).*" },
+    match = { class = "(?i)helium.*" },
     tile = true,
 })
 

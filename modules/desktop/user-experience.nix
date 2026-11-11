@@ -84,8 +84,6 @@
       SpellcheckEnabled = true;
       SpellcheckLanguage = ["de" "en-US"];
     };
-    # Brave (temporary, see browsers.nix) reads its own directory; same policies.
-    environment.etc."brave/policies/managed/default.json".text = config.environment.etc."chromium/policies/managed/default.json".text;
 
     # Auto-start applications configuration
     environment.etc."xdg/autostart".source = pkgs.runCommand "autostart" {} ''
