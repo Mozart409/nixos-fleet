@@ -26,6 +26,9 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 AXON_URL = os.environ.get("BRIDGE_AXON_URL", "https://axon.homelab.internal/mcp")
+# The gateway serves this version statelessly; older axon builds ignore the
+# extra headers and `_meta`, so the bridge works across the upgrade.
+MCP_PROTOCOL_VERSION = "2026-07-28"
 NOTIFY_ENTITY = os.environ.get("BRIDGE_NOTIFY_ENTITY", "notify.iphone_von_amadeus")
 LISTEN_PORT = int(os.environ.get("BRIDGE_PORT", "9099"))
 
@@ -79,6 +82,16 @@ def send_notification(message, token):
                     "entity_id": NOTIFY_ENTITY,
                     "service_data": {"message": message},
                 },
+                # A stateless MCP 2026-07-28 request: no initialize or session,
+                # the lifecycle data travels with the call.
+                "_meta": {
+                    "io.modelcontextprotocol/protocolVersion": MCP_PROTOCOL_VERSION,
+                    "io.modelcontextprotocol/clientCapabilities": {},
+                    "io.modelcontextprotocol/clientInfo": {
+                        "name": "alertmanager-axon-bridge",
+                        "version": "1",
+                    },
+                },
             },
         }
     ).encode()
@@ -91,6 +104,9 @@ def send_notification(message, token):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
+            "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+            "Mcp-Method": "tools/call",
+            "Mcp-Name": "hamcp_call_service",
         },
     )
     with urllib.request.urlopen(request, timeout=AXON_TIMEOUT_SECS) as response:

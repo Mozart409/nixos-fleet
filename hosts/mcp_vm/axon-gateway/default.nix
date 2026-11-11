@@ -43,6 +43,10 @@
     # Bearer token clients must present to use the gateway.
     auth_token = "''${AXON_GATEWAY_TOKEN}"
     rate_limit_per_minute = 1000
+    # The MCP endpoints check the Host header (from Phase 4a); base_url's host
+    # is always allowed, the .local vhost alias below has to be listed. Older
+    # builds ignore the key.
+    allowed_hosts = ["axon.homelab.local"]
 
     # --- Backends (the MCP servers being aggregated) -------------------------
     # All on this host's loopback; plain HTTP is fine, nothing leaves the box.
