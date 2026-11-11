@@ -330,6 +330,10 @@ in {
       ];
       extraOptions = [
         "--network=host"
+        # Resolve through the host's unbound cache (modules/dns-client-cache.nix).
+        # Without it podman copies the host's resolv.conf at container start,
+        # and a later host DNS change left hindsight unresolvable until a restart.
+        "--dns=127.0.0.1"
         "--health-cmd=wget -q --spider http://127.0.0.1:${toString gatewayPort}/health || exit 1"
         "--health-interval=30s"
         "--health-timeout=5s"
