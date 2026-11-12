@@ -181,6 +181,14 @@ in {
     group = "postgres";
   };
 
+  # axon-gateway database password. Shared with the mcp host, which builds the
+  # gateway's AXON_DATABASE_URL from the same file at start.
+  age.secrets.axon-db-password = {
+    file = ../../secrets/axon-db-password.age;
+    owner = "postgres";
+    group = "postgres";
+  };
+
   # Pocket ID database password. The containers host carries the same password
   # inside pocketid-env.age (DB_CONNECTION_STRING), so rotating it means
   # re-encrypting both.
@@ -379,7 +387,7 @@ in {
     # `attic` removed 2026-09-09 with the cache VM (iac/main.tf). Dropping it
     # here also drops its nightly dump, because services.postgresqlBackup below
     # derives its database list from this one.
-    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight" "countdown" "pocketid"];
+    ensureDatabases = ["appdb" "terraform" "forgejo" "romm" "hofvarpnir" "multica" "hindsight" "countdown" "pocketid" "axon"];
 
     # Initial users
     ensureUsers = [
@@ -413,6 +421,10 @@ in {
       }
       {
         name = "pocketid";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "axon";
         ensureDBOwnership = true;
       }
       # Read-only role for the pgmcp MCP servers. No ensureDBOwnership: it owns
@@ -550,6 +562,15 @@ in {
     role = "pocketid";
     description = "Set Pocket ID PostgreSQL user password";
     secret = config.age.secrets.pocketid-db-password;
+    timeouts = migrationRoleTimeouts;
+  };
+
+  # axon-gateway runs its schema migrations at startup (database mode), so it
+  # gets the same exemptions as the other migrating roles.
+  systemd.services.postgresql-axon-password = mkRolePasswordUnit {
+    role = "axon";
+    description = "Set axon-gateway PostgreSQL user password";
+    secret = config.age.secrets.axon-db-password;
     timeouts = migrationRoleTimeouts;
   };
 

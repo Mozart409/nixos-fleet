@@ -22,31 +22,127 @@
   # loopback address rather than 0.0.0.0 -- with host networking there is no
   # port mapping to hide behind, whatever the container binds is what the
   # host listens on. Only Caddy (vhosts below) is meant to talk to it.
+  #
+  # DATABASE MODE. The gateway runs in database mode (new axon release): it is
+  # started with no config file, and its runtime configuration -- backends,
+  # toolsets, settings, users and service accounts -- lives in the `axon`
+  # database on the database host and is managed in the dashboard (/ui/admin).
+  # Only what is needed to boot comes from the environment: the database URL
+  # (database.env, built at start from axon-db-password.age), the bind
+  # address, the base URL, the KEK that seals stored secrets, and the Pocket ID
+  # bootstrap provider. Callers no longer share one bearer token: people log in
+  # through Pocket ID, agents use service-account tokens (PATs).
+  #
+  # The old rendered TOML survives only as a ONE-TIME IMPORT FILE
+  # (/etc/axon-gateway/import.toml, below). After the first import the
+  # database is the source of truth: edit backends in the dashboard, not here,
+  # and treat later edits to the import file as a re-import you run by hand
+  # (`sudo axon-import-config`, which creates what is missing and updates what
+  # differs, and removes nothing).
   gatewayPort = 8100;
 
-  # Declarative gateway config. Secrets are NOT inlined here — they are referenced
-  # as ${VAR} placeholders and resolved by axon at startup from the environment
-  # files below. Missing referenced vars are a hard startup error, so every ${VAR}
-  # used here MUST be present in secrets/axon-gateway-env.age, except
-  # HINDSIGHT_API_KEY, which generateHindsightEnv writes from hindsight-api-key.age.
+  # The first axon release that has database mode. It is NOT published yet
+  # (the last tag, v0.4.2, is standalone only): until the tag exists, the pull
+  # fails and the unit stays down, so set it to the real tag before deploying.
+  axonImage = "ghcr.io/mozart409/axon-gateway:v0.5.0";
+
+  # Public client id of the Pocket ID OIDC client for the gateway (redirect URI
+  # https://axon.homelab.internal/auth/callback). Not a secret; its secret is
+  # axon-oidc-client-secret.age. TODO: fill in after creating the client.
+  oidcClientId = "TODO-pocketid-client-id";
+  # Same issuer as forgejo / grafana / romm / hindsight (hosts/containers/pocket-id).
+  oidcIssuer = "https://pocketid.homelab.internal";
+
+  # The one-time import file: the config the gateway ran on in standalone mode,
+  # read once by `axon-gateway admin import-config` (see `axon-import-config`
+  # below). Secrets are NOT inlined here — they are referenced as ${VAR}
+  # placeholders, which the import resolves from the container's environment
+  # (a missing referenced var is a hard error). The only one left is
+  # HINDSIGHT_API_KEY, which generateEnv writes from hindsight-api-key.age.
   #
-  # Pulled into a `let` binding (rather than staying inline as `environment.etc`'s
-  # `.text`) solely so its content can be hashed below into the restart nonce —
-  # see `CONFIG_HASH` in the container's `environment`.
+  # Not imported, by design: [gateway] bind and base_url are environment-only
+  # now (AXON_BIND, AXON_BASE_URL on the container), and auth_token is gone --
+  # database mode refuses the shared token for MCP clients, so every agent
+  # needs a service account (the [[tokens]] section below).
   #
   # Backend ports are the `bind` values in ../configuration.nix's
   # services.homelab-mcp.servers -- keep the two in step.
+  # Every backend in configText: the desktop's service account gets them all.
+  agentBackends = [
+    "alertmanager"
+    "forgejo"
+    "hamcp"
+    "hindsight"
+    "loki"
+    "pbs"
+    "pgappdb"
+    "pgforgejo"
+    "pghofvarpnir"
+    "pgromm"
+    "pgterraform"
+    "prom"
+    "tempo"
+  ];
+
   configText = ''
     [gateway]
     bind = "127.0.0.1:${toString gatewayPort}"
     base_url = "https://axon.homelab.internal"
-    # Bearer token clients must present to use the gateway.
-    auth_token = "''${AXON_GATEWAY_TOKEN}"
     rate_limit_per_minute = 1000
     # The MCP endpoints check the Host header (from Phase 4a); base_url's host
     # is always allowed, the .local vhost alias below has to be listed. Older
     # builds ignore the key.
     allowed_hosts = ["axon.homelab.local"]
+
+    # --- Service accounts for the agent clients --------------------------------
+    # One [[tokens]] entry per consumer of the old shared AXON_GATEWAY_TOKEN
+    # (axon-gateway-env.age). The import turns each into a service account of
+    # that name and mints it a fresh PAT, printed ONCE on stdout; `token` below
+    # is a required field of the file format but is ignored (and not secret).
+    # allowed_backends/allowed_tools are not imported either: what a service
+    # account may call comes from its groups (RBAC), declared right below.
+    #
+    #   alertmanager-bridge  hosts/otel/alertmanager-axon-bridge.py, via
+    #                        hosts/otel/alerting.nix
+    #   wotan                Claude Code / opencode MCP config and shell
+    #                        (modules/wotan/claude-code.nix,
+    #                        modules/home/packages/opencode.nix, opencode-serve,
+    #                        the agent-user wrapper)
+    #
+    # The harness modules (modules/coding-harness.nix, claude-settings-verify.nix)
+    # read the same token, but only retired hosts import them today; give them
+    # an entry here if a harness host comes back.
+    [[tokens]]
+    name = "alertmanager-bridge"
+    token = "unused-minted-on-import"
+
+    [[tokens]]
+    name = "wotan"
+    token = "unused-minted-on-import"
+
+    # RBAC for the two service accounts. The bridge only sends Home Assistant
+    # notifications (hamcp_call_service); the desktop keeps every backend it
+    # reached with the shared token.
+    [[rbac.groups]]
+    name = "alerting"
+    description = "Alertmanager bridge"
+    service_accounts = ["alertmanager-bridge"]
+
+    [[rbac.grants]]
+    group = "alerting"
+    backend = "hamcp"
+
+    [[rbac.groups]]
+    name = "agents"
+    description = "Coding agents on the desktop"
+    service_accounts = ["wotan"]
+    ${lib.concatMapStrings (backend: ''
+
+        [[rbac.grants]]
+        group = "agents"
+        backend = "${backend}"
+      '')
+      agentBackends}
 
     # --- Backends (the MCP servers being aggregated) -------------------------
     # All on this host's loopback; plain HTTP is fine, nothing leaves the box.
@@ -282,14 +378,37 @@
     enabled = true
   '';
 
-  # The Hindsight key is the raw tenant key shared with the containers host,
-  # not a line in axon-gateway-env.age, so it gets its own env file.
-  generateHindsightEnv = pkgs.writeShellScript "generate-axon-hindsight-env" ''
+  # Two env files, built from raw agenix secrets at every start:
+  # - hindsight.env: the Hindsight key is the raw tenant key shared with the
+  #   containers host; the import resolves ${HINDSIGHT_API_KEY} from it.
+  # - database.env: AXON_DATABASE_URL around the raw `axon` role password
+  #   (shared with the database host). Same URL shape as hindsight's on the
+  #   containers host: `verify-full` against the step-ca root, passed as
+  #   sslrootcert because sqlx verifies against bundled Mozilla roots and would
+  #   otherwise reject the step-ca leaf (see the PGSSLROOTCERT note in
+  #   ../configuration.nix). The database host only accepts hostssl.
+  generateEnv = pkgs.writeShellScript "generate-axon-env" ''
     set -eu
     mkdir -p /run/axon-gateway
     umask 077
     printf 'HINDSIGHT_API_KEY=%s\n' "$(cat ${config.age.secrets.hindsight-api-key.path})" \
       > /run/axon-gateway/hindsight.env
+    pw=$(cat ${config.age.secrets.axon-db-password.path})
+    printf 'AXON_DATABASE_URL=postgres://axon:%s@database.homelab.internal:5432/axon?sslmode=verify-full&sslrootcert=/etc/ssl/certs/ca-certificates.crt\n' "$pw" \
+      > /run/axon-gateway/database.env
+  '';
+
+  # Runs the one-time import inside the running container, where the database
+  # URL, the KEK and HINDSIGHT_API_KEY are already in the environment:
+  #   sudo axon-import-config --dry-run   # report only, writes nothing
+  #   sudo axon-import-config             # for real
+  # A real run prints the new service-account tokens (name<TAB>axon_pat_...) ONCE
+  # on stdout; the summary and warnings go to stderr. Capture them straight
+  # away -- they cannot be read back -- and store each as an agenix secret for
+  # its consumer (`KEY=value` env files for the ones that load an
+  # EnvironmentFile, like axon-gateway-env.age did). Tokens expire after 365 days.
+  axonImportConfig = pkgs.writeShellScriptBin "axon-import-config" ''
+    exec ${pkgs.podman}/bin/podman exec axon-gateway /usr/local/bin/axon-gateway admin import-config /app/import.toml "$@"
   '';
 
   gatewayVhost = ''
@@ -302,31 +421,53 @@
     }
   '';
 in {
-  environment.etc."axon-gateway/config.toml".text = configText;
+  environment.etc."axon-gateway/import.toml".text = configText;
+
+  environment.systemPackages = [axonImportConfig];
 
   virtualisation.oci-containers.containers = {
     axon-gateway = {
-      image = "ghcr.io/mozart409/axon-gateway:v0.4.2";
+      image = axonImage;
       autoStart = true;
       volumes = [
-        "/etc/axon-gateway/config.toml:/app/config.toml:ro"
+        # The one-time import file, only read by `axon-import-config`.
+        "/etc/axon-gateway/import.toml:/app/import.toml:ro"
+        # The KEK and the Pocket ID client secret, as files (the container runs
+        # as uid 65532; the agenix files below are owned by it).
+        "${config.age.secrets.axon-kek.path}:/run/secrets/axon-kek:ro"
+        "${config.age.secrets.axon-oidc-client-secret.path}:/run/secrets/axon-oidc-client-secret:ro"
         # step-ca root for anything the gateway dials over TLS: the hindsight
         # backend, and base_url/health checks.
         "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
       ];
-      cmd = ["/app/config.toml"];
+      # No config path: that is what selects database mode (a path is an error
+      # there). The image ENTRYPOINT is the binary.
+      cmd = [];
       environment = {
         RUST_LOG = "info";
         SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
-        # Restart nonce: podman's generated unit only changes when the
-        # container's own definition does, so a config.toml edit alone used to
-        # need a manual restart. Hashing the text into an env var makes the
-        # unit change with it.
-        CONFIG_HASH = builtins.hashString "sha256" configText;
+        # No CONFIG_HASH restart nonce any more: the runtime config is in the
+        # database and every change applies live. Only the secret files below
+        # need a restart on rotation (restartTriggers on the unit).
+        AXON_BIND = "127.0.0.1:${toString gatewayPort}";
+        AXON_BASE_URL = "https://axon.homelab.internal";
+        AXON_KEK_FILE = "/run/secrets/axon-kek";
+        # AXON_ALLOW_STDIO stays unset: stdio backends would run commands inside
+        # the container, and every backend here is HTTP.
+        AXON_OIDC_ISSUER = oidcIssuer;
+        AXON_OIDC_CLIENT_ID = oidcClientId;
+        AXON_OIDC_CLIENT_SECRET_FILE = "/run/secrets/axon-oidc-client-secret";
+        # Members of this Pocket ID group are gateway admins.
+        AXON_OIDC_ADMIN_GROUPS = "axon-admins";
+        AXON_OIDC_DISPLAY_NAME = "Pocket ID";
       };
+      # axon-gateway-env.age is no longer loaded: it held AXON_GATEWAY_TOKEN
+      # (gone in database mode) and the import file references nothing else
+      # from it. It stays declared below because the other consumers and
+      # ../configuration.nix's restartTriggers still name it.
       environmentFiles = [
-        config.age.secrets.axon-gateway-env.path
         "/run/axon-gateway/hindsight.env"
+        "/run/axon-gateway/database.env"
       ];
       extraOptions = [
         "--network=host"
@@ -349,15 +490,41 @@ in {
   # marks them dead until its next reconnect. (hindsight is on another host,
   # so it can't be ordered here; the health check picks it up when it's back.)
   systemd.services.podman-axon-gateway = {
-    serviceConfig.ExecStartPre = ["${generateHindsightEnv}"];
-    # A rotated key keeps its /run/agenix path; restart on the .age store path.
-    restartTriggers = [config.age.secrets.hindsight-api-key.file];
+    serviceConfig.ExecStartPre = ["${generateEnv}"];
+    # A rotated secret keeps its /run/agenix path; restart on the .age store path.
+    restartTriggers = [
+      config.age.secrets.hindsight-api-key.file
+      config.age.secrets.axon-db-password.file
+      config.age.secrets.axon-kek.file
+      config.age.secrets.axon-oidc-client-secret.file
+    ];
     after = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
     wants = ["forgejo-mcp.service"] ++ map (n: "${n}.service") (builtins.attrNames config.services.homelab-mcp.servers);
   };
 
-  age.secrets.axon-gateway-env = {
-    file = ../../../secrets/axon-gateway-env.age;
+  # Raw `axon` role password, shared with the database host.
+  age.secrets.axon-db-password = {
+    file = ../../../secrets/axon-db-password.age;
+    mode = "0400";
+  };
+
+  # The KEK file the gateway seals stored backend/provider secrets with: lines
+  # of `id:secret`, the first line is the active key (add a new first line to
+  # rotate, keep the old lines to read old data). LOSING IT MAKES THE SEALED
+  # DATA UNREADABLE, so keep a copy of it with the database backups' keys. The
+  # container runs as 65532, so the file is owned by that uid, not root.
+  age.secrets.axon-kek = {
+    file = ../../../secrets/axon-kek.age;
+    owner = "65532";
+    group = "65532";
+    mode = "0400";
+  };
+
+  # Raw Pocket ID client secret for the gateway's OIDC client.
+  age.secrets.axon-oidc-client-secret = {
+    file = ../../../secrets/axon-oidc-client-secret.age;
+    owner = "65532";
+    group = "65532";
     mode = "0400";
   };
 

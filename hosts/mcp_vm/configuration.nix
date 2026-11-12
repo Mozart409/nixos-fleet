@@ -259,15 +259,14 @@ in {
       # the four servers that carry it restart on rotation without a bump.
       restartTriggers = [secretNonce config.age.secrets.otel-query-token.file];
     })
-    # The gateway reads its env file (bearer token + backend secrets) once at
-    # container start. Its config.toml is already covered by CONFIG_HASH in
-    # ./axon-gateway; this covers the secret side the same way as the servers
-    # above: a nonce bump, or a re-encrypted axon-gateway-env.age, restarts it.
+    # The gateway reads its secrets once at container start. ./axon-gateway
+    # restarts it when one of its .age files changes; a nonce bump covers a
+    # change Nix cannot see, as for the servers above.
     // {
       podman-axon-gateway = {
         wants = ["agenix.target"];
         after = ["agenix.target"];
-        restartTriggers = [secretNonce config.age.secrets.axon-gateway-env.file];
+        restartTriggers = [secretNonce];
       };
     }
     # The pgmcp instances trigger on their own connection-URL secret instead:

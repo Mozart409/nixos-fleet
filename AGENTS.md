@@ -186,13 +186,13 @@ The `just iac-*` recipes run inside `infra/iac` for you.
         re-run; already-done hosts are no-ops.
     -   **Restart services `colmena apply` does NOT bounce** (config written but
         not reloaded):
-        -   `containers` — axon-gateway backend/config edits used to need a
-            manual `sudo systemctl restart podman-axon-gateway` (the container's
-            generated unit doesn't change when only the mounted config.toml's
-            *contents* do). As of 2026-08-15 `config.toml`'s text is hashed into
-            a `CONFIG_HASH` env var on the container (see
-            `hosts/mcp_vm/axon-gateway/default.nix`), so the unit changes
-            and `colmena apply` restarts it on its own — no manual step needed.
+        -   `mcp` — axon-gateway runs in database mode: backends, toolsets
+            and settings live in Postgres and are edited in its dashboard, and
+            every replica reloads them live, so a config change needs no
+            deploy or restart. `hosts/mcp_vm/axon-gateway/default.nix` keeps
+            the old TOML only as a one-time import file
+            (`sudo axon-import-config [--dry-run]`); editing it changes nothing
+            until it is imported again.
         -   `caddy` (any host) — restart if newly-added vhosts leave certs stuck
             at HTTP 000 (step-ca ACME `badNonce` storm).
      -   **Systemd restart nonces:** NixOS only restarts a service when its
@@ -210,9 +210,10 @@ The `just iac-*` recipes run inside `infra/iac` for you.
              `restartTriggers`. Any such change restarts it on deploy; no
              manual step. `secretNonce` stays as a manual override for a
              change Nix cannot see.
-         -   `hosts/mcp_vm/axon-gateway/default.nix` — `configText` is hashed
-             into `CONFIG_HASH`, so changing the declarative gateway config
-             changes the generated container unit automatically.
+         -   `hosts/mcp_vm/axon-gateway/default.nix` — the gateway's agenix
+             files are in the container unit's `restartTriggers`, so a
+             re-encrypted secret restarts it; its runtime config lives in
+             Postgres (database mode) and reloads without a restart.
          -   `modules/loki-logs.nix` — changes to the selected units or Fluent
              Bit pipeline change the generated `fluent-bit.service`; no manual
              nonce is needed. After deployment, verify `systemctl status
