@@ -44,7 +44,7 @@
   # The first axon release that has database mode. It is NOT published yet
   # (the last tag, v0.4.2, is standalone only): until the tag exists, the pull
   # fails and the unit stays down, so set it to the real tag before deploying.
-  axonImage = "ghcr.io/mozart409/axon-gateway:v0.5.1";
+  axonImage = "ghcr.io/mozart409/axon-gateway:v0.5.2";
 
   # Public client id of the Pocket ID OIDC client for the gateway (redirect URI
   # https://axon.homelab.internal/auth/callback). Not a secret; its secret is
@@ -459,6 +459,8 @@ in {
         AXON_OIDC_CLIENT_SECRET_FILE = "/run/secrets/axon-oidc-client-secret";
         # Members of this Pocket ID group are gateway admins.
         AXON_OIDC_ADMIN_GROUPS = "axon-admins";
+        # Pocket ID sends the groups claim only when the groups scope is requested.
+        AXON_OIDC_SCOPES = "openid,profile,email,groups";
         AXON_OIDC_DISPLAY_NAME = "Pocket ID";
       };
       # axon-gateway-env.age is no longer loaded: it held AXON_GATEWAY_TOKEN
