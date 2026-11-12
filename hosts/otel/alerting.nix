@@ -435,7 +435,7 @@ in {
       ExecStart = "${pkgs.python3}/bin/python3 ${./alertmanager-axon-bridge.py}";
       # systemd reads this as root before dropping to the DynamicUser, so the
       # secret stays 0400 root-owned (same pattern as the dashboard's env file).
-      EnvironmentFile = config.age.secrets.axon-gateway-env.path;
+      EnvironmentFile = config.age.secrets.axon-token-alertmanager.path;
       Restart = "on-failure";
       RestartSec = "10s";
 
@@ -451,12 +451,10 @@ in {
     };
   };
 
-  # NOTE: otel must be a recipient of this secret. It currently is not -- only
-  # the containers host consumes it. Add otel's host key to the
-  # "axon-gateway-env.age" entry in secrets/agenix-rules.nix and run `just reencrypt`,
-  # or activation fails with "no identity matched any of the recipients".
-  age.secrets.axon-gateway-env = {
-    file = ../../secrets/axon-gateway-env.age;
+  # AXON_GATEWAY_TOKEN=<PAT> of the gateway's alertmanager-bridge service account,
+  # which may only call hamcp (its RBAC grant).
+  age.secrets.axon-token-alertmanager = {
+    file = ../../secrets/axon-token-alertmanager.age;
     mode = "0400";
   };
 

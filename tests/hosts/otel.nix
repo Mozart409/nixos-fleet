@@ -41,7 +41,7 @@ harness.mkHostTest {
     machine.wait_for_unit("alertmanager.service")
     machine.wait_for_open_port(9093)
 
-    # NOT asserted on, intentionally: axon-gateway-env (the
+    # NOT asserted on, intentionally: axon-token-alertmanager (the
     # alertmanager-axon-bridge's EnvironmentFile) is not fixtured -- its
     # failure is peripheral and doesn't gate prometheus/grafana/loki/
     # otel-collector availability.

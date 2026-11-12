@@ -38,14 +38,6 @@
     mode = "0400";
   };
 
-  # Axon MCP gateway bearer token, sourced into interactive shells by
-  # modules/coding-harness.nix (see that module for details).
-  age.secrets.axon-gateway-env = {
-    file = ../../secrets/axon-gateway-env.age;
-    owner = "amadeus";
-    mode = "0400";
-  };
-
   # Interactive tools for amadeus's own use on this host, separate from the
   # containerized ZeroClaw agent in ./zeroclaw/default.nix (which runs in an
   # OCI container with no host-filesystem presence).

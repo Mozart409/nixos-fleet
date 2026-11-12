@@ -13,31 +13,33 @@
   # harness" (Claude Code, opencode) on hosts that import this module. Add an
   # entry here once; it's translated into each tool's native config syntax
   # below instead of being hand-duplicated per tool/per host.
-  mcpServers = {
-    axon-gateway = {
-      url = "https://axon.homelab.internal/mcp";
-      # Name of the env var (see the axon-gateway-env secret each importing
-      # host must declare) that each tool expands AT ITS OWN RUNTIME — the
-      # token itself is never baked into these config files, only a
-      # reference to the env var name. See `environment.interactiveShellInit`
-      # below for where that env var actually gets set.
-      tokenEnvVar = "AXON_GATEWAY_TOKEN";
+  mcpServers =
+    lib.optionalAttrs hasAxonGatewayKey {
+      axon-gateway = {
+        url = "https://axon.homelab.internal/mcp";
+        # Name of the env var (the optional axon-gateway-env secret, see
+        # hasAxonGatewayKey below) that each tool expands AT ITS OWN RUNTIME —
+        # the token itself is never baked into these config files, only a
+        # reference to the env var name. See `environment.interactiveShellInit`
+        # below for where that env var actually gets set.
+        tokenEnvVar = "AXON_GATEWAY_TOKEN";
+      };
+    }
+    // {
+      # The Ventara deployment's own axon-gateway instance (nixos-ventara-ai
+      # repo, services/axon-gateway) -- a SEPARATE gateway from the one above,
+      # aggregating that repo's own backends (Prometheus/Loki MCP servers,
+      # internal-dashboard's built-in MCP endpoint). Not on the homelab LAN,
+      # hence the axon.int.oyabu.cc URL rather than a *.homelab.internal one.
+      #
+      # Its token lives in its own secret, not axon-gateway-env (ventara-gateway-env, see
+      # hasVentaraGatewayKey below) under its own env var name -- the two
+      # tokens are unrelated and must not collide in the shell environment.
+      ventara-gateway = {
+        url = "https://axon.int.oyabu.cc/mcp";
+        tokenEnvVar = "VENTARA_GATEWAY_TOKEN";
+      };
     };
-    # The Ventara deployment's own axon-gateway instance (nixos-ventara-ai
-    # repo, services/axon-gateway) -- a SEPARATE gateway from the one above,
-    # aggregating that repo's own backends (Prometheus/Loki MCP servers,
-    # internal-dashboard's built-in MCP endpoint). Not on the homelab LAN,
-    # hence the axon.int.oyabu.cc URL rather than a *.homelab.internal one.
-    #
-    # "axon-gateway-env" was already taken by the entry above, so this one's
-    # token lives in its own secret (ventara-gateway-env, see
-    # hasVentaraGatewayKey below) under its own env var name -- the two
-    # tokens are unrelated and must not collide in the shell environment.
-    ventara-gateway = {
-      url = "https://axon.int.oyabu.cc/mcp";
-      tokenEnvVar = "VENTARA_GATEWAY_TOKEN";
-    };
-  };
 
   # opencode's own "plugin" config key (npm package names) and Claude Code's
   # "enabledPlugins" — left empty for now (mechanism only; the schema for
@@ -269,6 +271,13 @@
   # not be evaluated at all, or eval fails with "attribute ... missing".
   hasVentaraGatewayKey = config.age.secrets ? ventara-gateway-env;
 
+  # The homelab axon-gateway entry is optional too: the gateway issues
+  # per-consumer service-account tokens, so a host only gets the entry (and the
+  # token export in interactiveShellInit) when it declares this secret.
+  # Without it there is no axon MCP server at all, rather than one that fails
+  # auth.
+  hasAxonGatewayKey = config.age.secrets ? axon-gateway-env;
+
   applyOpencodeAuth = lib.optionalString hasOpencodeKey ''
     secret=${config.age.secrets.opencode-zen-key.path}
     authfile="${home}/.local/share/opencode/auth.json"
@@ -394,10 +403,11 @@ in {
   # the `${AXON_GATEWAY_TOKEN}` / `{env:AXON_GATEWAY_TOKEN}` references
   # written into the JSON above actually resolve when `claude`/`opencode`
   # are launched by hand. Gated on readability so it's a silent no-op for
-  # any user other than the secret's owner (each importing host must declare
-  # `age.secrets.axon-gateway-env` with `owner = "amadeus";`).
+  # any user other than the secret's owner. Optional: only hosts that declare
+  # `age.secrets.axon-gateway-env` (with `owner = "amadeus";`) get the token
+  # export and the axon-gateway MCP entry; others get neither.
   environment.interactiveShellInit =
-    ''
+    lib.optionalString hasAxonGatewayKey ''
       if [ -r "${config.age.secrets.axon-gateway-env.path}" ]; then
         set -a
         . "${config.age.secrets.axon-gateway-env.path}"

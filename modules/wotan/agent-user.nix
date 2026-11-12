@@ -188,7 +188,7 @@ in {
     credentials = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = {};
-      example = {axon = "/run/agenix/axon-gateway-env";};
+      example = {axon = "/run/agenix/axon-token-wotan";};
       description = ''
         KEY=value env files read by systemd (as root) and exported into every
         agent-run session, for the MCP gateway tokens.

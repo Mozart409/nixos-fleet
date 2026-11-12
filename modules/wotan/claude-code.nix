@@ -17,7 +17,7 @@
   # environment variable at connection time (Claude Code expands ${VAR} in MCP
   # config). That variable is exported into the user's shell from an agenix
   # secret — see hosts/wotan/home.nix (sessionVariablesExtra) and
-  # hosts/wotan/default.nix (age.secrets.axon-gateway-env) — so launch `claude`
+  # hosts/wotan/default.nix (age.secrets.axon-token-wotan) — so launch `claude`
   # from a login shell for the token to resolve.
   config = lib.mkIf config.programs.claudeCodeMcp.enable {
     environment.etc."claude-code/managed-mcp.json".text = builtins.toJSON {

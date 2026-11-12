@@ -25,7 +25,7 @@ let
   # hosts kept in the tree (hosts/{cache,development,hermes,zeroclaw},
   # docs/archive/{fleet,harbor}) keep their own per-host secrets below;
   # reviving one is: add its key back here (and to the shared secrets it
-  # needs, e.g. axon-gateway-env), `just reencrypt`.
+  # needs, e.g. axon-token-wotan), `just reencrypt`.
   #
   # zeroclaw, development and hermes were all decommissioned on 2026-10-06
   # (VMs dropped from infra/iac/main.tf), so hostZeroclaw, hostDevelopment and
@@ -58,9 +58,10 @@ in {
   "autolith-env.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_ZEN_API_KEY=... autolith's own key, loaded by agent-run for autolith sessions only
   "axon-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase hostMcp]; # raw password; mcp builds the gateway's database URL from it
   # hostMcp replaced hostContainers on 2026-09-14 when the gateway moved hosts. Run `just reencrypt` after a recipient change.
-  "axon-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp hostOtel hostWotan];
   "axon-kek.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp]; # key-encryption key file for the gateway: lines of id:secret, first line active
   "axon-oidc-client-secret.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp]; # raw Pocket ID client secret for the gateway
+  "axon-token-alertmanager.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel]; # AXON_GATEWAY_TOKEN=<service account PAT> for otel's alertmanager-axon-bridge
+  "axon-token-wotan.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostWotan]; # AXON_GATEWAY_TOKEN=<service account PAT> for wotan's agents and shells
   "context7-api-key.age".publicKeys = [amadeus hostWotan]; # opencode MCP server
   "countdown-db-password.age".publicKeys = [amadeus hostWotan hostContainers hostDatabase];
   "countdown-env.age".publicKeys = [amadeus hostWotan hostContainers];

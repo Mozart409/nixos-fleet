@@ -371,9 +371,9 @@ The rules file is `secrets/agenix-rules.nix` (renamed from `secrets.nix` on
 before touching a secret, so with direnv loaded it works **from any
 directory**, always with the **bare filename**:
 
-- **WRONG**: `agenix -e infra/secrets/axon-gateway-env.age` (the path is taken
+- **WRONG**: `agenix -e infra/secrets/axon-token-wotan.age` (the path is taken
   relative to `infra/secrets/`, so it looks for `infra/secrets/infra/secrets/…`)
-- **CORRECT**: `agenix -e axon-gateway-env.age`
+- **CORRECT**: `agenix -e axon-token-wotan.age`
 
 Without the dev shell, `cd infra/secrets` first: agenix also finds
 `agenix-rules.nix` in the current or any parent directory.
@@ -382,7 +382,7 @@ The secrets are shared by the fleet **and** wotan: wotan's rules are
 `[amadeus hostWotan]` in the same `agenix-rules.nix`.
 
 The matching entry in `secrets/agenix-rules.nix` is keyed with the bare filename too
-(e.g. `"axon-gateway-env.age".publicKeys = [...]`).
+(e.g. `"axon-token-wotan.age".publicKeys = [...]`).
 
 ### Caddy Path Handling
 When configuring Caddy reverse proxies, be careful with `handle` vs `handle_path`:
@@ -678,7 +678,7 @@ age identity (`tests/fixtures/test-age-identity.txt`) and points just those
 two secrets at dummy values encrypted to its public key
 (`tests/fixtures/secrets/*.age`). This makes agenix's real decrypt pipeline
 succeed for real inside the VM -- not a bypass, the legitimate mechanism.
-Everything else (axon-gateway-env,
+Everything else (axon-token-alertmanager,
 every database-host role password) is left to fail softly and is never
 asserted on. See `tests/fixtures/README.md` to regenerate.
 

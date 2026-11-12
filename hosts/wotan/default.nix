@@ -307,7 +307,7 @@ in {
     # service's environment. The agenix secret is already in KEY=value format.
     # NOTE: restart the service after re-encrypting the secret (token rotation).
     environmentFiles = [
-      config.age.secrets.axon-gateway-env.path
+      config.age.secrets.axon-token-wotan.path
       config.age.secrets.ventara-gateway-env.path
       # Basic auth; the server reads OPENCODE_SERVER_PASSWORD from this env
       # file; the TUI gets the same file through agent-run (serverPasswordFile).
@@ -348,7 +348,7 @@ in {
     # The opencode TUI runs as the agent too and logs in with this.
     serverPasswordFile = config.age.secrets.opencode-server-password.path;
     credentials = {
-      axon-gateway = config.age.secrets.axon-gateway-env.path;
+      axon-gateway = config.age.secrets.axon-token-wotan.path;
       ventara-gateway = config.age.secrets.ventara-gateway-env.path;
     };
     # Private networks are closed to the agents; these are the hosts they
@@ -658,13 +658,13 @@ in {
     file = ../../secrets/llama-cpp-api-key.age;
   };
 
-  age.secrets.axon-gateway-env = {
-    file = ../../secrets/axon-gateway-env.age;
+  age.secrets.axon-token-wotan = {
+    file = ../../secrets/axon-token-wotan.age;
     # Owner-only: read (as root) by agent-run's LoadCredential and
     # opencode-serve's EnvironmentFile.
     mode = "400";
     owner = username;
-    # Format inside the file: AXON_GATEWAY_TOKEN=ABC123
+    # Format inside the file: AXON_GATEWAY_TOKEN=<PAT of the wotan service account>
   };
 
   # Bearer token for ventara-gateway, the nixos-ventara-ai deployment's own
@@ -704,7 +704,7 @@ in {
   environment.sessionVariables = {
     # Agenix secrets
     CONTEXT7_API_KEY_FILE = config.age.secrets.context7-api-key.path;
-    AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-gateway-env.path;
+    AXON_GATEWAY_TOKEN_FILE = config.age.secrets.axon-token-wotan.path;
     VENTARA_GATEWAY_TOKEN_FILE = config.age.secrets.ventara-gateway-env.path;
 
     # NVIDIA Wayland environment variables for better compatibility
