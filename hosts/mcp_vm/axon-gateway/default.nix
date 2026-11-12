@@ -48,8 +48,8 @@
 
   # Public client id of the Pocket ID OIDC client for the gateway (redirect URI
   # https://axon.homelab.internal/auth/callback). Not a secret; its secret is
-  # axon-oidc-client-secret.age. TODO: fill in after creating the client.
-  oidcClientId = "TODO-pocketid-client-id";
+  # axon-oidc-client-secret.age.
+  oidcClientId = "a48e3829-d7d8-457e-94c4-c5947acff247";
   # Same issuer as forgejo / grafana / romm / hindsight (hosts/containers/pocket-id).
   oidcIssuer = "https://pocketid.homelab.internal";
 
