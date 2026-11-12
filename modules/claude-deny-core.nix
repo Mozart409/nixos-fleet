@@ -22,6 +22,15 @@
   # /run/agenix is a symlink to /run/agenix.d/<gen>; deny the real directory.
   "Read(//run/agenix.d/**)"
   "Read(**/*.age)"
+  # Creating, editing, rekeying and decrypting secrets is the user's job:
+  # agenix and age encrypt with only the public recipients, so a Read rule
+  # does not stop an agent minting a secret (2026-11-12).
+  "Bash(agenix)"
+  "Bash(agenix *)"
+  "Bash(*agenix -*)"
+  "Bash(just reencrypt*)"
+  "Bash(age *)"
+  "Bash(rage *)"
 
   # Activating a generation or deploying. Agents write configuration; applying
   # it is the user's decision. Builds (`nh os build`, `just colmena-build`)
