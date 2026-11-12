@@ -75,7 +75,30 @@ in {
   # 192.168.2.145 = local Unbound resolver (primary)
   # 192.168.2.1   = router fallback
   # 1.1.1.1       = Cloudflare public fallback
+  # Homelab names (homelab.internal and its zones) are routed to 192.168.2.145
+  # separately, by homelab-dns-route below, so they never reach the fallbacks.
   networking.nameservers = ["192.168.2.145" "192.168.2.1" "1.1.1.1"];
+
+  # homelab.internal (and the legacy homelab.local zone and the LAN's reverse
+  # zone) go to Unbound only. With just the three global servers above,
+  # resolved switched to the router after one Unbound timeout and stayed there,
+  # and the router answers NXDOMAIN for these names. A routing domain on
+  # enp38s0 sends them to 192.168.2.145 whatever the global current server is.
+  systemd.services.homelab-dns-route = {
+    description = "Route homelab DNS zones to Unbound on enp38s0";
+    after = ["systemd-resolved.service" "network-online.target"];
+    wants = ["network-online.target"];
+    partOf = ["systemd-resolved.service"];
+    wantedBy = ["multi-user.target" "systemd-resolved.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = [
+        "${config.systemd.package}/bin/resolvectl dns enp38s0 192.168.2.145"
+        "${config.systemd.package}/bin/resolvectl domain enp38s0 ~homelab.internal ~homelab.local ~2.168.192.in-addr.arpa"
+      ];
+    };
+  };
 
   # Static IP configuration for enp38s0 (main Ethernet)
   networking.useDHCP = lib.mkForce false;
