@@ -44,7 +44,7 @@
   # The first axon release that has database mode. It is NOT published yet
   # (the last tag, v0.4.2, is standalone only): until the tag exists, the pull
   # fails and the unit stays down, so set it to the real tag before deploying.
-  axonImage = "ghcr.io/mozart409/axon-gateway:v0.5.0";
+  axonImage = "ghcr.io/mozart409/axon-gateway:v0.5.1";
 
   # Public client id of the Pocket ID OIDC client for the gateway (redirect URI
   # https://axon.homelab.internal/auth/callback). Not a secret; its secret is
