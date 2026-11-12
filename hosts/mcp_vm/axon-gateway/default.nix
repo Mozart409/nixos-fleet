@@ -457,8 +457,9 @@ in {
         AXON_OIDC_ISSUER = oidcIssuer;
         AXON_OIDC_CLIENT_ID = oidcClientId;
         AXON_OIDC_CLIENT_SECRET_FILE = "/run/secrets/axon-oidc-client-secret";
-        # Members of this Pocket ID group are gateway admins.
-        AXON_OIDC_ADMIN_GROUPS = "axon-admins";
+        # Members of this Pocket ID group are gateway admins. The groups claim
+        # carries the group's Name (axon_admins), not its display name.
+        AXON_OIDC_ADMIN_GROUPS = "axon_admins";
         # Pocket ID sends the groups claim only when the groups scope is requested.
         AXON_OIDC_SCOPES = "openid,profile,email,groups";
         AXON_OIDC_DISPLAY_NAME = "Pocket ID";
