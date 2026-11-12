@@ -371,7 +371,16 @@ in {
       else builtins.hashFile "sha256" f.source;
   in
     map (name: contents files.${name})
-    (lib.filter (lib.hasPrefix ".config/opencode/") (lib.attrNames files));
+    (lib.filter (lib.hasPrefix ".config/opencode/") (lib.attrNames files))
+    # The secrets in environmentFiles/credentialEnvironment are read once at
+    # start from stable /run/agenix paths, so a re-encrypted token left the
+    # server on the old one (401 from axon-gateway). Restart on any change.
+    ++ map (s: builtins.hashFile "sha256" config.age.secrets.${s}.file) [
+      "axon-token-wotan"
+      "context7-api-key"
+      "opencode-server-password"
+      "ventara-gateway-env"
+    ];
 
   # Swap on zram — helps avoid OOM during large builds and LLM inference
   zramSwap = {
