@@ -133,20 +133,7 @@ in {
     }) ["amartum" "mozart409"];
   };
 
-  # Split DNS for ~int.oyabu.cc needs resolved. mDNS stays with avahi (the
-  # CUPS printer's .local URI), so resolved must not bind 5353 too. LLMNR is
-  # off as well: nothing here resolves bare names over it, and it listened on
-  # 0.0.0.0:5355.
-  services.resolved = {
-    enable = true;
-    settings.Resolve = {
-      MulticastDNS = false;
-      LLMNR = false;
-    };
-  };
-
-  # Keep NetworkManager off the tuns, so it never claims the link and resets
-  # the per-link DNS set below.
+  # Keep NetworkManager off the tuns so it never claims them.
   networking.networkmanager.unmanaged = ["interface-name:nebula-*"];
 
   # vm-prod-01's names (nixos-ventara-ai docs/prod.md, "Names"). The overlay's
@@ -162,11 +149,5 @@ in {
     "s3.sys.portal.amartum.ai"
     # step-ca for agent mTLS, :9443 (nixos-ventara-ai ADR 0012).
     "ca.sys.portal.amartum.ai"
-  ];
-
-  # "-" keeps a resolvectl failure from failing nebula@amartum itself.
-  systemd.services."nebula@amartum".serviceConfig.ExecStartPost = [
-    "-+${config.systemd.package}/bin/resolvectl dns nebula-amartum 172.16.10.1 172.16.10.2 172.16.10.3"
-    "-+${config.systemd.package}/bin/resolvectl domain nebula-amartum ~int.oyabu.cc"
   ];
 }

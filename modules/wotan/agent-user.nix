@@ -24,7 +24,7 @@
   # Private networks are closed except network.allow; the internet stays
   # open (the model APIs, flake inputs). systemd checks Allow before Deny, so
   # an allowed address inside a denied range gets through. Loopback is always
-  # allowed: resolved's stub at 127.0.0.53 and opencode-serve live there.
+  # allowed: the local Unbound at 127.0.0.1 and opencode-serve live there.
   ipAllow = ["127.0.0.0/8" "::1/128"] ++ cfg.network.allow;
   ipDeny = cfg.network.deny;
 

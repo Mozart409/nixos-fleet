@@ -21,7 +21,8 @@ inbound SSH, deploys only itself (`just switch-wotan`), and must never import
 **`common.nix` = `base.nix` + `server.nix`.** Every fleet host imports
 `common.nix`. `base.nix` holds only what wotan shares with the fleet
 (timezone, locale, keymap, flakes, trusted-users, the `amadeus` account via
-`homelab.users`) and is the one shared module wotan imports. Anything that
+`homelab.users`). wotan imports `base.nix` plus `dns-client-cache.nix` (the
+loopback-only Unbound stub), nothing else from the fleet. Anything that
 opens a port, starts a daemon, authorizes an SSH key or loosens sudo goes in
 `server.nix`, never in `base.nix`.
 

@@ -58,6 +58,10 @@ in {
     # server.nix, which start sshd (see the assertions below).
     ../../modules/base.nix
 
+    # The fleet's local Unbound stub: loopback only, opens no port, so it is
+    # fine next to base.nix.
+    ../../modules/dns-client-cache.nix
+
     # Shared NixOS modules (aggregator — each gated by its own enable flag)
     ../../modules/wotan
 
@@ -71,20 +75,48 @@ in {
   # Host-specific settings
   networking.hostName = "wotan";
 
-  # DNS. Unbound (192.168.2.145) is the only resolver. NetworkManager owns
-  # enp38s0 through the declarative profile below and hands its DNS to
-  # systemd-resolved; the homelab zones and "~." are routing domains on that
-  # link, so every query goes to Unbound. No global servers and no compiled-in
-  # FallbackDNS (Cloudflare/Google), so nothing can answer around Unbound: the
-  # router answers NXDOMAIN for the homelab names. When Unbound is down, DNS on
-  # wotan is down.
-  networking.nameservers = [];
-  services.resolved.settings.Resolve.FallbackDNS = [];
+  # DNS. Unbound on 127.0.0.1 (modules/dns-client-cache.nix) is wotan's only
+  # resolver: no systemd-resolved, and NetworkManager does no DNS, so
+  # resolv.conf is just 127.0.0.1. Everything goes to the homelab Unbound
+  # (192.168.2.145) and nowhere else: no router fallback (it answers NXDOMAIN
+  # for the homelab names) and no public resolver, so nothing can answer around
+  # Unbound. When the homelab Unbound is down, DNS on wotan is down; the stale
+  # cache only softens short outages.
+  networking.networkmanager.dns = "none";
+  services.unbound.settings = {
+    server = {
+      # int.oyabu.cc is a private zone under a public domain, which DNSSEC
+      # validation would otherwise SERVFAIL.
+      domain-insecure = ["int.oyabu.cc."];
+      # The PTRs for 192.168.2.x live on Unbound, but Unbound blocks the
+      # RFC1918 reverse zones unless told otherwise.
+      unblock-lan-zones = true;
+      insecure-lan-zones = true;
+    };
+    # mkForce: the module's "." zone falls back to the router (192.168.2.1).
+    forward-zone = lib.mkForce [
+      {
+        name = ".";
+        forward-addr = ["192.168.2.145"];
+      }
+      {
+        name = "local.";
+        forward-addr = ["192.168.2.145"];
+      }
+      {
+        name = "internal.";
+        forward-addr = ["192.168.2.145"];
+      }
+      # The amartum overlay's split DNS: only answers while nebula@amartum is up.
+      {
+        name = "int.oyabu.cc.";
+        forward-addr = ["172.16.10.1" "172.16.10.2" "172.16.10.3"];
+      }
+    ];
+  };
 
-  # The wired LAN profile. An imperative profile used to set the router as
-  # link DNS and took the router-advertised IPv6 DNS, and every reconnect
-  # re-applied that over the homelab route. ignore-auto-dns keeps the RA
-  # servers out; autoconnect-priority beats any leftover hand-made profile.
+  # The wired LAN profile, so NetworkManager is the single owner of enp38s0's
+  # addressing. autoconnect-priority beats any leftover hand-made profile.
   networking.networkmanager.ensureProfiles.profiles.lan = {
     connection = {
       id = "LAN";
@@ -96,14 +128,10 @@ in {
     ipv4 = {
       method = "manual";
       address1 = "192.168.2.71/24,192.168.2.1";
-      dns = "192.168.2.145;";
-      dns-search = "~homelab.internal;~homelab.local;~2.168.192.in-addr.arpa;~.;";
-      ignore-auto-dns = true;
     };
     ipv6 = {
       method = "auto";
       addr-gen-mode = "stable-privacy";
-      ignore-auto-dns = true;
     };
   };
 
