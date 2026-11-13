@@ -71,47 +71,43 @@ in {
   # Host-specific settings
   networking.hostName = "wotan";
 
-  # Host-specific DNS settings
-  # 192.168.2.145 = local Unbound resolver (primary)
-  # 192.168.2.1   = router fallback
-  # 1.1.1.1       = Cloudflare public fallback
-  # Homelab names (homelab.internal and its zones) are routed to 192.168.2.145
-  # separately, by homelab-dns-route below, so they never reach the fallbacks.
-  networking.nameservers = ["192.168.2.145" "192.168.2.1" "1.1.1.1"];
+  # DNS. NetworkManager owns enp38s0 through the declarative profile below and
+  # hands its DNS to systemd-resolved. Homelab names (homelab.internal, the
+  # legacy homelab.local zone and the LAN's reverse zone) are routing domains
+  # on that link, so they go to Unbound (192.168.2.145) only: the router
+  # answers NXDOMAIN for them. The global servers below catch everything else,
+  # so public names still resolve when Unbound is down.
+  networking.nameservers = ["192.168.2.1" "1.1.1.1"];
 
-  # homelab.internal (and the legacy homelab.local zone and the LAN's reverse
-  # zone) go to Unbound only. With just the three global servers above,
-  # resolved switched to the router after one Unbound timeout and stayed there,
-  # and the router answers NXDOMAIN for these names. A routing domain on
-  # enp38s0 sends them to 192.168.2.145 whatever the global current server is.
-  systemd.services.homelab-dns-route = {
-    description = "Route homelab DNS zones to Unbound on enp38s0";
-    after = ["systemd-resolved.service" "network-online.target"];
-    wants = ["network-online.target"];
-    partOf = ["systemd-resolved.service"];
-    wantedBy = ["multi-user.target" "systemd-resolved.service"];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = [
-        "${config.systemd.package}/bin/resolvectl dns enp38s0 192.168.2.145"
-        "${config.systemd.package}/bin/resolvectl domain enp38s0 ~homelab.internal ~homelab.local ~2.168.192.in-addr.arpa"
-      ];
+  # The wired LAN profile. An imperative profile used to set the router as
+  # link DNS and took the router-advertised IPv6 DNS, and every reconnect
+  # re-applied that over the homelab route. ignore-auto-dns keeps the RA
+  # servers out; autoconnect-priority beats any leftover hand-made profile.
+  networking.networkmanager.ensureProfiles.profiles.lan = {
+    connection = {
+      id = "LAN";
+      uuid = "51228013-49fe-40ec-bdac-35bf0a7dfba0";
+      type = "ethernet";
+      interface-name = "enp38s0";
+      autoconnect-priority = 100;
+    };
+    ipv4 = {
+      method = "manual";
+      address1 = "192.168.2.71/24,192.168.2.1";
+      dns = "192.168.2.145;";
+      dns-search = "~homelab.internal;~homelab.local;~2.168.192.in-addr.arpa;";
+      ignore-auto-dns = true;
+    };
+    ipv6 = {
+      method = "auto";
+      addr-gen-mode = "stable-privacy";
+      ignore-auto-dns = true;
     };
   };
 
-  # Static IP configuration for enp38s0 (main Ethernet)
+  # hardware-configuration.nix defaults useDHCP to true; NetworkManager does
+  # the addressing for enp38s0 through the profile above.
   networking.useDHCP = lib.mkForce false;
-  networking.interfaces.enp38s0.ipv4.addresses = [
-    {
-      address = "192.168.2.71";
-      prefixLength = 24;
-    }
-  ];
-  networking.defaultGateway = {
-    address = "192.168.2.1";
-    interface = "enp38s0";
-  };
 
   nix.settings = {
     download-buffer-size = 4 * 1024 * 1024 * 1024;
