@@ -71,13 +71,15 @@ in {
   # Host-specific settings
   networking.hostName = "wotan";
 
-  # DNS. NetworkManager owns enp38s0 through the declarative profile below and
-  # hands its DNS to systemd-resolved. Homelab names (homelab.internal, the
-  # legacy homelab.local zone and the LAN's reverse zone) are routing domains
-  # on that link, so they go to Unbound (192.168.2.145) only: the router
-  # answers NXDOMAIN for them. The global servers below catch everything else,
-  # so public names still resolve when Unbound is down.
-  networking.nameservers = ["192.168.2.1" "1.1.1.1"];
+  # DNS. Unbound (192.168.2.145) is the only resolver. NetworkManager owns
+  # enp38s0 through the declarative profile below and hands its DNS to
+  # systemd-resolved; the homelab zones and "~." are routing domains on that
+  # link, so every query goes to Unbound. No global servers and no compiled-in
+  # FallbackDNS (Cloudflare/Google), so nothing can answer around Unbound: the
+  # router answers NXDOMAIN for the homelab names. When Unbound is down, DNS on
+  # wotan is down.
+  networking.nameservers = [];
+  services.resolved.settings.Resolve.FallbackDNS = [];
 
   # The wired LAN profile. An imperative profile used to set the router as
   # link DNS and took the router-advertised IPv6 DNS, and every reconnect
@@ -95,7 +97,7 @@ in {
       method = "manual";
       address1 = "192.168.2.71/24,192.168.2.1";
       dns = "192.168.2.145;";
-      dns-search = "~homelab.internal;~homelab.local;~2.168.192.in-addr.arpa;";
+      dns-search = "~homelab.internal;~homelab.local;~2.168.192.in-addr.arpa;~.;";
       ignore-auto-dns = true;
     };
     ipv6 = {
