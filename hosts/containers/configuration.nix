@@ -163,6 +163,8 @@
     # thing that proxies to it. RomM is a root-served SPA (no URL subpath
     # support), so it gets its own hostname. The Pocket ID OIDC callback is
     # https://romm.homelab.internal/api/oauth/openid.
+    # Disabled 2026-11-14 (see ./romm): the vhost is kept, so it proxies to a
+    # dead port and returns 502 until RomM is re-enabled.
     virtualHosts."romm.homelab.internal romm.homelab.local" = {
       extraConfig = ''
         tls {

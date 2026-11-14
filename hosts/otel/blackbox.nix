@@ -78,8 +78,9 @@
       # default, modules/multica-server.nix); verify=0 on 2026-10-20.
       "multica.homelab.internal"
       "pocketid.homelab.internal"
-      "romm.homelab.local"
-      "romm.homelab.internal"
+      # RomM is disabled (2026-11-14, infra/hosts/containers/romm): re-add
+      # "romm.homelab.local" and "romm.homelab.internal" here, and its
+      # http_2xx probe below, when it is re-enabled.
       "searxng.homelab.local"
       "searxng.homelab.internal"
     ];
@@ -206,10 +207,11 @@
         url = "https://searxng.homelab.internal";
         instance = "homelab-containers";
       }
-      {
-        url = "https://romm.homelab.internal";
-        instance = "homelab-containers";
-      }
+      # RomM's probe was removed on 2026-11-14 together with disabling the
+      # service (infra/hosts/containers/romm). A probe against a service that is
+      # deliberately off is a permanent ProbeFailed warning, not monitoring.
+      # Restore `https://romm.homelab.internal` here (and its certSubjects
+      # entries above) if it comes back.
       # Pocket ID (the OIDC provider for the fleet): /healthz is unauthenticated
       # and answers 204.
       {
@@ -360,7 +362,7 @@
       }
       # Keeps the actual probed URL visible as its own label. Several targets
       # above intentionally share one `instance` (e.g. every containers.* /
-      # searxng / romm probe is instance = "homelab-containers"), so this is
+      # searxng probe is instance = "homelab-containers"), so this is
       # the only thing left in an alert that says which URL failed -- see its
       # use in alerting.nix's ProbeFailed annotations.
       {

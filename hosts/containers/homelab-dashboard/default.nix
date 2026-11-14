@@ -111,10 +111,9 @@
           name = "Hindsight";
           url = "https://hindsight.homelab.internal/health";
         }
-        {
-          name = "RomM";
-          url = "https://romm.homelab.internal";
-        }
+        # RomM's health check was removed on 2026-11-14 together with
+        # disabling the service (hosts/containers/romm). Restore
+        # `https://romm.homelab.internal` if it comes back.
         {
           name = "Router";
           url = "http://192.168.2.1";

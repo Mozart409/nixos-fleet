@@ -62,9 +62,20 @@ in {
   # redis (persisted to /redis-data), so no separate redis container is needed.
   # Binds 127.0.0.1:8095 -> 8080; Caddy (see ../configuration.nix) is the only
   # thing that proxies to it, terminating step-ca TLS at romm.homelab.internal.
+  #
+  # DISABLED on 2026-11-14 but NOT removed: the container definition, image
+  # pin, secrets, state dirs and Caddy vhost all stay in place. `autoStart =
+  # false` drops the unit's multi-user.target dependency, which does NOT stop
+  # an already-running container -- after deploying run once:
+  #   sudo systemctl stop podman-romm
+  # Re-enable by setting `autoStart = true` again (it comes back at the next
+  # boot, or immediately with `systemctl start podman-romm`) and restoring the
+  # probes/health check noted in hosts/otel/blackbox.nix and
+  # hosts/containers/homelab-dashboard/default.nix. While disabled the Caddy
+  # vhost proxies to a dead port and returns 502.
   virtualisation.oci-containers.containers.romm = {
     image = "ghcr.io/rommapp/romm:5.3";
-    autoStart = true;
+    autoStart = false;
     # Set SSL_CERT_FILE here, not in `environment`: the image's entrypoint turns
     # every *_FILE variable into one holding the file's contents, and the CA
     # bundle is too large for one (every later exec fails, "Argument list too
