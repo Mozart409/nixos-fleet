@@ -188,6 +188,13 @@
         CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
       };
     };
+    # Local browser automation; same server as Claude's managed-mcp.json
+    # (modules/wotan/claude-code.nix).
+    playwright = {
+      type = "local";
+      command = [(lib.getExe pkgs.playwright-mcp) "--headless"];
+      enabled = true;
+    };
   };
 in {
   options.opencode = {

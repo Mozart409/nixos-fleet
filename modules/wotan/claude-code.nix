@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
   options.programs.claudeCodeMcp.enable =
@@ -33,6 +34,13 @@
           type = "http";
           url = "https://axon.int.oyabu.cc/mcp";
           headers.Authorization = "Bearer \${VENTARA_GATEWAY_TOKEN}";
+        };
+        # Local browser automation. nixpkgs' wrapper pins Chromium from
+        # playwright-driver.browsers and runs isolated (no persistent profile).
+        playwright = {
+          type = "stdio";
+          command = lib.getExe pkgs.playwright-mcp;
+          args = ["--headless"];
         };
       };
     };
