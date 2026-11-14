@@ -162,7 +162,8 @@ The `just iac-*` recipes run inside `infra/iac` for you.
 3.  **Verification**:
     -   `just fmt` is the required check (see below); `just nixos-check` is
         optional, not a default step after every Nix edit.
-    -   For extensive changes, try a dry-run build (`just nixos-test <host>`).
+    -   For extensive changes, a dry-run build (`just nixos-test <host>`) is the
+        user's call: run it only when asked, not automatically.
     -   **`just nixos-check` does NOT gate the colmena deploy.** It only checks
         `nixosConfigurations`, which use `mkHost` — and `mkHost` omits the
         home-manager/nixvim layer (see flake.nix). `colmenaHive` isn't a standard
@@ -170,11 +171,12 @@ The `just iac-*` recipes run inside `infra/iac` for you.
         flake output 'colmenaHive'`). It is also mostly an *eval* gate, so
         build-phase failures (e.g. a failing patchPhase) slip through. A green
         `nixos-check` can therefore still fail `colmena apply` on every node.
-    -   **Before committing/deploying any change to flake inputs or the
-        home-manager/nixvim layer, build the hive:** `just colmena-build` (all
-        nodes) or `just colmena-build-host <host>` (one node is enough —
-        `home-manager-path` is shared across all nodes). This is the only gate
-        that exercises the layer `colmena apply` actually builds.
+    -   **When the user asks for a build** before committing/deploying a change
+        to flake inputs or the home-manager/nixvim layer, build the hive:
+        `just colmena-build` (all nodes) or `just colmena-build-host <host>`
+        (one node is enough — `home-manager-path` is shared across all nodes).
+        This is the only gate that exercises the layer `colmena apply` actually
+        builds.
 
 4.  **Formatting**:
     -   Always run `just fmt` before finishing a task involving Nix files.
@@ -321,7 +323,8 @@ When adding a new host to the homelab, ensure the following are updated:
    change is only picked up once the connection drops or prometheus restarts.
    The one job kept on a raw IP is `dns-node` (`hosts.hosts.dns.ip`), so the
    resolver host stays observable when unbound is down.
-6. **Git**: Stage new files with `git add` before evaluating the host
+6. **Git**: Stage new files with `git add`. When the user asks for an eval,
+   evaluate only the host
    (`nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`;
    never a bare `nix flake check`)
 
