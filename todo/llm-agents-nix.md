@@ -29,7 +29,7 @@ track upstream releases within hours.
 
 - [ ] **Consider their `opencode2` for our harness.** It ships the prebuilt
   npm/Bun binary (2.2.6, rpath-patched) instead of nixpkgs' `node_modules`
-  build, so switching would retire `overlays.opencode` (the `prx9…` hash
-  workaround and its "Temporary workarounds" row) and take `pi`/`claude-code`
+  build, so switching would avoid stale `node_modules` hashes (the
+  `overlays.opencode` workaround, retired 2026-11-15) and take `pi`/`claude-code`
   from the same input. Needs a decision on binary vs source packaging first,
   then a build.
