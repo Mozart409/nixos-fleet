@@ -87,6 +87,15 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   allowlist, so for those the unit sandbox is the OS-level boundary. A tool that
   writes elsewhere under the agent's home fails there with a read-only error; add
   its path to the wrapper.
+- **opencode agent lineup (2026-11-15):** `modules/home/packages/opencode.nix`
+  pins the agent models — GLM-5.3 supervises (`build` default, `plan`,
+  `general`, and the read-only `review` subagent), DeepSeek V4.1 Flash does the
+  high-volume work (`implement`/`docs` subagents, `explore`, and the hidden
+  `title`/`summary`). New sessions start on GLM-5.3; background compaction
+  (experimental) starts the summary ~60k before the ~300k-token threshold and
+  keeps 20k of recent context. Thinking is hidden in the TUI. Verify what is
+  live with `opencode debug agents` / `opencode debug config` from your own
+  shell — the sandboxed agent shell cannot run them (read-only log dir).
 - **State lives in `/home/agent`:** `~/.claude`, `~/.claude.json`,
   `~/.config/opencode`, `~/.local/share/opencode`. A Claude permission rule for
   a file in the repo needs the absolute form (`Read(//home/amadeus/code/…)`):

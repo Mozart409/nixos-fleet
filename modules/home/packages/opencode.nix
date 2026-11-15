@@ -196,12 +196,34 @@
       enabled = true;
     };
   };
+
+  # The agent/model lineup (2026-11-15): GLM-5.3 supervises (default agent,
+  # planning, research, review), DeepSeek V4.1 Flash does the high-volume
+  # work (implementation, docs, code search, session metadata). IDs are the
+  # `opencode` (Zen) provider, verified against models.dev. `compaction`
+  # stays unpinned — it inherits the session model, and its summary quality
+  # drives long sessions.
+  supervisorModel = "opencode/glm-5.3";
+  workerModel = "opencode/deepseek-v4.1-flash";
+
+  # Model pins for the built-in agents (same-ID overrides). Overriding
+  # `build` in place keeps its built-in prompt; the supervisor role comes
+  # from the model pin plus the subagent lineup below, not a rewritten
+  # system prompt.
+  agentModels = {
+    build.model = supervisorModel;
+    plan.model = supervisorModel;
+    general.model = supervisorModel;
+    explore.model = workerModel;
+    title.model = workerModel;
+    summary.model = workerModel;
+  };
 in {
   options.opencode = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Enable opencode custom commands configuration";
+      description = "Enable the opencode harness config: MCP servers, TUI settings, custom commands, and the agent/model lineup (GLM-5.3 supervisor, DeepSeek V4.1 Flash workers)";
     };
 
     commandsDir = lib.mkOption {
@@ -252,15 +274,40 @@ in {
         "const DENY = ${builtins.toJSON floorShell};\n" + builtins.readFile ./opencode-deny-floor.js;
     })
 
-    # One opencode.json: the permission rules (guardrails) and the MCP servers.
-    # v2 reads only opencode.json(c), so a config.json would be ignored.
+    # One opencode.json: the permission rules (guardrails), the MCP servers,
+    # and (with opencode.enable) the agent/model lineup, compaction and
+    # experimental settings. v2 reads only opencode.json(c), so a config.json
+    # would be ignored.
     (lib.mkIf (config.opencode.enable || config.opencode.guardrails.enable) {
       home.file.".config/opencode/opencode.json" = {
         force = true;
         text = builtins.toJSON (
           {"$schema" = "https://opencode.ai/config.json";}
           // lib.optionalAttrs config.opencode.guardrails.enable {inherit permissions;}
-          // lib.optionalAttrs config.opencode.enable {inherit mcp;}
+          // lib.optionalAttrs config.opencode.enable {
+            inherit mcp;
+            # New sessions start on the supervisor's model (existing sessions
+            # keep their stored one); build stays the default agent.
+            model = supervisorModel;
+            default_agent = "build";
+            agents = agentModels;
+            # The binary is Nix-managed; self-updates can never land.
+            update = "disable";
+            # Compact once the conversation reaches ~300k of the 1M-token
+            # windows the lineup uses (buffer = the share of the window kept
+            # free), keeping 20k of exact recent context beside the summary.
+            compaction = {
+              keep.tokens = 20000;
+              buffer = "70%";
+            };
+            experimental = {
+              # Write the compaction summary ahead of time so compaction does
+              # not pause the session (experimental).
+              background_compaction = true;
+              # todowrite tool for multi-step delegation tracking.
+              todo = true;
+            };
+          }
         );
       };
     })
@@ -277,9 +324,16 @@ in {
           session = {
             sidebar = "auto";
             scrollbar = false;
-            thinking = "show";
+            # The model still reasons; the transcript just does not render it.
+            thinking = "hide";
             tps = true;
           };
+          # Match the hidden thinking in the mini interface, and ping the
+          # desktop when a turn finishes while the terminal is unfocused (a
+          # silent no-op if the agent confinement hides the notification
+          # daemon's session socket — herdr's state panel still shows work).
+          mini.thinking = "hide";
+          attention.notifications = true;
           debug.turn_tokens = true;
           animations = true;
           # No tab strip: tabs were persisted and reopened (plus a new one) on
@@ -287,6 +341,61 @@ in {
           tabs.mode = "off";
         };
       };
+
+      # The custom subagents of the supervisor lineup (V2 markdown agents:
+      # YAML frontmatter, body = the system prompt). Global, so every project
+      # gets them; each project's own AGENTS.md chain still provides the
+      # project context on top.
+      home.file.".config/opencode/agents/implement.md".text = ''
+        ---
+        description: Implements well-specified coding tasks — edits, new code, tests
+        mode: subagent
+        model: opencode/deepseek-v4.1-flash
+        ---
+
+        You are the implementation worker. The supervising agent handed you a task with its context and specification; land exactly that.
+
+        - Read the AGENTS.md of the repo and of the directory you are changing first, and follow its conventions, tooling and commands.
+        - Make the smallest change that satisfies the task. Do not refactor, rename or fix unrelated code.
+        - Verify your work with the project's own formatter and checks (just, alejandra, cargo, node, ...) where available, and report what you ran and what it said.
+        - Do not commit or push, and never read or change secrets — agenix-encrypted files, environment or credential files. If the task needs either, stop and report back instead.
+        - End with a short report: files changed, verification done, anything left open.
+      '';
+
+      home.file.".config/opencode/agents/docs.md".text = ''
+        ---
+        description: Writes and updates documentation — READMEs, AGENTS.md, guides
+        mode: subagent
+        model: opencode/deepseek-v4.1-flash
+        ---
+
+        You are the documentation writer.
+
+        - Match the structure, tone and formatting of the docs that already surround your change; follow the repo's AGENTS.md conventions.
+        - Write for a reader who arrives cold: what the thing is, where it lives, how to run it, and what bites.
+        - Keep every claim verifiable: point at real files, commands and paths rather than paraphrasing them.
+        - Touch only what the docs task needs (documents, doc comments, examples); do not commit or push, and never read or change secrets.
+        - End with a short report of every file created or edited.
+      '';
+
+      home.file.".config/opencode/agents/review.md".text = ''
+        ---
+        description: Read-only review of a diff, branch or the current changes
+        mode: subagent
+        model: opencode/glm-5.3
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+        ---
+
+        You are the reviewer. Review the changes you were given (diff, branch or working tree) for correctness, security, performance and maintainability.
+
+        - Read-only: never edit files or run state-changing commands. Read-only shell (git diff/log/show, rg, ls) and cheap checks and tests are fine.
+        - Judge the change against the repo's own conventions (its AGENTS.md), not generic taste.
+        - Report findings in severity order with file and line references; say what is wrong, why, and what to do instead.
+        - End with a verdict: ship, or fix these first.
+      '';
 
       home.file."${config.opencode.commandsDir}/cc.md" = {
         text = ''
