@@ -3,7 +3,9 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  dashboard = "https://dashboard.homelab.internal";
+in {
   config = lib.mkIf config.desktop.enable {
     # System services for user experience
     services = {
@@ -78,8 +80,12 @@
       PasswordManagerEnabled = false;
       AutofillAddressEnabled = true;
       AutofillCreditCardEnabled = false;
-      # Startup: New Tab Page only (not "continue where you left off").
-      RestoreOnStartup = 5;
+      # Startup, new tab and home button all open the homelab dashboard.
+      RestoreOnStartup = 4;
+      RestoreOnStartupURLs = [dashboard];
+      NewTabPageLocation = dashboard;
+      HomepageLocation = dashboard;
+      HomepageIsNewTabPage = false;
       # Spellcheck German and English; forced on, cannot be disabled in the UI.
       SpellcheckEnabled = true;
       SpellcheckLanguage = ["de" "en-US"];
