@@ -345,13 +345,16 @@ in {
       # file; the TUI gets the same file through agent-run (serverPasswordFile).
       config.age.secrets.opencode-server-password.path
     ];
-    # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
-    credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
-    # Raw-value secret, for {env:OPENCODE_GO_API_KEY} in the agent's
-    # opencode.json (providers.opencode-go; modules/home/packages/opencode.nix).
-    credentialEnvironment = lib.optionalAttrs opencodeGoApiKey {
-      OPENCODE_GO_API_KEY = config.age.secrets.opencode-go-api-key.path;
-    };
+    credentialEnvironment =
+      {
+        # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
+        CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
+      }
+      // lib.optionalAttrs opencodeGoApiKey {
+        # Raw-value secret, for {env:OPENCODE_GO_API_KEY} in the agent's
+        # opencode.json (providers.opencode-go; modules/home/packages/opencode.nix).
+        OPENCODE_GO_API_KEY = config.age.secrets.opencode-go-api-key.path;
+      };
     readWritePaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
     # The bot signing key (not a login key anywhere), so the agents can sign
     # commits but can't authenticate/push. One ssh-agent per harness: opencode
