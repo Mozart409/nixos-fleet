@@ -12,6 +12,12 @@
   # false and llama-server runs without a key (a warning says so).
   llamaCppApiKey = builtins.pathExists ../../secrets/llama-cpp-api-key.age;
 
+  # The OpenCode Go API key (secrets/opencode-go-api-key.age): a raw OpenCode
+  # console key, which is what the Go provider authenticates with. Gated like
+  # llamaCppApiKey; `git add` the .age file or wotan evaluates without it and
+  # opencode-go falls back to whatever /connect left in the agent's auth store.
+  opencodeGoApiKey = builtins.pathExists ../../secrets/opencode-go-api-key.age;
+
   # The units the quickshell panel can switch on and off: the on-demand AI
   # services and the Minecraft server. One list for both halves: home-manager
   # renders the panel from it (desktop.quickshell.serviceToggles) and the polkit
@@ -341,6 +347,11 @@ in {
     ];
     # Raw-value secret (not KEY=value), for {env:CONTEXT7_API_KEY}.
     credentialEnvironment.CONTEXT7_API_KEY = config.age.secrets.context7-api-key.path;
+    # Raw-value secret, for {env:OPENCODE_GO_API_KEY} in the agent's
+    # opencode.json (providers.opencode-go; modules/home/packages/opencode.nix).
+    credentialEnvironment = lib.optionalAttrs opencodeGoApiKey {
+      OPENCODE_GO_API_KEY = config.age.secrets.opencode-go-api-key.path;
+    };
     readWritePaths = [config.wotan.agentUser.codeDir config.wotan.agentUser.home];
     # The bot signing key (not a login key anywhere), so the agents can sign
     # commits but can't authenticate/push. One ssh-agent per harness: opencode
@@ -401,12 +412,15 @@ in {
     # The secrets in environmentFiles/credentialEnvironment are read once at
     # start from stable /run/agenix paths, so a re-encrypted token left the
     # server on the old one (401 from axon-gateway). Restart on any change.
-    ++ map (s: builtins.hashFile "sha256" config.age.secrets.${s}.file) [
-      "axon-token-wotan"
-      "context7-api-key"
-      "opencode-server-password"
-      "ventara-gateway-env"
-    ];
+    ++ map (s: builtins.hashFile "sha256" config.age.secrets.${s}.file) (
+      [
+        "axon-token-wotan"
+        "context7-api-key"
+        "opencode-server-password"
+        "ventara-gateway-env"
+      ]
+      ++ lib.optionals opencodeGoApiKey ["opencode-go-api-key"]
+    );
 
   # Swap on zram — helps avoid OOM during large builds and LLM inference
   zramSwap = {
@@ -716,6 +730,14 @@ in {
   age.secrets.opencode-server-password = {
     file = ../../secrets/opencode-server-password.age;
     # Format inside the file: OPENCODE_SERVER_PASSWORD=xxxx
+  };
+
+  age.secrets.opencode-go-api-key = lib.mkIf opencodeGoApiKey {
+    file = ../../secrets/opencode-go-api-key.age;
+    # Owner-only: read (as root) by opencode-serve's LoadCredential.
+    mode = "400";
+    owner = username;
+    # Format inside the file: one raw OpenCode console API key line, no KEY= prefix.
   };
 
   age.secrets.ha-token = {

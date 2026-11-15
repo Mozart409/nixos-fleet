@@ -119,6 +119,7 @@ in {
   "nebula-mozart409-otel.age".publicKeys = [amadeus hostOtel]; # nebula host key (PEM); cert in modules/nebula/
   "nebula-mozart409-wotan.age".publicKeys = [amadeus hostWotan]; # nebula host key (PEM); cert in hosts/wotan/nebula/
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
+  "opencode-go-api-key.age".publicKeys = [amadeus hostWotan]; # raw OpenCode console API key (no KEY=); the agent's opencode-go provider reads it via {env:OPENCODE_GO_API_KEY}
   "opencode-server-password.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_SERVER_PASSWORD=...
   "otel-push-token.age".publicKeys = users; # bare token; every host's fluent-bit pushes to loki with it (write-only side)
   "otel-query-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel hostMcp]; # bare token; read side of the otel vhosts (prom/loki/tempo/alertmanager MCP servers)

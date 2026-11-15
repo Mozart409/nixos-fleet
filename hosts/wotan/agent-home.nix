@@ -1,6 +1,7 @@
 {
   osConfig,
   pkgs,
+  lib,
   ...
 }: {
   # home-manager for `agent`, the account Claude Code and opencode run as
@@ -17,6 +18,14 @@
   home.stateVersion = "24.11";
 
   opencode.enable = true;
+
+  # OpenCode Go authenticates with the raw Console API key
+  # (secrets/opencode-go-api-key.age); the server exports it as
+  # $OPENCODE_GO_API_KEY via services.opencode-serve.credentialEnvironment.
+  # Gated on the .age file, exactly like the host module does.
+  opencode.goApiKeyEnvironment = lib.mkIf (
+    builtins.pathExists ../../secrets/opencode-go-api-key.age
+  ) "OPENCODE_GO_API_KEY";
 
   # The context-mode Claude plugin runs its hooks and MCP server with node,
   # by absolute path: ~/.nix-profile/bin/node.

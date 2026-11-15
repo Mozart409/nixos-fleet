@@ -200,11 +200,12 @@
   # The agent/model lineup (2026-11-15): GLM-5.3 supervises (default agent,
   # planning, research, review), DeepSeek V4.1 Flash does the high-volume
   # work (implementation, docs, code search, session metadata). IDs are the
-  # `opencode` (Zen) provider, verified against models.dev. `compaction`
+  # `opencode-go` (OpenCode Go subscription) provider, verified against
+  # https://opencode.ai/docs/console/go/. `compaction`
   # stays unpinned — it inherits the session model, and its summary quality
   # drives long sessions.
-  supervisorModel = "opencode/glm-5.3";
-  workerModel = "opencode/deepseek-v4.1-flash";
+  supervisorModel = "opencode-go/glm-5.3";
+  workerModel = "opencode-go/deepseek-v4.1-flash";
 
   # Model pins for the built-in agents (same-ID overrides). Overriding
   # `build` in place keeps its built-in prompt; the supervisor role comes
@@ -236,6 +237,18 @@ in {
       type = lib.types.str;
       default = "${config.home.homeDirectory}/.config/opencode/reference";
       description = "Directory where opencode references are stored";
+    };
+
+    goApiKeyEnvironment = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Name of an environment variable the OpenCode server reads the
+        OpenCode Go API key from. When set, the generated config gets
+        providers.opencode-go.settings.apiKey = "{env:<NAME>}", so the Go
+        subscription authenticates declaratively (the variable comes from
+        services.opencode-serve.credentialEnvironment) instead of /connect.
+      '';
     };
 
     guardrails.enable = lib.mkOption {
@@ -286,6 +299,12 @@ in {
           // lib.optionalAttrs config.opencode.guardrails.enable {inherit permissions;}
           // lib.optionalAttrs config.opencode.enable {
             inherit mcp;
+            # OpenCode Go authenticates with the Console API key; the agent's
+            # server gets it as $OPENCODE_GO_API_KEY (services.opencode-serve.
+            # credentialEnvironment) instead of a /connect entry in auth.json.
+            providers = lib.optionalAttrs (config.opencode.goApiKeyEnvironment != null) {
+              "opencode-go".settings.apiKey = "{env:${config.opencode.goApiKeyEnvironment}}";
+            };
             # New sessions start on the supervisor's model (existing sessions
             # keep their stored one); build stays the default agent.
             model = supervisorModel;
@@ -350,7 +369,7 @@ in {
         ---
         description: Implements well-specified coding tasks — edits, new code, tests
         mode: subagent
-        model: opencode/deepseek-v4.1-flash
+        model: opencode-go/deepseek-v4.1-flash
         ---
 
         You are the implementation worker. The supervising agent handed you a task with its context and specification; land exactly that.
@@ -366,7 +385,7 @@ in {
         ---
         description: Writes and updates documentation — READMEs, AGENTS.md, guides
         mode: subagent
-        model: opencode/deepseek-v4.1-flash
+        model: opencode-go/deepseek-v4.1-flash
         ---
 
         You are the documentation writer.
@@ -382,7 +401,7 @@ in {
         ---
         description: Read-only review of a diff, branch or the current changes
         mode: subagent
-        model: opencode/glm-5.3
+        model: opencode-go/glm-5.3
         permissions:
           - action: edit
             resource: "*"
