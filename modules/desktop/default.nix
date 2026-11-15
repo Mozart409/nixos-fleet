@@ -57,6 +57,9 @@
         cheese
         v4l-utils
 
+        # Audio
+        pipewire.jack # pw-jack <app> for JACK clients
+
         # Tablet tools
         opentabletdriver
 
@@ -120,7 +123,6 @@
         alsa.enable = true;
         alsa.support32Bit = true;
         pulse.enable = true;
-        jack.enable = true;
         wireplumber = {
           enable = true;
           extraConfig = {
