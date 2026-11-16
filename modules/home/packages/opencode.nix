@@ -197,15 +197,17 @@
     };
   };
 
-  # The agent/model lineup (2026-11-15): GLM-5.3 supervises (default agent,
-  # planning, research, review), DeepSeek V4.1 Flash does the high-volume
-  # work (implementation, docs, code search, session metadata). IDs are the
-  # `opencode-go` (OpenCode Go subscription) provider, verified against
-  # https://opencode.ai/docs/console/go/. `compaction`
+  # The agent/model lineup (2026-11-16): GLM-5.3 supervises (default agent,
+  # planning, research, review), big-pickle (the `opencode` provider)
+  # implements, GLM-5.3 Flash does the rest of the high-volume work (docs,
+  # code search, session metadata). No DeepSeek anywhere in the lineup. IDs
+  # are verified against https://opencode.ai/docs/console/go/; big-pickle is
+  # not on Go, so it needs its own `opencode` credential in auth.json (the
+  # env key below only covers `opencode-go`). `compaction`
   # stays unpinned — it inherits the session model, and its summary quality
   # drives long sessions.
   supervisorModel = "opencode-go/glm-5.3";
-  workerModel = "opencode-go/deepseek-v4.1-flash";
+  workerModel = "opencode-go/glm-5.3-flash";
 
   # Model pins for the built-in agents (same-ID overrides). Overriding
   # `build` in place keeps its built-in prompt; the supervisor role comes
@@ -224,7 +226,7 @@ in {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Enable the opencode harness config: MCP servers, TUI settings, custom commands, and the agent/model lineup (GLM-5.3 supervisor, DeepSeek V4.1 Flash workers)";
+      description = "Enable the opencode harness config: MCP servers, TUI settings, custom commands, and the agent/model lineup (GLM-5.3 supervisor, GLM-5.3 Flash workers)";
     };
 
     commandsDir = lib.mkOption {
@@ -369,14 +371,14 @@ in {
         ---
         description: Implements well-specified coding tasks — edits, new code, tests
         mode: subagent
-        model: opencode-go/deepseek-v4.1-flash
+        model: opencode/big-pickle
         ---
 
         You are the implementation worker. The supervising agent handed you a task with its context and specification; land exactly that.
 
         - Read the AGENTS.md of the repo and of the directory you are changing first, and follow its conventions, tooling and commands.
         - Make the smallest change that satisfies the task. Do not refactor, rename or fix unrelated code.
-        - Verify your work with the project's own formatter and checks (just, alejandra, cargo, node, ...) where available, and report what you ran and what it said.
+        - Verify your work with the project's own checks (tests, linters, just recipes) where available, and report what you ran and what it said. Do not reformat code: the repo's hooks and formatters own formatting and run on their own.
         - Do not commit or push, and never read or change secrets — agenix-encrypted files, environment or credential files. If the task needs either, stop and report back instead.
         - End with a short report: files changed, verification done, anything left open.
       '';
@@ -385,7 +387,7 @@ in {
         ---
         description: Writes and updates documentation — READMEs, AGENTS.md, guides
         mode: subagent
-        model: opencode-go/deepseek-v4.1-flash
+        model: opencode-go/glm-5.3-flash
         ---
 
         You are the documentation writer.
