@@ -314,12 +314,12 @@ in {
             agents = agentModels;
             # The binary is Nix-managed; self-updates can never land.
             update = "disable";
-            # Compact once the conversation reaches ~300k of the 1M-token
+            # Compact once the conversation reaches ~400k of the 1M-token
             # windows the lineup uses (buffer = the share of the window kept
             # free), keeping 20k of exact recent context beside the summary.
             compaction = {
               keep.tokens = 20000;
-              buffer = "70%";
+              buffer = "60%";
             };
             experimental = {
               # Write the compaction summary ahead of time so compaction does
