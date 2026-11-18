@@ -29,7 +29,8 @@
 const REDACTED = "[REDACTED by secret-guard]";
 
 // Files whose *content* is a secret. Matched against any path-like string
-// the built-in file tools / bash receive.
+// the built-in file tools / bash receive -- except the content arguments of
+// edit/write, which are not file accesses (see CONTENT_TOOLS in the hook).
 const SECRET_PATH = new RegExp(
   [
     // dotenv family: .env, .env.local, .env.production, prod.env, ...
@@ -109,6 +110,9 @@ const SECRET_VALUE = [
 // Built-in tools that take paths / patterns. MCP tools are skipped on
 // purpose: a Loki/SQL query mentioning ".env" is not a file read.
 const FILE_TOOLS = new Set(["read", "edit", "write", "patch", "multiedit", "glob", "grep", "list", "ls"]);
+// edit / write also carry file *content*; those strings are not file
+// accesses and may legitimately mention secret-shaped names (see the hook).
+const CONTENT_TOOLS = new Set(["edit", "write"]);
 
 function strings(value, out = []) {
   if (typeof value === "string") out.push(value);
@@ -218,6 +222,17 @@ export default {
         const cmd = String(args.command ?? args.cmd ?? "");
         if (SECRET_CMD.test(cmd)) block(tool, "command reveals environment/secrets");
         if (isSecretPath(cmd)) block(tool, "command touches a secret file");
+        return;
+      }
+
+      // edit / write: only the path argument decides whether the call
+      // touches a secret file. Their other strings are file *content*, not
+      // accesses -- content legitimately mentions secret-shaped names: a
+      // comment, a config example, or this plugin's own rules. Without a
+      // path argument the call falls through to the full scan below, so an
+      // unexpected argument shape fails closed.
+      if (CONTENT_TOOLS.has(tool) && typeof args.path === "string") {
+        if (isSecretPath(args.path)) block(tool, `secret path ${JSON.stringify(args.path)}`);
         return;
       }
 
