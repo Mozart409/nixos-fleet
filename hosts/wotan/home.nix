@@ -97,13 +97,12 @@
       url = "https://ha.homelab.internal";
       # age.secrets.ha-token in default.nix: raw long-lived token, no KEY=.
       tokenFile = "/run/agenix/ha-token";
-      # Büro lights plus the kitchen. HA has no Büro area -- the Büro ones all
-      # sit under Living Room.
+      # Büro lights, the kitchen and the bathroom lightstrip. HA has no Büro
+      # area -- the Büro ones all sit under Living Room, the lightstrip in
+      # Restroom. Licht 5 (switch.tasmota_licht_5_*, Kommode Salzlampe 2)
+      # became unavailable and was replaced by the lightstrip on 2026-11-18.
       entities = [
-        {
-          id = "switch.tasmota_licht_5_tasmota_licht_5";
-          label = "Licht 5";
-        }
+        {id = "light.hue_lightstrip_plus_1";} # Bad: Hue lightstrip plus 1
         {id = "switch.tasmota_licht_ecke_licht_ecke";} # Couch Tisch
         {id = "switch.tasmota_licht_ecke_licht_ecke_2";} # Arbeitsecke
         {id = "switch.tasmota_licht_kuche_tasmota_licht_kuche";} # Küche
