@@ -52,6 +52,12 @@
   # Periodic TRIM for SSD longevity
   services.fstrim.enable = true;
 
+  # The fleet caps journald at 50M in modules/server.nix, which wotan must
+  # never import (sshd assertion), so the cap never reached this host and
+  # the journal grew to 4 GB. Match the fleet's cap; restart journald once
+  # after switching to vacuum the backlog down to it.
+  services.journald.settings.Journal.SystemMaxUse = "50M";
+
   # AppImage support
   programs.appimage = {
     enable = true;

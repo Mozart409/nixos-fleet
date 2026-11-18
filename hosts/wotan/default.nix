@@ -251,7 +251,10 @@ in {
   environment.systemPackages = with pkgs; [
     steam
     heroic
-    prismlauncher
+    # Bundle only Java 21 (NeoForge 1.21.1 / MC 1.20.5+). The default jdks
+    # set (8, 17, 21, 25) adds ~1.8 GiB to the system closure; an older
+    # instance can get its runtime via `nix shell nixpkgs#jdk17`.
+    (prismlauncher.override {jdks = [jdk21];})
     mangohud
     bcachefs-tools
   ];

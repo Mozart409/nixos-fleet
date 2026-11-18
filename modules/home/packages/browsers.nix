@@ -16,7 +16,6 @@ in {
     ++ (with pkgs; [
       # keep-sorted start
       chromium
-      ladybird
       tor-browser
       # keep-sorted end
     ]);

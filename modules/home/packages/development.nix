@@ -7,8 +7,6 @@
   home.packages = with pkgs; [
     # keep-sorted start
     bacon
-    bruno
-    bruno-cli
     btop
     bun
     cargo-binstall

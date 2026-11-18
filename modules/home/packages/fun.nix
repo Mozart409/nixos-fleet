@@ -6,7 +6,6 @@
 }: {
   home.packages = with pkgs; [
     # keep-sorted start
-    anki-bin
     kdePackages.kwallet-pam
     llmfit
     mesen
