@@ -11,7 +11,8 @@
 #   2. main is checked out, matches origin/main, and nothing under the prefix
 #      is modified or staged;
 #   3. there is at least one releasable commit since the last release;
-#   4. cargo set-version, a lockfile refresh and `cargo check` succeed;
+#   4. cargo set-version, a lockfile refresh, `cargo check` and the sync of
+#      any Helm chart's version/appVersion under the prefix succeed;
 #   5. the commit holds the bumped version and the new CHANGELOG heading.
 #
 # Usage: release-bump.sh <name> <version>            e.g. hofvarpnir 0.18.2
@@ -141,6 +142,21 @@ if [[ -n $manifest ]]; then
     jq -r --arg p "$package" '.packages[] | select(.name == $p) | .version')
   [[ $got == "$version" ]] || die "$package is at $got after set-version, expected $version"
   ok "bumped $package to $version, Cargo.lock refreshed, cargo check passed"
+fi
+
+step='helm chart'
+# The chart's version and appVersion track the release (image.tag defaults to
+# appVersion), like cog's pre_bump_hooks would do in a standalone clone.
+shopt -s nullglob
+charts=("$prefix"/deploy/helm/*/Chart.yaml)
+shopt -u nullglob
+if ((${#charts[@]})); then
+  for chart in "${charts[@]}"; do
+    sed -i -e "s/^version: .*/version: $version/" -e "s/^appVersion: .*/appVersion: \"$version\"/" "$chart"
+    grep -q "^version: $version\$" "$chart" || die "failed to set the chart version in $chart"
+    grep -q "^appVersion: \"$version\"\$" "$chart" || die "failed to set appVersion in $chart"
+    ok "bumped $chart to $version"
+  done
 fi
 
 step='commit'
