@@ -51,6 +51,10 @@
     "Bash(wget *.homelab.internal*)"
     "Bash(wget *localhost*)"
     "Bash(wget *127.0.0.1*)"
+    # sed (mostly `sed -i`): touches the same workspace files the edit tool
+    # already writes; the deny floor, secret-guard and the agent account with
+    # its bubblewrap sandbox still bound it (deny beats allow).
+    "Bash(sed *)"
     "WebSearch"
     # Homelab gateway (managed-mcp.json); pg*_run_query is read-only.
     "mcp__axon-gateway"
