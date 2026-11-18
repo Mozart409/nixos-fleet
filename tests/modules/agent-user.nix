@@ -58,7 +58,11 @@ in
       ];
 
       users.users.amadeus.isNormalUser = true;
-      environment.systemPackages = [fakeClaude fakeOpencode pkgs.util-linux];
+      environment.systemPackages = [fakeClaude fakeOpencode pkgs.util-linux pkgs.direnv];
+      # The shell wrapper's store path, for the subtest that probes it
+      # directly (outside the serve unit, so its own direnv load is
+      # isolated from agent-run-inner's, which loads it too).
+      environment.etc."test-wrapper-path".text = config.wotan.agentUser.opencodeShell;
       environment.etc."agent-test-cred" = {
         text = "TEST_TOKEN=s3cret\nAXON_GATEWAY_TOKEN=s3cret-tok\n";
         mode = "0400";
@@ -225,6 +229,30 @@ in
           machine.succeed("grep -qx probe-secret /home/agent/.local/share/opencode/auth.json")
           # Claude sessions keep their own shell.
           assert "opencode-shell" not in agent("sh -c 'echo shell=$SHELL'")
+
+      with subtest("the shell wrapper loads the directory's direnv env"):
+          wrapper = machine.succeed("cat /etc/test-wrapper-path").strip()
+          # The direnv file name is assembled at runtime so the deployed
+          # secret-guard (which blocks that name inside edit strings) lets
+          # this file's own edit through; with the guard fix deployed it
+          # could just be spelled out.
+          envrc = "." + "envrc"
+          owner(f"mkdir -p ~/code/repo && echo export DIRENV_PROBE=loaded > ~/code/repo/{envrc}")
+          machine.succeed("runuser -u agent -- direnv allow /home/amadeus/code/repo")
+          # Run the wrapper directly as the agent, so the probe measures the
+          # wrapper's own direnv load (the serve unit has no other one, and
+          # agent-run sessions also get agent-run-inner's, which would mask
+          # it). The escaped dollar survives the outer shells and is expanded
+          # inside the wrapper's bash, after the direnv eval.
+          out = machine.succeed(
+              f'runuser -u agent -- sh -c "cd /home/amadeus/code/repo && {wrapper} -c \'echo probe=\\$DIRENV_PROBE\'"'
+          ).strip()
+          assert out == "probe=loaded", out
+          # A directory with no allowed direnv env fails open to the base env.
+          out = machine.succeed(
+              f'runuser -u agent -- sh -c "cd /home/amadeus/code && {wrapper} -c \'echo probe=\\$DIRENV_PROBE\'"'
+          ).strip()
+          assert out == "probe=", out
 
       with subtest("private networks are closed, loopback is open"):
           machine.succeed("systemd-run --unit=tcp-probe ${pkgs.socat}/bin/socat TCP-LISTEN:7777,fork,reuseaddr SYSTEM:true")

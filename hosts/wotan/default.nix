@@ -322,9 +322,11 @@ in {
   # opencode headless server — persistent background service so every new
   # opencode session attaches to the same server instead of spawning a new one.
   # A zsh function in configs/shell.nix (`opencode` → `opencode --server
-  # $OPENCODE_SERVER_URL "$PWD"`) makes this transparent. Commands run
-  # in the server's environment, not the attaching shell's: devshell/direnv
-  # tools are only available via `nix develop -c ...`.
+  # $OPENCODE_SERVER_URL "$PWD"`) makes this transparent. Commands run in
+  # the server's environment, not the attaching shell's -- so the shell
+  # wrapper itself loads the working directory's direnv environment
+  # (opencodeShell in agent-user.nix), and repo dev shells with their hooks
+  # work from every opencode session without `nix develop -c`.
   services.opencode-serve = {
     enable = true;
     hostname = "127.0.0.1";

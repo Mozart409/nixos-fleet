@@ -83,6 +83,9 @@
   # ProtectKernelTunables masks it, so no PID namespace: the server's
   # environment stays readable through /proc. Only paths that exist are
   # masked, as bwrap would create the missing ones in the real filesystem.
+  # The one non-confining step is the direnv load below: it puts shell
+  # commands into the repo's dev shell, as agent-run-inner does for the
+  # interactive harnesses.
   opencodeShell = pkgs.writeShellScript "opencode-shell" ''
     set -eu
     mask=()
@@ -97,6 +100,17 @@
       mask+=(--tmpfs "$CREDENTIALS_DIRECTORY")
     fi
     ${pkgs.coreutils}/bin/mkdir -p ${cfg.home}/.cache
+    # The one non-confining thing the wrapper does. Shell commands run in
+    # the server's (or session's) environment, which otherwise never sees a
+    # repo's dev shell -- so the repo hooks (lefthook: cog, keep-sorted,
+    # gitleaks, alejandra) fail from every opencode session, and the agent
+    # ends up working around them with `nix develop -c`. Same expression as
+    # agent-run-inner. nix-direnv caches the export under ~/.cache/direnv,
+    # so after the first load per repo (or flake.lock change) this costs a
+    # few ms per command. Fails open: a blocked, missing or broken direnv
+    # environment leaves the base PATH. bwrap passes the environment
+    # through, so the exports reach the command inside the sandbox.
+    eval "$(direnv export bash 2>/dev/null)" || true
     exec ${pkgs.bubblewrap}/bin/bwrap \
       --ro-bind / / \
       --dev /dev \
