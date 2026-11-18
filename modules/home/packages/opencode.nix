@@ -36,6 +36,10 @@
   rule = action: effect: resource: {inherit action resource effect;};
   rules = action: effect: map (rule action effect);
 
+  # Pure reads. Deliberately no command executors: `bash`, `sh`, `env`,
+  # `xargs`, `timeout`, `find -exec`, `sed e`/`awk system()` take a command
+  # line or a script and would re-open the deny list (same rule as Claude's
+  # allow list; see infra/AGENTS.md).
   readOnlyShell = [
     "cd *"
     "ls *"
@@ -45,16 +49,36 @@
     "wc *"
     "pwd"
     "which *"
+    "command -v *"
+    "type *"
     "file *"
     "stat *"
+    "readlink *"
+    "realpath *"
+    "basename *"
+    "dirname *"
     "rg *"
     "grep *"
     "tree *"
     "echo *"
+    "printf *"
     "sort *"
     "uniq *"
     "cut *"
+    "tr *"
+    "seq *"
+    "diff *"
+    "jq *"
+    "du *"
+    "df *"
+    "whoami"
+    "id"
+    "uname *"
+    "hostname"
+    "sha256sum *"
+    "md5sum *"
     "true"
+    "false"
     "date *"
   ];
 
