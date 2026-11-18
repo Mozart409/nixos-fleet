@@ -18,6 +18,13 @@
     "Bash(nixos-rebuild dry-build*)"
     "Bash(just *)"
     "Bash(alejandra *)"
+    # Rust toolchain: cargo's subcommands (build/check/clippy/fmt/test) are
+    # each project's CI. Same rationale as nix above -- it is the toolchain,
+    # the account is the boundary. nix develop stays off this list on
+    # purpose (`-c` re-grants a whole command line, like bash -c), and with
+    # the direnv load in opencode's shell wrapper it is not needed for
+    # toolchain access either: run cargo directly from the repo root.
+    "Bash(cargo *)"
     # git: local, non-destructive subcommands only; everything else asks.
     "Bash(git status*)"
     "Bash(git diff*)"
