@@ -115,7 +115,13 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   the agents can sign but cannot read the key. Claude gets its socket and
   `GIT_CONFIG_*` from `modules/home/packages/claude.nix`, opencode from its
   unit.
-- **Gone for the agents:** clipboard and image paste, opening a browser,
+- **Image paste:** `modules/wotan/agent-clipboard.nix` bridges image clipboard
+  contents only, through amadeus's socket-activated `agent-clipboard.socket`
+  user unit at `/run/agent-clipboard/sock` (dir 0710 `amadeus:agent`); the
+  agent's `wl-paste` shim refuses text. It is active after `just switch-wotan`,
+  possibly once the user session restarts the socket unit
+  (`systemctl --user start agent-clipboard.socket`).
+- **Gone for the agents:** opening a browser,
   `sops exec-env`/gpg, podman, and pushing over SSH (they never pushed from
   wotan anyway).
 - **Tests:** `nix build .#nixosTests.x86_64-linux.agent-user`

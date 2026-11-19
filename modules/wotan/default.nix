@@ -10,10 +10,12 @@
   #   programs.claudeCodeMcp.enable   -> claude-code.nix
   #   services.opencode-serve.enable  -> opencode-serve.nix
   #   wotan.agentUser.enable          -> agent-user.nix
+  #   wotan.agentUser.enable          -> agent-clipboard.nix
   #   wotan.minecraft.enable          -> minecraft.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
+    ./agent-clipboard.nix
     ./agent-user.nix
     ./common-packages.nix
     ./claude-code.nix
