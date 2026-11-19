@@ -78,7 +78,8 @@
                 # No `discard`: continuous discard on a zvol issues a TRIM per
                 # extent free, which is exactly the small-IO pattern this layout
                 # exists to avoid. services.fstrim below batches it weekly instead.
-                mountOptions = ["noatime"];
+                # A slow zvol (disk reset, PBS backup) must not fail the boot at systemd's 90 s default.
+                mountOptions = ["noatime" "x-systemd.mount-timeout=5min"];
               };
             };
           };

@@ -224,9 +224,15 @@
   #   * systemd pets the i6300esb watchdog (iac/main.tf, `watchdog` block) so a
   #     guest that hangs without panicking is reset by QEMU after 30 s. On a VM
   #     without that device systemd only logs that it found no watchdog.
+  #   * boot.panic_on_fail: the initrd falls into emergency mode when it cannot
+  #     mount the root, and with root locked that is a "Press Enter" prompt
+  #     that waits forever while Proxmox sees a running VM (mcp, 2026-11-19,
+  #     down 14 h). nixpkgs' initrd panic-on-fail unit then panics instead,
+  #     and panic=10 reboots.
   boot.kernelParams = [
     "console=ttyS0,115200"
     "console=tty0"
+    "boot.panic_on_fail"
     "panic=10"
     "softlockup_panic=1"
     "hung_task_panic=1"

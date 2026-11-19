@@ -35,7 +35,8 @@
                 subvolumes = {
                   "/root" = {
                     mountpoint = "/";
-                    mountOptions = ["compress=zstd" "noatime"];
+                    # A slow zvol (disk reset, PBS backup) must not fail the boot at systemd's 90 s default.
+                    mountOptions = ["compress=zstd" "noatime" "x-systemd.mount-timeout=5min"];
                   };
                   "/home" = {
                     mountpoint = "/home";
