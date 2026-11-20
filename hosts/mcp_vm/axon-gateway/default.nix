@@ -42,7 +42,7 @@
   gatewayPort = 8100;
 
   # A published release tag of the image (the gateway runs in database mode).
-  axonImage = "ghcr.io/mozart409/axon-gateway:v0.8.0";
+  axonImage = "ghcr.io/mozart409/axon-gateway:v0.8.1";
 
   # Public client id of the Pocket ID OIDC client for the gateway (redirect URI
   # https://axon.homelab.internal/auth/callback). Not a secret; its secret is
