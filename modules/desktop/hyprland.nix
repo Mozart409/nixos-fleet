@@ -28,6 +28,7 @@
       hyprshot
       slurp
       grim
+      wf-recorder
       wl-clipboard
       cliphist
       playerctl
