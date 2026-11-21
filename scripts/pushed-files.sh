@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# The files a push changes, for the pre-push gates (eval-touched-hosts.sh,
-# rust-ci-touched.sh). Reads git's pre-push refs on stdin and prints each
-# changed path once.
+# The files a push changes, for the pre-push gates (eval-touched-hosts.sh, and
+# the rust-gate and deny jobs through lefthook's `files:`). Reads git's
+# pre-push refs on stdin and prints each changed path once.
 #
 # Usage: pushed-files.sh < <git pre-push stdin>
 #        pushed-files.sh --save           (save git's refs, print nothing)

@@ -114,7 +114,7 @@ done
 # Publishes the exports.toml prefixes (infra/ and the public Rust projects) to
 # their GitHub repos. The monorepo itself has no GitHub remote: adding one
 # would push the vault through the loop above. Only after Forgejo took the
-# push: its pre-push gate (rust-ci, host-eval) is what checks these commits,
+# push: its pre-push gate (rust-gate, host-eval) is what checks these commits,
 # and the export's own pushes see split paths that gate does not map.
 echo ''
 echo 'Exporting public subtrees to GitHub'
