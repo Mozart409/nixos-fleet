@@ -295,7 +295,20 @@ in {
       # view itself lives in the `postgres` database, where the exporter
       # connects; see postgresql-pg-stat-statements. Changing
       # shared_preload_libraries needs a server restart, not a reload.
-      shared_preload_libraries = "pg_stat_statements";
+      shared_preload_libraries = "pg_stat_statements,auto_explain";
+
+      # auto_explain: log the plan of every statement that crosses the same 1s
+      # line as log_min_duration_statement, with row counts, buffer and WAL
+      # use, so a slow line says WHY (cold reads, a seq scan, WAL volume)
+      # rather than only that it was slow. log_analyze instruments every
+      # statement; log_timing = false drops the per-node clock calls, which
+      # are the expensive part, and keeps the overhead small at this load.
+      # Like pg_stat_statements it is loaded at start: a restart, not a reload.
+      "auto_explain.log_min_duration" = "1s";
+      "auto_explain.log_analyze" = true;
+      "auto_explain.log_timing" = false;
+      "auto_explain.log_buffers" = true;
+      "auto_explain.log_wal" = true;
 
       # Session hardening. Only settings that target a PATHOLOGY belong at
       # cluster scope -- anything here applies to pg_dump, the prometheus
@@ -792,6 +805,57 @@ in {
     ];
   };
 
+  # Per-table stats (pg_stat_user_tables, pg_statio_user_tables) for every
+  # application database. The exporter above connects to `postgres` only, and
+  # its table collectors see only the database they are connected to, so
+  # multica/pocketid/hindsight bloat and seq scans were invisible. This second
+  # instance runs just those two collectors and is scraped through /probe once
+  # per database (job database-postgres-tables on otel), so nothing it exports
+  # duplicates the cluster-wide metrics of the main instance.
+  # --auto-discover-databases does not help: in postgres_exporter 0.20 it only
+  # feeds the deprecated user-queries path, not these collectors.
+  systemd.services.prometheus-postgres-tables-exporter = {
+    description = "Prometheus exporter for per-table PostgreSQL stats";
+    after = ["postgresql.service"];
+    wantedBy = ["multi-user.target"];
+    # Only for its own /metrics; every /probe names its database in `target`.
+    environment.DATA_SOURCE_NAME = "user=postgres database=postgres host=/run/postgresql";
+    serviceConfig = {
+      User = "postgres";
+      Group = "postgres";
+      ExecStart = lib.escapeShellArgs (
+        [
+          (lib.getExe' pkgs.prometheus-postgres-exporter "postgres_exporter")
+          "--web.listen-address=:9188"
+          "--disable-default-metrics"
+        ]
+        # Every collector postgres_exporter 0.20 enables by default, minus
+        # stat_user_tables and statio_user_tables.
+        ++ map (c: "--no-collector.${c}") [
+          "database"
+          "locks"
+          "replication"
+          "replication_slots"
+          "roles"
+          "settings"
+          "stat_activity"
+          "stat_archiver"
+          "stat_bgwriter"
+          "stat_database"
+          "stat_progress_vacuum"
+          "stat_replication"
+          "wal"
+        ]
+      );
+      Restart = "on-failure";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectHome = true;
+      ProtectSystem = "strict";
+      RestrictAddressFamilies = ["AF_UNIX" "AF_INET" "AF_INET6"];
+    };
+  };
+
   # Ship the PostgreSQL journal to the central Loki.
   services.loki-logs = {
     enable = true;
@@ -910,6 +974,7 @@ in {
       # advertised a port that always refuses.
       9100 # Node exporter
       9187 # Postgres exporter
+      9188 # Postgres per-table exporter (/probe, scraped by otel)
     ];
   };
 

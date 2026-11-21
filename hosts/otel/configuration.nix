@@ -424,6 +424,47 @@ in {
           }
         ];
       }
+      # Per-table stats, one /probe per application database, from the second
+      # exporter on the database host (prometheus-postgres-tables-exporter,
+      # port 9188). Keep the list in step with ensureDatabases in
+      # hosts/database. The target is a URL DSN with the unix socket in its
+      # query string, the form checked against postgres_exporter 0.20.1's
+      # /probe (2026-11-21: returns that database's table stats, datname set).
+      # honor_labels: the target's datname (needed so the per-database `up`
+      # series stay distinct) and the scraped datname are the same value, and
+      # the scraped one wins instead of becoming exported_datname.
+      {
+        job_name = "database-postgres-tables";
+        scrape_interval = "1m";
+        metrics_path = "/probe";
+        honor_labels = true;
+        static_configs = [
+          {
+            targets =
+              map (db: "postgresql:///${db}?host=/run/postgresql&user=postgres&sslmode=disable")
+              ["appdb" "axon" "countdown" "forgejo" "hindsight" "hofvarpnir" "multica" "pocketid" "romm" "terraform"];
+          }
+        ];
+        relabel_configs = [
+          {
+            source_labels = ["__address__"];
+            regex = "postgresql:///([^?]+)\\?.*";
+            target_label = "datname";
+          }
+          {
+            source_labels = ["__address__"];
+            target_label = "__param_target";
+          }
+          {
+            target_label = "__address__";
+            replacement = "${hosts.fqdn "database"}:9188";
+          }
+          {
+            target_label = "instance";
+            replacement = "homelab-database";
+          }
+        ];
+      }
       # DNS host exporters.
       #
       # Deliberately the only job still addressed by IP. Every other target here
