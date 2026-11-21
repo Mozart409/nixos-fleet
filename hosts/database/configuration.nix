@@ -233,6 +233,23 @@ in {
       work_mem = "8MB";
       max_connections = 100;
 
+      # Checkpoints and WAL. Measured 2026-11-21 (pg_stat_checkpointer and
+      # pg_stat_wal since 2026-10-06): every one of 13k checkpoints was the 5min
+      # timeout, and they rewrote 7.5 GB with 474k fsyncs for a dataset of
+      # ~350 MB -- the same hot pages flushed again every five minutes onto the
+      # HDD pool. 30min cuts that churn and the full-page images that follow
+      # each checkpoint (9% of WAL records). WAL runs ~120 MB/day, so the
+      # default max_wal_size (1GB) still never forces a checkpoint early, and
+      # crash recovery replays at most ~30min of that.
+      checkpoint_timeout = "30min";
+      # Compress those full-page images; zstd is built into nixpkgs' postgres.
+      wal_compression = "zstd";
+      # Per-query and per-database I/O timing (blk_read_time, pg_stat_statements
+      # shared_blk_read_time, pg_stat_io). Off by default, which left every I/O
+      # timing at zero and made disk stalls impossible to pin on a query. Cheap
+      # under kvm-clock.
+      track_io_timing = true;
+
       # Timezone. NixOS generates postgresql.conf from this attrset and drops
       # the one initdb wrote -- the only place the system zone normally lands --
       # so without these Postgres falls back to its compiled-in GMT: `now()`,
