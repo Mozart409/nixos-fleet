@@ -139,6 +139,8 @@ in {
   "step-ca-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCa];
   "terraform-state-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase];
   "uptime-forge-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
+  "valkey-forgejo-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers hostForgejo]; # raw password; forgejo builds its rediss:// URLs from it
+  "valkey-multica-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers]; # raw password; containers builds multica's REDIS_URL from it
   "ventara-gateway-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostWotan];
   # keep-sorted end
 }

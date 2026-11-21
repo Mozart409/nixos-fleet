@@ -77,7 +77,7 @@ let
         # Moved from the CT 102 LXC.
         pocketid = internalOnly;
         romm = {};
-        searxng = {};
+        valkey = internalOnly;
       };
     };
     database = {

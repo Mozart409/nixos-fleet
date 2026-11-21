@@ -16,7 +16,7 @@
     ../../modules/caddy-http3.nix
     ../../modules/multica-server.nix
     ./countdown
-    ./searxng
+    ./valkey
     # axon-gateway moved to hosts/mcp_vm/axon-gateway on 2026-09-14 so the
     # MCP servers it fronts could go loopback-only.
     ./hindsight
@@ -76,10 +76,6 @@
         unit = "podman-romm.service";
         job = "romm";
       }
-      {
-        unit = "searx.service";
-        job = "searx";
-      }
       # keep-sorted end
     ];
   };
@@ -121,18 +117,8 @@
     # (The AlbyHub vhost lived here until 2026-10-04, when the service was
     # removed. Its wallet state in /var/lib/albyhub stays on the host untouched.)
 
-    # SearXNG on its own hostname so off-host clients (e.g. hermes-agent's
-    # web_search backend) can reach it. SearXNG binds 127.0.0.1:8089, so Caddy
-    # — running on this host — is the only thing that proxies to it.
-    virtualHosts."searxng.homelab.internal searxng.homelab.local" = {
-      extraConfig = ''
-        tls {
-          ca https://ca.homelab.internal:8443/acme/acme/directory
-        }
-
-        reverse_proxy localhost:8089
-      '';
-    };
+    # (The SearXNG vhost lived here until 2026-11-21, when the service was
+    # archived to docs/archive/searxng.)
 
     # homelab-dashboard. Binds 127.0.0.1:8084 (see ./homelab-dashboard), so
     # Caddy is the only thing that proxies to it. Served at its own hostname.

@@ -6,15 +6,22 @@
 }: let
   cfg = config.homelab.multica.server;
 
-  # DATABASE_URL is built at runtime from multica-db-password.age, the same
-  # secret the database host sets the role password from, so the password has
-  # one source. URL-encoded, because a generated password may contain URL
-  # metacharacters.
+  # DATABASE_URL and REDIS_URL are built at runtime into /run/multica/db.env.
+  # DATABASE_URL comes from multica-db-password.age, the same secret the
+  # database host sets the role password from, so the password has one source.
+  # REDIS_URL comes from valkey-multica-password, declared by the containers
+  # host's valkey module. Both passwords are URL-encoded, because a generated
+  # password may contain URL metacharacters.
   generateDbEnv = pkgs.writeShellScript "generate-multica-db-env" ''
     mkdir -p /run/multica
     umask 077
     pw=$(${pkgs.jq}/bin/jq -Rr @uri < ${config.age.secrets.multica-db-password.path})
     printf 'DATABASE_URL=postgres://multica:%s@${cfg.databaseHost}:5432/multica?sslmode=verify-full&sslrootcert=/etc/ssl/certs/ca-certificates.crt\n' "$pw" > /run/multica/db.env
+    # Without REDIS_URL multica disables its PAT cache (every token-authenticated
+    # request re-reads and UPDATEs personal_access_token); it also moves the
+    # realtime relay onto Redis. Added 2026-11-21.
+    rpw=$(${pkgs.jq}/bin/jq -Rr @uri < ${config.age.secrets."valkey-multica-password".path})
+    printf 'REDIS_URL=rediss://:%s@${cfg.cacheHost}:${toString cfg.cachePort}/0\n' "$rpw" >> /run/multica/db.env
   '';
 in {
   options.homelab.multica.server = {
@@ -36,6 +43,18 @@ in {
       type = lib.types.str;
       default = "database.homelab.internal";
       description = "PostgreSQL host; must match a SAN of its step-ca cert (sslmode=verify-full).";
+    };
+
+    cacheHost = lib.mkOption {
+      type = lib.types.str;
+      default = "valkey.homelab.internal";
+      description = "Valkey host for REDIS_URL; must match a SAN of its step-ca cert.";
+    };
+
+    cachePort = lib.mkOption {
+      type = lib.types.port;
+      default = 6380;
+      description = "Valkey TLS port for REDIS_URL.";
     };
 
     backendPort = lib.mkOption {
@@ -115,7 +134,8 @@ in {
     };
 
     # DB password (shared with the database host). Root reads it in
-    # ExecStartPre to generate /run/multica/db.env.
+    # ExecStartPre to generate /run/multica/db.env (with the Valkey password
+    # from the containers host's valkey module).
     age.secrets.multica-db-password = {
       file = ../secrets/multica-db-password.age;
       mode = "0400";
@@ -130,8 +150,9 @@ in {
       ports = ["127.0.0.1:${toString cfg.backendPort}:8080"];
       volumes = [
         "${cfg.uploadsDir}:/app/data/uploads"
-        # Host CA bundle (step-ca root) so the sslrootcert in DATABASE_URL can
-        # verify the postgres leaf; the image ships no trust store entry for it.
+        # Host CA bundle (step-ca root) so the sslrootcert in DATABASE_URL and
+        # the rediss:// REDIS_URL can verify the postgres and valkey leaves; the
+        # image ships no trust store entry for it.
         "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
       ];
       environment =
@@ -160,9 +181,9 @@ in {
           SMTP_PORT = toString cfg.smtp.port;
           SMTP_FROM_EMAIL = cfg.smtp.from;
         };
-      # multica-env.age (signing keys, ALLOWED_EMAILS) + db.env (DATABASE_URL,
-      # generated at runtime). db.env is last so it wins over a stale
-      # DATABASE_URL left in the agenix file.
+      # multica-env.age (signing keys, ALLOWED_EMAILS) + db.env (DATABASE_URL
+      # and REDIS_URL, generated at runtime). db.env is last so it wins over a
+      # stale DATABASE_URL left in the agenix file.
       environmentFiles = [
         config.age.secrets.multica-env.path
         "/run/multica/db.env"
@@ -182,6 +203,9 @@ in {
     };
 
     systemd.services.podman-multica-backend = {
+      # Valkey runs on this host; start the backend after it.
+      after = ["redis-multica.service"];
+      wants = ["redis-multica.service"];
       serviceConfig = {
         ExecStartPre = ["${generateDbEnv}"];
         # The backend runs its migrations on start, and the first one needs the
@@ -198,6 +222,7 @@ in {
       restartTriggers = [
         config.age.secrets.multica-env.file
         config.age.secrets.multica-db-password.file
+        config.age.secrets."valkey-multica-password".file
       ];
     };
 

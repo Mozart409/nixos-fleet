@@ -9,16 +9,12 @@
 
   services.homelab-dashboard = {
     enable = true;
-    # Fronted by Caddy (dashboard.homelab.internal), like searxng/axon/pbs-mcp.
+    # Fronted by Caddy (dashboard.homelab.internal), like axon/pbs-mcp.
     # Bind to localhost only; do not open it directly to the LAN.
     openFirewall = false;
     settings = {
       listen_address = "127.0.0.1";
       port = 8084;
-      search = {
-        type = "searxng";
-        url = "https://searxng.homelab.internal";
-      };
       weather = {
         latitude = 48.1374;
         longitude = 11.5755;
@@ -117,10 +113,6 @@
         {
           name = "Router";
           url = "http://192.168.2.1";
-        }
-        {
-          name = "SearXNG";
-          url = "https://searxng.homelab.internal";
         }
         {
           name = "step-ca";

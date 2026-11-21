@@ -81,8 +81,6 @@
       # RomM is disabled (2026-11-14, infra/hosts/containers/romm): re-add
       # "romm.homelab.local" and "romm.homelab.internal" here, and its
       # http_2xx probe below, when it is re-enabled.
-      "searxng.homelab.local"
-      "searxng.homelab.internal"
     ];
     homelab-database = [
       "database.homelab.local"
@@ -201,10 +199,6 @@
       # 502 while the tls_cert probe below stayed green.
       {
         url = "https://hindsight-ui.homelab.internal/ping";
-        instance = "homelab-containers";
-      }
-      {
-        url = "https://searxng.homelab.internal";
         instance = "homelab-containers";
       }
       # RomM's probe was removed on 2026-11-14 together with disabling the
@@ -361,8 +355,8 @@
         target_label = "__param_target";
       }
       # Keeps the actual probed URL visible as its own label. Several targets
-      # above intentionally share one `instance` (e.g. every containers.* /
-      # searxng probe is instance = "homelab-containers"), so this is
+      # above intentionally share one `instance` (e.g. every containers.*
+      # probe is instance = "homelab-containers"), so this is
       # the only thing left in an alert that says which URL failed -- see its
       # use in alerting.nix's ProbeFailed annotations.
       {

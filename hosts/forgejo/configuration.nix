@@ -74,9 +74,18 @@
         REQUIRE_SIGNIN_VIEW = true;
       };
 
+      # 2026-11-21: the cache was in-process memory (lost on every restart anyway,
+      # not shared) and sessions were files on this VM's HDD-backed disk; Valkey
+      # takes both off the disk. HOST and PROVIDER_CONFIG (with the password) come
+      # from services.forgejo.secrets below. The queue is NOT moved: it stays on
+      # disk, because a non-persistent cache would lose queued jobs on restart.
+      cache = {
+        ADAPTER = "redis";
+      };
+
       session = {
         COOKIE_SECURE = true;
-        PROVIDER = "file";
+        PROVIDER = "redis";
         # 30 days instead of the 24 h default.
         SESSION_LIFE_TIME = 30 * 24 * 60 * 60;
       };
@@ -97,7 +106,43 @@
         USERNAME = "nickname";
       };
     };
+
+    # Injected through systemd LoadCredential, so the password stays out of the
+    # Nix store. The files are written by forgejo-valkey-urls below.
+    secrets = {
+      cache.HOST = "/run/forgejo-valkey/cache-host";
+      session.PROVIDER_CONFIG = "/run/forgejo-valkey/session-config";
+    };
   };
+
+  # Builds the Valkey connection strings (db 0 cache, db 1 sessions) from the
+  # password, URL-encoded because it may contain URL metacharacters. Root-only
+  # (umask 077): the module's forgejo-secrets.service reads them through
+  # LoadCredential, so they must exist before that unit, not just forgejo.
+  systemd.services.forgejo-valkey-urls = {
+    description = "Generate Forgejo's Valkey connection strings";
+    before = ["forgejo-secrets.service" "forgejo.service"];
+    requiredBy = ["forgejo-secrets.service" "forgejo.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    # A re-encrypted secret at the same /run/agenix path changes nothing in the
+    # unit, so without this a rotated password would keep the old files. The
+    # .file is the store path of the .age file.
+    restartTriggers = [config.age.secrets.valkey-forgejo-password.file];
+    script = ''
+      mkdir -p /run/forgejo-valkey
+      umask 077
+      pw=$(${pkgs.jq}/bin/jq -Rr @uri < ${config.age.secrets.valkey-forgejo-password.path})
+      printf 'rediss://:%s@valkey.homelab.internal:6381/0?pool_size=10&idle_timeout=180s' "$pw" > /run/forgejo-valkey/cache-host
+      printf 'rediss://:%s@valkey.homelab.internal:6381/1?pool_size=10&idle_timeout=180s' "$pw" > /run/forgejo-valkey/session-config
+    '';
+  };
+  # Re-read the regenerated strings after a rotation; both units only load
+  # them at start.
+  systemd.services.forgejo-secrets.restartTriggers = [config.age.secrets.valkey-forgejo-password.file];
+  systemd.services.forgejo.restartTriggers = [config.age.secrets.valkey-forgejo-password.file];
 
   # Bot / LLM accounts. The module creates each account and keeps its SSH keys
   # in sync; repo access is granted by inviting the account as a collaborator
@@ -126,6 +171,10 @@
     file = ../../secrets/forgejo-db-password.age;
     owner = "forgejo";
     group = "forgejo";
+  };
+  age.secrets.valkey-forgejo-password = {
+    file = ../../secrets/valkey-forgejo-password.age;
+    mode = "0400";
   };
 
   # Nightly dump of the LOCAL forgejo database (see the database note above --
