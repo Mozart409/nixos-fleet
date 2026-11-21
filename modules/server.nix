@@ -185,6 +185,7 @@
     jq
     kitty.terminfo
     mtr
+    openssl
     pv
     ripgrep
     rsync
