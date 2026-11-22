@@ -14,6 +14,20 @@
     inherit pkgs lib;
     agent = "claude-wotan";
   };
+
+  # Claude Code runs Bash commands from a snapshot of a login shell, so the
+  # dev shell agent-run loads at start never reaches them. CLAUDE_ENV_FILE is
+  # sourced before every Bash command: reload the working directory's direnv
+  # environment there, as opencodeShell (modules/wotan/agent-user.nix) does
+  # for opencode. The unset makes direnv apply the environment again instead
+  # of treating it as already loaded.
+  direnvHook = pkgs.writeShellScript "claude-direnv-env" ''
+    [ -n "''${CLAUDE_ENV_FILE:-}" ] || exit 0
+    cat >> "$CLAUDE_ENV_FILE" <<'EOF'
+    unset DIRENV_DIR DIRENV_FILE DIRENV_DIFF DIRENV_WATCHES
+    eval "$(direnv export bash 2>/dev/null)" || true
+    EOF
+  '';
   signingEnv = lib.optionalAttrs (signing.keyFile != null) {
     SSH_AUTH_SOCK = signing.sockets.claude;
     GIT_CONFIG_COUNT = "3";
@@ -112,6 +126,14 @@
             {
               type = "command";
               command = "${delegateHook}";
+            }
+          ];
+        }
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "${direnvHook}";
             }
           ];
         }

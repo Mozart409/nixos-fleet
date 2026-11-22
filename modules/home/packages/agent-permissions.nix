@@ -69,7 +69,11 @@
   deny =
     import ../../claude-deny-core.nix {home = "~";}
     ++ [
-      "Read(**/.env*)"
+      # .env and .env.<anything>, but not .envrc: the sandbox masks every
+      # denied path with /dev/null, and a masked .envrc keeps direnv from
+      # loading the dev shell inside Claude's Bash commands.
+      "Read(**/.env)"
+      "Read(**/.env.*)"
       # agenix ciphertext anywhere, not whole secrets/ dirs: deny beats
       # allow, so a dir-wide deny would also hide the recipients file
       # allowed above.
