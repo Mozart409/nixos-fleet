@@ -109,10 +109,14 @@
           "*.homelab.internal"
           "localhost"
           "127.0.0.1"
+          # cargo: registry index and crate downloads.
+          "index.crates.io"
+          "static.crates.io"
         ];
         allowLocalBinding = true;
       };
-      filesystem.allowWrite = ["~/.cache"];
+      # ~/.cargo: cargo's registry cache (shared with opencodeShell).
+      filesystem.allowWrite = ["~/.cache" "~/.cargo"];
     };
     env =
       common.env

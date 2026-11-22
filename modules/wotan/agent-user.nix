@@ -83,7 +83,8 @@
 
   # opencode runs every shell command as `$SHELL -c`, so this is its SHELL. It
   # confines shell commands only: opencode's read/edit tools and MCP stay in
-  # the server process. Writes are limited to codeDir, ~/.cache and /tmp, and
+  # the server process. Writes are limited to codeDir, ~/.cache, ~/.cargo
+  # (cargo's registry cache, shared with Claude's sandbox) and /tmp, and
   # the secret files above are masked. Commands get their own PID namespace
   # and a fresh /proc, so the server's environment (its gateway tokens) is not
   # readable through /proc. Only paths that exist are masked, as bwrap would
@@ -104,7 +105,7 @@
     if [ -n "''${CREDENTIALS_DIRECTORY:-}" ]; then
       mask+=(--tmpfs "$CREDENTIALS_DIRECTORY")
     fi
-    ${pkgs.coreutils}/bin/mkdir -p ${cfg.home}/.cache
+    ${pkgs.coreutils}/bin/mkdir -p ${cfg.home}/.cache ${cfg.home}/.cargo
     # The one non-confining thing the wrapper does. Shell commands run in
     # the server's (or session's) environment, which otherwise never sees a
     # repo's dev shell -- so the repo hooks (lefthook: cog, keep-sorted,
@@ -123,9 +124,9 @@
       --proc /proc \
       --bind ${cfg.codeDir} ${cfg.codeDir} \
       --bind ${cfg.home}/.cache ${cfg.home}/.cache \
+      --bind ${cfg.home}/.cargo ${cfg.home}/.cargo \
       --bind /tmp /tmp \
       "''${mask[@]}" \
-      --setenv CARGO_HOME ${cfg.home}/.cache/cargo \
       --die-with-parent \
       -- ${pkgs.bashInteractive}/bin/bash "$@"
   '';
