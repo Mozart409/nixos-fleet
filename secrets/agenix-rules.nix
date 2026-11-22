@@ -121,7 +121,7 @@ in {
   "open-webui-env.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostContainers];
   "opencode-go-api-key.age".publicKeys = [amadeus hostWotan]; # raw OpenCode console API key (no KEY=); the agent's opencode-go provider reads it via {env:OPENCODE_GO_API_KEY}
   "opencode-server-password.age".publicKeys = [amadeus hostWotan]; # env-file: OPENCODE_SERVER_PASSWORD=...
-  "otel-push-token.age".publicKeys = users; # bare token; every host's fluent-bit pushes to loki with it (write-only side)
+  "otel-push-token.age".publicKeys = users ++ [hostWotan]; # bare token; every host's fluent-bit pushes to loki with it (write-only side); wotan's weekly vuln-scan pushes with it
   "otel-query-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostOtel hostMcp]; # bare token; read side of the otel vhosts (prom/loki/tempo/alertmanager MCP servers)
   "pbs-mcp-token.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];
   "pg-mcp-appdb-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostMcp];

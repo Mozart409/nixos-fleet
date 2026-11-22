@@ -145,6 +145,57 @@
         ];
       }
       {
+        name = "patching";
+        rules = [
+          {
+            # A colmena deploy does not load a new kernel: on 2026-10-25 every
+            # host kept running 6.18.55 after the 6.18.58 deploy until it was
+            # rebooted. modules/nixos-version-metrics.nix sets
+            # nixos_reboot_required per component (kernel, initrd,
+            # kernel-modules) when the booted system differs from the current
+            # one. A deploy without a reboot is normal for a day -- the user
+            # reboots by hand -- so only a pending reboot older than 24h fires.
+            alert = "NixosRebootRequired";
+            expr = "max by (instance) (nixos_reboot_required) == 1";
+            for = "24h";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.instance }} runs an older kernel/initrd than its current system and needs a reboot";
+              description = "The booted kernel, initrd or kernel modules on {{ $labels.instance }} differ from its current system for over 24 hours, so the last deploy is not fully in effect. `nixos_reboot_required{component=...}` names which one and `nixos_kernel_info{system=\"booted\"}` vs `{system=\"current\"}` shows the kernel versions. The user reboots the host; agents never reboot.";
+            };
+          }
+          {
+            # nixos_vulnerabilities{host,severity} is pushed over OTLP by
+            # wotan's weekly sbomnix scan (counts after the repo's
+            # security/vulnxscan-whitelist.csv), so samples are sparse: a
+            # plain instant selector would go stale between scans. The 8d
+            # last_over_time bridges one weekly gap plus a day of slack.
+            alert = "NixosCriticalVulnerabilities";
+            expr = "max by (host) (last_over_time(nixos_vulnerabilities{severity=\"critical\"}[8d])) > 0";
+            for = "1h";
+            labels.severity = "warning";
+            annotations = {
+              summary = "{{ $labels.host }} has {{ $value }} critical vulnerabilities after the whitelist";
+              description = "The last weekly vulnerability scan found critical findings on {{ $labels.host }} that the whitelist does not cover. Run `just vulns {{ $labels.host }}` on wotan for the triaged list, then either update (`just update`, check with `just vulns-diff {{ $labels.host }}`) or whitelist the finding in security/vulnxscan-whitelist.csv with an exit condition.";
+            };
+          }
+          {
+            # The scan runs on wotan, a desktop that may be off, and pushes
+            # nixos_vuln_scan_timestamp_seconds over OTLP. Silent if no scan has
+            # ever pushed (no series, nothing to compare), which is fine: the
+            # first push arms it.
+            alert = "VulnScanStale";
+            expr = "time() - max(last_over_time(nixos_vuln_scan_timestamp_seconds[30d])) > 8 * 86400";
+            for = "1h";
+            labels.severity = "warning";
+            annotations = {
+              summary = "The weekly vulnerability scan has not pushed for over 8 days";
+              description = "The weekly scan on wotan (systemd `vuln-scan.timer`) last pushed nixos_vuln_scan_timestamp_seconds more than 8 days ago, so nixos_vulnerabilities is stale. Check `systemctl status vuln-scan` and its journal on wotan; it is a desktop and may simply have been off.";
+            };
+          }
+        ];
+      }
+      {
         name = "resource-usage";
         rules = [
           {

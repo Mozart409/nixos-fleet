@@ -328,6 +328,33 @@ When adding a new host to the homelab, ensure the following are updated:
    (`nix eval --raw .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`;
    never a bare `nix flake check`)
 
+## Reboot and vulnerability metrics
+
+Every host that imports `server.nix` exports
+`nixos_reboot_required{component="kernel|initrd|kernel-modules"}` from
+`modules/nixos-version-metrics.nix`. A value of 1 means the booted system
+differs from the current one for that component, so the host needs a reboot.
+To find hosts pending a reboot, run this Prometheus query (for example through
+the `prom_query` tool of the axon-gateway MCP server):
+
+```promql
+max by (instance) (nixos_reboot_required) == 1
+```
+
+The `NixosRebootRequired` alert fires after 24 hours of a pending reboot.
+Agents never reboot; the user does.
+
+The desktop runs a weekly vulnerability scan of `main` (`wotan.vulnScan.enable` in
+`modules/wotan/vuln-scan.nix`, systemd `vuln-scan.timer`). It pushes OTLP to
+the monitoring host as `nixos_vulnerabilities{host,severity}` and
+`nixos_vuln_scan_timestamp_seconds{host}`. Samples are sparse, so query them
+with `last_over_time(...[8d])`. The `NixosCriticalVulnerabilities` and
+`VulnScanStale` alerts (group `patching` in the monitoring host's
+`alerting.nix`) cover critical findings and a stale scan. The stale alert also
+fires when the desktop stays off for over 8 days. The scan and triage recipes are in the root
+`justfile` (`just sbom`, `just vulns`, `just outdated`, `just vulns-live`,
+`just vulns-diff`, `just vulns-fleet`).
+
 ## Temporary workarounds
 
 Every workaround that exists only until upstream nixpkgs catches up gets one

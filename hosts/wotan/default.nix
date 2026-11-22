@@ -172,6 +172,10 @@ in {
   # Automation modpack Minecraft server, LAN only (modules/wotan/minecraft.nix)
   wotan.minecraft.enable = true;
 
+  # Weekly sbomnix scan of every fleet host, pushed to Prometheus
+  # (modules/wotan/vuln-scan.nix)
+  wotan.vulnScan.enable = true;
+
   # Security hardening
   security.hardening = {
     enable = true;

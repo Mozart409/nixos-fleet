@@ -27,22 +27,50 @@
     echo "''${gen:-0}"
   '';
 
-  # One nixos_kernel_info sample for /run/<system>/kernel. "current" is the
-  # system being activated ($systemConfig, see the activation-order trap below).
+  # Sets $current and $booted for the scripts below. "current" is the system
+  # being activated ($systemConfig, see the activation-order trap below).
   # "booted" falls back to it while /run/booted-system is missing: /run is a
   # tmpfs, so the link is gone at boot, and the boot activation is the booted
-  # system. Version comes from the store path, .../<hash>-linux-<version>/bzImage.
+  # system.
+  systemsScript = ''
+    current=''${systemConfig:-/run/current-system}
+    booted=/run/booted-system
+    [ -e "$booted" ] || booted=$current
+  '';
+
+  # One nixos_kernel_info sample for /run/<system>/kernel. Version comes from
+  # the store path, .../<hash>-linux-<version>/bzImage.
   kernelInfoScript = ''
     kernel_info() {
       path=$(readlink -f "$2/kernel" 2>/dev/null) || path=unknown
       version=$(echo "$path" | ${pkgs.gnused}/bin/sed -n 's|^/nix/store/[^-]*-linux-\([^/]*\)/.*$|\1|p')
       echo "nixos_kernel_info{system=\"$1\",version=\"''${version:-unknown}\",path=\"$path\"} 1"
     }
-    current=''${systemConfig:-/run/current-system}
-    booted=/run/booted-system
-    [ -e "$booted" ] || booted=$current
+    ${systemsScript}
     kernel_info current "$current"
     kernel_info booted "$booted"
+  '';
+
+  # One nixos_reboot_required sample per component: 1 when the booted system's
+  # component resolves to a different store path than the current system's.
+  # These three are what a switch cannot apply live (the kernel is only loaded
+  # at boot, the initrd and the module tree belong to that kernel); systemd
+  # itself is re-executed by the switch, so it is not listed. On 2026-10-25
+  # every host kept running kernel 6.18.55 after the 6.18.58 deploy because
+  # colmena apply does not load a new kernel. Agents find the hosts pending a
+  # reboot with `max by (instance) (nixos_reboot_required) == 1` in
+  # Prometheus; they never reboot, the user does.
+  rebootRequiredScript = ''
+    reboot_required() {
+      current_path=$(${pkgs.coreutils}/bin/readlink -f "$current/$1" 2>/dev/null)
+      booted_path=$(${pkgs.coreutils}/bin/readlink -f "$booted/$1" 2>/dev/null)
+      if [ "$current_path" = "$booted_path" ]; then pending=0; else pending=1; fi
+      echo "nixos_reboot_required{component=\"$1\"} $pending"
+    }
+    ${systemsScript}
+    reboot_required kernel
+    reboot_required initrd
+    reboot_required kernel-modules
   '';
 in {
   # Enable the node_exporter textfile collector
@@ -71,6 +99,7 @@ in {
       mkdir -p ${textfileDir}
       tmp=${textfileDir}/nixos.prom.$$
       kernels=$(${kernelInfoScript})
+      reboots=$(${rebootRequiredScript})
       cat > "$tmp" <<PROM
       # HELP nixos_info NixOS release and kernel version
       # TYPE nixos_info gauge
@@ -87,6 +116,9 @@ in {
       # HELP nixos_kernel_info Kernel of /run/current-system and /run/booted-system; they differ until the host reboots
       # TYPE nixos_kernel_info gauge
       $kernels
+      # HELP nixos_reboot_required 1 when the booted system's <component> differs from the current system's, so the change only takes effect after a reboot
+      # TYPE nixos_reboot_required gauge
+      $reboots
       PROM
       mv "$tmp" ${textfileDir}/nixos.prom
     '';

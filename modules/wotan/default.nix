@@ -12,6 +12,7 @@
   #   wotan.agentUser.enable          -> agent-user.nix
   #   wotan.agentUser.enable          -> agent-clipboard.nix
   #   wotan.minecraft.enable          -> minecraft.nix
+  #   wotan.vulnScan.enable           -> vuln-scan.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
@@ -23,6 +24,7 @@
     ./moza.nix
     ./minecraft.nix
     ./opencode-serve.nix
+    ./vuln-scan.nix
     ../desktop/default.nix
     ../desktop/hyprland.nix
     ../desktop/file-managers.nix
