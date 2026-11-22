@@ -28,6 +28,13 @@
   ipAllow = ["127.0.0.0/8" "::1/128"] ++ cfg.network.allow;
   ipDeny = cfg.network.deny;
 
+  # No ProtectKernelTunables/ProtectKernelLogs: they overmount parts of /proc,
+  # and the kernel then refuses the fresh /proc that Claude Code's sandbox and
+  # opencodeShell mount (bwrap: "Can't mount proc on /proc"). Without a fresh
+  # /proc, sandboxed commands would read the harness's environment, gateway
+  # tokens included, through the host /proc. The agent has no root, so /proc/sys
+  # and /sys stay read-only to it anyway; kernel.dmesg_restrict (security.nix)
+  # keeps the kernel log (dmesg, syslog(), /dev/kmsg) closed.
   sandboxProperties =
     [
       "ProtectHome=tmpfs"
@@ -35,9 +42,7 @@
       "NoNewPrivileges=yes"
       "RestrictSUIDSGID=yes"
       "ProtectSystem=strict"
-      "ProtectKernelTunables=yes"
       "ProtectKernelModules=yes"
-      "ProtectKernelLogs=yes"
       "ProtectControlGroups=yes"
       "ProtectClock=yes"
       "LockPersonality=yes"
@@ -79,10 +84,10 @@
   # opencode runs every shell command as `$SHELL -c`, so this is its SHELL. It
   # confines shell commands only: opencode's read/edit tools and MCP stay in
   # the server process. Writes are limited to codeDir, ~/.cache and /tmp, and
-  # the secret files above are masked. There is no fresh /proc, as
-  # ProtectKernelTunables masks it, so no PID namespace: the server's
-  # environment stays readable through /proc. Only paths that exist are
-  # masked, as bwrap would create the missing ones in the real filesystem.
+  # the secret files above are masked. Commands get their own PID namespace
+  # and a fresh /proc, so the server's environment (its gateway tokens) is not
+  # readable through /proc. Only paths that exist are masked, as bwrap would
+  # create the missing ones in the real filesystem.
   # The one non-confining step is the direnv load below: it puts shell
   # commands into the repo's dev shell, as agent-run-inner does for the
   # interactive harnesses.
@@ -114,7 +119,8 @@
     exec ${pkgs.bubblewrap}/bin/bwrap \
       --ro-bind / / \
       --dev /dev \
-      --ro-bind /proc /proc \
+      --unshare-pid \
+      --proc /proc \
       --bind ${cfg.codeDir} ${cfg.codeDir} \
       --bind ${cfg.home}/.cache ${cfg.home}/.cache \
       --bind /tmp /tmp \

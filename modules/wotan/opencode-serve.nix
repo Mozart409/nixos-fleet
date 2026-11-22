@@ -320,9 +320,11 @@ in {
           BindPaths = cfg.homeBindPaths;
           PrivateTmp = true;
 
-          ProtectKernelTunables = true;
+          # No ProtectKernelTunables/ProtectKernelLogs: they overmount parts of
+          # /proc, which stops the shell wrapper (`shell`) from mounting the fresh
+          # /proc that hides this process's environment from shell commands.
+          # See sandboxProperties in agent-user.nix.
           ProtectKernelModules = true;
-          ProtectKernelLogs = true;
           ProtectControlGroups = true;
           ProtectClock = true;
           ProtectHostname = true;

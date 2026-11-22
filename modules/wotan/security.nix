@@ -56,6 +56,9 @@ in {
     boot.kernel.sysctl = {
       # Hide kernel pointers from unprivileged users
       "kernel.kptr_restrict" = 2;
+      # Kernel log for root only; stands in for ProtectKernelLogs, which the
+      # agent units leave out (agent-user.nix).
+      "kernel.dmesg_restrict" = 1;
       # Restrict ptrace to parent processes only
       "kernel.yama.ptrace_scope" = 1;
       # Enable reverse path filtering (anti-spoofing)
