@@ -28,6 +28,16 @@
   ipAllow = ["127.0.0.0/8" "::1/128"] ++ cfg.network.allow;
   ipDeny = cfg.network.deny;
 
+  # agent-proxy: the domain filter for sandboxed commands, Claude Code's
+  # (sandbox.network.httpProxyPort, modules/home/packages/claude.nix) and
+  # opencode's (opencodeShell). tinyproxy listens on loopback; opencodeShell's
+  # commands have no network of their own and reach it through proxySocket.
+  proxyPort = toString cfg.network.proxyPort;
+  proxyUrl = "http://127.0.0.1:${proxyPort}";
+  proxySocket = "/run/agent-proxy/proxy.sock";
+  # One fnmatch pattern per line, matched against the host name only.
+  proxyFilter = pkgs.writeText "agent-proxy-filter" (lib.concatLines cfg.network.allowedDomains);
+
   # No ProtectKernelTunables/ProtectKernelLogs: they overmount parts of /proc,
   # and the kernel then refuses the fresh /proc that Claude Code's sandbox and
   # opencodeShell mount (bwrap: "Can't mount proc on /proc"). Without a fresh
@@ -81,6 +91,17 @@
     ".config/age"
   ];
 
+  # Runs inside opencodeShell's sandbox: the proxy forward, then the command.
+  # The wait keeps the command from racing the listener.
+  opencodeShellInner = pkgs.writeShellScript "opencode-shell-inner" ''
+    ${pkgs.socat}/bin/socat TCP-LISTEN:${proxyPort},bind=127.0.0.1,fork,reuseaddr UNIX-CONNECT:${proxySocket} &
+    for _ in {1..100}; do
+      (: </dev/tcp/127.0.0.1/${proxyPort}) 2>/dev/null && break
+      ${pkgs.coreutils}/bin/sleep 0.01
+    done
+    exec ${pkgs.bashInteractive}/bin/bash "$@"
+  '';
+
   # opencode runs every shell command as `$SHELL -c`, so this is its SHELL. It
   # confines shell commands only: opencode's read/edit tools and MCP stay in
   # the server process. Writes are limited to codeDir, ~/.cache, ~/.cargo
@@ -88,7 +109,11 @@
   # the secret files above are masked. Commands get their own PID namespace
   # and a fresh /proc, so the server's environment (its gateway tokens) is not
   # readable through /proc. Only paths that exist are masked, as bwrap would
-  # create the missing ones in the real filesystem.
+  # create the missing ones in the real filesystem. Commands also get their own
+  # network namespace with only loopback: opencodeShellInner forwards
+  # 127.0.0.1:proxyPort in there to agent-proxy, so they reach the network
+  # only through its domain filter, via HTTP(S)_PROXY. The server itself stays
+  # outside and keeps reaching its model provider.
   # The one non-confining step is the direnv load below: it puts shell
   # commands into the repo's dev shell, as agent-run-inner does for the
   # interactive harnesses.
@@ -121,14 +146,19 @@
       --ro-bind / / \
       --dev /dev \
       --unshare-pid \
+      --unshare-net \
       --proc /proc \
       --bind ${cfg.codeDir} ${cfg.codeDir} \
       --bind ${cfg.home}/.cache ${cfg.home}/.cache \
       --bind ${cfg.home}/.cargo ${cfg.home}/.cargo \
       --bind /tmp /tmp \
       "''${mask[@]}" \
+      --setenv HTTP_PROXY ${proxyUrl} \
+      --setenv HTTPS_PROXY ${proxyUrl} \
+      --setenv http_proxy ${proxyUrl} \
+      --setenv https_proxy ${proxyUrl} \
       --die-with-parent \
-      -- ${pkgs.bashInteractive}/bin/bash "$@"
+      -- ${opencodeShellInner} "$@"
   '';
 
   credentialArgs =
@@ -257,7 +287,55 @@ in {
         description = ''
           What every agent unit (agent-run sessions and opencode-serve) may
           not connect to, as systemd IPAddressDeny= entries. Anything not
-          listed, i.e. the internet, stays reachable.
+          listed, i.e. the internet, stays reachable for the harness
+          processes; their sandboxed commands are limited further by
+          network.allowedDomains.
+        '';
+      };
+
+      proxyPort = lib.mkOption {
+        type = lib.types.port;
+        default = 8899;
+        description = "Loopback port of agent-proxy, the domain filter for sandboxed agent commands.";
+      };
+
+      allowedDomains = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [
+          "localhost"
+          "127.0.0.1"
+          "*.homelab.internal"
+          # Rust
+          "crates.io"
+          "index.crates.io"
+          "static.crates.io"
+          "static.rust-lang.org"
+          "docs.rs"
+          # GitHub (git over https, API, release assets, raw files)
+          "github.com"
+          "*.github.com"
+          "*.githubusercontent.com"
+          # Nix
+          "cache.nixos.org"
+          "channels.nixos.org"
+          "nixos.org"
+          "search.nixos.org"
+          # Other package registries
+          "registry.npmjs.org"
+          "pypi.org"
+          "files.pythonhosted.org"
+          "proxy.golang.org"
+          "sum.golang.org"
+          "hex.pm"
+          "repo.hex.pm"
+          "builds.hex.pm"
+        ];
+        description = ''
+          Hosts that sandboxed agent commands (Claude Code's Bash tool,
+          opencode's shell) may reach, through agent-proxy. tinyproxy fnmatch
+          patterns matched against the host name: `*.example.com` does not
+          match `example.com` itself. Claude Code's sandbox gets the same
+          list. network.deny still applies to what the proxy connects to.
         '';
       };
     };
@@ -325,6 +403,54 @@ in {
     systemd.services.opencode-serve.serviceConfig = lib.mkIf (config.services.opencode-serve.enable && config.services.opencode-serve.user == cfg.user) {
       IPAddressAllow = ipAllow;
       IPAddressDeny = ipDeny;
+    };
+
+    # agent-proxy (see proxyFilter). Default-deny: only network.allowedDomains
+    # get through, for plain HTTP and CONNECT alike.
+    services.tinyproxy = {
+      enable = true;
+      settings = {
+        Listen = "127.0.0.1";
+        Port = cfg.network.proxyPort;
+        Allow = "127.0.0.1";
+        Filter = proxyFilter;
+        FilterType = "fnmatch";
+        FilterURLs = false;
+        FilterDefaultDeny = true;
+      };
+    };
+    systemd.services.tinyproxy.serviceConfig = {
+      # It connects on the agents' behalf, so it gets their network limits;
+      # otherwise it would open the private ranges they are kept out of.
+      IPAddressAllow = ipAllow;
+      IPAddressDeny = ipDeny;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      NoNewPrivileges = true;
+    };
+
+    # The way into agent-proxy for opencodeShell, whose commands have no
+    # network: a unix socket only the agent can open, forwarded to the
+    # proxy's loopback port.
+    systemd.services.agent-proxy-bridge = {
+      description = "Unix-socket entry to agent-proxy for network-less agent sandboxes";
+      wantedBy = ["multi-user.target"];
+      after = ["tinyproxy.service"];
+      serviceConfig = {
+        ExecStart = "${pkgs.socat}/bin/socat UNIX-LISTEN:${proxySocket},fork,unlink-early,mode=600 TCP:127.0.0.1:${proxyPort}";
+        Restart = "on-failure";
+        User = cfg.user;
+        Group = cfg.user;
+        RuntimeDirectory = "agent-proxy";
+        RuntimeDirectoryMode = "0700";
+        IPAddressAllow = ["127.0.0.0/8"];
+        IPAddressDeny = "any";
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+      };
     };
   };
 }

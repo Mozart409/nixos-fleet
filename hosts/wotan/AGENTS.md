@@ -80,13 +80,23 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   `opencode.json` can override global rules but not a global plugin. opencode's
   shell commands run through a bubblewrap wrapper set as `$SHELL`
   (`opencodeShell` in `modules/wotan/agent-user.nix`), which limits writes to
-  `~/code`, `~/.cache` and `/tmp` and hides the home-directory secret files. It
-  has no PID namespace (ProtectKernelTunables blocks a fresh `/proc`), so
-  commands can still read the server's environment through `/proc`. It does not
-  cover opencode's read/edit tools, MCP or plugins, and there is no network
-  allowlist, so for those the unit sandbox is the OS-level boundary. A tool that
-  writes elsewhere under the agent's home fails there with a read-only error; add
-  its path to the wrapper.
+  `~/code`, `~/.cache`, `~/.cargo` and `/tmp` and hides the home-directory
+  secret files. Commands get their own PID namespace and a fresh `/proc`, so they
+  can't read the server's environment. It does not cover opencode's read/edit
+  tools, MCP or plugins; for those the unit sandbox is the OS-level boundary. A
+  tool that writes elsewhere under the agent's home fails there with a read-only
+  error; add its path to the wrapper.
+- **Network allowlist (agent-proxy):** sandboxed commands of both harnesses
+  reach the network only through `agent-proxy`, a default-deny tinyproxy on
+  `127.0.0.1:8899` that lets through `wotan.agentUser.network.allowedDomains`
+  (fnmatch on the host name; `*.x` does not match `x`). Claude's sandbox uses it
+  via `sandbox.network.httpProxyPort`; its SOCKS proxy stays Claude's own, with
+  the same list. opencode's shell commands run with `--unshare-net` and reach it
+  through `/run/agent-proxy/proxy.sock` (the `agent-proxy-bridge` service),
+  forwarded to `127.0.0.1:8899` inside the sandbox. The proxy has the agents'
+  `IPAddressDeny`, so it can't open private ranges they're kept out of. Only
+  tools that honour `HTTP(S)_PROXY` get through; a new domain needs a switch.
+  The harness processes themselves (model APIs, MCP) are not proxied.
 - **opencode agent lineup (2026-11-15):** `modules/home/packages/opencode.nix`
   pins the agent models — GLM-5.3 supervises (`build` default, `plan`,
   `general`, and the read-only `review` subagent), DeepSeek V4.1 Flash does the

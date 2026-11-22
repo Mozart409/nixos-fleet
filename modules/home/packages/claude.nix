@@ -62,6 +62,12 @@
     echo 'Standing instruction: before changing any code (Nix files included, any language), config or docs beyond a one- or two-line edit, load the `delegate-implementation` skill and follow it (Haiku/Sonnet subagents implement without running tests/lints/fmt; you run the final fmt, lint and test pass).'
   '';
 
+  # The agent account's sessions send sandboxed commands through agent-proxy
+  # (modules/wotan/agent-user.nix), the domain filter opencode's shell uses
+  # too, with its allow list. Other accounts keep Claude's own proxy.
+  agentNet = osConfig.wotan.agentUser.network;
+  isAgent = osConfig.wotan.agentUser.enable && config.home.username == osConfig.wotan.agentUser.user;
+
   # Settings shared with the agents host's zones (modules/claude-settings-common.nix).
   common = import ../../claude-settings-common.nix;
 
@@ -103,18 +109,25 @@
         "nixos-rebuild dry-build*"
         "git commit *"
       ];
-      network = {
-        # Unlisted hosts prompt instead of failing.
-        allowedDomains = [
-          "*.homelab.internal"
-          "localhost"
-          "127.0.0.1"
-          # cargo: registry index and crate downloads.
-          "index.crates.io"
-          "static.crates.io"
-        ];
-        allowLocalBinding = true;
-      };
+      network =
+        {
+          # Unlisted hosts prompt instead of failing (Claude's own proxy only).
+          allowedDomains =
+            if isAgent
+            then agentNet.allowedDomains
+            else [
+              "*.homelab.internal"
+              "localhost"
+              "127.0.0.1"
+              # cargo: registry index and crate downloads.
+              "index.crates.io"
+              "static.crates.io"
+            ];
+          allowLocalBinding = true;
+        }
+        # HTTP(S) goes to agent-proxy instead of Claude's own proxy; SOCKS
+        # stays Claude's, filtered by the same allowedDomains.
+        // lib.optionalAttrs isAgent {httpProxyPort = agentNet.proxyPort;};
       # ~/.cargo: cargo's registry cache (shared with opencodeShell).
       filesystem.allowWrite = ["~/.cache" "~/.cargo"];
     };
