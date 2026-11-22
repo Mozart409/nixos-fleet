@@ -169,14 +169,18 @@
             # wotan's weekly sbomnix scan (counts after the repo's
             # security/vulnxscan-whitelist.csv), so samples are sparse: a
             # plain instant selector would go stale between scans. The 8d
-            # last_over_time bridges one weekly gap plus a day of slack.
+            # last_over_time bridges one weekly gap plus a day of slack. Only
+            # criticals confirmed by at least two of grype, OSV and vulnix
+            # count: single-scanner hits are mostly NVD range noise (e.g.
+            # kernel CPE ranges) and stay visible as confirmed="false"
+            # without alerting.
             alert = "NixosCriticalVulnerabilities";
-            expr = "max by (host) (last_over_time(nixos_vulnerabilities{severity=\"critical\"}[8d])) > 0";
+            expr = "max by (host) (last_over_time(nixos_vulnerabilities{severity=\"critical\",confirmed=\"true\"}[8d])) > 0";
             for = "1h";
             labels.severity = "warning";
             annotations = {
-              summary = "{{ $labels.host }} has {{ $value }} critical vulnerabilities after the whitelist";
-              description = "The last weekly vulnerability scan found critical findings on {{ $labels.host }} that the whitelist does not cover. Run `just vulns {{ $labels.host }}` on wotan for the triaged list, then either update (`just update`, check with `just vulns-diff {{ $labels.host }}`) or whitelist the finding in security/vulnxscan-whitelist.csv with an exit condition.";
+              summary = "{{ $labels.host }} has {{ $value }} critical vulnerabilities confirmed by at least two scanners";
+              description = "The last weekly vulnerability scan found critical findings on {{ $labels.host }}, confirmed by at least two of grype, OSV and vulnix, that the whitelist does not cover. Run `just vulns {{ $labels.host }}` on wotan for the triaged list, then either update (`just update`, check with `just vulns-diff {{ $labels.host }}`) or whitelist the finding in security/vulnxscan-whitelist.csv with an exit condition.";
             };
           }
           {

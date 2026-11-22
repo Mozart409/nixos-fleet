@@ -9,10 +9,17 @@
 #                                   endpoint as gauges (nixos_vulnerabilities,
 #                                   nixos_vuln_scan_timestamp_seconds)
 #
-# dir defaults to <repo root>/.sbom. Counted per host from vulns.csv: rows by
-# CVSS severity (critical >= 9, high >= 7, medium >= 4, low below, unknown =
-# empty or non-numeric), skipping whitelisted rows. Only hosts with scan.ok
-# count; a missing vulns.csv after a good scan means zero findings.
+# dir defaults to <repo root>/.sbom. Counted per host from vulns.csv, skipping
+# whitelisted rows and deduped by vuln_id+package (the same finding can appear
+# several times, e.g. perl 5.42.3 and 5.42.3-env; max severity and max scanner
+# count win). Severity buckets by CVSS score: critical >= 9, high >= 7, medium
+# >= 4, low below, unknown = empty or non-numeric. Findings are split by how
+# many of grype, OSV and vulnix found them: confirmed (2+ scanners) and single
+# (one scanner, mostly NVD range noise). Only hosts with scan.ok count; a
+# missing vulns.csv after a good scan means zero findings.
+#
+# The push labels every nixos_vulnerabilities sample with
+# confirmed="true"|"false" next to host and severity.
 #
 # Push auth: a bearer token read from $CREDENTIALS_DIRECTORY/otel-push-token
 # (a systemd LoadCredential), else from the file named by $OTEL_PUSH_TOKEN_FILE.
@@ -27,17 +34,22 @@ if [ "${1:-}" = "--summary" ]; then
 fi
 dir="${1:-$(git rev-parse --show-toplevel)/.sbom}"
 
-# Print "critical high medium low unknown" for one vulns.csv (zeros if absent).
+# Print ten numbers for one vulns.csv (zeros if absent): "critical high medium
+# low unknown" for confirmed findings (2+ scanners), then the same five for
+# single-scanner findings.
 count_file() {
   if [ ! -f "$1" ]; then
-    echo "0 0 0 0 0"
+    echo "0 0 0 0 0 0 0 0 0 0"
     return
   fi
   awk -F, '
     NR == 1 {
       for (i = 1; i <= NF; i++) {
         hd = $i; gsub(/"/, "", hd)
+        if (hd == "vuln_id") id = i
+        if (hd == "package") pk = i
         if (hd == "severity") s = i
+        if (hd == "sum") n = i
         if (hd == "whitelist") w = i
       }
       next
@@ -45,15 +57,29 @@ count_file() {
     NF == 0 { next }
     {
       if (w) { x = $w; gsub(/"/, "", x); if (x == "True") next }
+      k = ""
+      if (id) { x = $id; gsub(/"/, "", x); k = x }
+      if (pk) { x = $pk; gsub(/"/, "", x); k = k SUBSEP x }
       v = ""
       if (s) { v = $s; gsub(/"/, "", v) }
-      if (v !~ /^[0-9]+(\.[0-9]+)?$/) u++
-      else if (v + 0 >= 9) c++
-      else if (v + 0 >= 7) h++
-      else if (v + 0 >= 4) m++
-      else l++
+      v = (v ~ /^[0-9]+(\.[0-9]+)?$/) ? v + 0 : -1
+      q = 0
+      if (n) { x = $n; gsub(/"/, "", x); q = x + 0 }
+      if (!(k in sev) || v > sev[k]) sev[k] = v
+      if (!(k in sum) || q > sum[k]) sum[k] = q
     }
-    END { printf "%d %d %d %d %d\n", c, h, m, l, u }
+    END {
+      for (k in sev) {
+        g = (sum[k] >= 2) ? 0 : 5
+        v = sev[k]
+        if (v < 0) cnt[g + 4]++
+        else if (v >= 9) cnt[g]++
+        else if (v >= 7) cnt[g + 1]++
+        else if (v >= 4) cnt[g + 2]++
+        else cnt[g + 3]++
+      }
+      for (i = 0; i < 10; i++) printf "%d%s", cnt[i], (i < 9 ? " " : "\n")
+    }
   ' "$1"
 }
 
@@ -67,12 +93,13 @@ scanned_hosts() {
 }
 
 if [ "$mode" = summary ]; then
-  printf '%-20s %8s %6s %6s %5s %8s\n' host critical high medium low unknown
+  echo "counts: findings confirmed by 2+ scanners, deduped by vuln_id+package; single = found by one scanner only"
+  printf '%-20s %8s %6s %6s %5s %8s %6s\n' host critical high medium low unknown single
   found=0
   while IFS= read -r host; do
     found=1
-    read -r c h m l u < <(count_file "$dir/$host/vulns.csv")
-    printf '%-20s %8s %6s %6s %5s %8s\n' "$host" "$c" "$h" "$m" "$l" "$u"
+    read -r c h m l u sc sh sm sl su < <(count_file "$dir/$host/vulns.csv")
+    printf '%-20s %8s %6s %6s %5s %8s %6s\n' "$host" "$c" "$h" "$m" "$l" "$u" "$((sc + sh + sm + sl + su))"
   done < <(scanned_hosts)
   [ "$found" = 1 ] || echo "no successful scans under $dir"
   exit 0
@@ -90,8 +117,8 @@ fi
 
 rows=""
 while IFS= read -r host; do
-  read -r c h m l u < <(count_file "$dir/$host/vulns.csv")
-  rows+=$(printf '%s\t%s\t%s\t%s\t%s\t%s\t%s' "$host" "$c" "$h" "$m" "$l" "$u" "$(stat -c %Y "$dir/$host/scan.ok")")$'\n'
+  counts=$(count_file "$dir/$host/vulns.csv" | tr ' ' '\t')
+  rows+=$(printf '%s\t%s\t%s' "$host" "$counts" "$(stat -c %Y "$dir/$host/scan.ok")")$'\n'
 done < <(scanned_hosts)
 [ -n "$rows" ] || { echo "vulns-push: no successful scans under $dir, nothing to push" >&2; exit 1; }
 
@@ -109,19 +136,20 @@ payload=$(printf '%s' "$rows" | jq -Rn --arg inst "$(hostname)" --arg now "$now_
         metrics: [
           {name: "nixos_vulnerabilities",
            gauge: {dataPoints: [
-             $r[] as $x | range(0; 5) as $i | {
+             $r[] as $x | range(0; 10) as $i | {
                asInt: $x[$i + 1],
                timeUnixNano: $now,
                attributes: [
                  {key: "host", value: {stringValue: $x[0]}},
-                 {key: "severity", value: {stringValue: $sev[$i]}}
+                 {key: "severity", value: {stringValue: $sev[$i % 5]}},
+                 {key: "confirmed", value: {stringValue: (if $i < 5 then "true" else "false" end)}}
                ]
              }
            ]}},
           {name: "nixos_vuln_scan_timestamp_seconds",
            gauge: {dataPoints: [
              $r[] | {
-               asInt: .[6],
+               asInt: .[11],
                timeUnixNano: $now,
                attributes: [{key: "host", value: {stringValue: .[0]}}]
              }

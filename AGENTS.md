@@ -346,11 +346,13 @@ Agents never reboot; the user does.
 
 The desktop runs a weekly vulnerability scan of `main` (`wotan.vulnScan.enable` in
 `modules/wotan/vuln-scan.nix`, systemd `vuln-scan.timer`). It pushes OTLP to
-the monitoring host as `nixos_vulnerabilities{host,severity}` and
+the monitoring host as `nixos_vulnerabilities{host,severity,confirmed}`
+(`confirmed="true"` = found by 2+ of grype, OSV and vulnix, deduped by
+vuln_id+package; `"false"` = one scanner only) and
 `nixos_vuln_scan_timestamp_seconds{host}`. Samples are sparse, so query them
 with `last_over_time(...[8d])`. The `NixosCriticalVulnerabilities` and
 `VulnScanStale` alerts (group `patching` in the monitoring host's
-`alerting.nix`) cover critical findings and a stale scan. The stale alert also
+`alerting.nix`) cover confirmed critical findings and a stale scan. The stale alert also
 fires when the desktop stays off for over 8 days. The scan and triage recipes are in the root
 `justfile` (`just sbom`, `just vulns`, `just outdated`, `just vulns-live`,
 `just vulns-diff`, `just vulns-fleet`).

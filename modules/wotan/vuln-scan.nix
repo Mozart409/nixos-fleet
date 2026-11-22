@@ -8,9 +8,10 @@
 in {
   # Weekly vulnerability scan of every fleet host (plus wotan) with sbomnix,
   # pushed to Prometheus over OTLP. Results show up as the metrics
-  # `nixos_vulnerabilities{host,severity}` and
-  # `nixos_vuln_scan_timestamp_seconds{host}`; the alerts
-  # `NixosCriticalVulnerabilities` and `VulnScanStale` are in
+  # `nixos_vulnerabilities{host,severity,confirmed}` (confirmed = found by 2+
+  # scanners, deduped) and `nixos_vuln_scan_timestamp_seconds{host}`; the
+  # alerts `NixosCriticalVulnerabilities` (confirmed criticals only) and
+  # `VulnScanStale` are in
   # `infra/hosts/otel/alerting.nix`. The interactive counterparts are the
   # `just vulns`, `vulns-live`, `vulns-diff` and `outdated` recipes.
   options.wotan.vulnScan.enable = lib.mkEnableOption "the weekly sbomnix vulnerability scan of the fleet";
