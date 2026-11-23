@@ -67,6 +67,8 @@
   # unit's credentials, load the directory's direnv environment (the dev shell
   # is not inherited across sudo) and exec the harness from a login shell, so
   # PATH has the agent's home-manager profile.
+  # ~/.local/bin only silences Claude's PATH check (it takes the Nix package for a
+  # native install); last, because the agent can write there.
   inner = pkgs.writeShellScript "agent-run-inner" ''
     for cred in "''${CREDENTIALS_DIRECTORY:-/nonexistent}"/*; do
       [ -f "$cred" ] || continue
@@ -76,6 +78,7 @@
     done
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
+      export PATH="$PATH:$HOME/.local/bin"
       exec "$@"
     ' agent-run "$@"
   '';
