@@ -39,6 +39,9 @@
       ui.toast.delivery = "system";
       # New tabs get a generated name instead of a name prompt.
       ui.prompt_new_tab_name = false;
+      # Distinct static symbols per agent state instead of the default
+      # colour-only dots, same as the fleet's infra/modules/herdr.nix.
+      ui.status_indicators = "symbols";
       keys = {
         # Same leader as tmux (tmux.nix). Bindings are "prefix+<key>", not a
         # "ctrl+space+<key>" chord, which herdr rejects.

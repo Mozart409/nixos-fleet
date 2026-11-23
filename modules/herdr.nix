@@ -89,6 +89,11 @@
     [ui]
     show_agent_labels_on_pane_borders = true
     agent_panel_sort = "priority"
+    # Distinct static symbols for agent states (working/blocked/done/idle)
+    # instead of the default colour-only dots, which differ by nothing but
+    # colour — unreadable in a monochrome theme, a colourblind glance, or a
+    # screenshot. Available since herdr 0.8.2; the fleet pins 0.9.3.
+    status_indicators = "symbols"
 
     # Create tabs immediately with generated names instead of prompting — this
     # host is agent-driven and a name prompt stalls an unattended session.
