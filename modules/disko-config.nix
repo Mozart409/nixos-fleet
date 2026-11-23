@@ -19,7 +19,8 @@
                 type = "filesystem";
                 format = "ext4";
                 mountpoint = "/boot";
-                mountOptions = ["defaults"];
+                # Same slow-zvol case as "/" below: the device wait defaults to 90 s and drops the boot into emergency mode.
+                mountOptions = ["defaults" "x-systemd.device-timeout=5min" "x-systemd.mount-timeout=5min"];
               };
             };
             root = {
