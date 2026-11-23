@@ -1,9 +1,10 @@
 # herdr: terminal workspace for coding agents. config.toml is immutable from the
 # store, so changes made in herdr's settings UI or `herdr config set` do not
-# persist -- change them here. No herdr plugins or agent integrations are
-# installed (decided against). zsh completion needs nothing here: nixpkgs'
-# herdr installs `_herdr` into share/zsh/site-functions, which home-manager's
-# zsh puts on fpath.
+# persist -- change them here. The claude and opencode integrations are
+# installed declaratively (claude.nix, opencode.nix) instead of by
+# `herdr integration install`, which would write into Nix-owned files. zsh
+# completion needs nothing here: nixpkgs' herdr installs `_herdr` into
+# share/zsh/site-functions, which home-manager's zsh puts on fpath.
 {...}: {
   programs.herdr = {
     enable = true;

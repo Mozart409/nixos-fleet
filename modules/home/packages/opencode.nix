@@ -363,6 +363,18 @@ in {
       # and worktree isolation.
       home.file.".config/opencode/plugins/worktrunk.ts".source = "${pkgs.worktrunk.src}/dev/opencode-plugin.ts";
 
+      # What `herdr integration install opencode` would write, taken from the
+      # packaged source so it matches the installed herdr. Agent state goes to
+      # the plugins dir; the TUI session plugin and its tui.jsonc entry sit
+      # beside cli.json.
+      home.file.".config/opencode/plugins/herdr-agent-state.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/herdr-agent-state.js";
+      home.file.".config/opencode/herdr-tui-session.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/herdr-tui-session.js";
+      home.file.".config/opencode/herdr-opencode/tui.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/tui.js";
+      home.file.".config/opencode/tui.jsonc" = {
+        force = true;
+        text = builtins.toJSON {plugin = ["./herdr-tui-session.js"];};
+      };
+
       # v2 TUI settings. Read-only from the store, so `/settings` changes in
       # the TUI no longer persist: change them here instead.
       home.file.".config/opencode/cli.json" = {
@@ -389,6 +401,8 @@ in {
           # No tab strip: tabs were persisted and reopened (plus a new one) on
           # every launch against the shared opencode-serve instance.
           tabs.mode = "off";
+          # herdr's tui plugin (herdr-opencode/tui.js).
+          plugins = ["./herdr-opencode"];
         };
       };
 

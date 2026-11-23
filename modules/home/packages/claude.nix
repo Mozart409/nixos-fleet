@@ -154,6 +154,18 @@
             }
           ];
         }
+        # herdr: reports the session id to herdr's pane state. No-op outside
+        # a herdr pane. python3 is pinned on PATH because the script needs it.
+        {
+          matcher = "^(startup|resume|clear|compact|fork)$";
+          hooks = [
+            {
+              type = "command";
+              command = "PATH=${pkgs.python3}/bin:$PATH bash ${pkgs.herdr}/share/herdr/integrations/claude/herdr-agent-state.sh session";
+              timeout = 10;
+            }
+          ];
+        }
       ];
     hooks.PreToolUse = [
       {
