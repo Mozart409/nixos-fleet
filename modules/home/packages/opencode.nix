@@ -134,7 +134,10 @@
 
   # The deny floor: Claude's deny list, as opencode resources.
   floorShell = args "Bash" shared.deny;
-  floorFiles = lib.concatMap claudeGlobs (args "Read" shared.deny);
+  # opencode's globs have no character sets, so the .env.<suffix> rules are
+  # dropped here; secretFiles denies *.env.* and templateFiles re-allows the
+  # templates.
+  floorFiles = lib.concatMap claudeGlobs (builtins.filter (a: !lib.hasInfix "[" a) (args "Read" shared.deny));
 
   # Order matters: the LAST matching rule wins. Broad asks and allows come
   # first, narrower denies after them, and the Claude-derived floor is last so

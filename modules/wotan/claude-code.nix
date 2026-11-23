@@ -59,6 +59,8 @@
       text = builtins.toJSON {
         sandbox = {
           enabled = true;
+          failIfUnavailable = true;
+          allowUnsandboxedCommands = false;
           autoAllowBashIfSandboxed = false;
         };
       };
