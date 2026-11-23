@@ -52,10 +52,16 @@
 
     # Managed settings beat every other scope. Without the pin, a project's
     # .claude/settings.local.json, which the agent can write, could set
-    # sandbox.enabled = false over modules/home/packages/claude.nix.
+    # sandbox.enabled = false over modules/home/packages/claude.nix. Sandboxed
+    # Bash still goes through the permission rules instead of being auto-allowed.
     environment.etc."claude-code/managed-settings.json" = {
       mode = "0444";
-      text = builtins.toJSON {sandbox.enabled = true;};
+      text = builtins.toJSON {
+        sandbox = {
+          enabled = true;
+          autoAllowBashIfSandboxed = false;
+        };
+      };
     };
   };
 }
