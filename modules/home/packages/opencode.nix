@@ -358,6 +358,11 @@ in {
     })
 
     (lib.mkIf config.opencode.enable {
+      # What `wt config plugins opencode install` would write, taken from the
+      # packaged source so it matches the installed wt. Adds activity tracking
+      # and worktree isolation.
+      home.file.".config/opencode/plugins/worktrunk.ts".source = "${pkgs.worktrunk.src}/dev/opencode-plugin.ts";
+
       # v2 TUI settings. Read-only from the store, so `/settings` changes in
       # the TUI no longer persist: change them here instead.
       home.file.".config/opencode/cli.json" = {

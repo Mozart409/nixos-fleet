@@ -11,6 +11,7 @@
   imports = [
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
+    ../../modules/home/packages/worktrunk.nix
   ];
 
   home.username = osConfig.wotan.agentUser.user;

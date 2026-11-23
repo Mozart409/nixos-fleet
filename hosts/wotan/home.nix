@@ -21,6 +21,7 @@
     ../../modules/home/packages/git-sync.nix
     ../../modules/home/packages/gtk.nix
     ../../modules/home/packages/halloy.nix
+    ../../modules/home/packages/herdr.nix
     ../../modules/home/packages/hofvarpnir-tui.nix
     ../../modules/home/packages/hyprland-configs.nix
     ../../modules/home/packages/images.nix
@@ -33,6 +34,7 @@
     ../../modules/home/packages/system.nix
     ../../modules/home/packages/terminals.nix
     ../../modules/home/packages/tmux.nix
+    ../../modules/home/packages/worktrunk.nix
     ../../modules/home/packages/yazi.nix
     ../../modules/home/packages/zinc-oxide.nix
     inputs.mozart409-nixvim.homeModules.default

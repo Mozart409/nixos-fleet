@@ -186,10 +186,17 @@
       "playwright@claude-plugins-official" = false;
       "rust-analyzer-lsp@claude-plugins-official" = true;
       "context-mode@context-mode" = true;
+      # WorktreeCreate/WorktreeRemove hooks (Claude worktrees via wt), activity
+      # markers in wt list, and the config skill.
+      "worktrunk@worktrunk" = true;
     };
     extraKnownMarketplaces.context-mode.source = {
       source = "github";
       repo = "mksglu/context-mode";
+    };
+    extraKnownMarketplaces.worktrunk.source = {
+      source = "github";
+      repo = "max-sixty/worktrunk";
     };
   };
 
