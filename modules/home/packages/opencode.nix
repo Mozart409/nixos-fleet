@@ -369,7 +369,12 @@ in {
       # beside cli.json.
       home.file.".config/opencode/plugins/herdr-agent-state.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/herdr-agent-state.js";
       home.file.".config/opencode/herdr-tui-session.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/herdr-tui-session.js";
-      home.file.".config/opencode/herdr-opencode/tui.js".source = "${pkgs.herdr}/share/herdr/integrations/opencode/tui.js";
+      # herdr's tui.js re-exports "../herdr-tui-session.js", which resolves
+      # against the symlink's store target (no such file there), so import
+      # the store file by absolute path instead.
+      home.file.".config/opencode/herdr-opencode/tui.js".text = ''
+        export { default } from "${pkgs.herdr}/share/herdr/integrations/opencode/herdr-tui-session.js";
+      '';
       home.file.".config/opencode/tui.jsonc" = {
         force = true;
         text = builtins.toJSON {plugin = ["./herdr-tui-session.js"];};
