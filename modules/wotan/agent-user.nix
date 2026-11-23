@@ -164,10 +164,33 @@
   credentialArgs =
     lib.mapAttrsToList (name: path: "--property=LoadCredential=${name}:${path}") cfg.credentials;
 
+  # herdr's claude/opencode integrations report the agent's state over
+  # $HERDR_SOCKET_PATH, which the sandboxed agent can neither see (/run/user is
+  # hidden) nor should open: herdr's real socket also takes pane.send_keys and
+  # friends, which would let the agent type into the owner's unsandboxed panes.
+  # So agent-run gives each session its own socket, and socat runs this filter
+  # per connection as the owner. Only the two report methods pass, with
+  # pane_id pinned to the session's pane and extra top-level keys dropped;
+  # everything else, non-JSON included, is dropped. Replies flow back.
+  # Env from agent-run: HERDR_FILTER_PANE, HERDR_FILTER_SOCKET (the real one).
+  herdrFilter = pkgs.writeShellScript "herdr-filter" ''
+    while IFS= read -r line; do
+      printf '%s\n' "$line" | ${pkgs.jq}/bin/jq -c --arg pane "$HERDR_FILTER_PANE" '
+        select(
+          type == "object"
+          and (.method == "pane.report_agent_session" or .method == "pane.report_agent")
+          and (.params | type == "object")
+        )
+        | {id: .id, method: .method, params: (.params + {pane_id: $pane})}
+      ' 2>/dev/null || true
+    done | ${pkgs.socat}/bin/socat -t 1 - UNIX-CONNECT:"$HERDR_FILTER_SOCKET"
+  '';
+
   # Root-owned launcher, the only command the owner may sudo to without a
   # password. Starts claude or opencode as the agent in a transient unit
   # with the sandbox above, in the caller's directory, which must be under
-  # codeDir.
+  # codeDir. Inside herdr it also runs the filtering socket for the session
+  # (see herdrFilter) for the length of the run.
   agentRun = pkgs.writeShellScriptBin "agent-run" ''
     set -eu
     case "''${1:-}" in
@@ -197,7 +220,41 @@
       fi
     ''}
     fi
-    exec ${config.systemd.package}/bin/systemd-run \
+    # Only for a real herdr pane whose socket is the owner's, so a forged
+    # HERDR_SOCKET_PATH cannot make the root-run proxy connect elsewhere. The
+    # dir is 0711 so the agent can reach the socket (mktemp makes it 0700).
+    herdr_dir=""
+    herdr_pid=""
+    cleanup() {
+      if [ -n "$herdr_pid" ]; then
+        kill "$herdr_pid" 2>/dev/null || true
+      fi
+      if [ -n "$herdr_dir" ]; then
+        ${pkgs.coreutils}/bin/rm -rf "$herdr_dir"
+      fi
+    }
+    trap cleanup EXIT
+    trap 'exit 1' INT TERM HUP
+    if [ "''${HERDR_ENV:-}" = 1 ] && [ -n "''${HERDR_PANE_ID:-}" ] && [ -n "''${HERDR_SOCKET_PATH:-}" ] \
+      && [ -S "$HERDR_SOCKET_PATH" ] \
+      && [ "$(${pkgs.coreutils}/bin/stat -c %U "$HERDR_SOCKET_PATH")" = ${cfg.owner} ]; then
+      herdr_dir="$(${pkgs.coreutils}/bin/mktemp -d /run/agent-herdr/XXXXXXXX)"
+      ${pkgs.coreutils}/bin/chmod 711 "$herdr_dir"
+      HERDR_FILTER_PANE="$HERDR_PANE_ID" HERDR_FILTER_SOCKET="$HERDR_SOCKET_PATH" \
+        ${pkgs.socat}/bin/socat \
+        "UNIX-LISTEN:$herdr_dir/herdr.sock,fork,unlink-early,max-children=4,user=${cfg.user},group=${cfg.user},mode=600" \
+        EXEC:${herdrFilter},su=${cfg.owner} &
+      herdr_pid=$!
+      for _ in {1..100}; do
+        [ -S "$herdr_dir/herdr.sock" ] && break
+        ${pkgs.coreutils}/bin/sleep 0.01
+      done
+      extra+=(--setenv=HERDR_ENV=1)
+      extra+=(--setenv=HERDR_PANE_ID="$HERDR_PANE_ID")
+      extra+=(--setenv=HERDR_SOCKET_PATH="$herdr_dir/herdr.sock")
+    fi
+    rc=0
+    ${config.systemd.package}/bin/systemd-run \
       --quiet --pty --wait --collect --service-type=exec \
       --uid=${cfg.user} --gid=${cfg.user} \
       --working-directory="$dir" \
@@ -205,7 +262,8 @@
       ''${COLORTERM:+--setenv=COLORTERM="$COLORTERM"} \
       ${lib.escapeShellArgs (map (p: "--property=${p}") sandboxProperties ++ credentialArgs)} \
       "''${extra[@]}" \
-      ${inner} "$@"
+      ${inner} "$@" || rc=$?
+    exit "$rc"
   '';
 in {
   options.wotan.agentUser = {
@@ -379,15 +437,18 @@ in {
         ];
       }
     ];
+    # HERDR_* tell agent-run which herdr pane and socket to proxy.
     security.sudo.extraConfig = ''
-      Defaults!/run/current-system/sw/bin/agent-run env_keep += "COLORTERM"
+      Defaults!/run/current-system/sw/bin/agent-run env_keep += "COLORTERM HERDR_ENV HERDR_PANE_ID HERDR_SOCKET_PATH"
     '';
 
     # Both users get rwx on codeDir, and the default ACLs make everything
     # created in it inherit that. This is non-recursive; the first time,
     # `just agent-acl` applies it to what already exists.
+    # /run/agent-herdr holds agent-run's per-session herdr sockets.
     systemd.tmpfiles.rules = [
       "a+ ${cfg.codeDir} - - - - u:${cfg.user}:rwx,d:u:${cfg.user}:rwx,d:u:${cfg.owner}:rwx"
+      "d /run/agent-herdr 0711 root root -"
     ];
 
     # Repos in codeDir belong to whichever user created them; without this git
