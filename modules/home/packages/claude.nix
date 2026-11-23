@@ -55,6 +55,24 @@
     exit 2
   '';
 
+  # `nix develop` cannot run in the sandbox: seccomp blocks the nix-daemon
+  # socket and the masked .gitmodules makes libgit2 fail even earlier
+  # (".gitmodules is locked: Permission denied"). It is not in
+  # excludedCommands because `-c` would run any command line unsandboxed. The
+  # direnv environment is loaded already, so point Claude at the bare tool.
+  # Sessions whose project turns the sandbox off are left alone.
+  nixDevelopGuard = pkgs.writeShellScript "claude-nix-develop-guard" ''
+    for f in settings.local.json settings.json; do
+      ${lib.getExe pkgs.jq} -e '.sandbox.enabled == false' "''${CLAUDE_PROJECT_DIR:-.}/.claude/$f" >/dev/null 2>&1 && exit 0
+    done
+    cmd=$(${lib.getExe pkgs.jq} -r '.tool_input.command // ""')
+    cmd=''${cmd//$'\n'/;}
+    detect='(^|[;&|(])[[:space:]]*((env|command|exec|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*nix([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+develop([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(-c|--command)([[:space:]]|$)'
+    [[ $cmd =~ $detect ]] || exit 0
+    echo 'Blocked: nix develop cannot run in the sandbox (no nix-daemon socket). The dev shell is already loaded through direnv: run the tool directly, without the nix develop -c wrapper. If the tool is not found, the .envrc of the directory is not allowed or not cached for the agent account (typical for a new worktree): say so and ask the user, do not skip the check silently.' >&2
+    exit 2
+  '';
+
   # Points every session at the delegate-implementation skill below, so the
   # model loads it for implementation work instead of relying on the
   # description match alone.
@@ -174,6 +192,10 @@
           {
             type = "command";
             command = "${gitCommitGuard}";
+          }
+          {
+            type = "command";
+            command = "${nixDevelopGuard}";
           }
         ];
       }

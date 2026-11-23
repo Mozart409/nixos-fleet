@@ -97,6 +97,15 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   `IPAddressDeny`, so it can't open private ranges they're kept out of. Only
   tools that honour `HTTP(S)_PROXY` get through; a new domain needs a switch.
   The harness processes themselves (model APIs, MCP) are not proxied.
+- **No `nix develop` in Claude's sandbox:** seccomp blocks the nix-daemon
+  socket, and the sandbox's `/dev/null` mask on `.gitmodules` makes the flake
+  fetch fail before that. `claude.nix` keeps it out of `excludedCommands` on
+  purpose (`-c` re-grants a whole command line); a PreToolUse guard rejects
+  `nix develop -c` unless the project's `.claude/settings.local.json` or
+  `.claude/settings.json` sets `sandbox.enabled = false`. Run tools directly:
+  the direnv environment is sourced before every Bash command, from
+  nix-direnv's cache, so it needs an allowed `.envrc` and a warm cache. A new
+  worktree has neither.
 - **opencode agent lineup (2026-11-15):** `modules/home/packages/opencode.nix`
   pins the agent models — GLM-5.3 supervises (`build` default, `plan`,
   `general`, and the read-only `review` subagent), DeepSeek V4.1 Flash does the
