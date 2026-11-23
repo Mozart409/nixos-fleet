@@ -60,11 +60,7 @@
   # (".gitmodules is locked: Permission denied"). It is not in
   # excludedCommands because `-c` would run any command line unsandboxed. The
   # direnv environment is loaded already, so point Claude at the bare tool.
-  # Sessions whose project turns the sandbox off are left alone.
   nixDevelopGuard = pkgs.writeShellScript "claude-nix-develop-guard" ''
-    for f in settings.local.json settings.json; do
-      ${lib.getExe pkgs.jq} -e '.sandbox.enabled == false' "''${CLAUDE_PROJECT_DIR:-.}/.claude/$f" >/dev/null 2>&1 && exit 0
-    done
     cmd=$(${lib.getExe pkgs.jq} -r '.tool_input.command // ""')
     cmd=''${cmd//$'\n'/;}
     detect='(^|[;&|(])[[:space:]]*((env|command|exec|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*nix([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+develop([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(-c|--command)([[:space:]]|$)'

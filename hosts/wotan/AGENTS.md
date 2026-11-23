@@ -101,9 +101,9 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   socket, and the sandbox's `/dev/null` mask on `.gitmodules` makes the flake
   fetch fail before that. `claude.nix` keeps it out of `excludedCommands` on
   purpose (`-c` re-grants a whole command line); a PreToolUse guard rejects
-  `nix develop -c` unless the project's `.claude/settings.local.json` or
-  `.claude/settings.json` sets `sandbox.enabled = false`. Run tools directly:
-  the direnv environment is sourced before every Bash command, from
+  `nix develop -c`. `managed-settings.json` pins the sandbox on
+  (`modules/wotan/claude-code.nix`), so a project can't turn it off. Run tools
+  directly: the direnv environment is sourced before every Bash command, from
   nix-direnv's cache, so it needs an allowed `.envrc` and a warm cache. The
   agent's direnv whitelists `~/code` (`agent-home.nix`), so worktrees are
   allowed; the cache is filled when `agent-run` starts in the directory, not
