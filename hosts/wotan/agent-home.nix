@@ -47,6 +47,11 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+    # direnv's allow is per path, so every new worktree started without its
+    # dev shell. An .envrc written under codeDir therefore runs outside the
+    # command sandboxes (agent-run start, every opencode shell command); the
+    # agent account and unit properties remain the boundary there.
+    config.whitelist.prefix = [osConfig.wotan.agentUser.codeDir];
   };
 
   # Commits keep amadeus as author, as before the move; they are signed with

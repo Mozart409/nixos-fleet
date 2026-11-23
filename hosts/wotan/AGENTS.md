@@ -104,8 +104,12 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   `nix develop -c` unless the project's `.claude/settings.local.json` or
   `.claude/settings.json` sets `sandbox.enabled = false`. Run tools directly:
   the direnv environment is sourced before every Bash command, from
-  nix-direnv's cache, so it needs an allowed `.envrc` and a warm cache. A new
-  worktree has neither.
+  nix-direnv's cache, so it needs an allowed `.envrc` and a warm cache. The
+  agent's direnv whitelists `~/code` (`agent-home.nix`), so worktrees are
+  allowed; the cache is filled when `agent-run` starts in the directory, not
+  when a running sandboxed session enters it. The price: an `.envrc` an agent
+  writes under `~/code` runs outside the command sandboxes, at `agent-run` start
+  and on every opencode shell command.
 - **opencode agent lineup (2026-11-15):** `modules/home/packages/opencode.nix`
   pins the agent models — GLM-5.3 supervises (`build` default, `plan`,
   `general`, and the read-only `review` subagent), DeepSeek V4.1 Flash does the
