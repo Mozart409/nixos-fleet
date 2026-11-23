@@ -76,6 +76,15 @@
       . "$cred"
       set +a
     done
+    # Autolith's MCP registration (modules/home/packages/autolith.nix) maps
+    # the full Authorization header value from AUTOLITH_MCP_AUTHORIZATION:
+    # mcparen adds no "Bearer " prefix the way Claude Code's
+    # managed-mcp.json or opencode's {env:VAR} templating does, so derive it
+    # from the raw AXON_GATEWAY_TOKEN credential sourced above. Autolith
+    # sessions only.
+    if [ "''${1:-}" = autolith ] && [ -n "''${AXON_GATEWAY_TOKEN:-}" ]; then
+      export AUTOLITH_MCP_AUTHORIZATION="Bearer ''${AXON_GATEWAY_TOKEN}"
+    fi
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       export PATH="$PATH:$HOME/.local/bin"

@@ -9,6 +9,7 @@
   # need: their config, direnv for the dev shells, node for the plugins, and
   # a git identity.
   imports = [
+    ../../modules/home/packages/autolith.nix
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
     ../../modules/home/packages/worktrunk.nix
@@ -19,6 +20,10 @@
   home.stateVersion = "24.11";
 
   opencode.enable = true;
+
+  # Registers the axon-gateway MCP server for autolith
+  # (modules/home/packages/autolith.nix).
+  autolith.enable = true;
 
   # OpenCode Go authenticates with the raw Console API key
   # (secrets/opencode-go-api-key.age); the server exports it as
