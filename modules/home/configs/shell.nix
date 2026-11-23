@@ -3,7 +3,16 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  # Named `claude` so herdr, which detects an agent by the pane's foreground
+  # process name, sees claude rather than sudo. It must not exec sudo: the
+  # shim has to stay in the foreground as the job's group leader.
+  claudeShim = pkgs.writeShellScriptBin "claude" ''
+    rc=0
+    sudo /run/current-system/sw/bin/agent-run claude "$@" || rc=$?
+    exit "$rc"
+  '';
+in {
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
@@ -222,7 +231,8 @@
       # the next launch, and other shell children don't carry the tokens.
       claude() {
         if [[ -x $_agent_run ]]; then
-          sudo "$_agent_run" claude "$@"
+          # Through claudeShim, so herdr detects the agent.
+          ${claudeShim}/bin/claude "$@"
           return
         fi
         AXON_GATEWAY_TOKEN="$(sed -n 's/^AXON_GATEWAY_TOKEN=//p' "''${AXON_GATEWAY_TOKEN_FILE:-/dev/null}" 2>/dev/null)" \
