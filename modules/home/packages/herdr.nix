@@ -37,6 +37,8 @@
       };
       # Desktop notifications via the session's notification daemon.
       ui.toast.delivery = "system";
+      # New tabs get a generated name instead of a name prompt.
+      ui.prompt_new_tab_name = false;
       keys = {
         # Same leader as tmux (tmux.nix). Bindings are "prefix+<key>", not a
         # "ctrl+space+<key>" chord, which herdr rejects.
