@@ -190,16 +190,16 @@
   '';
 
   # Root-owned launcher, the only command the owner may sudo to without a
-  # password. Starts claude or opencode as the agent in a transient unit
-  # with the sandbox above, in the caller's directory, which must be under
-  # codeDir. Inside herdr it also runs the filtering socket for the session
-  # (see herdrFilter) for the length of the run.
+  # password. Starts claude, opencode or autolith as the agent in a
+  # transient unit with the sandbox above, in the caller's directory, which
+  # must be under codeDir. Inside herdr it also runs the filtering socket
+  # for the session (see herdrFilter) for the length of the run.
   agentRun = pkgs.writeShellScriptBin "agent-run" ''
     set -eu
     case "''${1:-}" in
-      claude | opencode) ;;
+      claude | opencode | autolith) ;;
       *)
-        echo "usage: agent-run claude|opencode [args...]" >&2
+        echo "usage: agent-run claude|opencode|autolith [args...]" >&2
         exit 64
         ;;
     esac
@@ -282,7 +282,7 @@ in {
       type = lib.types.str;
       default = "/home/${cfg.user}";
       defaultText = lib.literalExpression ''"/home/''${config.wotan.agentUser.user}"'';
-      description = "The agents' home: ~/.claude, ~/.config/opencode and their state.";
+      description = "The agents' home: ~/.claude, ~/.config/opencode, ~/.config/autolith and their state.";
     };
 
     owner = lib.mkOption {
@@ -422,7 +422,7 @@ in {
       isNormalUser = true;
       inherit (cfg) home;
       group = cfg.user;
-      description = "Coding agents (Claude Code, opencode)";
+      description = "Coding agents (Claude Code, opencode, Autolith)";
       shell = pkgs.bashInteractive;
     };
 

@@ -1,30 +1,38 @@
 {
   config,
   pkgs,
+  inputs,
   username,
   ...
-}: {
+}: let
+  # The third coding harness, with claude-code and opencode (run as the
+  # `agent` account via agent-run). Not in nixpkgs: the flake input builds it
+  # against its own pinned nixpkgs.
+  autolith = inputs.autolith.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in {
   imports = [
     ./basics.nix
   ];
   # Common system packages that should be available on all hosts
-  environment.systemPackages = with pkgs; [
-    # keep-sorted start
-    alejandra
-    attic-client # switch.sh pushes the system closure to ventara-attic
-    claude-code
-    curl
-    dig
-    dust
-    forgejo-cli
-    git
-    opencode
-    pinentry-curses
-    pinentry-gnome3
-    vim # Essential editor
-    wget
-    # keep-sorted end
-  ];
+  environment.systemPackages = with pkgs;
+    [
+      # keep-sorted start
+      alejandra
+      attic-client # switch.sh pushes the system closure to ventara-attic
+      claude-code
+      curl
+      dig
+      dust
+      forgejo-cli
+      git
+      opencode
+      pinentry-curses
+      pinentry-gnome3
+      vim # Essential editor
+      wget
+      # keep-sorted end
+    ]
+    ++ [autolith];
 
   # Common programs that should be enabled on all hosts
   programs = {

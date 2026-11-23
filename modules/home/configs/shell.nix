@@ -12,6 +12,15 @@
     sudo /run/current-system/sw/bin/agent-run claude "$@" || rc=$?
     exit "$rc"
   '';
+
+  # Same trick for autolith: herdr sees `autolith` as the pane's foreground
+  # process, not sudo, and the shim stays in the foreground as the job's
+  # group leader.
+  autolithShim = pkgs.writeShellScriptBin "autolith" ''
+    rc=0
+    sudo /run/current-system/sw/bin/agent-run autolith "$@" || rc=$?
+    exit "$rc"
+  '';
 in {
   programs.starship = {
     enable = true;
@@ -172,9 +181,10 @@ in {
         tmux new-session -A -s "$name"
       }
 
-      # `tc` / `to`: like `t`, but window 1 runs claude / opencode, window 2
-      # is a plain shell and window 3 runs lazygit. Session "<dir>-claude" /
-      # "<dir>-opencode", which the tmux session-created hook skips (no nvim).
+      # `tc` / `to` / `ta`: like `t`, but window 1 runs claude / opencode /
+      # autolith, window 2 is a plain shell and window 3 runs lazygit.
+      # Session "<dir>-claude" / "<dir>-opencode" / "<dir>-autolith", which
+      # the tmux session-created hook skips (no nvim).
       _tai() {
         local name="''${''${PWD:t}//[.:]/_}-$2"
         if ! tmux has-session -t "=$name" 2>/dev/null; then
@@ -189,6 +199,7 @@ in {
       }
       tc() { _tai claude claude; }
       to() { _tai opencode opencode; }
+      ta() { _tai autolith autolith; }
 
       # Interactive `opencode` (no args, or only flags like -c/-s) connects to
       # the shared opencode-serve instance for $PWD instead of spawning its own
@@ -240,12 +251,27 @@ in {
           command claude "$@"
       }
 
-      # `tk` kills the current directory's `t`, `tc` and `to`
+      # On wotan autolith runs as the agent account too, confined to ~/code
+      # like claude and opencode (modules/wotan/agent-user.nix); its login and
+      # image state live in /home/agent (~/.config/autolith, image cores
+      # under ~/.local/share/autolith), so `autolith auth PROVIDER` runs
+      # inside the sandboxed session and writes there directly. Elsewhere it
+      # runs as the invoking user.
+      autolith() {
+        if [[ -x $_agent_run ]]; then
+          # Through autolithShim, so herdr detects the agent.
+          ${autolithShim}/bin/autolith "$@"
+          return
+        fi
+        command autolith "$@"
+      }
+
+      # `tk` kills the current directory's `t`, `tc`, `to` and `ta`
       # sessions (run from shell). `=` makes the target an exact match, not a
       # name prefix.
       tk() {
         local base="''${''${PWD:t}//[.:]/_}" name killed=0
-        for name in "$base" "$base-claude" "$base-opencode"; do
+        for name in "$base" "$base-claude" "$base-opencode" "$base-autolith"; do
           tmux kill-session -t "=$name" 2>/dev/null \
             && echo "killed tmux session: $name" && killed=1
         done

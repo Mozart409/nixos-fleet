@@ -4,10 +4,10 @@
   lib,
   ...
 }: {
-  # home-manager for `agent`, the account Claude Code and opencode run as
-  # (modules/wotan/agent-user.nix). Only what the harnesses need: their
-  # config, direnv for the dev shells, node for the plugins, and a git
-  # identity.
+  # home-manager for `agent`, the account Claude Code, opencode and
+  # Autolith run as (modules/wotan/agent-user.nix). Only what the harnesses
+  # need: their config, direnv for the dev shells, node for the plugins, and
+  # a git identity.
   imports = [
     ../../modules/home/packages/claude.nix
     ../../modules/home/packages/opencode.nix
