@@ -85,6 +85,8 @@
     if [ "''${1:-}" = autolith ] && [ -n "''${AXON_GATEWAY_TOKEN:-}" ]; then
       export AUTOLITH_MCP_AUTHORIZATION="Bearer ''${AXON_GATEWAY_TOKEN}"
     fi
+    # Autolith sends telemetry by default.
+    export AUTOLITH_TELEMETRY=off
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       export PATH="$PATH:$HOME/.local/bin"
