@@ -167,6 +167,11 @@
       # build. The overlay's Nix database forgets everything on reboot
       # (microvm.nix docs, "Writable /nix/store overlay"), so the image is
       # deleted before every start and recreated empty.
+      #
+      # Do not copy this share to a host people work on, such as wotan: the
+      # guest can read the whole store, including the source of every flake
+      # ever evaluated there. Guests on wotan get an image of their own closure
+      # (knowledge-base/projects/agent-platform/wotan Agent VMs.md, D4).
       shares = [
         {
           proto = "virtiofs";
