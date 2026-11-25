@@ -51,6 +51,7 @@ in {
   # amadeus@wotan); they never reach a fleet host.
   # keep-sorted start
 
+  "agent-vm-home-host-key.age".publicKeys = [amadeus hostWotan]; # SSH host private key (ed25519) of the home agent VM, handed to the guest as a credential
   "attic-db-password.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostDatabase]; # raw password; same value inside attic-db-url.age
   "attic-db-url.age".publicKeys = [amadeus amadeusWotanAge amadeusMacbookAge amadeusMacbook hostCache]; # env-file: ATTIC_SERVER_DATABASE_URL=postgresql://...
   "attic-push-token-wotan.age".publicKeys = [amadeus hostWotan]; # raw attic token (no KEY=), read via token-file by wotan's ventara-attic push

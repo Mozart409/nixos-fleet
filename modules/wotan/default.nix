@@ -13,11 +13,13 @@
   #   wotan.agentUser.enable          -> agent-clipboard.nix
   #   wotan.minecraft.enable          -> minecraft.nix
   #   wotan.vulnScan.enable           -> vuln-scan.nix
+  #   wotan.agentVm.<name>            -> agent-vm.nix
   #
   # common-packages.nix (which pulls basics.nix) is baseline and always applies.
   imports = [
     ./agent-clipboard.nix
     ./agent-user.nix
+    ./agent-vm.nix
     ./common-packages.nix
     ./claude-code.nix
     ./security.nix

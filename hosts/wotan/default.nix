@@ -18,6 +18,16 @@
   # opencode-go falls back to whatever /connect left in the agent's auth store.
   opencodeGoApiKey = builtins.pathExists ../../secrets/opencode-go-api-key.age;
 
+  # The home agent VM (modules/wotan/agent-vm.nix) needs the guest's SSH host
+  # key (secrets/agent-vm-home-host-key.age, agenix) and two public keys
+  # (hosts/wotan/agent-vm/home-host.pub, hosts/wotan/agent-vm/client.pub). Gated
+  # like llamaCppApiKey: `git add` all three or the VM stays off (a warning says
+  # so) and wotan evaluates without it.
+  agentVmHomeKeys =
+    builtins.pathExists ../../secrets/agent-vm-home-host-key.age
+    && builtins.pathExists ./agent-vm/home-host.pub
+    && builtins.pathExists ./agent-vm/client.pub;
+
   # The units the quickshell panel can switch on and off: the on-demand AI
   # services and the Minecraft server. One list for both halves: home-manager
   # renders the panel from it (desktop.quickshell.serviceToggles) and the polkit
@@ -181,6 +191,23 @@ in {
   # Weekly sbomnix scan of every fleet host, pushed to Prometheus
   # (modules/wotan/vuln-scan.nix)
   wotan.vulnScan.enable = true;
+
+  # Home agent microVM (modules/wotan/agent-vm.nix). Not autostarted and never
+  # restarted by a switch. index is the guest's address 10.200.0.<index>; never
+  # reuse one.
+  wotan.agentVm = lib.optionalAttrs agentVmHomeKeys {
+    home = {
+      index = 2;
+      vcpu = 6;
+      mem = 12288;
+      stateSize = 8192;
+      workSize = 40960;
+      storeSize = 30720;
+      hostKeyFile = config.age.secrets.agent-vm-home-host-key.path;
+      hostPublicKey = lib.trim (builtins.readFile ./agent-vm/home-host.pub);
+      clientPublicKey = lib.trim (builtins.readFile ./agent-vm/client.pub);
+    };
+  };
 
   # Security hardening
   security.hardening = {
@@ -513,7 +540,7 @@ in {
     # running; a stopped unit stays stopped.
     restartTriggers = lib.mkIf llamaCppApiKey [config.age.secrets.llama-cpp-api-key.file];
   };
-  warnings = lib.optional (!llamaCppApiKey) "wotan: secrets/llama-cpp-api-key.age is missing (or not git-added), so llama-server runs without an API key";
+  warnings = lib.optional (!llamaCppApiKey) "wotan: secrets/llama-cpp-api-key.age is missing (or not git-added), so llama-server runs without an API key" ++ lib.optional (!agentVmHomeKeys) "wotan: the home agent VM is off: secrets/agent-vm-home-host-key.age, hosts/wotan/agent-vm/home-host.pub or hosts/wotan/agent-vm/client.pub is missing (or not git-added)";
 
   # SillyTavern (stock nixpkgs module, global mode): web UI on
   # http://127.0.0.1:8045, loopback only. `listen` stays at its default
@@ -723,6 +750,14 @@ in {
   # Gated like attic-push-token-wotan (`agenix -e llama-cpp-api-key.age`).
   age.secrets.llama-cpp-api-key = lib.mkIf llamaCppApiKey {
     file = ../../secrets/llama-cpp-api-key.age;
+  };
+
+  # SSH host private key of the home agent VM, handed to the guest as a
+  # credential. Gated like llama-cpp-api-key (see agentVmHomeKeys above).
+  age.secrets.agent-vm-home-host-key = lib.mkIf agentVmHomeKeys {
+    file = ../../secrets/agent-vm-home-host-key.age;
+    owner = "microvm";
+    mode = "0400";
   };
 
   age.secrets.axon-token-wotan = {
