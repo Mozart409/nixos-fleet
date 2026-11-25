@@ -234,6 +234,8 @@
       fi
     ''}
     fi
+    # Its detached world server outlives the client and takes 60 s+ to die on SIGTERM.
+    [ "$1" != autolith ] || extra+=(--property=TimeoutStopSec=5s)
     # Only for a real herdr pane whose socket is the owner's, so a forged
     # HERDR_SOCKET_PATH cannot make the root-run proxy connect elsewhere. The
     # dir is 0711 so the agent can reach the socket (mktemp makes it 0700).
