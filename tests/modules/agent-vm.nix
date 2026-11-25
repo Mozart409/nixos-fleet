@@ -2,7 +2,8 @@
 # reachable from the host over SSH only, shows the guest nothing of the host
 # (no virtiofs/9p, read-only erofs store), gives the agent no privileges, and
 # the host's nft table keeps the guest away from the host and the LAN even
-# with forwarding on. Every probe has a positive control.
+# with forwarding on, and avm moves code between host and guest. Every probe
+# has a positive control.
 # `nix build .#nixosTests.x86_64-linux.agent-vm`
 {
   pkgs,
@@ -44,7 +45,7 @@ in
 
       systemd.services.listener = listener;
       networking.firewall.allowedTCPPorts = [8080];
-      environment.systemPackages = [pkgs.nftables];
+      environment.systemPackages = [pkgs.nftables pkgs.git];
 
       # Host key readable by the microvm user, client key as on wotan.
       environment.etc."avm-test/ssh-host-key" = {
@@ -263,6 +264,54 @@ in
 
           machine.succeed("ip link show avm-home")
           assert machine.succeed("ip -6 addr show dev avm-home").strip() == ""
+
+      with subtest("T-GIT: avm moves code between host and guest"):
+          def make_repo(name):
+              owner(
+                  f"mkdir -p ~/code/{name} && cd ~/code/{name} && git init -q -b main"
+                  " && git config user.name owner && git config user.email owner@host"
+                  " && echo hello > README && git add README && git commit -q -m init"
+              )
+
+          make_repo("demo")
+          owner("mkdir -p ~/.config/avm && echo 'demo home' > ~/.config/avm/repos")
+          host_head = owner("git -C ~/code/demo rev-parse HEAD")
+          assert "synced demo main" in owner("avm sync demo 2>&1")
+          assert agent("git -C /srv/work/demo rev-parse HEAD") == host_head
+          # T-GIT-8: the guest copy has no remote to push to.
+          assert agent("git -C /srv/work/demo remote -v") == ""
+
+          # An unmapped repo is refused and never reaches the guest.
+          make_repo("other")
+          out = owner("avm sync other 2>&1; echo rc=$?")
+          assert "is not mapped" in out and "rc=0" not in out, out
+          assert not agent_ok("test -e /srv/work/other")
+
+          # The environment cannot swap the ssh client.
+          assert "synced demo main" in owner("AVM_SSH=/nonexistent avm sync demo 2>&1")
+
+          work_head = agent(
+              "cd /srv/work/demo && git switch -q -c work && echo '{}' > flake.nix"
+              " && git add flake.nix && git -c user.name=agent -c user.email=agent@home commit -q -m work"
+              " && git rev-parse HEAD"
+          )
+          # Positive control for the ok below: the agent's branch is not on the host yet.
+          out = owner("avm wipe-check home 2>&1; echo rc=$?")
+          assert "lost demo refs/heads/work" in out and "rc=0" not in out, out
+
+          refs_cmd = "git -C ~/code/demo for-each-ref refs/heads; git -C ~/code/demo rev-parse HEAD"
+          before = owner(refs_cmd)
+          assert "new home/work" in owner("avm fetch demo 2>&1")
+          assert owner(refs_cmd) == before
+          assert owner("git -C ~/code/demo rev-parse refs/agents/home/work") == work_head
+          owner("test ! -e ~/code/demo/flake.nix")
+
+          review = owner("cd ~/code/demo && avm review home/work 2>&1")
+          sensitive = review.split("== execution-sensitive paths", 1)[1].split("== diff", 1)[0]
+          assert "flake.nix" in sensitive, review
+
+          out = owner("avm wipe-check home 2>&1; echo rc=$?")
+          assert "ok: wiping home" in out and "rc=0" in out, out
 
       with subtest("the owner still reaches the guest"):
           assert owner("avm-ssh avm-home id -un") == "agent"

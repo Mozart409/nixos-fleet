@@ -481,8 +481,10 @@ cmd_wipe_check() {
   [[ ${#mine[@]} -gt 0 ]] || die "$vm does not occur in $AVM_REPOS"
   mkwork
 
-  # Clones have a .git directory; linked worktrees have a .git file.
-  if ! vm_ssh "$vm" "cd /srv/work && find . -mindepth 2 -maxdepth 2 -name .git -type d -print0" \
+  # Clones have a .git directory; linked worktrees have a .git file. The volume's
+  # own lost+found is unreadable for the agent and would fail the find; only a
+  # root-owned one is skipped, so the agent cannot hide a clone there.
+  if ! vm_ssh "$vm" "cd /srv/work && find . -maxdepth 2 -path ./lost+found -user 0 -prune -o -path './*/.git' -type d -print0" \
     >"$WORK/clones"; then
     echo "refuse: cannot list clones on $vm" >&2
     exit 1

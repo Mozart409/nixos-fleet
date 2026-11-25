@@ -119,7 +119,7 @@ home, amadeus's session sockets (gpg, ssh, Wayland, D-Bus) or `/run/agenix`.
   keeps 20k of recent context. Thinking is hidden in the TUI. Verify what is
   live with `opencode debug agents` / `opencode debug config` from your own
   shell — the sandboxed agent shell cannot run them (read-only log dir).
-- **Agent VM (in progress):** `modules/wotan/agent-vm.nix` defines microVMs meant to replace the `agent` account. `home` (10.200.0.2) is reachable with `avm-ssh avm-home` only, shares nothing with wotan and has no network. It is off until its three key files are tracked (`agentVmHomeKeys` in `default.nix`), never autostarts, and a switch never restarts it: `sudo systemctl start|stop microvm@home`. Test: `nix build .#nixosTests.x86_64-linux.agent-vm`.
+- **Agent VM (in progress):** `modules/wotan/agent-vm.nix` defines microVMs meant to replace the `agent` account. `home` (10.200.0.2) is reachable with `avm-ssh avm-home` only, shares nothing with wotan and has no network. It is off until its three key files are tracked (`agentVmHomeKeys` in `default.nix`), never autostarts, and a switch never restarts it: `sudo systemctl start|stop microvm@home`. `avm` (`modules/wotan/avm/`) moves code as git objects: `avm sync|fetch|review`; its repo-to-VM mapping is `~amadeus/.config/avm/repos`, outside this public tree. Test: `nix build .#nixosTests.x86_64-linux.agent-vm`.
 - **State lives in `/home/agent`:** `~/.claude`, `~/.claude.json`,
   `~/.config/opencode`, `~/.local/share/opencode`. A Claude permission rule for
   a file in the repo needs the absolute form (`Read(//home/amadeus/code/…)`):

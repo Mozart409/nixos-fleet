@@ -17,6 +17,12 @@
   hostStateVersion = config.system.stateVersion;
   hostTimeZone = config.time.timeZone;
 
+  # -F skips ~/.ssh/config and /etc/ssh/ssh_config, whose `Host *`
+  # settings would otherwise win over ours.
+  avmSsh = pkgs.writeShellScriptBin "avm-ssh" ''
+    exec ${pkgs.openssh}/bin/ssh -F /etc/avm/ssh_config "$@"
+  '';
+
   guest = name: vm: {
     system.stateVersion = hostStateVersion;
     time.timeZone = hostTimeZone;
@@ -379,12 +385,11 @@ in {
       environment.etc."avm/known_hosts".text =
         lib.concatStrings (lib.mapAttrsToList (name: vm: "avm-${name} ${vm.hostPublicKey}\n") cfg);
 
-      # -F skips ~/.ssh/config and /etc/ssh/ssh_config, whose `Host *`
-      # settings would otherwise win over ours.
+      # The repo-to-VM mapping stays in the user's ~/.config/avm/repos, not
+      # here: infra/ is public and business repo names must not land in it.
       environment.systemPackages = [
-        (pkgs.writeShellScriptBin "avm-ssh" ''
-          exec ${pkgs.openssh}/bin/ssh -F /etc/avm/ssh_config "$@"
-        '')
+        avmSsh
+        (pkgs.callPackage ./avm/package.nix {inherit avmSsh;})
       ];
     })
   ];
