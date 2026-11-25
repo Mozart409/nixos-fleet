@@ -82,6 +82,20 @@ in
         };
         users.users.root.openssh.authorizedKeys.keys = [snakeoil.snakeOilPublicKey];
         environment.systemPackages = [pkgs.curl pkgs.iproute2];
+        # Guest network state on the serial console, i.e. in the test log: the
+        # only view of a guest that SSH cannot reach.
+        systemd.services.net-debug = {
+          wantedBy = ["multi-user.target"];
+          after = ["systemd-networkd.service"];
+          path = [pkgs.iproute2];
+          serviceConfig.StandardOutput = "journal+console";
+          script = ''
+            sleep 5
+            ip addr
+            ip route
+            journalctl -b --no-pager -u systemd-networkd.service
+          '';
+        };
       };
     };
 
@@ -137,10 +151,14 @@ in
           return root(f"{cmd} >/dev/null 2>&1 && echo yes || echo no") == "yes"
 
       def wait_for_guest():
-          machine.wait_until_succeeds(
-              "su - amadeus -c 'avm-ssh -o BatchMode=yes -o ConnectTimeout=5 avm-home true'",
-              timeout=600,
-          )
+          try:
+              machine.wait_until_succeeds(
+                  "su - amadeus -c 'avm-ssh -o BatchMode=yes -o ConnectTimeout=5 avm-home true'",
+                  timeout=120,
+              )
+          except Exception:
+              print(machine.execute("ip -s addr show dev avm-home; ip route; ip neigh; nft list ruleset")[1])
+              raise
 
       start_all()
       machine.wait_for_unit("multi-user.target")
@@ -159,7 +177,7 @@ in
           assert agent("id -un") == "agent"
 
       with subtest("T-ISO-3: qemu runs as the microvm user"):
-          procs = machine.succeed("ps -eo user=,args= | grep '[q]emu-system'").splitlines()
+          procs = machine.succeed("ps -eo user=,comm= | grep 'qemu-system'").splitlines()
           assert procs, "no qemu process"
           assert all(p.split()[0] == "microvm" for p in procs), procs
 
@@ -217,7 +235,7 @@ in
 
       with subtest("T-ISO-4/T-NET-1: no route out, and the filter holds with one"):
           assert not [l for l in root("ip route").splitlines() if l.startswith("default")]
-          dev = root("ip -4 -o route show to 10.200.0.0/24").split()[2]
+          dev = root("ip -4 -o route get 10.200.0.1").split()[2]
           targets = {"host (tap end)": "10.200.0.1", "host (LAN address)": machine_ip, "lan": lan_ip}
 
           def reachable():

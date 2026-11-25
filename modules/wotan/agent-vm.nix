@@ -89,8 +89,10 @@
       address = ["${guestAddr vm}/32"];
       routes = [
         {
+          # Not GatewayOnLink (microvm.nix's docs): the kernel rejects onlink
+          # on a route without a gateway.
           Destination = "${hostAddr}/32";
-          GatewayOnLink = true;
+          Scope = "link";
         }
       ];
       linkConfig.RequiredForOnline = "no";
