@@ -152,7 +152,7 @@
       '';
     };
 
-    environment.systemPackages = [pkgs.git];
+    environment.systemPackages = [pkgs.git pkgs.ripgrep];
     documentation.enable = false;
   };
 
