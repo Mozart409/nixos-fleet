@@ -43,7 +43,7 @@
           :headers
           (("Authorization" :environment "AUTOLITH_MCP_AUTHORIZATION")))
          :approval :allow
-         :required-p nil))
+         :required-p nil)))
     '';
   };
 }
