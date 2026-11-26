@@ -91,6 +91,8 @@
     # (autolithEnvFile). The env wins over preferences.sexp.
     export AUTOLITH_MODEL_PROVIDER=opencode-go
     export AUTOLITH_MODEL=opencode/glm-5.3-flash
+    # glm-5.3-flash takes low, high or max; the default "medium" fails.
+    export AUTOLITH_REASONING_EFFORT=high
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       export PATH="$PATH:$HOME/.local/bin"
