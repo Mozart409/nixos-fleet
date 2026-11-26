@@ -91,7 +91,9 @@
     # (autolithEnvFile). The env wins over preferences.sexp.
     export AUTOLITH_MODEL_PROVIDER=opencode-go
     export AUTOLITH_MODEL=opencode/glm-5.3-flash
-    # glm-5.3-flash takes low, high or max; the default "medium" fails.
+    # glm-5.3-flash takes low, high or max; the default "medium" fails. run-job
+    # and delegated child tasks always run at "medium" (Autolith 0.69), so give
+    # those another model with --model.
     export AUTOLITH_REASONING_EFFORT=high
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
