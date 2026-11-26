@@ -5,6 +5,7 @@
   ...
 }: let
   cfg = config.wotan.agentUser;
+  domains = import ./agent-domains.nix;
 
   # Every agent process (interactive claude/opencode via agent-run, and
   # opencode-serve) runs in a mount namespace where /home and /run/user are
@@ -400,35 +401,14 @@ in {
 
       allowedDomains = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [
-          "localhost"
-          "127.0.0.1"
-          "*.homelab.internal"
-          # Rust
-          "crates.io"
-          "index.crates.io"
-          "static.crates.io"
-          "static.rust-lang.org"
-          "docs.rs"
-          # GitHub (git over https, API, release assets, raw files)
-          "github.com"
-          "*.github.com"
-          "*.githubusercontent.com"
-          # Nix
-          "cache.nixos.org"
-          "channels.nixos.org"
-          "nixos.org"
-          "search.nixos.org"
-          # Other package registries
-          "registry.npmjs.org"
-          "pypi.org"
-          "files.pythonhosted.org"
-          "proxy.golang.org"
-          "sum.golang.org"
-          "hex.pm"
-          "repo.hex.pm"
-          "builds.hex.pm"
-        ];
+        # The registry hosts come from agent-domains.nix.
+        default =
+          ["localhost" "127.0.0.1" "*.homelab.internal"]
+          ++ lib.concatMap (g: domains.groups.${g}.allow) ["rust" "git" "nix" "npm" "python" "go" "hex"];
+        defaultText = lib.literalExpression ''
+          ["localhost" "127.0.0.1" "*.homelab.internal"]
+          ++ lib.concatMap (g: domains.groups.''${g}.allow) ["rust" "git" "nix" "npm" "python" "go" "hex"]
+        '';
         description = ''
           Hosts that sandboxed agent commands (Claude Code's Bash tool,
           opencode's shell) may reach, through agent-proxy. tinyproxy fnmatch

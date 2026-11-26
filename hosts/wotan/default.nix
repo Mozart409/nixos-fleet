@@ -83,6 +83,11 @@ in {
     # fine next to base.nix.
     ../../modules/dns-client-cache.nix
 
+    # The fleet's Loki shipper: outbound only, and off unless something sets
+    # services.loki-logs.enable (modules/wotan/agent-egress.nix does while an
+    # agent VM is defined).
+    ../../modules/fluent-bit.nix
+
     # Shared NixOS modules (aggregator — each gated by its own enable flag)
     ../../modules/wotan
 

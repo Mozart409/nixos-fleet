@@ -8,6 +8,7 @@
 {
   pkgs,
   microvm,
+  avm-egress,
 }: let
   snakeoil = import "${pkgs.path}/nixos/tests/ssh-keys.nix" pkgs;
 
@@ -29,6 +30,7 @@ in
 
     nodes.machine = {...}: {
       imports = [../../modules/wotan/agent-vm.nix];
+      wotan.agentEgress.package = avm-egress;
 
       users.users.amadeus.isNormalUser = true;
 

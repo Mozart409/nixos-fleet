@@ -7,9 +7,8 @@
 }: let
   cfg = config.wotan.agentVm;
 
-  hostAddr = "10.200.0.1";
-  guestAddr = vm: "10.200.0.${toString vm.index}";
-  tap = name: "avm-${name}";
+  domains = import ./agent-domains.nix;
+  inherit (import ./agent-vm-net.nix) hostAddr guestAddr tap;
   mac = vm: "02:00:00:c8:00:${lib.fixedWidthString 2 "0" (lib.toHexString vm.index)}";
   stateDir = name: "${config.microvm.stateDir}/${name}";
   # The guest's own `config` shadows the host's inside `guest`, so read what
@@ -87,7 +86,9 @@
     };
 
     # Routed, not bridged: one tap and one /32 per VM, and no default route,
-    # so the guest reaches the host's address and nothing else.
+    # so the guest reaches the host's address and nothing else. DNS and HTTPS
+    # go to avm-egress on the host address.
+    networking.nameservers = [hostAddr];
     networking.useNetworkd = true;
     networking.useDHCP = false;
     systemd.network.networks."10-eth" = {
@@ -207,6 +208,11 @@
         type = lib.types.str;
         description = "The public key wotan's user logs in to the guest with.";
       };
+      egress.groups = lib.mkOption {
+        type = lib.types.listOf (lib.types.enum (lib.attrNames domains.groups));
+        default = lib.attrNames domains.groups;
+        description = "Groups from agent-domains.nix the VM's avm-egress allows.";
+      };
     };
   };
 
@@ -218,6 +224,9 @@
   # conntrack matches a packet's 5-tuple without the interface, so an
   # unpinned `established` rule would let a guest inject packets into any of
   # wotan's other connections. `related` is left out on purpose.
+  #
+  # The DNS (UDP/TCP 53) and HTTPS (TCP 443) accepts are the only new
+  # connections a guest may open; they go to avm-egress on the host address.
   ruleset = pkgs.writeText "agent-vm.nft" ''
     table inet agent-vm {}
     delete table inet agent-vm
@@ -225,6 +234,7 @@
       chain input {
         type filter hook input priority -10; policy accept;
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: vm: "    iifname \"${tap name}\" ip saddr ${guestAddr vm} ip daddr ${hostAddr} ct state established accept") cfg)}
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: vm: "    iifname \"${tap name}\" ip saddr ${guestAddr vm} ip daddr ${hostAddr} udp dport 53 accept\n    iifname \"${tap name}\" ip saddr ${guestAddr vm} ip daddr ${hostAddr} tcp dport { 53, 443 } accept") cfg)}
         iifname "avm-*" drop
       }
       chain forward {
@@ -255,15 +265,15 @@
   indexes = lib.mapAttrsToList (_: vm: vm.index) cfg;
   totalMiB = lib.foldl' (acc: vm: acc + vm.stateSize + vm.workSize + vm.storeSize) 0 (lib.attrValues cfg);
 in {
-  imports = [inputs.microvm.nixosModules.host];
+  imports = [inputs.microvm.nixosModules.host ./agent-egress.nix];
 
   options.wotan.agentVm = lib.mkOption {
     type = lib.types.attrsOf (lib.types.submodule vmOptions);
     default = {};
     description = ''
       MicroVMs for coding agents. Each attribute is one VM: the guest is
-      reachable by SSH from this host only, shares nothing with it and has no
-      other network.
+      reachable by SSH from this host only, shares nothing with it and reaches
+      only what its avm-egress allows.
     '';
   };
 
@@ -287,6 +297,15 @@ in {
       hardware.ksm.enable = false;
 
       networking.networkmanager.unmanaged = ["interface-name:avm-*"];
+
+      # An nft accept is not final across base chains, so the NixOS firewall
+      # must open the avm-egress ports on each tap as well.
+      networking.firewall.interfaces = lib.mapAttrs' (name: _:
+        lib.nameValuePair (tap name) {
+          allowedUDPPorts = [53];
+          allowedTCPPorts = [53 443];
+        })
+      cfg;
 
       assertions =
         lib.concatLists (lib.mapAttrsToList assertsFor cfg)

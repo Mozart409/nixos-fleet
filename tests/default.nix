@@ -7,6 +7,7 @@
   disko,
   agenix,
   microvm,
+  avm-egress,
   system,
 }: let
   pkgs = import nixpkgs {
@@ -20,5 +21,5 @@ in {
   database = import ./hosts/database.nix {inherit harness;};
   # Module tests (no host config): `nix build .#nixosTests.x86_64-linux.agent-user`
   agent-user = import ./modules/agent-user.nix {inherit pkgs;};
-  agent-vm = import ./modules/agent-vm.nix {inherit pkgs microvm;};
+  agent-vm = import ./modules/agent-vm.nix {inherit pkgs microvm avm-egress;};
 }
