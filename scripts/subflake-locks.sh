@@ -53,7 +53,11 @@ shared() {
 status=0
 for dir in "$@"; do
   dir=${dir%/}
-  if [[ ! -f $dir/flake.lock ]]; then
+  if [[ ! -f $dir/flake.lock && $mode == sync ]]; then
+    # A new subflake: lock it once, then pin the shared inputs below.
+    echo "$dir: no flake.lock yet, creating it"
+    nix flake lock "./$dir"
+  elif [[ ! -f $dir/flake.lock ]]; then
     echo "error: $dir/flake.lock does not exist" >&2
     exit 1
   fi
