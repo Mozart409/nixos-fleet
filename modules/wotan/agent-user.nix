@@ -90,7 +90,7 @@
     # Autolith's default model: OpenCode Go, keyed by OPENCODE_API_KEY
     # (autolithEnvFile). The env wins over preferences.sexp.
     export AUTOLITH_MODEL_PROVIDER=opencode-go
-    export AUTOLITH_MODEL=opencode-go/glm-5.3-flash
+    export AUTOLITH_MODEL=opencode/glm-5.3-flash
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       export PATH="$PATH:$HOME/.local/bin"
