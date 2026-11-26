@@ -18,6 +18,11 @@
   # opencode-go falls back to whatever /connect left in the agent's auth store.
   opencodeGoApiKey = builtins.pathExists ../../secrets/opencode-go-api-key.age;
 
+  # Autolith's OpenCode Go key (secrets/autolith-env.age, OPENCODE_API_KEY=...).
+  # Gated like llamaCppApiKey; `git add` the .age file or autolith falls back to
+  # its own auth store.
+  autolithEnv = builtins.pathExists ../../secrets/autolith-env.age;
+
   # The home agent VM (modules/wotan/agent-vm.nix) needs the guest's SSH host
   # key (secrets/agent-vm-home-host-key.age, agenix) and two public keys
   # (hosts/wotan/agent-vm/home-host.pub, hosts/wotan/agent-vm/client.pub). Gated
@@ -429,6 +434,8 @@ in {
     owner = username;
     # The opencode TUI runs as the agent too and logs in with this.
     serverPasswordFile = config.age.secrets.opencode-server-password.path;
+    # OpenCode Go key for Autolith sessions only.
+    autolithEnvFile = lib.mkIf autolithEnv config.age.secrets.autolith-env.path;
     credentials = {
       axon-gateway = config.age.secrets.axon-token-wotan.path;
       ventara-gateway = config.age.secrets.ventara-gateway-env.path;
@@ -791,6 +798,12 @@ in {
     mode = "400";
     owner = username;
     # Format inside the file: one raw OpenCode console API key line, no KEY= prefix.
+  };
+
+  age.secrets.autolith-env = lib.mkIf autolithEnv {
+    file = ../../secrets/autolith-env.age;
+    # Format inside the file: OPENCODE_API_KEY=xxxx (an OpenCode Go key).
+    # Read as root by agent-run's LoadCredential, so the default root 0400 is enough.
   };
 
   age.secrets.ha-token = {

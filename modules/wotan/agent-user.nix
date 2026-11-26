@@ -87,6 +87,10 @@
     fi
     # Autolith sends telemetry by default.
     export AUTOLITH_TELEMETRY=off
+    # Autolith's default model: OpenCode Go, keyed by OPENCODE_API_KEY
+    # (autolithEnvFile). The env wins over preferences.sexp.
+    export AUTOLITH_MODEL_PROVIDER=opencode-go
+    export AUTOLITH_MODEL=opencode-go/glm-5.3-flash
     exec ${pkgs.bashInteractive}/bin/bash -l -c '
       eval "$(direnv export bash 2>/dev/null)"
       export PATH="$PATH:$HOME/.local/bin"
@@ -235,7 +239,13 @@
     ''}
     fi
     # Its detached world server outlives the client and takes 60 s+ to die on SIGTERM.
-    [ "$1" != autolith ] || extra+=(--property=TimeoutStopSec=5s)
+    if [ "$1" = autolith ]; then
+      extra+=(--property=TimeoutStopSec=5s)
+      # Only Autolith sessions get the OpenCode Go key.
+      ${lib.optionalString (cfg.autolithEnvFile != null) ''
+      extra+=(--property=LoadCredential=autolith-env:${cfg.autolithEnvFile})
+    ''}
+    fi
     # Only for a real herdr pane whose socket is the owner's, so a forged
     # HERDR_SOCKET_PATH cannot make the root-run proxy connect elsewhere. The
     # dir is 0711 so the agent can reach the socket (mktemp makes it 0700).
@@ -329,6 +339,17 @@ in {
         root) and exported only into opencode TUI sessions (`agent-run opencode
         --server ...`). Claude sessions never get it, so they cannot use
         the server to get around their own sandbox.
+      '';
+    };
+
+    autolithEnvFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/run/agenix/autolith-env";
+      description = ''
+        KEY=value env file with OPENCODE_API_KEY (the OpenCode Go key), read by
+        systemd (as root) and exported only into Autolith sessions (`agent-run
+        autolith`).
       '';
     };
 
