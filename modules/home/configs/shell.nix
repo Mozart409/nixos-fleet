@@ -21,6 +21,23 @@
     sudo /run/current-system/sw/bin/agent-run autolith "$@" || rc=$?
     exit "$rc"
   '';
+
+  # Same trick for opencode, but not for interactive use (the zsh function
+  # below is that path): worktrunk's `--execute`, which the `wsc`/`wso`
+  # aliases pass these shims to, resolves a program on PATH, not a zsh
+  # function. Named `opencode` so herdr still sees the agent in the pane.
+  # Worktrunk starts the program inside the switched-to worktree, so $PWD
+  # here is that worktree — the v2 attach form needs it as the trailing
+  # positional after `--server`, which an alias could not expand correctly
+  # itself ($PWD would still be the pre-switch directory). Interactive form
+  # only: args after `--` are flags for the TUI, not subcommands.
+  opencodeShim = pkgs.writeShellScriptBin "opencode" ''
+    rc=0
+    url="''${OPENCODE_SERVER_URL:-http://127.0.0.1:4096}"
+    sudo /run/current-system/sw/bin/agent-run opencode \
+      --server "$url" "$@" "$PWD" || rc=$?
+    exit "$rc"
+  '';
 in {
   programs.starship = {
     enable = true;
@@ -157,6 +174,14 @@ in {
       n = "nvim .";
       op = "opencode";
       s = "kitty +kitten ssh";
+      # worktrunk: create a worktree for a new branch and launch the agent
+      # in it; args after `--` reach the agent, e.g.
+      # `wsc feature-x -- 'Fix GH #322'`. Through the agent-run shims, so
+      # the harness runs as the confined agent account like an interactive
+      # `claude`/`opencode`, not the system binaries `wt --execute` would
+      # otherwise look up on PATH.
+      wsc = "wt switch --create --execute=${claudeShim}/bin/claude";
+      wso = "wt switch --create --execute=${opencodeShim}/bin/opencode";
     };
     initContent = ''
       export PATH="$HOME/.cargo/bin:$PATH"
